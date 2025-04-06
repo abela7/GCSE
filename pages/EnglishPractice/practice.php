@@ -145,10 +145,21 @@ require_once __DIR__ . '/../../includes/header.php'; // Uses conditional CSS loa
             const practiceItems = <?php echo $remaining_items_js; ?>;
             const totalItems = <?php echo $total_item_count; ?>;
             
-            // Log to verify script is running
-            console.log('Practice page script running');
-            console.log('Total items:', totalItems);
-            console.log('Practice items:', practiceItems);
+            // Simple reveal button functionality
+            document.getElementById('flashcard-reveal').addEventListener('click', function() {
+                document.getElementById('flashcard-details').style.display = 'block';
+                this.style.display = 'none';
+                document.getElementById('flashcard-next').style.display = 'inline-block';
+            });
+
+            // Simple favorite button functionality
+            document.getElementById('favorite-button').addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                this.classList.toggle('btn-warning');
+                this.classList.toggle('btn-outline-warning');
+                icon.classList.toggle('far');
+                icon.classList.toggle('fas');
+            });
         </script>
 
     <?php endif; ?>
