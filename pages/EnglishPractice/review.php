@@ -32,8 +32,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// Get items with favorite status
-$where_clause = isset($_GET['favorites']) ? "WHERE fpi.practice_item_id IS NOT NULL" : "";
+// Get all categories for filter
+$categories = [];
+$category_query = "SELECT id, name FROM practice_categories ORDER BY name ASC";
+$category_result = $conn->query($category_query);
+if ($category_result) {
+    while ($row = $category_result->fetch_assoc()) {
+        $categories[] = $row;
+    }
+    $category_result->free();
+}
+
+// Handle filters
+$selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
+$where_conditions = [];
+
+if (isset($_GET['favorites']) && $_GET['favorites'] == 1) {
+    $where_conditions[] = "fpi.practice_item_id IS NOT NULL";
+}
+
+if ($selected_category > 0) {
+    $where_conditions[] = "pi.category_id = " . $selected_category;
+}
+
+$where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
+
+// Get items with filters applied
 $items = [];
 $query = "
     SELECT pi.*, pc.name as category_name, 
@@ -208,6 +232,31 @@ require_once __DIR__ . '/../../includes/header.php';
     background-color: var(--accent-color) !important;
     color: white !important;
 }
+
+.filter-section {
+    background-color: var(--accent-lighter);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-section select {
+    border-color: var(--accent-color);
+}
+
+.filter-section select:focus {
+    border-color: var(--accent-dark);
+    box-shadow: 0 0 0 0.2rem rgba(205, 175, 86, 0.25);
+}
+
+.filter-badge {
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    margin-left: 0.5rem;
+}
 </style>
 
 <div class="container py-4">
@@ -243,19 +292,46 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <ul class="nav nav-pills mb-4">
-        <li class="nav-item">
-            <a class="nav-link <?php echo !isset($_GET['favorites']) ? 'active' : ''; ?>" href="review.php">
-                <i class="fas fa-list me-2"></i>All Items
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?php echo isset($_GET['favorites']) ? 'active' : ''; ?>" href="?favorites=1">
-                <i class="fas fa-star me-2"></i>Favorites
-            </a>
-        </li>
-    </ul>
+    <!-- Filter Section -->
+    <div class="filter-section mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="categoryFilter" class="form-label fw-bold">Filter by Category</label>
+                <select class="form-select" id="categoryFilter" name="category" onchange="this.form.submit()">
+                    <option value="0">All Categories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo $category['id']; ?>" 
+                                <?php echo ($selected_category == $category['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($category['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="fw-bold">Quick Filters:</span>
+                    <a href="review.php" class="btn btn-sm <?php echo (!isset($_GET['favorites']) && !$selected_category) ? 'btn-accent' : 'btn-outline-accent'; ?>">
+                        All Items
+                    </a>
+                    <a href="?favorites=1" class="btn btn-sm <?php echo isset($_GET['favorites']) ? 'btn-accent' : 'btn-outline-accent'; ?>">
+                        <i class="fas fa-star me-1"></i>Favorites
+                    </a>
+                    <?php if ($selected_category): ?>
+                        <div class="ms-2">
+                            <span class="filter-badge">
+                                Category: <?php echo htmlspecialchars(array_values(array_filter($categories, function($cat) use ($selected_category) { 
+                                    return $cat['id'] == $selected_category; 
+                                }))[0]['name']); ?>
+                                <a href="<?php echo isset($_GET['favorites']) ? '?favorites=1' : 'review.php'; ?>" class="text-white text-decoration-none ms-2">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </span>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Items Grid -->
     <div class="row g-4">
