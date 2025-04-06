@@ -296,16 +296,28 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="filter-section mb-4">
         <div class="row align-items-center">
             <div class="col-md-4 mb-3 mb-md-0">
-                <label for="categoryFilter" class="form-label fw-bold">Filter by Category</label>
-                <select class="form-select" id="categoryFilter" name="category" onchange="this.form.submit()">
-                    <option value="0">All Categories</option>
-                    <?php foreach ($categories as $category): ?>
-                        <option value="<?php echo $category['id']; ?>" 
-                                <?php echo ($selected_category == $category['id']) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($category['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <form method="GET" class="d-flex gap-2 align-items-end">
+                    <?php if (isset($_GET['favorites'])): ?>
+                        <input type="hidden" name="favorites" value="1">
+                    <?php endif; ?>
+                    <div class="flex-grow-1">
+                        <label for="categoryFilter" class="form-label fw-bold">Filter by Category</label>
+                        <select class="form-select" id="categoryFilter" name="category">
+                            <option value="0">All Categories</option>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?php echo $category['id']; ?>" 
+                                        <?php echo ($selected_category == $category['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                    </div>
+                </form>
             </div>
             <div class="col-md-8">
                 <div class="d-flex flex-wrap gap-2 align-items-center">
