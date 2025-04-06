@@ -10,12 +10,32 @@ $page_title = "English Practice Dashboard";
 $today = date('Y-m-d');
 $today_practice_id = get_practice_day_id($conn, $today);
 
+// Get favorite items
+$favorites_sql = "
+    SELECT pi.*, pc.name as category_name, fpi.favorited_at,
+           pd.practice_date
+    FROM favorite_practice_items fpi
+    JOIN practice_items pi ON fpi.practice_item_id = pi.id
+    JOIN practice_categories pc ON pi.category_id = pc.id
+    JOIN practice_days pd ON pi.practice_day_id = pd.id
+    ORDER BY fpi.favorited_at DESC
+    LIMIT 5";
+$favorite_items = [];
+if ($result = $conn->query($favorites_sql)) {
+    while ($row = $result->fetch_assoc()) {
+        $favorite_items[] = $row;
+    }
+    $result->free();
+}
+
 // Get recent practice days (last 5 days with entries)
 $recent_days_sql = "
     SELECT DISTINCT pd.practice_date, pd.week_number, 
-           COUNT(pi.id) as item_count
+           COUNT(pi.id) as item_count,
+           COUNT(fpi.id) as favorite_count
     FROM practice_days pd
     LEFT JOIN practice_items pi ON pd.id = pi.practice_day_id
+    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
     GROUP BY pd.id
     ORDER BY pd.practice_date DESC
     LIMIT 5";
@@ -29,10 +49,12 @@ if ($result = $conn->query($recent_days_sql)) {
 
 // Get practice statistics
 $stats_sql = "
-    SELECT pc.name as category_name, 
-           COUNT(pi.id) as item_count
+    SELECT pc.name as category_name, pc.id as category_id,
+           COUNT(pi.id) as item_count,
+           COUNT(fpi.id) as favorite_count
     FROM practice_categories pc
     LEFT JOIN practice_items pi ON pc.id = pi.category_id
+    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
     GROUP BY pc.id
     ORDER BY item_count DESC";
 $category_stats = [];
@@ -67,9 +89,14 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="card-body">
                     <h5 class="card-title">Practice Now</h5>
                     <p class="card-text">Start a flashcard practice session.</p>
-                    <a href="practice.php" class="btn btn-success">
-                        <i class="fas fa-bolt me-1"></i>Practice
-                    </a>
+                    <div class="btn-group w-100">
+                        <a href="practice.php" class="btn btn-success">
+                            <i class="fas fa-bolt me-1"></i>Practice All
+                        </a>
+                        <a href="practice.php?favorites=1" class="btn btn-outline-success">
+                            <i class="fas fa-star me-1"></i>Favorites
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,6 +124,51 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 
+    <!-- Favorites Section -->
+    <?php if (!empty($favorite_items)): ?>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>Favorite Items
+                    </h5>
+                    <a href="practice.php?favorites=1" class="btn btn-sm btn-outline-warning">
+                        Practice Favorites
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <?php foreach ($favorite_items as $item): ?>
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body">
+                                    <h6 class="card-title d-flex justify-content-between">
+                                        <?php echo htmlspecialchars($item['item_title']); ?>
+                                        <small class="text-muted"><?php echo htmlspecialchars($item['category_name']); ?></small>
+                                    </h6>
+                                    <p class="card-text small mb-2"><?php echo htmlspecialchars($item['item_meaning']); ?></p>
+                                    <?php if (!empty($item['item_example'])): ?>
+                                        <p class="card-text small text-muted fst-italic">
+                                            "<?php echo htmlspecialchars($item['item_example']); ?>"
+                                        </p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="card-footer bg-transparent border-warning">
+                                    <small class="text-muted">
+                                        Added on <?php echo format_practice_date($item['practice_date']); ?>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Recent Activity and Stats -->
     <div class="row">
         <!-- Recent Days -->
@@ -117,7 +189,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <span class="fw-bold"><?php echo format_practice_date($day['practice_date']); ?></span>
                                         <small class="text-muted ms-2">Week <?php echo $day['week_number']; ?></small>
                                     </div>
-                                    <span class="badge bg-primary rounded-pill"><?php echo $day['item_count']; ?> items</span>
+                                    <div>
+                                        <span class="badge bg-primary rounded-pill me-2"><?php echo $day['item_count']; ?> items</span>
+                                        <?php if ($day['favorite_count'] > 0): ?>
+                                            <span class="badge bg-warning rounded-pill">
+                                                <i class="fas fa-star me-1"></i><?php echo $day['favorite_count']; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </a>
                             <?php endforeach; ?>
                         </div>
@@ -144,7 +223,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <div class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0"><?php echo htmlspecialchars($stat['category_name']); ?></h6>
-                                        <span class="badge bg-secondary"><?php echo $stat['item_count']; ?> items</span>
+                                        <div>
+                                            <span class="badge bg-secondary me-2"><?php echo $stat['item_count']; ?> items</span>
+                                            <?php if ($stat['favorite_count'] > 0): ?>
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-star me-1"></i><?php echo $stat['favorite_count']; ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                     <div class="progress mt-2" style="height: 5px;">
                                         <div class="progress-bar" role="progressbar" 
@@ -177,6 +263,9 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <a href="practice.php?date_filter=week" class="list-group-item list-group-item-action">
                                     <i class="fas fa-calendar-week me-2"></i>This Week's Items
                                 </a>
+                                <a href="practice.php?favorites=1" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-star me-2"></i>Favorite Items
+                                </a>
                                 <a href="practice.php" class="list-group-item list-group-item-action">
                                     <i class="fas fa-infinity me-2"></i>All Items
                                 </a>
@@ -189,7 +278,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <a href="practice.php?category_id=<?php echo $stat['category_id']; ?>" 
                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                         <?php echo htmlspecialchars($stat['category_name']); ?>
-                                        <span class="badge bg-secondary rounded-pill"><?php echo $stat['item_count']; ?></span>
+                                        <div>
+                                            <span class="badge bg-secondary rounded-pill me-1"><?php echo $stat['item_count']; ?></span>
+                                            <?php if ($stat['favorite_count'] > 0): ?>
+                                                <span class="badge bg-warning rounded-pill">
+                                                    <i class="fas fa-star me-1"></i><?php echo $stat['favorite_count']; ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
                                     </a>
                                 <?php endforeach; ?>
                             </div>
@@ -202,6 +298,9 @@ require_once __DIR__ . '/../../includes/header.php';
                                 </a>
                                 <a href="review.php?view=week" class="list-group-item list-group-item-action">
                                     <i class="fas fa-calendar-alt me-2"></i>Weekly View
+                                </a>
+                                <a href="review.php?favorites=1" class="list-group-item list-group-item-action">
+                                    <i class="fas fa-star me-2"></i>Favorite Items
                                 </a>
                             </div>
                         </div>
