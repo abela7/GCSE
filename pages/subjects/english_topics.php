@@ -5,7 +5,7 @@ require_once '../../config/db_connect.php';
 $subsection_id = isset($_GET['subsection_id']) ? intval($_GET['subsection_id']) : 0;
 
 if (!$subsection_id) {
-    header('Location: /GCSE/pages/subjects/english.php');
+    header('Location: /pages/subjects/english.php');
     exit;
 }
 
@@ -32,7 +32,7 @@ $stmt->execute();
 $subsection = $stmt->get_result()->fetch_assoc();
 
 if (!$subsection) {
-    header('Location: /GCSE/pages/subjects/english.php');
+    header('Location: /pages/subjects/english.php');
     exit;
 }
 
@@ -85,9 +85,9 @@ function formatDate($date) {
     <!-- Breadcrumb and Title -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/GCSE/index.php">Home</a></li>
-            <li class="breadcrumb-item"><a href="/GCSE/pages/subjects.php">Subjects</a></li>
-            <li class="breadcrumb-item"><a href="/GCSE/pages/subjects/english.php">English</a></li>
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/pages/subjects.php">Subjects</a></li>
+            <li class="breadcrumb-item"><a href="/pages/subjects/english.php">English</a></li>
             <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($subsection['name']); ?></li>
         </ol>
     </nav>
@@ -166,7 +166,7 @@ function formatDate($date) {
                         </div>
 
                         <div class="topic-actions">
-                            <a href="/GCSE/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=english" 
+                            <a href="/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=english" 
                                class="btn btn-primary btn-sm">
                                 Study Topic
                             </a>
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const response = await fetch('/GCSE/api/english/reset_topic.php', {
+                const response = await fetch('/api/english/reset_topic.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

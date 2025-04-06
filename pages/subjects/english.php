@@ -1,17 +1,17 @@
 <?php
 // Set breadcrumbs
 $breadcrumbs = [
-    'Home' => '/GCSE/',
-    'Subjects' => '/GCSE/pages/subjects.php',
+    'Home' => '/',
+    'Subjects' => '/pages/subjects.php',
     'English' => null
 ];
 
 // Set page actions
 $page_actions = '
-<a href="/GCSE/pages/resources.php?subject=1" class="btn btn-outline-primary btn-sm">
+<a href="/pages/resources.php?subject=1" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-book me-1"></i> Resources
 </a>
-<a href="/GCSE/pages/exams.php?subject=1" class="btn btn-outline-primary btn-sm ms-2">
+<a href="/pages/exams.php?subject=1" class="btn btn-outline-primary btn-sm ms-2">
     <i class="fas fa-file-alt me-1"></i> Exams
 </a>
 ';
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
 
                 // Fetch subsections
-                const response = await fetch(`/GCSE/api/english/subsections.php?section_id=${sectionId}`);
+                const response = await fetch(`/api/english/subsections.php?section_id=${sectionId}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`/GCSE/api/english/search.php?term=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`/api/english/search.php?term=${encodeURIComponent(searchTerm)}`);
             const data = await response.json();
 
             if (data.success) {

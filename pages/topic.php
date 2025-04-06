@@ -4,7 +4,7 @@ require_once '../config/db_connect.php';
 
 // Check if topic ID and subject are provided
 if (!isset($_GET['id']) || !isset($_GET['subject'])) {
-    header('Location: /GCSE/pages/subjects.php');
+    header('Location: /pages/subjects.php');
     exit;
 }
 
@@ -583,7 +583,7 @@ error_log("Current topic ID: " . $topic_id);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addQuestionForm" action="/GCSE/api/topics/add_question.php" method="POST">
+                <form id="addQuestionForm" action="/api/topics/add_question.php" method="POST">
                     <input type="hidden" name="topic_id" value="<?php echo $topic_id; ?>">
                     <div class="mb-3">
                         <label class="form-label">Question</label>
@@ -612,7 +612,7 @@ error_log("Current topic ID: " . $topic_id);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addResourceForm" action="/GCSE/api/topics/add_resource.php" method="POST">
+                <form id="addResourceForm" action="/api/topics/add_resource.php" method="POST">
                     <input type="hidden" name="topic_id" value="<?php echo $topic_id; ?>">
                     <div class="mb-3">
                         <label class="form-label">Title</label>
@@ -949,7 +949,7 @@ const Timer = {
 
     async sendRequest(action, seconds = 0) {
         try {
-            const response = await fetch('/GCSE/api/topics/timer_state.php', {
+            const response = await fetch('/api/topics/timer_state.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1196,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveNotesBtn.addEventListener('click', async function() {
             const content = quill.root.innerHTML;
             try {
-                const response = await fetch('/GCSE/api/topics/update_notes.php', {
+                const response = await fetch('/api/topics/update_notes.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1305,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
 
             try {
-                const response = await fetch('/GCSE/api/topics/add_question.php', {
+                const response = await fetch('/api/topics/add_question.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1445,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
-            const response = await fetch('/GCSE/api/topics/update_question.php', {
+            const response = await fetch('/api/topics/update_question.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1491,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
-            const response = await fetch('/GCSE/api/topics/update_answer.php', {
+            const response = await fetch('/api/topics/update_answer.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1525,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch('/GCSE/api/topics/delete_question.php', {
+            const response = await fetch('/api/topics/delete_question.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question_id: questionId })
@@ -1567,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add new function to handle answer status updates
     async function updateAnswerStatus(questionId, isCorrect) {
         try {
-            const response = await fetch('/GCSE/api/topics/update_answer.php', {
+            const response = await fetch('/api/topics/update_answer.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
