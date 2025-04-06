@@ -1,9 +1,9 @@
 <?php
 // Database connection parameters
 $servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "gcse_tracker";
+$username = "abunetdg_abel";
+$password = "2727@2121Abel";
+$dbname = "abunetdg_web_app";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
