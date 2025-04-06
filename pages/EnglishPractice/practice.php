@@ -141,19 +141,30 @@ require_once __DIR__ . '/../../includes/header.php'; // Uses conditional CSS loa
 
         <!-- Pass remaining items to JavaScript -->
         <script>
-            const practiceItems = <?php echo $remaining_items_js; // Array of remaining items ?>;
+            // Define global variables
+            const practiceItems = <?php echo $remaining_items_js; ?>;
             const totalItems = <?php echo $total_item_count; ?>;
-            // Pass current filters back to JS for "Practice Again" links if needed
             const currentCategory = <?php echo json_encode($category_id); ?>;
             const currentDateFilter = <?php echo json_encode($date_filter); ?>;
             const currentFavoritesOnly = <?php echo json_encode($favorites_only); ?>;
-            let currentItemId = <?php echo $first_item['id']; ?>; // Keep track of current item ID
-            let currentIsFavorite = <?php echo $first_item['is_favorite']; ?>; // Keep track of current fav state
+            let currentItemId = <?php echo $first_item['id']; ?>;
+            let currentIsFavorite = <?php echo $first_item['is_favorite']; ?>;
 
-            // Initialize flashcard functionality when DOM is ready
+            // Initialize when DOM is ready
             document.addEventListener('DOMContentLoaded', function() {
-                initializeFlashcards();
-                initializeFavorites();
+                console.log('DOM loaded, initializing...');
+                
+                // Initialize flashcards
+                if (document.getElementById('flashcard-term')) {
+                    console.log('Initializing flashcards...');
+                    initializeFlashcards();
+                }
+                
+                // Initialize favorites
+                if (document.querySelector('.toggle-favorite')) {
+                    console.log('Initializing favorites...');
+                    initializeFavorites();
+                }
             });
         </script>
 

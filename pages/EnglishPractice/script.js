@@ -41,8 +41,8 @@ function initializeEnglishPractice() {
     if (getElement('flashcard-term') && typeof practiceItems !== 'undefined') {
          initializeFlashcards();
     }
-}
 
+    // --- Favorite Functionality Initialization ---
 /**
  * Handle clicking the "Add Extra Item" button on the daily entry form.
  */
@@ -244,9 +244,11 @@ function initializeFavorites() {
     document.querySelectorAll('.toggle-favorite').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Prevent event bubbling
+            e.stopPropagation();
             const itemId = this.dataset.itemId;
             const icon = this.querySelector('i');
+            
+            console.log('Favorite button clicked for item:', itemId);
             
             // Send AJAX request
             fetch('toggle_favorite.php', {
@@ -260,51 +262,52 @@ function initializeFavorites() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Toggle the star appearance
-                    if (data.is_favorited) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        button.classList.remove('btn-outline-warning');
-                        button.classList.add('btn-warning');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        button.classList.remove('btn-warning');
-                        button.classList.add('btn-outline-warning');
-                    }
-                    // Show feedback
+                    // Update button appearance
+                    this.classList.toggle('btn-warning');
+                    this.classList.toggle('btn-outline-warning');
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                    
+                    // Update title
+                    this.title = data.is_favorited ? 'Remove from Favorites' : 'Add to Favorites';
+                    
+                    // Show toast notification
                     showToast(data.message);
+                } else {
+                    showToast('Error: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showToast('Error updating favorite status');
+                showToast('Error toggling favorite', 'error');
             });
         });
     });
 }
 
 // Show toast message
-function showToast(message) {
+function showToast(message, type = 'success') {
     const toast = document.createElement('div');
-    toast.className = 'toast align-items-center text-white bg-primary border-0 position-fixed bottom-0 end-0 m-3';
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : 'success'} border-0`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
+    
     toast.innerHTML = `
         <div class="d-flex">
             <div class="toast-body">
                 ${message}
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
+    
     document.body.appendChild(toast);
     const bsToast = new bootstrap.Toast(toast);
     bsToast.show();
     
     // Remove toast after it's hidden
-    toast.addEventListener('hidden.bs.toast', function () {
+    toast.addEventListener('hidden.bs.toast', function() {
         document.body.removeChild(toast);
     });
 }
