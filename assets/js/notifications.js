@@ -1,6 +1,12 @@
+// Function to check if device is mobile
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 // Function to request notification permission
 function requestNotificationPermission() {
     console.log('Checking notification support...');
+    console.log('Device type:', isMobileDevice() ? 'Mobile' : 'Desktop');
     
     // Check if running in a secure context
     if (!window.isSecureContext) {
@@ -11,12 +17,18 @@ function requestNotificationPermission() {
     // Check if notifications are supported
     if (!('Notification' in window)) {
         console.error('This browser does not support notifications');
+        if (isMobileDevice()) {
+            alert('Notifications might not be supported on your mobile browser. For best experience, please ensure notifications are enabled in your browser settings.');
+        }
         return;
     }
 
-    // Check if service worker is supported (optional but recommended)
+    // Check if service worker is supported (important for mobile)
     if (!('serviceWorker' in navigator)) {
         console.warn('Service Worker is not supported - notifications might be limited');
+        if (isMobileDevice()) {
+            console.warn('Service Worker is recommended for mobile notifications');
+        }
     }
 
     console.log('Current notification permission:', Notification.permission);
@@ -24,7 +36,10 @@ function requestNotificationPermission() {
     // If permission is denied, inform the user how to enable it
     if (Notification.permission === 'denied') {
         console.log('Notifications are blocked. Please enable them in your browser settings.');
-        alert('Notifications are blocked. To receive notifications, please enable them in your browser settings by clicking the lock icon in the address bar.');
+        const message = isMobileDevice() 
+            ? 'Notifications are blocked. To receive notifications, please enable them in your browser settings. On mobile, you might need to enable notifications in your system settings as well.'
+            : 'Notifications are blocked. To receive notifications, please enable them in your browser settings by clicking the lock icon in the address bar.';
+        alert(message);
         return;
     }
 
@@ -38,9 +53,15 @@ function requestNotificationPermission() {
                     startProductivityReminder();
                 } else {
                     console.log('Permission not granted:', permission);
+                    if (isMobileDevice()) {
+                        alert('Please make sure notifications are enabled in both your browser and system settings.');
+                    }
                 }
             }).catch(function(error) {
                 console.error('Error requesting permission:', error);
+                if (isMobileDevice()) {
+                    alert('There was an error enabling notifications. Please check your browser and system settings.');
+                }
             });
         } catch (error) {
             console.error('Error in permission request:', error);
@@ -72,9 +93,20 @@ function sendNotification(title, options = {}) {
             icon: '/assets/favicon/favicon-32x32.png',
             badge: '/assets/favicon/favicon-32x32.png',
             vibrate: [200, 100, 200],
-            tag: 'gcse-notification',
-            renotify: true // Allow new notifications even if one is already shown
+            tag: 'gcse-notification-' + Date.now(), // Unique tag for each notification
+            renotify: true, // Allow new notifications even if one is already shown
+            silent: false // Enable sound on mobile
         };
+
+        // Add mobile-specific options
+        if (isMobileDevice()) {
+            defaultOptions.vibrate = [100, 50, 100]; // Shorter vibration for mobile
+            defaultOptions.requireInteraction = false; // Don't require interaction on mobile
+            defaultOptions.actions = [{ // Add action buttons for mobile
+                action: 'close',
+                title: 'Close'
+            }];
+        }
 
         // Merge default options with provided options
         const finalOptions = { ...defaultOptions, ...options };
@@ -99,7 +131,15 @@ function sendNotification(title, options = {}) {
             // Handle notification error
             notification.onerror = function(error) {
                 console.error('Notification error:', error);
+                if (isMobileDevice()) {
+                    console.log('Mobile notification error - checking service worker...');
+                }
             };
+
+            // Auto-close notification on mobile after 5 seconds
+            if (isMobileDevice()) {
+                setTimeout(() => notification.close(), 5000);
+            }
         } catch (error) {
             console.error('Error sending notification:', error);
             // Try alternative method if available
