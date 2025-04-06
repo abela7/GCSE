@@ -29,8 +29,8 @@ require_once 'db_connect.php';
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/GCSE/assets/css/main.css">
-    <link rel="stylesheet" href="/GCSE/assets/css/responsive.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/responsive.css">
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <link href="/assets/css/reports.css" rel="stylesheet">
     
@@ -196,7 +196,7 @@ require_once 'db_connect.php';
         <!-- Top Navigation Bar -->
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/GCSE/index.php">
+                <a class="navbar-brand" href="/index.php">
                     <i class="fas fa-home me-2"></i>Home
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -205,7 +205,7 @@ require_once 'db_connect.php';
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a href="/GCSE/pages/exam_countdown.php" class="nav-link <?php echo $current_page == 'exam_countdown.php' ? 'active' : ''; ?>">
+                            <a href="/pages/exam_countdown.php" class="nav-link <?php echo $current_page == 'exam_countdown.php' ? 'active' : ''; ?>">
                                 <i class="fas fa-clock me-1"></i> Exams
                             </a>
                         </li>
@@ -214,8 +214,8 @@ require_once 'db_connect.php';
                                 <i class="fas fa-book me-1"></i> Subjects
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/GCSE/pages/subjects/math.php">Mathematics</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/subjects/english.php">English</a></li>
+                                <li><a class="dropdown-item" href="/pages/subjects/math.php">Mathematics</a></li>
+                                <li><a class="dropdown-item" href="/pages/subjects/english.php">English</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -223,10 +223,10 @@ require_once 'db_connect.php';
                                 <i class="fas fa-graduation-cap me-1"></i> Access to HE
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/GCSE/pages/assignments.php">Assignments</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_progress.php">Progress</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_resources.php">Resources</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_schedule.php">Schedule</a></li>
+                                <li><a class="dropdown-item" href="/pages/assignments.php">Assignments</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_progress.php">Progress</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_resources.php">Resources</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_schedule.php">Schedule</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -234,13 +234,13 @@ require_once 'db_connect.php';
                                 <i class="fas fa-clock me-1"></i> Time
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/GCSE/pages/habits/index.php">Habits</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/tasks/index.php">Tasks</a></li>
+                                <li><a class="dropdown-item" href="/pages/habits/index.php">Habits</a></li>
+                                <li><a class="dropdown-item" href="/pages/tasks/index.php">Tasks</a></li>
                                 <!-- More time-related items will be added here -->
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?php echo $current_page == 'resources.php' ? 'active' : ''; ?>" href="/GCSE/pages/resources.php">
+                            <a class="nav-link <?php echo $current_page == 'resources.php' ? 'active' : ''; ?>" href="/pages/resources.php">
                                 <i class="fas fa-folder me-1"></i> Resources
                             </a>
                         </li>
@@ -259,7 +259,7 @@ require_once 'db_connect.php';
             <?php if (isset($breadcrumbs)): ?>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/GCSE/index.php">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/index.php">Home</a></li>
                     <?php foreach ($breadcrumbs as $label => $url): ?>
                         <?php if ($url): ?>
                             <li class="breadcrumb-item"><a href="<?php echo $url; ?>"><?php echo $label; ?></a></li>
@@ -279,3 +279,7 @@ require_once 'db_connect.php';
                 </div>
             </div>
             <?php endif; ?>
+        </div>
+    </div>
+</body>
+</html>
