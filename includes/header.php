@@ -197,6 +197,9 @@ require_once 'db_connect.php';
             event.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
         });
     </script>
+
+    <!-- Notifications -->
+    <script src="/assets/js/notifications.js"></script>
 </head>
 <body>
     <div class="wrapper">
