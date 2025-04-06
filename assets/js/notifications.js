@@ -1,10 +1,25 @@
+// Function to register service worker
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/assets/js/service-worker.js');
+            console.log('Service Worker registered:', registration);
+            return registration;
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+            return null;
+        }
+    }
+    return null;
+}
+
 // Function to check if device is mobile
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 // Function to request notification permission
-function requestNotificationPermission() {
+async function requestNotificationPermission() {
     console.log('Checking notification support...');
     console.log('Device type:', isMobileDevice() ? 'Mobile' : 'Desktop');
     
@@ -14,6 +29,9 @@ function requestNotificationPermission() {
         return;
     }
 
+    // Register service worker first
+    const swRegistration = await registerServiceWorker();
+    
     // Check if notifications are supported
     if (!('Notification' in window)) {
         console.error('This browser does not support notifications');
@@ -21,14 +39,6 @@ function requestNotificationPermission() {
             alert('Notifications might not be supported on your mobile browser. For best experience, please ensure notifications are enabled in your browser settings.');
         }
         return;
-    }
-
-    // Check if service worker is supported (important for mobile)
-    if (!('serviceWorker' in navigator)) {
-        console.warn('Service Worker is not supported - notifications might be limited');
-        if (isMobileDevice()) {
-            console.warn('Service Worker is recommended for mobile notifications');
-        }
     }
 
     console.log('Current notification permission:', Notification.permission);
@@ -46,25 +56,22 @@ function requestNotificationPermission() {
     if (Notification.permission !== 'granted') {
         console.log('Requesting notification permission...');
         try {
-            Notification.requestPermission().then(function (permission) {
-                console.log('Permission response:', permission);
-                if (permission === 'granted') {
-                    console.log('Permission granted, starting reminder...');
-                    startProductivityReminder();
-                } else {
-                    console.log('Permission not granted:', permission);
-                    if (isMobileDevice()) {
-                        alert('Please make sure notifications are enabled in both your browser and system settings.');
-                    }
-                }
-            }).catch(function(error) {
-                console.error('Error requesting permission:', error);
+            const permission = await Notification.requestPermission();
+            console.log('Permission response:', permission);
+            if (permission === 'granted') {
+                console.log('Permission granted, starting reminder...');
+                startProductivityReminder();
+            } else {
+                console.log('Permission not granted:', permission);
                 if (isMobileDevice()) {
-                    alert('There was an error enabling notifications. Please check your browser and system settings.');
+                    alert('Please make sure notifications are enabled in both your browser and system settings.');
                 }
-            });
+            }
         } catch (error) {
             console.error('Error in permission request:', error);
+            if (isMobileDevice()) {
+                alert('There was an error enabling notifications. Please check your browser and system settings.');
+            }
         }
     } else {
         console.log('Permission already granted, starting reminder...');
@@ -73,7 +80,7 @@ function requestNotificationPermission() {
 }
 
 // Function to send a notification
-function sendNotification(title, options = {}) {
+async function sendNotification(title, options = {}) {
     console.log('Attempting to send notification:', title);
     
     if (!window.isSecureContext) {
@@ -81,93 +88,71 @@ function sendNotification(title, options = {}) {
         return;
     }
 
-    if (!('Notification' in window)) {
-        console.error('Cannot send notification - browser does not support notifications');
-        return;
-    }
-
-    console.log('Notification permission status:', Notification.permission);
-
+    const swRegistration = await navigator.serviceWorker.ready;
+    
     if (Notification.permission === 'granted') {
         const defaultOptions = {
             icon: '/assets/favicon/favicon-32x32.png',
             badge: '/assets/favicon/favicon-32x32.png',
             vibrate: [200, 100, 200],
-            tag: 'gcse-notification-' + Date.now(), // Unique tag for each notification
-            renotify: true, // Allow new notifications even if one is already shown
-            silent: false // Enable sound on mobile
+            tag: 'gcse-notification-' + Date.now(),
+            renotify: true,
+            silent: false
         };
 
-        // Add mobile-specific options
         if (isMobileDevice()) {
-            defaultOptions.vibrate = [100, 50, 100]; // Shorter vibration for mobile
-            defaultOptions.requireInteraction = false; // Don't require interaction on mobile
-            defaultOptions.actions = [{ // Add action buttons for mobile
+            defaultOptions.vibrate = [100, 50, 100];
+            defaultOptions.requireInteraction = false;
+            defaultOptions.actions = [{
                 action: 'close',
                 title: 'Close'
             }];
         }
 
-        // Merge default options with provided options
         const finalOptions = { ...defaultOptions, ...options };
         console.log('Sending notification with options:', finalOptions);
         
         try {
-            // Create and show the notification
-            const notification = new Notification(title, finalOptions);
-            console.log('Notification sent successfully');
-
-            // Handle notification click
-            notification.onclick = function(event) {
-                console.log('Notification clicked');
-                event.preventDefault();
-                window.focus();
-                if (options.onClick) {
-                    options.onClick();
-                }
-                notification.close();
-            };
-
-            // Handle notification error
-            notification.onerror = function(error) {
-                console.error('Notification error:', error);
-                if (isMobileDevice()) {
-                    console.log('Mobile notification error - checking service worker...');
-                }
-            };
-
-            // Auto-close notification on mobile after 5 seconds
-            if (isMobileDevice()) {
-                setTimeout(() => notification.close(), 5000);
-            }
+            // Use service worker to show notification
+            await swRegistration.showNotification(title, finalOptions);
+            console.log('Notification sent successfully via Service Worker');
         } catch (error) {
             console.error('Error sending notification:', error);
-            // Try alternative method if available
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'notification',
-                    title: title,
-                    options: finalOptions
-                });
+            // Fallback to regular notification if service worker fails
+            try {
+                const notification = new Notification(title, finalOptions);
+                console.log('Fallback notification sent successfully');
+                
+                notification.onclick = function(event) {
+                    console.log('Notification clicked');
+                    event.preventDefault();
+                    window.focus();
+                    if (options.onClick) {
+                        options.onClick();
+                    }
+                    notification.close();
+                };
+
+                if (isMobileDevice()) {
+                    setTimeout(() => notification.close(), 5000);
+                }
+            } catch (fallbackError) {
+                console.error('Fallback notification failed:', fallbackError);
             }
         }
     } else {
         console.log('Requesting permission as it was not granted...');
-        requestNotificationPermission();
+        await requestNotificationPermission();
     }
 }
 
 // Function to start the productivity reminder
 function startProductivityReminder() {
     console.log('Starting productivity reminder...');
-    // Send first notification immediately
     sendProductivityReminder();
     
-    // Set up interval for subsequent notifications
     console.log('Setting up interval for notifications...');
-    const intervalId = setInterval(sendProductivityReminder, 60000); // 60000 ms = 1 minute
-    
-    // Store interval ID to allow stopping notifications later
+    const intervalId = setInterval(sendProductivityReminder, 60000);
     window.productivityReminderId = intervalId;
 }
 
@@ -184,16 +169,15 @@ function sendProductivityReminder() {
     console.log('Sending productivity reminder...');
     sendNotification('Productivity Reminder', {
         body: 'Hey Abela, I hope u are doing something productive!',
-        requireInteraction: true, // This makes the notification stay until user interacts with it
-        timestamp: Date.now(), // Add timestamp to ensure uniqueness
-        tag: 'productivity-reminder-' + Date.now() // Unique tag for each notification
+        requireInteraction: true,
+        timestamp: Date.now(),
+        tag: 'productivity-reminder-' + Date.now()
     });
 }
 
-// Request permission and start notifications when the script loads
+// Initialize when the script loads
 console.log('Setting up notification system...');
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, requesting notification permission...');
-    // Small delay to ensure everything is loaded
     setTimeout(requestNotificationPermission, 1000);
 }); 
