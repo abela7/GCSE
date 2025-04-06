@@ -138,17 +138,20 @@ function get_or_create_practice_day($conn, $date_str) {
  * @param int $limit Max number of items.
  * @param int|null $category_id Filter by specific category ID.
  * @param string|null $date_filter 'today', 'week', specific date 'Y-m-d', or null for all time.
+ * @param bool $favorites_only Whether to show only favorite items.
  * @return array Array of practice items.
  */
-function get_practice_items_for_flashcards($conn, $limit = 20, $category_id = null, $date_filter = null) {
+function get_practice_items_for_flashcards($conn, $limit = 20, $category_id = null, $date_filter = null, $favorites_only = false) {
     $items = [];
     $params = [];
     $types = '';
 
-    $sql = "SELECT pi.id, pi.item_title, pi.item_meaning, pi.item_example, pc.name as category_name, pd.practice_date
+    $sql = "SELECT pi.id, pi.item_title, pi.item_meaning, pi.item_example, pc.name as category_name, pd.practice_date,
+            CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
             FROM practice_items pi
             JOIN practice_categories pc ON pi.category_id = pc.id
             JOIN practice_days pd ON pi.practice_day_id = pd.id
+            LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
             WHERE 1=1"; // Start WHERE clause
 
     // Apply Category Filter
@@ -184,8 +187,11 @@ function get_practice_items_for_flashcards($conn, $limit = 20, $category_id = nu
          $params[] = $date_filter;
          $types .= 's';
     }
-    // If $date_filter is null or invalid, no date filter is applied (all time)
 
+    // Apply Favorites Filter
+    if ($favorites_only) {
+        $sql .= " AND fpi.practice_item_id IS NOT NULL";
+    }
 
     $sql .= " ORDER BY RAND() LIMIT ?"; // Randomize for practice
     $params[] = (int)$limit;
@@ -206,6 +212,7 @@ function get_practice_items_for_flashcards($conn, $limit = 20, $category_id = nu
                  $row['item_meaning'] = htmlspecialchars($row['item_meaning']);
                  $row['item_example'] = htmlspecialchars($row['item_example']);
                  $row['category_name'] = htmlspecialchars($row['category_name']);
+                 $row['is_favorite'] = (bool)$row['is_favorite'];
                  $items[] = $row;
             }
              $result->free();
