@@ -159,7 +159,7 @@ include '../../includes/header.php';
                     <?php endif; ?>
 
                     <div class="d-flex gap-2">
-                        <a href="/GCSE/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=math" 
+                        <a href="/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=math" 
                            class="btn btn-primary flex-grow-1">
                             <?php if ($topic['timer_status'] === 'active'): ?>
                                 Continue Studying
@@ -208,7 +208,7 @@ async function resetTopic(topicId) {
     }
 
     try {
-        const response = await fetch('/GCSE/api/math/reset_topic.php', {
+        const response = await fetch('/api/math/reset_topic.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
