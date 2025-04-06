@@ -3,7 +3,7 @@
 // Updated Version - No inline script tag
 
 session_start();
-require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../../includes/db_connect.php';
 // Optional: General functions if needed
 // require_once __DIR__ . '/../../includes/functions.php';
 // require_once __DIR__ . '/_functions.php';

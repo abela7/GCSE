@@ -1,7 +1,7 @@
 <?php
 // GCSE/pages/EnglishPractice/review.php
 session_start();
-require_once __DIR__ . '/../../config/db_connect.php';
+require_once __DIR__ . '/../../includes/db_connect.php';
 require_once '_functions.php';
 
 // Get date parameter, default to today
