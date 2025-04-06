@@ -25,9 +25,10 @@ require_once 'db_connect.php';
     <link rel="manifest" href="/manifest.json">
     
     <!-- Favicon/Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-    <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
     
     <!-- Mobile-friendly CSS -->
     <style>
@@ -48,13 +49,6 @@ require_once 'db_connect.php';
     </style>
     
     <title>GCSE Tracker<?php echo isset($page_title) ? ' - ' . $page_title : ''; ?></title>
-    
-    <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
-    <link rel="manifest" href="/assets/favicon/site.webmanifest">
-    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
