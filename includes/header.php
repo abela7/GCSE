@@ -198,8 +198,18 @@ require_once 'db_connect.php';
         });
     </script>
 
+    <!-- Test script loading -->
+    <script>
+        console.log('Header loaded, about to load notifications.js');
+    </script>
+
     <!-- Notifications -->
     <script src="/assets/js/notifications.js"></script>
+
+    <!-- Test notifications loaded -->
+    <script>
+        console.log('Notifications.js should be loaded now');
+    </script>
 </head>
 <body>
     <div class="wrapper">
