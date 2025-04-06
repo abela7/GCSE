@@ -30,10 +30,10 @@ require_once __DIR__ . '/../../includes/header.php';
 <style>
 /* Custom accent colors */
 :root {
-    --accent-color: #2c3e50;
-    --accent-light: #34495e;
-    --accent-lighter: #ecf0f1;
-    --accent-dark: #1a252f;
+    --accent-color: #cdaf56;
+    --accent-light: #d9c07a;
+    --accent-lighter: #f5ecd6;
+    --accent-dark: #b69843;
     --accent-success: #27ae60;
     --accent-danger: #e74c3c;
 }
@@ -50,6 +50,7 @@ require_once __DIR__ . '/../../includes/header.php';
 .btn-accent {
     background-color: var(--accent-color);
     color: white;
+    border: none;
 }
 
 .btn-accent:hover {
@@ -74,7 +75,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 .form-control:focus, .form-select:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(205, 175, 86, 0.25);
 }
 
 /* Accordion customization */
@@ -85,14 +86,35 @@ require_once __DIR__ . '/../../includes/header.php';
 
 .accordion-button:focus {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(205, 175, 86, 0.25);
 }
 
 /* Badge styling */
 .badge.bg-accent {
     background-color: var(--accent-color) !important;
 }
+
+/* Toast styling */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}
 </style>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="actionToast" class="toast align-items-center text-white bg-accent border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>
+                <span id="toastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
 <div class="container py-4">
     <!-- Header Section with improved styling -->
@@ -380,6 +402,15 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Toast initialization
+    const toast = new bootstrap.Toast(document.getElementById('actionToast'));
+    const toastMessage = document.getElementById('toastMessage');
+    
+    function showToast(message) {
+        toastMessage.textContent = message;
+        toast.show();
+    }
+
     // Form validation
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
@@ -391,6 +422,33 @@ document.addEventListener('DOMContentLoaded', function() {
             form.classList.add('was-validated');
         });
     });
+
+    // Main entry form submission
+    const practiceForm = document.getElementById('practiceForm');
+    if (practiceForm) {
+        practiceForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('save_entry.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Entry saved successfully!');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Error: ' + (data.message || 'Failed to save entry'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while saving the entry');
+            });
+        });
+    }
 
     // Edit Entry
     const editModal = new bootstrap.Modal(document.getElementById('editEntryModal'));
@@ -410,6 +468,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('saveEdit').addEventListener('click', function() {
+        if (!editForm.checkValidity()) {
+            editForm.classList.add('was-validated');
+            return;
+        }
+
         const formData = new FormData(editForm);
         formData.append('entry_id', currentEntryId);
 
@@ -420,14 +483,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                showToast('Entry updated successfully!');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('Error updating entry: ' + data.message);
+                showToast('Error: ' + (data.message || 'Failed to update entry'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating the entry.');
+            showToast('An error occurred while updating the entry');
         });
     });
 
@@ -455,14 +519,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                showToast('Entry deleted successfully!');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('Error deleting entry: ' + data.message);
+                showToast('Error: ' + (data.message || 'Failed to delete entry'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while deleting the entry.');
+            showToast('An error occurred while deleting the entry');
         });
     });
 });
