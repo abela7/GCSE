@@ -104,20 +104,12 @@ require_once __DIR__ . '/../../includes/header.php'; // Uses conditional CSS loa
             <div class="card flashcard mb-4" id="flashcard">
                 <div class="card-body">
                     <!-- Favorite Toggle Button -->
-                    <form method="post" action="manage_actions_ep.php" class="favorite-toggle-form">
-                        <input type="hidden" name="action" value="toggle_favorite">
-                        <input type="hidden" name="item_id" value="<?php echo $first_item['id']; ?>">
-                         <!-- Add current filter params to redirect back correctly -->
-                         <?php if ($category_id) { echo '<input type="hidden" name="redirect_category" value="'.htmlspecialchars($category_id).'">'; } ?>
-                         <?php if ($date_filter) { echo '<input type="hidden" name="redirect_date_filter" value="'.htmlspecialchars($date_filter).'">'; } ?>
-                         <?php if ($favorites_only) { echo '<input type="hidden" name="redirect_favorites" value="1">'; } ?>
-
-                        <button type="submit" id="favorite-button"
-                                class="btn btn-sm btn-outline-warning favorite-btn <?php echo $first_item['is_favorite'] ? 'active' : ''; ?>"
-                                title="<?php echo $first_item['is_favorite'] ? 'Remove from Favorites' : 'Add to Favorites'; ?>">
-                            <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
-                        </button>
-                    </form>
+                    <button type="button" id="favorite-button"
+                            class="btn btn-sm btn-outline-warning favorite-btn toggle-favorite <?php echo $first_item['is_favorite'] ? 'btn-warning' : 'btn-outline-warning'; ?>"
+                            data-item-id="<?php echo $first_item['id']; ?>"
+                            title="<?php echo $first_item['is_favorite'] ? 'Remove from Favorites' : 'Add to Favorites'; ?>">
+                        <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
+                    </button>
 
                     <!-- Term -->
                     <div class="term mt-2" id="flashcard-term">
@@ -157,6 +149,12 @@ require_once __DIR__ . '/../../includes/header.php'; // Uses conditional CSS loa
             const currentFavoritesOnly = <?php echo json_encode($favorites_only); ?>;
             let currentItemId = <?php echo $first_item['id']; ?>; // Keep track of current item ID
             let currentIsFavorite = <?php echo $first_item['is_favorite']; ?>; // Keep track of current fav state
+
+            // Initialize flashcard functionality when DOM is ready
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeFlashcards();
+                initializeFavorites();
+            });
         </script>
 
     <?php endif; ?>
