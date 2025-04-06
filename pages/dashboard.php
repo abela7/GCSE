@@ -133,7 +133,7 @@ include '../includes/header.php';
             </div>
             <?php endwhile; ?>
             <div class="text-end">
-                <a href="/GCSE/pages/exams.php" class="btn btn-sm btn-outline-primary">View All Exams</a>
+                <a href="/pages/exams.php" class="btn btn-sm btn-outline-primary">View All Exams</a>
             </div>
         <?php else: ?>
             <p class="text-muted mb-0">No upcoming exams in the next 30 days.</p>
@@ -144,7 +144,7 @@ include '../includes/header.php';
 <!-- Quick Links -->
 <div class="row">
     <div class="col-md-3 mb-3">
-        <a href="/GCSE/pages/Today.php" class="card subject-card text-decoration-none text-dark">
+        <a href="/pages/Today.php" class="card subject-card text-decoration-none text-dark">
             <div class="card-body">
                 <h5><i class="fas fa-calendar-day text-info me-2"></i>Today</h5>
                 <p class="text-muted mb-0">View today's tasks and progress</p>
@@ -152,7 +152,7 @@ include '../includes/header.php';
         </a>
     </div>
     <div class="col-md-3 mb-3">
-        <a href="/GCSE/pages/subjects/math.php" class="card subject-card text-decoration-none text-dark">
+        <a href="/pages/subjects/math.php" class="card subject-card text-decoration-none text-dark">
             <div class="card-body">
                 <h5><i class="fas fa-calculator text-primary me-2"></i>Mathematics</h5>
                 <p class="text-muted mb-0">View topics and track your progress</p>
@@ -160,7 +160,7 @@ include '../includes/header.php';
         </a>
     </div>
     <div class="col-md-3 mb-3">
-        <a href="/GCSE/pages/subjects/english.php" class="card subject-card text-decoration-none text-dark">
+        <a href="/pages/subjects/english.php" class="card subject-card text-decoration-none text-dark">
             <div class="card-body">
                 <h5><i class="fas fa-book text-success me-2"></i>English</h5>
                 <p class="text-muted mb-0">Practice language and literature</p>
@@ -168,7 +168,7 @@ include '../includes/header.php';
         </a>
     </div>
     <div class="col-md-3 mb-3">
-        <a href="/GCSE/pages/resources.php" class="card subject-card text-decoration-none text-dark">
+        <a href="/pages/resources.php" class="card subject-card text-decoration-none text-dark">
             <div class="card-body">
                 <h5><i class="fas fa-folder text-warning me-2"></i>Resources</h5>
                 <p class="text-muted mb-0">Access study materials and guides</p>
