@@ -93,6 +93,43 @@ function get_practice_day_id($conn, $date_str) {
     return null; // Return null if day not found
 }
 
+/**
+ * Get or create a practice day ID for a specific date.
+ *
+ * @param mysqli $conn Database connection object.
+ * @param string $date_str The date string ('Y-m-d').
+ * @return int|null The practice day ID or null if error.
+ */
+function get_or_create_practice_day($conn, $date_str) {
+    // First try to get existing day
+    $existing_id = get_practice_day_id($conn, $date_str);
+    if ($existing_id !== null) {
+        return $existing_id;
+    }
+
+    // Calculate week number (assuming weeks start from a specific date)
+    $start_date = new DateTime('2024-01-01'); // Adjust this to your actual start date
+    $target_date = new DateTime($date_str);
+    $week_diff = floor($start_date->diff($target_date)->days / 7) + 1;
+
+    // Create new practice day
+    $stmt = $conn->prepare("INSERT INTO practice_days (practice_date, week_number) VALUES (?, ?)");
+    if (!$stmt) {
+        error_log("Prepare failed (create day): " . $conn->error);
+        return null;
+    }
+
+    $stmt->bind_param("si", $date_str, $week_diff);
+    if (!$stmt->execute()) {
+        error_log("Execute failed (create day): " . $stmt->error);
+        $stmt->close();
+        return null;
+    }
+
+    $new_id = $stmt->insert_id;
+    $stmt->close();
+    return $new_id;
+}
 
 /**
  * Get practice items for review/practice based on filters.
