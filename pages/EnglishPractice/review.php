@@ -224,48 +224,4 @@ require_once __DIR__ . '/../../includes/header.php';
 
 </div><!-- /.container -->
 
-<!-- Add this JavaScript before the closing body tag -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle favorite toggling
-    document.querySelectorAll('.toggle-favorite').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const itemId = this.dataset.itemId;
-            const icon = this.querySelector('i');
-            
-            // Send AJAX request
-            fetch('toggle_favorite.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: 'item_id=' + itemId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Toggle the star appearance
-                    if (data.is_favorited) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        button.classList.remove('btn-outline-warning');
-                        button.classList.add('btn-warning');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        button.classList.remove('btn-warning');
-                        button.classList.add('btn-outline-warning');
-                    }
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-});
-</script>
-
-<?php
-require_once __DIR__ . '/../../includes/footer.php'; // Should now include conditional JS link
-?>
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

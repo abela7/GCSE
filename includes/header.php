@@ -49,6 +49,8 @@ require_once 'db_connect.php';
     if ($current_page_directory === 'EnglishPractice') {
         // Construct the relative path from the includes folder to the EnglishPractice CSS
         echo '<link rel="stylesheet" href="/pages/EnglishPractice/style.css">'; // USE ABSOLUTE PATH FROM WEB ROOT
+        // Add JavaScript for English Practice
+        echo '<script src="/pages/EnglishPractice/script.js" defer></script>';
     } elseif ($current_page_directory === 'tasks') {
          // Example for task specific CSS
          echo '<link rel="stylesheet" href="/assets/css/tasks.css">'; // Or /pages/tasks/style.css if you move that too
