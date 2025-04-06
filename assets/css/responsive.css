@@ -1,0 +1,140 @@
+/* Responsive styles for GCSE Tracker */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .card-deck {
+        display: flex;
+        flex-flow: row wrap;
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+    
+    .card-deck .card {
+        flex: 1 0 0%;
+        margin-right: 15px;
+        margin-left: 15px;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .dashboard-stats {
+        display: flex;
+    }
+    
+    .dashboard-stats > div {
+        flex: 1;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .sidebar {
+        position: sticky;
+        top: 2rem;
+        height: calc(100vh - 4rem);
+        overflow-y: auto;
+    }
+}
+
+ /* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+    
+    .topic-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* Mobile devices (phones, less than 768px) */
+@media (max-width: 767.98px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-widget {
+        margin-bottom: 1rem;
+    }
+    
+    .widget-value {
+        font-size: 1.5rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .footer {
+        text-align: center;
+    }
+    
+    .footer .text-md-end {
+        text-align: center !important;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 575.98px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .topic-card {
+        margin-bottom: 1rem;
+    }
+    
+    .breadcrumb {
+        font-size: 0.8rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar, .footer, .breadcrumb, .page-actions {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: none;
+    }
+    
+    body {
+        font-size: 12pt;
+        background-color: white;
+    }
+    
+    .card {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+    
+    .page-title {
+        font-size: 18pt;
+        margin-bottom: 1cm;
+    }
+}

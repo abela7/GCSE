@@ -1,0 +1,171 @@
+[31-Mar-2025 19:46:52 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 19:46:52 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 703
+)
+
+[31-Mar-2025 19:46:52 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 19:46:52 Europe/Berlin] Error in update_tracking_status.php: Unknown column 'tracking_status' in 'field list'
+[31-Mar-2025 19:47:29 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 19:47:29 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 707
+)
+
+[31-Mar-2025 19:47:29 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 19:47:29 Europe/Berlin] Error in update_tracking_status.php: Unknown column 'tracking_status' in 'field list'
+[31-Mar-2025 19:51:06 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 19:51:06 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 956
+)
+
+[31-Mar-2025 19:51:06 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 19:53:19 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 19:53:19 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 7
+)
+
+[31-Mar-2025 19:53:19 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:05:18 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:05:18 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 11
+)
+
+[31-Mar-2025 20:05:18 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:05:30 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:05:30 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 12
+)
+
+[31-Mar-2025 20:05:30 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:09:01 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:09:01 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 4
+)
+
+[31-Mar-2025 20:09:01 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:09:06 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:09:06 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 2
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 4
+)
+
+[31-Mar-2025 20:09:06 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:11:53 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:11:53 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 18
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 3
+)
+
+[31-Mar-2025 20:11:53 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:16:09 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:16:09 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 19
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 23
+)
+
+[31-Mar-2025 20:16:09 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:16:23 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:16:23 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 19
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 25
+)
+
+[31-Mar-2025 20:16:23 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:16:52 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:16:52 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 19
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 5
+)
+
+[31-Mar-2025 20:16:52 Europe/Berlin] Using table prefix: topic
+[31-Mar-2025 20:20:44 Europe/Berlin] Received request data: Array
+(
+)
+
+[31-Mar-2025 20:20:44 Europe/Berlin] Decoded JSON data: Array
+(
+    [topic_id] => 19
+    [subject] => math
+    [status] => completed
+    [accumulated_seconds] => 1
+)
+
+[31-Mar-2025 20:20:44 Europe/Berlin] Using table prefix: topic

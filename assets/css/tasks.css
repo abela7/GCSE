@@ -1,0 +1,222 @@
+/* assets/css/tasks.css */
+
+/* --- Base Variables & Reset (Keep from previous version) --- */
+:root {
+    --primary-color: #cdaf56; /* Your primary gold */
+    --primary-color-rgb: 205, 175, 86;
+    --text-color: #343a40;
+    --text-muted: #6c757d;
+    --bg-light-gray: #f8f9fa;
+    --border-color: #e9ecef;
+    --card-bg: #ffffff;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --card-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.1);
+    --border-radius-lg: 0.75rem;  /* 12px */
+    --border-radius-md: 0.5rem; /* 8px */
+    --border-radius-sm: 0.3rem;  /* ~5px */
+    --success-rgb: var(--bs-success-rgb);
+    --warning-rgb: var(--bs-warning-rgb);
+    --danger-rgb: var(--bs-danger-rgb);
+    --secondary-rgb: var(--bs-secondary-rgb);
+    --transition-speed: 0.2s;
+}
+
+body {
+    background-color: var(--bg-light-gray);
+    color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Page Header (Keep from previous version) --- */
+.page-header-controls {
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.page-header-controls .date-nav .btn { padding: 0.5rem 0.75rem; font-size: 1rem; border-radius: var(--border-radius-md); }
+.page-header-controls .date-nav .current-date { font-size: 1.05rem; font-weight: 600; text-align: center; flex-grow: 1; padding: 0 0.5rem; }
+.page-header-controls .action-buttons .btn { font-size: 0.9rem; padding: 0.6rem; min-width: 40px; height: 40px; border-radius: var(--border-radius-md); display: inline-flex; align-items: center; justify-content: center; }
+.page-header-controls .action-buttons .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.page-header-controls .action-buttons .btn-primary:hover, .page-header-controls .action-buttons .btn-primary:focus { background-color: #c4a64d; border-color: #c4a64d; box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), 0.5); }
+.page-header-controls .action-buttons .btn-outline-secondary { border-color: var(--border-color); color: var(--text-muted); }
+.page-header-controls .action-buttons .btn-outline-secondary:hover { background-color: var(--bg-light-gray); }
+
+
+/* --- Section Headings (Keep from previous version) --- */
+.section-heading {
+    font-weight: 600;
+    color: var(--text-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1.1rem;
+}
+.section-heading i { margin-right: 0.5rem; font-size: 1.1rem; vertical-align: text-bottom; }
+
+
+/* --- Task Card (Habit Style) --- */
+.task-card-habit-style {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-lg) !important; /* Larger radius */
+    border: 1px solid var(--border-color);
+    border-left-width: 4px; /* Emphasize status border */
+    box-shadow: var(--card-shadow);
+    transition: all var(--transition-speed) ease-in-out;
+    overflow: hidden; /* Clip content to rounded corners */
+}
+
+/* Status border classes */
+.task-card-habit-style.status-completed { border-left-color: var(--bs-success); }
+.task-card-habit-style.status-snoozed { border-left-color: var(--bs-warning); }
+.task-card-habit-style.status-not_done { border-left-color: var(--bs-danger); }
+.task-card-habit-style.status-pending { border-left-color: var(--bs-secondary); }
+
+.task-card-habit-style:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-shadow-hover);
+}
+.task-card-habit-style .card-body {
+    padding: 1rem; /* Consistent padding */
+}
+
+/* Icon Background */
+.task-card-habit-style .task-icon-background {
+    width: 44px; /* Slightly larger */
+    height: 44px;
+    border-radius: var(--border-radius-md); /* Match button radius */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Background color is set inline via PHP */
+}
+.task-card-habit-style .task-icon-background i {
+    font-size: 1.4rem; /* Larger icon */
+    line-height: 1;
+}
+
+/* Text Details */
+.task-card-habit-style .task-text-details {
+    min-width: 0;
+}
+.task-card-habit-style .task-title {
+    font-weight: 600; /* Bolder title */
+    margin-bottom: 0.1rem;
+    line-height: 1.3;
+    font-size: 1rem; /* Standard size */
+}
+.task-card-habit-style .task-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+.task-card-habit-style .task-meta i {
+    font-size: 0.7rem;
+    vertical-align: baseline;
+}
+
+/* Edit Link (Subtle) */
+.task-card-habit-style .btn-link {
+    padding: 0;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+.task-card-habit-style .btn-link:hover {
+    color: var(--primary-color);
+}
+
+
+/* Action Buttons Area */
+.task-card-habit-style .task-card-actions {
+    margin-top: 1rem; /* Space above buttons */
+}
+
+/* Action Buttons (Done, Snooze, Not Done) */
+.task-card-habit-style .task-card-actions .action-btn {
+    font-size: 1rem; /* Icon size */
+    padding: 0.6rem 1rem; /* Button padding */
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    border: none; /* Remove default border */
+    color: #fff !important; /* Ensure icon color is white */
+    transition: filter var(--transition-speed) ease;
+}
+.task-card-habit-style .task-card-actions .action-btn:hover {
+    filter: brightness(90%); /* Darken slightly on hover */
+}
+.task-card-habit-style .task-card-actions .action-btn:disabled {
+    filter: grayscale(80%);
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Specific Button Colors */
+.task-card-habit-style .task-card-actions .btn-success { background-color: var(--bs-success); }
+.task-card-habit-style .task-card-actions .btn-warning { background-color: var(--bs-warning); color: #333 !important; } /* Darker icon on yellow */
+.task-card-habit-style .task-card-actions .btn-danger { background-color: var(--bs-danger); }
+
+/* Ensure forms don't add extra margin */
+.task-card-habit-style .task-card-actions form {
+    margin: 0;
+}
+
+/* Status Badge (when shown instead of buttons) */
+.task-card-habit-style .task-card-actions .alert {
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-md);
+}
+
+
+/* --- Desktop Overrides (Minor adjustments needed) --- */
+@media (min-width: 768px) {
+    .page-header-controls { position: static; }
+    /* Other header styles can remain */
+
+     .task-card-habit-style .card-body { padding: 1.25rem; }
+     .task-card-habit-style .task-title { font-size: 1.05rem; }
+     .task-card-habit-style .task-meta { font-size: 0.9rem; }
+     .task-card-habit-style .task-icon-background { width: 48px; height: 48px; }
+     .task-card-habit-style .task-icon-background i { font-size: 1.6rem; }
+     .task-card-habit-style .task-card-actions .action-btn { font-size: 1.1rem; padding: 0.7rem 1rem; }
+}
+
+
+/* --- Modal Styles (Keep from previous version) --- */
+.modal-content { border-radius: var(--border-radius-lg); border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+.modal-header { border-bottom-color: var(--border-color); }
+.modal-footer { border-top-color: var(--border-color); }
+.form-control, .form-select { border-radius: var(--border-radius-md); border: 1px solid var(--border-color); padding: 0.6rem 0.9rem; transition: all var(--transition-speed) ease; }
+.form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25); }
+.form-check-input { border-radius: var(--border-radius-sm); }
+.form-check-input:checked { background-color: var(--primary-color); border-color: var(--primary-color); }
+.modal .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: #fff; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); }
+.modal .btn-primary:hover { background-color: #c4a64d; border-color: #c4a64d; }
+.modal .btn-secondary { padding: 0.6rem 1.2rem; border-radius: var(--border-radius-md); }
+#recurrence_fields { background-color: #f8f9fa; border: 1px dashed var(--border-color); padding: 15px; border-radius: var(--border-radius-md); margin-bottom: 1rem;}
+#weekly_days .form-check { margin-bottom: 0.5rem; }
+
+/* Validation */
+.was-validated .form-control:invalid, .form-control.is-invalid {
+    border-color: var(--bs-danger);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e"); /* BS5 invalid icon */
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .1875rem) center;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+.was-validated .form-select:invalid, .form-select.is-invalid {
+     border-color: var(--bs-danger);
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"), url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+     background-position: right .75rem center, center right 1.75rem;
+     background-size: 16px 12px, calc(.75em + .375rem) calc(.75em + .375rem);
+}
+.was-validated .form-check-input:invalid ~ .form-check-label::before, .form-check-input.is-invalid ~ .form-check-label::before {
+  border-color: var(--bs-danger); /* Style checkbox border */
+}
+#weekly_days_feedback { display: none; width: 100%; margin-top: .25rem; font-size: .875em; color: var(--bs-danger); }
+.was-validated #weekly_days.is-invalid ~ #weekly_days_feedback { display: block; } /* Show feedback when needed */
