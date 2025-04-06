@@ -6,6 +6,76 @@ session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/_functions.php';
 
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'add':
+                // Handle new entry
+                if (isset($_POST['category_id'], $_POST['item_title'], $_POST['item_meaning'], $_POST['item_example'], $_POST['practice_day_id'])) {
+                    $stmt = $conn->prepare("INSERT INTO practice_items (practice_day_id, category_id, item_title, item_meaning, item_example) VALUES (?, ?, ?, ?, ?)");
+                    if ($stmt) {
+                        $stmt->bind_param("iisss", 
+                            $_POST['practice_day_id'],
+                            $_POST['category_id'],
+                            $_POST['item_title'],
+                            $_POST['item_meaning'],
+                            $_POST['item_example']
+                        );
+                        if ($stmt->execute()) {
+                            $_SESSION['success'] = "Entry added successfully!";
+                        } else {
+                            $_SESSION['error'] = "Failed to add entry: " . $stmt->error;
+                        }
+                        $stmt->close();
+                    }
+                }
+                break;
+
+            case 'edit':
+                // Handle edit entry
+                if (isset($_POST['entry_id'], $_POST['category_id'], $_POST['item_title'], $_POST['item_meaning'], $_POST['item_example'])) {
+                    $stmt = $conn->prepare("UPDATE practice_items SET category_id = ?, item_title = ?, item_meaning = ?, item_example = ? WHERE id = ?");
+                    if ($stmt) {
+                        $stmt->bind_param("isssi",
+                            $_POST['category_id'],
+                            $_POST['item_title'],
+                            $_POST['item_meaning'],
+                            $_POST['item_example'],
+                            $_POST['entry_id']
+                        );
+                        if ($stmt->execute()) {
+                            $_SESSION['success'] = "Entry updated successfully!";
+                        } else {
+                            $_SESSION['error'] = "Failed to update entry: " . $stmt->error;
+                        }
+                        $stmt->close();
+                    }
+                }
+                break;
+
+            case 'delete':
+                // Handle delete entry
+                if (isset($_POST['entry_id'])) {
+                    $stmt = $conn->prepare("DELETE FROM practice_items WHERE id = ?");
+                    if ($stmt) {
+                        $stmt->bind_param("i", $_POST['entry_id']);
+                        if ($stmt->execute()) {
+                            $_SESSION['success'] = "Entry deleted successfully!";
+                        } else {
+                            $_SESSION['error'] = "Failed to delete entry: " . $stmt->error;
+                        }
+                        $stmt->close();
+                    }
+                }
+                break;
+        }
+        // Redirect back to the same page to prevent form resubmission
+        header("Location: " . $_SERVER['PHP_SELF'] . "?date=" . $_POST['date']);
+        exit;
+    }
+}
+
 // Get current date
 $current_date = date('Y-m-d');
 $selected_date = isset($_GET['date']) ? $_GET['date'] : $current_date;
@@ -117,6 +187,22 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <div class="container py-4">
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo $_SESSION['success']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><?php echo $_SESSION['error']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
     <!-- Header Section with improved styling -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
@@ -157,7 +243,8 @@ require_once __DIR__ . '/../../includes/header.php';
                     </h3>
                 </div>
                 <div class="card-body">
-                    <form id="practiceForm" method="POST" action="save_entry.php" class="needs-validation" novalidate>
+                    <form method="POST" class="needs-validation" novalidate>
+                        <input type="hidden" name="action" value="add">
                         <input type="hidden" name="practice_day_id" value="<?php echo $practice_day_id; ?>">
                         <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
 
@@ -327,8 +414,10 @@ require_once __DIR__ . '/../../includes/header.php';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="editEntryForm">
+                <form id="editForm" method="POST" class="needs-validation" novalidate>
+                    <input type="hidden" name="action" value="edit">
                     <input type="hidden" name="entry_id" id="editEntryId">
+                    <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
                     
                     <!-- Category Selection -->
                     <div class="form-floating mb-3">
@@ -423,42 +512,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Main entry form submission
-    const practiceForm = document.getElementById('practiceForm');
-    if (practiceForm) {
-        practiceForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-
-            fetch('save_entry.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Entry saved successfully!');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast('Error: ' + (data.message || 'Failed to save entry'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('An error occurred while saving the entry');
-            });
-        });
-    }
-
     // Edit Entry
     const editModal = new bootstrap.Modal(document.getElementById('editEntryModal'));
-    const editForm = document.getElementById('editEntryForm');
-    let currentEntryId = null;
-
+    
     document.querySelectorAll('.edit-entry').forEach(button => {
         button.addEventListener('click', function() {
-            currentEntryId = this.dataset.id;
-            document.getElementById('editEntryId').value = currentEntryId;
+            document.getElementById('editEntryId').value = this.dataset.id;
             document.getElementById('editCategory').value = this.dataset.category;
             document.getElementById('editTitle').value = this.dataset.title;
             document.getElementById('editMeaning').value = this.dataset.meaning;
@@ -467,68 +526,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('saveEdit').addEventListener('click', function() {
-        if (!editForm.checkValidity()) {
-            editForm.classList.add('was-validated');
-            return;
-        }
-
-        const formData = new FormData(editForm);
-        formData.append('entry_id', currentEntryId);
-
-        fetch('update_entry.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Entry updated successfully!');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast('Error: ' + (data.message || 'Failed to update entry'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('An error occurred while updating the entry');
-        });
-    });
-
     // Delete Entry
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    let entryToDelete = null;
-
+    
     document.querySelectorAll('.delete-entry').forEach(button => {
         button.addEventListener('click', function() {
-            entryToDelete = this.dataset.id;
+            document.getElementById('deleteEntryId').value = this.dataset.id;
             deleteModal.show();
         });
     });
 
     document.getElementById('confirmDelete').addEventListener('click', function() {
-        if (!entryToDelete) return;
-
-        fetch('delete_entry.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'entry_id=' + entryToDelete
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Entry deleted successfully!');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast('Error: ' + (data.message || 'Failed to delete entry'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('An error occurred while deleting the entry');
-        });
+        document.getElementById('deleteForm').submit();
     });
 });
 </script>
