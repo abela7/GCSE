@@ -245,6 +245,11 @@ require_once 'db_connect.php';
                                 <i class="fas fa-clock me-1"></i> Exams
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="/pages/EnglishPractice/index.php" class="nav-link <?php echo $current_page_directory == 'EnglishPractice' ? 'active' : ''; ?>">
+                                <i class="fas fa-language me-1"></i> English Practice
+                            </a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-book me-1"></i> Subjects
