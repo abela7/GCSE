@@ -139,7 +139,7 @@ if ($subject_filter) {
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="/GCSE/pages/resources.php" class="btn btn-outline-secondary">Clear Filters</a>
+                    <a href="/pages/resources.php" class="btn btn-outline-secondary">Clear Filters</a>
                 </div>
             </form>
         </div>
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (subjectId) {
             try {
-                const response = await fetch(`/GCSE/api/topics/get_topics.php?subject_id=${subjectId}`);
+                const response = await fetch(`/api/topics/get_topics.php?subject_id=${subjectId}`);
                 const data = await response.json();
                 
                 if (data.success) {

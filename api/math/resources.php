@@ -92,7 +92,7 @@ $resource_types = [
                                 </div>
                                 <div class="card-footer bg-transparent">
                                     <button class="btn btn-sm btn-outline-primary w-100"
-                                            hx-get="/GCSE/api/math/resource-details.php?id=<?php echo $resource['id']; ?>"
+                                            hx-get="/api/math/resource-details.php?id=<?php echo $resource['id']; ?>"
                                             hx-target="#resourceDetailsModal .modal-content">
                                         View Details
                                     </button>

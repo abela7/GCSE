@@ -111,7 +111,7 @@ include '../includes/header.php';
                                 $minutes = $exam['duration'] % 60;
                                 $duration = ($hours > 0 ? $hours . 'h ' : '') . ($minutes > 0 ? $minutes . 'm' : '');
                             ?>
-                            <a href="/GCSE/pages/exam_details.php?id=<?php echo $exam['id']; ?>" class="text-decoration-none">
+                            <a href="/pages/exam_details.php?id=<?php echo $exam['id']; ?>" class="text-decoration-none">
                                 <div class="timeline-item">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="calendar-icon me-3 text-center">
@@ -166,7 +166,7 @@ include '../includes/header.php';
                 </div>
 
                 <div class="card-footer bg-transparent border-0 p-4">
-                    <a href="/GCSE/pages/subjects/<?php echo strtolower($subject['name']); ?>.php" 
+                    <a href="/pages/subjects/<?php echo strtolower($subject['name']); ?>.php" 
                        class="btn btn-primary w-100 rounded-pill">
                         View Details <i class="fas fa-arrow-right ms-2"></i>
                     </a>

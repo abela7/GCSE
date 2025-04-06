@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             ${subsection.completed_topics}/${subsection.total_topics} topics • 
                                             ${subsection.progress_percentage}% complete
                                         </div>
-                                        <a href="/GCSE/pages/subjects/english_topics.php?subsection_id=${subsection.id}" 
+                                        <a href="/pages/subjects/english_topics.php?subsection_id=${subsection.id}" 
                                            class="btn btn-outline-primary btn-sm">
                                             View Topics
                                         </a>

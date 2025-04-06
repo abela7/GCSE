@@ -64,7 +64,7 @@ if ($topic_id > 0) {
                              class="mt-3 p-3 border-top"
                              hx-target="closest .list-group-item"
                              hx-swap="outerHTML">
-                            <form hx-post="/GCSE/api/math/update-progress.php" class="needs-validation" novalidate>
+                            <form hx-post="/api/math/update-progress.php" class="needs-validation" novalidate>
                                 <input type="hidden" name="subtopic_id" value="<?php echo $subtopic['id']; ?>">
                                 
                                 <div class="mb-3">

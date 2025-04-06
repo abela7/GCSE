@@ -7,7 +7,7 @@ require_once '../config/db_connect.php';
 
 // Check if subsection ID and subject are provided
 if (!isset($_GET['subsection']) || !isset($_GET['subject'])) {
-    header('Location: /GCSE/pages/subjects.php');
+    header('Location: /pages/subjects.php');
     exit;
 }
 
@@ -16,7 +16,7 @@ $subject = $_GET['subject'];
 
 // Redirect math topics to the dedicated math_topics.php page
 if ($subject === 'math') {
-    header('Location: /GCSE/pages/subjects/math_topics.php?subsection=' . $subsection_id);
+    header('Location: /pages/subjects/math_topics.php?subsection=' . $subsection_id);
     exit;
 }
 
@@ -27,7 +27,7 @@ if ($subject === 'english') {
     $topics_table = 'eng_topics';
     $progress_table = 'eng_topic_progress';
     $subject_name = 'English';
-    $subject_page = '/GCSE/pages/subjects/english.php';
+    $subject_page = '/pages/subjects/english.php';
     $gradient_colors = ['#28a745', '#20c997'];
 } else {
     $sections_table = 'math_sections';
@@ -35,7 +35,7 @@ if ($subject === 'english') {
     $topics_table = 'math_topics';
     $progress_table = 'topic_progress';
     $subject_name = 'Mathematics';
-    $subject_page = '/GCSE/pages/subjects/math.php';
+    $subject_page = '/pages/subjects/math.php';
     $gradient_colors = ['#0066ff', '#00ccff'];
 }
 
@@ -73,8 +73,8 @@ if (!$subsection) {
 
 // Set breadcrumbs
 $breadcrumbs = [
-    'Home' => '/GCSE/',
-    'Subjects' => '/GCSE/pages/subjects.php',
+    'Home' => '/',
+    'Subjects' => '/pages/subjects.php',
     $subject_name => $subject_page,
     $subsection['name'] => null
 ];
@@ -235,7 +235,7 @@ include '../includes/header.php';
                             <?php endif; ?>
                         </div>
                         <div class="col-md-2 text-end">
-                            <a href="/GCSE/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=<?php echo $subject; ?>" 
+                            <a href="/pages/topic.php?id=<?php echo $topic['id']; ?>&subject=<?php echo $subject; ?>" 
                                class="btn btn-primary">
                                 Study Topic
                             </a>

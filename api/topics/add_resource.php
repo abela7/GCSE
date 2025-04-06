@@ -64,7 +64,7 @@ if ($resource_type === 'youtube') {
     }
 
     // Insert image resource
-    $relative_path = '/GCSE/uploads/topic_resources/' . $filename;
+    $relative_path = '/uploads/topic_resources/' . $filename;
     $stmt = $conn->prepare("INSERT INTO topic_resources (topic_id, title, resource_type, image_path) VALUES (?, ?, 'image', ?)");
     $stmt->bind_param("iss", $topic_id, $title, $relative_path);
 

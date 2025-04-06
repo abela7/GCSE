@@ -431,19 +431,19 @@ include '../includes/header.php';
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
-                        <a href="/GCSE/pages/subjects.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/subjects.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-book me-2"></i>Subjects
                         </a>
-                        <a href="/GCSE/pages/exams.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/exams.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-calendar-check me-2"></i>Exam Schedule
                         </a>
-                        <a href="/GCSE/pages/tasks.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/tasks.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-tasks me-2"></i>Tasks
                         </a>
-                        <a href="/GCSE/pages/progress.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/progress.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-chart-bar me-2"></i>Progress Overview
                         </a>
-                        <a href="/GCSE/pages/resources.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/resources.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-folder me-2"></i>Study Resources
                         </a>
                     </div>

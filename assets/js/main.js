@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const subtopicId = this.dataset.subtopicId;
                 
                 // AJAX request to update progress
-                fetch('/GCSE/includes/update_progress.php', {
+                fetch('/includes/update_progress.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const searchTerm = this.querySelector('input[type="search"]').value.trim();
             
             if (searchTerm.length > 0) {
-                window.location.href = `/GCSE/pages/search.php?q=${encodeURIComponent(searchTerm)}`;
+                window.location.href = `/pages/search.php?q=${encodeURIComponent(searchTerm)}`;
             }
         });
     }

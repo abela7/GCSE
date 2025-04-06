@@ -223,10 +223,10 @@ require_once 'db_connect.php';
                                 <i class="fas fa-graduation-cap me-1"></i> Access to HE
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/GCSE/pages/assignments.php">Assignments</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_progress.php">Progress</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_resources.php">Resources</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/access_schedule.php">Schedule</a></li>
+                                <li><a class="dropdown-item" href="/pages/assignments.php">Assignments</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_progress.php">Progress</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_resources.php">Resources</a></li>
+                                <li><a class="dropdown-item" href="/pages/access_schedule.php">Schedule</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -234,13 +234,13 @@ require_once 'db_connect.php';
                                 <i class="fas fa-clock me-1"></i> Time
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/GCSE/pages/habits/index.php">Habits</a></li>
-                                <li><a class="dropdown-item" href="/GCSE/pages/tasks/index.php">Tasks</a></li>
+                                <li><a class="dropdown-item" href="/pages/habits/index.php">Habits</a></li>
+                                <li><a class="dropdown-item" href="/pages/tasks/index.php">Tasks</a></li>
                                 <!-- More time-related items will be added here -->
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?php echo $current_page == 'resources.php' ? 'active' : ''; ?>" href="/GCSE/pages/resources.php">
+                            <a class="nav-link <?php echo $current_page == 'resources.php' ? 'active' : ''; ?>" href="/pages/resources.php">
                                 <i class="fas fa-folder me-1"></i> Resources
                             </a>
                         </li>
