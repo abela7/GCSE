@@ -4,9 +4,9 @@ $page_title = "Math Topics";
 
 // Set breadcrumbs
 $breadcrumbs = [
-    'Home' => '/GCSE/',
-    'Subjects' => '/GCSE/pages/subjects.php',
-    'Mathematics' => '/GCSE/pages/subjects/math.php',
+    'Home' => '/',
+    'Subjects' => '/pages/subjects.php',
+    'Mathematics' => '/pages/subjects/math.php',
     'Topics' => null
 ];
 
@@ -17,7 +17,7 @@ require_once '../../config/db_connect.php';
 $subsection_id = isset($_GET['subsection']) ? intval($_GET['subsection']) : 0;
 
 if (!$subsection_id) {
-    header('Location: /GCSE/pages/subjects/math.php');
+    header('Location: /pages/subjects/math.php');
     exit;
 }
 
@@ -40,12 +40,12 @@ $subsection_result = $stmt->get_result();
 $subsection = $subsection_result->fetch_assoc();
 
 if (!$subsection) {
-    header('Location: /GCSE/pages/subjects/math.php');
+    header('Location: /pages/subjects/math.php');
     exit;
 }
 
 // Update breadcrumbs with section name
-$breadcrumbs[$subsection['section_name']] = "/GCSE/pages/subjects/math.php#section-" . $subsection['section_id'];
+$breadcrumbs[$subsection['section_name']] = "/pages/subjects/math.php#section-" . $subsection['section_id'];
 $breadcrumbs[$subsection['subsection_name']] = null;
 
 // Fetch topics for this subsection

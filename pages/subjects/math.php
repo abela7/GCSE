@@ -1,17 +1,17 @@
 <?php
 // Set breadcrumbs
 $breadcrumbs = [
-    'Home' => '/GCSE/',
-    'Subjects' => '/GCSE/pages/subjects.php',
+    'Home' => '/',
+    'Subjects' => '/pages/subjects.php',
     'Mathematics' => null
 ];
 
 // Set page actions
 $page_actions = '
-<a href="/GCSE/pages/resources.php?subject=2" class="btn btn-outline-primary btn-sm">
+<a href="/pages/resources.php?subject=2" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-book me-1"></i> Resources
 </a>
-<a href="/GCSE/pages/exams.php?subject=2" class="btn btn-outline-primary btn-sm ms-2">
+<a href="/pages/exams.php?subject=2" class="btn btn-outline-primary btn-sm ms-2">
     <i class="fas fa-file-alt me-1"></i> Exams
 </a>
 ';
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sectionModal.show();
             
             // Load subsections
-            fetch(`/GCSE/api/math/subsections.php?section_id=${sectionId}`)
+            fetch(`/api/math/subsections.php?section_id=${sectionId}`)
                 .then(response => response.json())
                 .then(data => {
                     // Clear loading state
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small class="text-muted">${subsection.completed_topics}/${subsection.total_topics} topics</small>
-                                            <a href="/GCSE/pages/subjects/math_topics.php?subsection=${subsection.id}" 
+                                            <a href="/pages/subjects/math_topics.php?subsection=${subsection.id}" 
                                                class="btn btn-sm btn-outline-primary">View Topics</a>
                                         </div>
                                     </div>
@@ -655,6 +655,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     });
+
+    // Search functionality
+    const searchForm = document.querySelector('form.d-flex');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchTerm = this.querySelector('input[type="search"]').value.trim();
+            
+            if (searchTerm.length > 0) {
+                window.location.href = `/pages/search.php?q=${encodeURIComponent(searchTerm)}`;
+            }
+        });
+    }
 });
 </script>
 
