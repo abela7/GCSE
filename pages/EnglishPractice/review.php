@@ -4,6 +4,16 @@ session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/_functions.php';
 
+// Get favorite items for quick lookup
+$favorites_lookup = [];
+$favorites_sql = "SELECT practice_item_id FROM favorite_practice_items";
+if ($result = $conn->query($favorites_sql)) {
+    while ($row = $result->fetch_assoc()) {
+        $favorites_lookup[$row['practice_item_id']] = true;
+    }
+    $result->free();
+}
+
 // --- Determine View Mode and Parameters ---
 $view_mode = isset($_GET['view']) ? $_GET['view'] : 'day'; // Default to day view
 $page_title = "Review English Practice"; // Default title
@@ -122,10 +132,24 @@ require_once __DIR__ . '/../../includes/header.php';
                             <div class="accordion-body">
                                 <ul class="list-unstyled mb-0">
                                     <?php foreach ($category['items'] as $item): ?>
-                                        <li>
-                                            <div class="item-title"><?php echo $item['item_title']; /* Already sanitized */ ?></div>
-                                            <div class="item-meta"> <strong>Meaning/Rule:</strong> <?php echo nl2br($item['item_meaning']); ?></div>
-                                            <div class="item-meta"> <strong>Example:</strong> <?php echo nl2br($item['item_example']); ?></div>
+                                        <li class="mb-3 pb-3 border-bottom">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="item-title h6 mb-0"><?php echo htmlspecialchars($item['item_title']); ?></div>
+                                                <button class="btn btn-sm <?php echo isset($favorites_lookup[$item['id']]) ? 'btn-warning' : 'btn-outline-warning'; ?> toggle-favorite" 
+                                                        data-item-id="<?php echo $item['id']; ?>">
+                                                    <i class="<?php echo isset($favorites_lookup[$item['id']]) ? 'fas' : 'far'; ?> fa-star"></i>
+                                                </button>
+                                            </div>
+                                            <div class="item-meta mb-1">
+                                                <strong>Meaning/Rule:</strong> 
+                                                <?php echo nl2br(htmlspecialchars($item['item_meaning'])); ?>
+                                            </div>
+                                            <?php if (!empty($item['item_example'])): ?>
+                                                <div class="item-meta">
+                                                    <strong>Example:</strong> 
+                                                    <em><?php echo nl2br(htmlspecialchars($item['item_example'])); ?></em>
+                                                </div>
+                                            <?php endif; ?>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -163,9 +187,23 @@ require_once __DIR__ . '/../../includes/header.php';
                                      <ul class="list-unstyled mb-3">
                                          <?php foreach ($category['items'] as $item): ?>
                                              <li class="mb-2 pb-2 border-bottom">
-                                                 <div class="item-title"><?php echo $item['item_title']; ?></div>
-                                                 <div class="item-meta"><strong>Meaning/Rule:</strong> <?php echo nl2br($item['item_meaning']); ?></div>
-                                                 <div class="item-meta"><strong>Example:</strong> <?php echo nl2br($item['item_example']); ?></div>
+                                                 <div class="d-flex justify-content-between align-items-start mb-2">
+                                                     <div class="item-title h6 mb-0"><?php echo htmlspecialchars($item['item_title']); ?></div>
+                                                     <button class="btn btn-sm <?php echo isset($favorites_lookup[$item['id']]) ? 'btn-warning' : 'btn-outline-warning'; ?> toggle-favorite" 
+                                                             data-item-id="<?php echo $item['id']; ?>">
+                                                         <i class="<?php echo isset($favorites_lookup[$item['id']]) ? 'fas' : 'far'; ?> fa-star"></i>
+                                                     </button>
+                                                 </div>
+                                                 <div class="item-meta mb-1">
+                                                     <strong>Meaning/Rule:</strong> 
+                                                     <?php echo nl2br(htmlspecialchars($item['item_meaning'])); ?>
+                                                 </div>
+                                                 <?php if (!empty($item['item_example'])): ?>
+                                                     <div class="item-meta">
+                                                         <strong>Example:</strong> 
+                                                         <em><?php echo nl2br(htmlspecialchars($item['item_example'])); ?></em>
+                                                     </div>
+                                                 <?php endif; ?>
                                              </li>
                                          <?php endforeach; ?>
                                           <li style="border-bottom: none !important;"></li><!-- Prevent last item border -->
@@ -185,6 +223,48 @@ require_once __DIR__ . '/../../includes/header.php';
 
 
 </div><!-- /.container -->
+
+<!-- Add this JavaScript before the closing body tag -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle favorite toggling
+    document.querySelectorAll('.toggle-favorite').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.itemId;
+            const icon = this.querySelector('i');
+            
+            // Send AJAX request
+            fetch('toggle_favorite.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'item_id=' + itemId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle the star appearance
+                    if (data.is_favorited) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        button.classList.remove('btn-outline-warning');
+                        button.classList.add('btn-warning');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        button.classList.remove('btn-warning');
+                        button.classList.add('btn-outline-warning');
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
 
 <?php
 require_once __DIR__ . '/../../includes/footer.php'; // Should now include conditional JS link
