@@ -4,6 +4,55 @@ session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/_functions.php';
 
+// Handle favorite toggle
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_favorite') {
+    $item_id = $_POST['item_id'];
+    $is_favorite = $_POST['is_favorite'];
+    
+    if ($is_favorite == 1) {
+        // Add to favorites
+        $stmt = $conn->prepare("INSERT INTO favorite_practice_items (practice_item_id) VALUES (?)");
+    } else {
+        // Remove from favorites
+        $stmt = $conn->prepare("DELETE FROM favorite_practice_items WHERE practice_item_id = ?");
+    }
+    
+    if ($stmt) {
+        $stmt->bind_param("i", $item_id);
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "Favorite status updated successfully!";
+        } else {
+            $_SESSION['error'] = "Failed to update favorite status.";
+        }
+        $stmt->close();
+    }
+    
+    // Redirect back to prevent form resubmission
+    header("Location: " . $_SERVER['PHP_SELF'] . (isset($_GET['favorites']) ? '?favorites=1' : ''));
+    exit;
+}
+
+// Get items with favorite status
+$where_clause = isset($_GET['favorites']) ? "WHERE fpi.practice_item_id IS NOT NULL" : "";
+$items = [];
+$query = "
+    SELECT pi.*, pc.name as category_name, 
+           CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+    FROM practice_items pi
+    JOIN practice_categories pc ON pi.category_id = pc.id
+    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
+    $where_clause
+    ORDER BY pc.name ASC, pi.item_title ASC
+";
+
+$result = $conn->query($query);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+    $result->free();
+}
+
 // Get favorite items for quick lookup
 $favorites_lookup = [];
 $favorites_sql = "SELECT practice_item_id FROM favorite_practice_items";
@@ -16,7 +65,7 @@ if ($result = $conn->query($favorites_sql)) {
 
 // --- Determine View Mode and Parameters ---
 $view_mode = isset($_GET['view']) ? $_GET['view'] : 'day'; // Default to day view
-$page_title = "Review English Practice"; // Default title
+$page_title = "Review Practice Items";
 
 // Daily View Logic
 $selected_date_str = date('Y-m-d'); // Default
@@ -88,140 +137,179 @@ else {
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="container mt-4 mb-5">
+<style>
+:root {
+    --accent-color: #cdaf56;
+    --accent-light: #d9c07a;
+    --accent-lighter: #f5ecd6;
+    --accent-dark: #b69843;
+}
 
-    <!-- Session Messages -->
-    <?php if (!empty($_SESSION['success_ep'])): ?><div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($_SESSION['success_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php unset($_SESSION['success_ep']); endif; ?>
-    <?php if (!empty($_SESSION['error_ep'])): ?><div class="alert alert-danger alert-dismissible fade show"><i class="fas fa-exclamation-triangle me-2"></i><?php echo htmlspecialchars($_SESSION['error_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php unset($_SESSION['error_ep']); endif; ?>
-    <?php if (!empty($_SESSION['warning_ep'])): ?><div class="alert alert-warning alert-dismissible fade show"><i class="fas fa-exclamation-circle me-2"></i><?php echo htmlspecialchars($_SESSION['warning_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div><?php unset($_SESSION['warning_ep']); endif; ?>
+.bg-accent {
+    background-color: var(--accent-color) !important;
+}
 
+.text-accent {
+    color: var(--accent-color) !important;
+}
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-        <h1 class="h3 mb-0"><?php echo $page_title; ?></h1>
-         <!-- View Mode Toggle -->
-         <div class="btn-group">
-            <a href="?view=day<?php echo ($view_mode==='day' ? '&date='.$formatted_date : ''); ?>" class="btn btn-sm <?php echo ($view_mode==='day' ? 'btn-primary active' : 'btn-outline-primary'); ?>">Day View</a>
-            <a href="?view=week<?php echo ($view_mode==='week' ? '&week='.$selected_week_num : ''); ?>" class="btn btn-sm <?php echo ($view_mode==='week' ? 'btn-primary active' : 'btn-outline-primary'); ?>">Week View</a>
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+}
+
+.btn-accent:hover {
+    background-color: var(--accent-dark);
+    color: white;
+}
+
+.btn-outline-accent {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-outline-accent:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.card {
+    border-color: var(--accent-lighter);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.favorite-btn {
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    color: var(--accent-color);
+}
+
+.category-badge {
+    background-color: var(--accent-lighter);
+    color: var(--accent-dark);
+    font-weight: 500;
+}
+
+.nav-link.active {
+    background-color: var(--accent-color) !important;
+    color: white !important;
+}
+</style>
+
+<div class="container py-4">
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo $_SESSION['success']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><?php echo $_SESSION['error']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h1 class="h2 mb-2 fw-bold text-accent">Review Practice Items</h1>
+            <p class="text-muted lead">Review and manage your English practice items</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="practice.php" class="btn btn-accent me-2">
+                <i class="fas fa-graduation-cap me-2"></i>Practice
+            </a>
+            <a href="daily_entry.php" class="btn btn-outline-accent">
+                <i class="fas fa-plus me-2"></i>New Entry
+            </a>
         </div>
     </div>
 
-    <!-- Day View Content -->
-    <?php if ($view_mode === 'day'): ?>
-        <div class="date-nav d-flex align-items-center justify-content-center mb-4">
-             <a href="?view=day&date=<?php echo $prev_date; ?>" class="btn btn-outline-secondary btn-sm me-3"><i class="fas fa-chevron-left"></i> Prev Day</a>
-             <span class="text-muted">Reviewing items for this day</span>
-             <a href="?view=day&date=<?php echo $next_date; ?>" class="btn btn-outline-secondary btn-sm ms-3">Next Day <i class="fas fa-chevron-right"></i></a>
-        </div>
+    <!-- Filter Tabs -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link <?php echo !isset($_GET['favorites']) ? 'active' : ''; ?>" href="review.php">
+                <i class="fas fa-list me-2"></i>All Items
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo isset($_GET['favorites']) ? 'active' : ''; ?>" href="?favorites=1">
+                <i class="fas fa-star me-2"></i>Favorites
+            </a>
+        </li>
+    </ul>
 
-        <?php if ($practice_day_id === null && empty($_SESSION['error_ep'])): ?>
-             <div class="alert alert-warning">Practice day record not found for this date.</div>
-        <?php elseif (empty($items_for_display)): ?>
-             <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>No practice items found for <?php echo $display_date; ?>. <a href="daily_entry.php?date=<?php echo urlencode($formatted_date); ?>" class="alert-link">Add entries?</a></div>
-        <?php else: ?>
-            <div class="accordion review-accordion" id="practiceDayAccordion">
-                 <?php foreach ($items_for_display as $category_id => $category): ?>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-day-<?php echo $category_id; ?>">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-day-<?php echo $category_id; ?>" aria-expanded="false" aria-controls="collapse-day-<?php echo $category_id; ?>">
-                                <?php echo $category['name']; ?>
-                                <span class="badge bg-secondary rounded-pill ms-2"><?php echo count($category['items']); ?></span>
-                            </button>
-                        </h2>
-                        <div id="collapse-day-<?php echo $category_id; ?>" class="accordion-collapse collapse" aria-labelledby="heading-day-<?php echo $category_id; ?>" data-bs-parent="#practiceDayAccordion">
-                            <div class="accordion-body">
-                                <ul class="list-unstyled mb-0">
-                                    <?php foreach ($category['items'] as $item): ?>
-                                        <li class="mb-3 pb-3 border-bottom">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div class="item-title h6 mb-0"><?php echo htmlspecialchars($item['item_title']); ?></div>
-                                                <button class="btn btn-sm <?php echo isset($favorites_lookup[$item['id']]) ? 'btn-warning' : 'btn-outline-warning'; ?> toggle-favorite" 
-                                                        data-item-id="<?php echo $item['id']; ?>">
-                                                    <i class="<?php echo isset($favorites_lookup[$item['id']]) ? 'fas' : 'far'; ?> fa-star"></i>
-                                                </button>
-                                            </div>
-                                            <div class="item-meta mb-1">
-                                                <strong>Meaning/Rule:</strong> 
-                                                <?php echo nl2br(htmlspecialchars($item['item_meaning'])); ?>
-                                            </div>
-                                            <?php if (!empty($item['item_example'])): ?>
-                                                <div class="item-meta">
-                                                    <strong>Example:</strong> 
-                                                    <em><?php echo nl2br(htmlspecialchars($item['item_example'])); ?></em>
-                                                </div>
-                                            <?php endif; ?>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        </div>
+    <!-- Items Grid -->
+    <div class="row g-4">
+        <?php if (empty($items)): ?>
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No items found</h4>
+                        <p class="text-muted mb-0">
+                            <?php echo isset($_GET['favorites']) ? 
+                                'You haven\'t added any favorites yet.' : 
+                                'Start by adding some practice items.'; ?>
+                        </p>
                     </div>
-                 <?php endforeach; ?>
-             </div>
-             <div class="text-center mt-4"> <a href="daily_entry.php?date=<?php echo urlencode($formatted_date); ?>" class="btn btn-outline-secondary me-2"><i class="fas fa-edit me-1"></i>Edit Today</a> <a href="practice.php?date=<?php echo urlencode($formatted_date); ?>" class="btn btn-primary"><i class="fas fa-bolt me-1"></i>Practice Today's Items</a></div>
-        <?php endif; ?>
-
-    <!-- Week View Content -->
-    <?php elseif ($view_mode === 'week' && isset($items_for_display_by_date)): ?>
-         <div class="date-nav d-flex align-items-center justify-content-center mb-4">
-             <?php if ($prev_week): ?><a href="?view=week&week=<?php echo $prev_week; ?>" class="btn btn-outline-secondary btn-sm me-3"><i class="fas fa-chevron-left"></i> Prev Week</a><?php else: ?><span class="btn btn-outline-secondary btn-sm me-3 disabled"><i class="fas fa-chevron-left"></i> Prev Week</span><?php endif; ?>
-             <span class="text-muted">Displaying Week <?php echo $selected_week_num; ?></span>
-             <?php if ($next_week): ?><a href="?view=week&week=<?php echo $next_week; ?>" class="btn btn-outline-secondary btn-sm ms-3">Next Week <i class="fas fa-chevron-right"></i></a><?php else: ?><span class="btn btn-outline-secondary btn-sm ms-3 disabled">Next Week <i class="fas fa-chevron-right"></i></span><?php endif; ?>
-        </div>
-
-        <?php if (empty($items_for_display_by_date)): ?>
-             <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>No practice items found for Week <?php echo $selected_week_num; ?>.</div>
-        <?php else: ?>
-             <div class="accordion review-accordion" id="practiceWeekAccordion">
-                 <?php foreach ($items_for_display_by_date as $date => $categories_on_day): // Loop through dates in the week ?>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-week-<?php echo str_replace('-','',$date); // Valid ID ?>">
-                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-week-<?php echo str_replace('-','',$date); ?>" aria-expanded="false" aria-controls="collapse-week-<?php echo str_replace('-','',$date); ?>">
-                                 <?php echo format_practice_date($date); // Display formatted date ?>
-                            </button>
-                        </h2>
-                        <div id="collapse-week-<?php echo str_replace('-','',$date); ?>" class="accordion-collapse collapse" aria-labelledby="heading-week-<?php echo str_replace('-','',$date); ?>" data-bs-parent="#practiceWeekAccordion">
-                            <div class="accordion-body">
-                                 <?php foreach ($categories_on_day as $category_id => $category): ?>
-                                     <h6 class="mt-3 mb-2 fw-bold"><?php echo $category['name']; ?> <span class="badge bg-light text-dark fw-normal ms-1"><?php echo count($category['items']); ?></span></h6>
-                                     <ul class="list-unstyled mb-3">
-                                         <?php foreach ($category['items'] as $item): ?>
-                                             <li class="mb-2 pb-2 border-bottom">
-                                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                                     <div class="item-title h6 mb-0"><?php echo htmlspecialchars($item['item_title']); ?></div>
-                                                     <button class="btn btn-sm <?php echo isset($favorites_lookup[$item['id']]) ? 'btn-warning' : 'btn-outline-warning'; ?> toggle-favorite" 
-                                                             data-item-id="<?php echo $item['id']; ?>">
-                                                         <i class="<?php echo isset($favorites_lookup[$item['id']]) ? 'fas' : 'far'; ?> fa-star"></i>
-                                                     </button>
-                                                 </div>
-                                                 <div class="item-meta mb-1">
-                                                     <strong>Meaning/Rule:</strong> 
-                                                     <?php echo nl2br(htmlspecialchars($item['item_meaning'])); ?>
-                                                 </div>
-                                                 <?php if (!empty($item['item_example'])): ?>
-                                                     <div class="item-meta">
-                                                         <strong>Example:</strong> 
-                                                         <em><?php echo nl2br(htmlspecialchars($item['item_example'])); ?></em>
-                                                     </div>
-                                                 <?php endif; ?>
-                                             </li>
-                                         <?php endforeach; ?>
-                                          <li style="border-bottom: none !important;"></li><!-- Prevent last item border -->
-                                     </ul>
-                                 <?php endforeach; ?>
-                                 <a href="daily_entry.php?date=<?php echo urlencode($date); ?>" class="btn btn-sm btn-outline-secondary mt-2">Edit This Day</a>
-                            </div>
-                        </div>
-                    </div>
-                 <?php endforeach; ?>
+                </div>
             </div>
-            <div class="text-center mt-4"> <a href="practice.php?date_filter=week&week_num=<?php echo $selected_week_num; ?>" class="btn btn-primary"><i class="fas fa-bolt me-1"></i>Practice This Week's Items</a></div>
-
+        <?php else: ?>
+            <?php foreach ($items as $item): ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-accent bg-opacity-10 d-flex justify-content-between align-items-center py-3">
+                            <span class="category-badge badge rounded-pill">
+                                <?php echo htmlspecialchars($item['category_name']); ?>
+                            </span>
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="action" value="toggle_favorite">
+                                <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
+                                <input type="hidden" name="is_favorite" value="<?php echo $item['is_favorite'] ? '0' : '1'; ?>">
+                                <button type="submit" class="btn btn-link p-0 favorite-btn <?php echo $item['is_favorite'] ? 'active' : ''; ?>">
+                                    <i class="fas fa-star fa-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-accent mb-3">
+                                <?php echo htmlspecialchars($item['item_title']); ?>
+                            </h5>
+                            <div class="card-text mb-3">
+                                <p class="fw-bold mb-1">Meaning/Rule:</p>
+                                <p class="text-muted"><?php echo nl2br(htmlspecialchars($item['item_meaning'])); ?></p>
+                            </div>
+                            <div class="card-text">
+                                <p class="fw-bold mb-1">Example:</p>
+                                <p class="fst-italic text-muted mb-0">
+                                    <?php echo nl2br(htmlspecialchars($item['item_example'])); ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         <?php endif; ?>
-
-    <?php endif; // End view_mode check ?>
-
-
-</div><!-- /.container -->
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
