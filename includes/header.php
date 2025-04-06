@@ -252,6 +252,10 @@ require_once 'db_connect.php';
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/pages/subjects/math.php">Mathematics</a></li>
                                 <li><a class="dropdown-item" href="/pages/subjects/english.php">English</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/pages/EnglishPractice/daily_entry.php">
+                                    <i class="fas fa-pen me-2"></i>English Practice
+                                </a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
