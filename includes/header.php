@@ -14,6 +14,39 @@ require_once 'db_connect.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#cdaf56">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Do It!">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon/Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png">
+    
+    <!-- Mobile-friendly CSS -->
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
+        body {
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        button, a {
+            touch-action: manipulation;
+        }
+    </style>
+    
     <title>GCSE Tracker<?php echo isset($page_title) ? ' - ' . $page_title : ''; ?></title>
     
     <!-- Favicon -->
@@ -227,6 +260,21 @@ require_once 'db_connect.php';
     <!-- Test notifications loaded -->
     <script>
         console.log('Notifications.js should be loaded now');
+    </script>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     </script>
 </head>
 <body>

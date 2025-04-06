@@ -22,8 +22,8 @@ try {
     
     // Get recent items using the function
     $recent_items = get_recent_practice_items($conn);
-    
-    // Get habits for today
+
+// Get habits for today
     $habits = get_todays_habits($conn);
     
     // Get tasks for today
@@ -382,8 +382,8 @@ require_once __DIR__ . '/../includes/header.php';
     }
     
     .stat-card {
-        margin-bottom: 1rem;
-    }
+    margin-bottom: 1rem;
+}
     
     .quick-actions {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -502,9 +502,9 @@ require_once __DIR__ . '/../includes/header.php';
                     </h5>
                     <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addHabitModal">
                         <i class="fas fa-plus"></i> Add Habit
-                    </button>
+                        </button>
                 </div>
-                <div class="card-body">
+                                        <div class="card-body">
                     <?php if (!empty($habits)): ?>
                         <div class="habits-timeline">
                             <?php foreach ($habits as $habit): ?>
@@ -520,7 +520,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                 <i class="far fa-clock me-1"></i>
                                                 <?php echo date('g:i A', strtotime($habit['target_time'])); ?>
                                             </div>
-                                        </div>
+                                                        </div>
                                         <div>
                                             <?php if ($habit['today_status'] == 'completed'): ?>
                                                 <span class="badge bg-success">Completed</span>
@@ -534,15 +534,15 @@ require_once __DIR__ . '/../includes/header.php';
                                     </div>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
+                                            </div>
                     <?php else: ?>
                         <div class="text-center py-4">
                             <i class="fas fa-tasks fa-2x text-muted mb-3"></i>
                             <p class="text-muted mb-0">No habits scheduled for today</p>
-                        </div>
+                                                        </div>
                     <?php endif; ?>
-                </div>
-            </div>
+                                                        </div>
+                                                    </div>
 
             <!-- Tasks Section -->
             <div class="card mb-4">
@@ -572,7 +572,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         </div>
                                         <?php if ($task['description']): ?>
                                             <p class="text-muted small mb-2"><?php echo htmlspecialchars($task['description']); ?></p>
-                                        <?php endif; ?>
+                                            <?php endif; ?>
                                         <div class="d-flex align-items-center">
                                             <span class="badge" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
                                                 <i class="<?php echo htmlspecialchars($task['category_icon']); ?> me-1"></i>
@@ -596,10 +596,10 @@ require_once __DIR__ . '/../includes/header.php';
                         <div class="text-center py-4">
                             <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
                             <p class="text-muted mb-0">No tasks for today</p>
-                        </div>
+                                            </div>
                     <?php endif; ?>
-                </div>
-            </div>
+                                                    </div>
+                                                </div>
 
             <!-- Quick Actions -->
             <div class="col-md-4 mb-4">
@@ -624,9 +624,9 @@ require_once __DIR__ . '/../includes/header.php';
                         <div>
                             <div class="fw-bold">Review Favorites</div>
                             <div class="small text-muted">Practice saved items</div>
-                        </div>
+                                                        </div>
                     </a>
-                </div>
+                                                    </div>
             </div>
 
             <!-- Upcoming Assignments -->
@@ -644,8 +644,8 @@ require_once __DIR__ . '/../includes/header.php';
                                     <h3 class="h6 mb-1"><?php echo htmlspecialchars($assignment['title']); ?></h3>
                                     <div class="text-muted small">
                                         Due in <?php echo ceil($days_left); ?> days
-                                    </div>
-                                </div>
+                                                </div>
+                                            </div>
                                 <div class="ms-3">
                                     <div class="progress" style="width: 60px; height: 60px;">
                                         <div class="progress-bar bg-success" role="progressbar" 
@@ -685,24 +685,24 @@ require_once __DIR__ . '/../includes/header.php';
                                 <h3 class="h6 mb-1"><?php echo htmlspecialchars($item['item_title']); ?></h3>
                                 <button class="btn btn-link p-0 toggle-favorite" data-item-id="<?php echo $item['id']; ?>">
                                     <i class="<?php echo $item['is_favorite'] ? 'fas' : 'far'; ?> fa-star text-warning"></i>
-                                </button>
+                        </button>
                             </div>
                             <span class="category-badge">
                                 <?php echo htmlspecialchars($item['category_name']); ?>
-                            </span>
+                                                        </span>
                             <div class="mt-2 small text-muted">
                                 Added <?php echo date('j M', strtotime($item['created_at'])); ?>
-                            </div>
-                        </div>
+                                                </div>
+                                            </div>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <div class="text-center py-4 text-muted">
                         <i class="fas fa-book fa-2x mb-3"></i>
                         <p class="mb-0">No practice items yet!</p>
+                                    </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                <?php endif; ?>
-            </div>
-        </div>
 
         <!-- Right Column -->
         <div class="col-md-4">
@@ -714,7 +714,7 @@ require_once __DIR__ . '/../includes/header.php';
                         Upcoming Exams
                     </h5>
                 </div>
-                <div class="card-body">
+                                        <div class="card-body">
                     <?php if (!empty($exams)): ?>
                         <?php foreach ($exams as $exam): ?>
                             <div class="exam-item mb-3 p-3 border rounded">
@@ -728,8 +728,8 @@ require_once __DIR__ . '/../includes/header.php';
                                             ($exam['days_remaining'] <= 14 ? 'bg-warning' : 'bg-success'); 
                                     ?>">
                                         <?php echo $exam['days_remaining']; ?> days left
-                                    </span>
-                                </div>
+                                                        </span>
+                                                </div>
                                 <div class="progress" style="height: 4px;">
                                     <div class="progress-bar bg-info" role="progressbar" 
                                          style="width: <?php echo (30 - $exam['days_remaining']) / 30 * 100; ?>%">
@@ -737,7 +737,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                             </div>
                         <?php endforeach; ?>
-                    <?php else: ?>
+                            <?php else: ?>
                         <div class="text-center py-4">
                             <i class="fas fa-book fa-2x text-muted mb-3"></i>
                             <p class="text-muted mb-0">No upcoming exams</p>
@@ -755,24 +755,24 @@ require_once __DIR__ . '/../includes/header.php';
                             Today's Exam Results
                         </h5>
                     </div>
-                    <div class="card-body">
+                                        <div class="card-body">
                         <?php foreach ($exam_reports as $report): ?>
                             <div class="exam-report mb-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($report['exam_title']); ?></h6>
-                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($report['subject_color']); ?>">
-                                            <?php echo htmlspecialchars($report['subject_name']); ?>
-                                        </span>
-                                    </div>
-                                    <span class="badge bg-<?php echo $report['score'] >= 70 ? 'success' : ($report['score'] >= 50 ? 'warning' : 'danger'); ?>">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1"><?php echo htmlspecialchars($report['exam_title']); ?></h6>
+                                                    <span class="badge" style="background-color: <?php echo htmlspecialchars($report['subject_color']); ?>">
+                                                        <?php echo htmlspecialchars($report['subject_name']); ?>
+                                                    </span>
+                                                </div>
+                                                    <span class="badge bg-<?php echo $report['score'] >= 70 ? 'success' : ($report['score'] >= 50 ? 'warning' : 'danger'); ?>">
                                         <?php echo $report['score']; ?>%
-                                    </span>
-                                </div>
-                                <?php if ($report['notes']): ?>
+                                                    </span>
+                                            </div>
+                                            <?php if ($report['notes']): ?>
                                     <p class="text-muted small mt-2 mb-0"><?php echo htmlspecialchars($report['notes']); ?></p>
-                                <?php endif; ?>
-                            </div>
+                                            <?php endif; ?>
+                                        </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
