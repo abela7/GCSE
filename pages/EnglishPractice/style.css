@@ -1,0 +1,87 @@
+/* GCSE/pages/EnglishPractice/style.css */
+
+/* Styles specific to the English Practice feature will go here */
+
+/* Example: Styling for entry form items */
+.entry-item {
+    /* Add some light background or padding if needed */
+     background-color: #fdfdfd;
+     padding-top: 0.75rem;
+     border-radius: var(--border-radius-sm); /* Use variable from main CSS if defined globally */
+}
+
+.entry-item:last-of-type {
+    border-bottom: none !important; /* Remove border on last item */
+    margin-bottom: 1rem !important; /* Add margin after last standard item */
+    padding-bottom: 0.75rem !important;
+}
+
+/* Style the extra item button */
+.add-extra-item {
+    display: block; /* Make it full width maybe? */
+    width: 100%;   /* Example */
+    margin-top: 0.5rem;
+    border-style: dashed;
+}
+
+/* Minor adjustments to form controls if needed */
+.form-control-sm {
+    /* Slightly smaller padding for compact entry */
+    /* padding: 0.3rem 0.6rem; */
+}
+
+/* Styles for Review Page Accordion */
+.review-accordion .accordion-button {
+    font-weight: 500;
+}
+.review-accordion .accordion-body ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+.review-accordion .accordion-body li {
+    border-bottom: 1px solid #eee;
+    padding: 0.5rem 0;
+}
+.review-accordion .accordion-body li:last-child {
+    border-bottom: none;
+}
+.review-accordion .item-title {
+    font-weight: 500;
+    color: var(--text-color); /* Use variable */
+}
+.review-accordion .item-meta {
+    font-size: 0.9em;
+    color: var(--text-muted); /* Use variable */
+}
+
+
+/* Styles for Practice/Flashcard Page */
+.flashcard {
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: var(--border-radius-md);
+    min-height: 200px; /* Example height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.flashcard .term {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.flashcard .details {
+    /* Styles for hidden details */
+    display: none; /* Hidden initially */
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+.flashcard .details p {
+     margin-bottom: 0.5rem;
+} 

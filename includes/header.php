@@ -41,6 +41,22 @@ require_once 'db_connect.php';
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <link href="/assets/css/reports.css" rel="stylesheet">
     
+    <?php
+    // --- Conditional CSS Loading ---
+    // Get the directory of the currently running script
+    $current_page_directory = basename(dirname($_SERVER['PHP_SELF'])); // Gets the last folder name
+
+    if ($current_page_directory === 'EnglishPractice') {
+        // Construct the relative path from the includes folder to the EnglishPractice CSS
+        echo '<link rel="stylesheet" href="/pages/EnglishPractice/style.css">'; // USE ABSOLUTE PATH FROM WEB ROOT
+    } elseif ($current_page_directory === 'tasks') {
+         // Example for task specific CSS
+         echo '<link rel="stylesheet" href="/assets/css/tasks.css">'; // Or /pages/tasks/style.css if you move that too
+    }
+    // Add more elseif conditions for other feature-specific CSS files
+    // --- End Conditional CSS ---
+    ?>
+    
     <style>
         :root {
             --primary-color: #cdaf56;

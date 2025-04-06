@@ -26,6 +26,22 @@
         <!-- Custom JavaScript -->
         <script src="/assets/js/main.js"></script>
         
+        <?php
+        // --- Conditional JS Loading ---
+        // Get the directory of the currently running script
+        $current_page_directory = basename(dirname($_SERVER['PHP_SELF'])); // Gets the last folder name
+
+        if ($current_page_directory === 'EnglishPractice') {
+            // Construct the path relative to the includes folder
+            echo '<script src="/pages/EnglishPractice/script.js"></script>'; // USE ABSOLUTE PATH FROM WEB ROOT
+        } elseif ($current_page_directory === 'tasks') {
+            // Example for task specific JS
+             echo '<script src="/assets/js/tasks.js"></script>'; // Or /pages/tasks/script.js if moved
+        }
+        // Add more elseif conditions for other feature-specific JS files
+        // --- End Conditional JS ---
+        ?>
+        
         <?php if (isset($page_scripts)): ?>
             <?php echo $page_scripts; ?>
         <?php endif; ?>
