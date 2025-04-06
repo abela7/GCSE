@@ -18,7 +18,7 @@ if ($subject === 'english') {
     $topics_table = 'eng_topics';
     $progress_table = 'eng_topic_progress';
     $subject_name = 'English';
-    $subject_page = '/GCSE/pages/subjects/english.php';
+    $subject_page = '/pages/subjects/english.php';
     $gradient_colors = ['#28a745', '#20c997'];
 } else {
     $sections_table = 'math_sections';
@@ -26,7 +26,7 @@ if ($subject === 'english') {
     $topics_table = 'math_topics';
     $progress_table = 'topic_progress';
     $subject_name = 'Mathematics';
-    $subject_page = '/GCSE/pages/subjects/math.php';
+    $subject_page = '/pages/subjects/math.php';
     $gradient_colors = ['#0066ff', '#00ccff'];
 }
 
@@ -78,10 +78,10 @@ if (!$topic) {
 
 // Set breadcrumbs
 $breadcrumbs = [
-    'Home' => '/GCSE/',
-    'Subjects' => '/GCSE/pages/subjects.php',
+    'Home' => '/',
+    'Subjects' => '/pages/subjects.php',
     $subject_name => $subject_page,
-    $topic['subsection_name'] => "/GCSE/pages/topics.php?subsection=" . $topic['subsection_id'] . "&subject=" . $subject,
+    $topic['subsection_name'] => "/pages/topics.php?subsection=" . $topic['subsection_id'] . "&subject=" . $subject,
     $topic['name'] => null
 ];
 
@@ -438,7 +438,7 @@ error_log("Current topic ID: " . $topic_id);
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Resources</h5>
-                        <a href="/GCSE/pages/resource_viewer.php?topic_id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary btn-sm">
+                        <a href="/pages/resource_viewer.php?topic_id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary btn-sm">
                             <i class="fas fa-external-link-alt"></i> View All Resources
                         </a>
                     </div>
@@ -485,7 +485,7 @@ error_log("Current topic ID: " . $topic_id);
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Update Progress</h5>
-                        <form id="updateProgressForm" action="/GCSE/api/topics/update_progress.php" method="POST">
+                        <form id="updateProgressForm" action="/api/topics/update_progress.php" method="POST">
                             <input type="hidden" name="topic_id" value="<?php echo $topic_id; ?>">
                             
                             <div class="mb-3">
@@ -547,23 +547,6 @@ error_log("Current topic ID: " . $topic_id);
                         </form>
                     </div>
                 </div>
-
-                <!-- Rating Section -->
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Rate this topic</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="rating-container">
-                            <div class="stars">
-                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                    <span class="star" data-rating="<?php echo $i; ?>">★</span>
-                                <?php endfor; ?>
-                            </div>
-                            <div class="rating-text">Rate this topic</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -578,7 +561,7 @@ error_log("Current topic ID: " . $topic_id);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addNoteForm" action="/GCSE/api/topics/add_note.php" method="POST">
+                <form id="addNoteForm" action="/api/topics/add_note.php" method="POST">
                     <input type="hidden" name="topic_id" value="<?php echo $topic_id; ?>">
                     <div class="mb-3">
                         <label class="form-label">Note Content</label>
