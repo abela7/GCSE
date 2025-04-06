@@ -27,15 +27,82 @@ $page_title = "Daily Entry - English";
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
+<style>
+/* Custom accent colors */
+:root {
+    --accent-color: #2c3e50;
+    --accent-light: #34495e;
+    --accent-lighter: #ecf0f1;
+    --accent-dark: #1a252f;
+    --accent-success: #27ae60;
+    --accent-danger: #e74c3c;
+}
+
+/* Override Bootstrap colors */
+.bg-accent {
+    background-color: var(--accent-color) !important;
+}
+
+.text-accent {
+    color: var(--accent-color) !important;
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-accent:hover {
+    background-color: var(--accent-dark);
+    color: white;
+}
+
+.btn-outline-accent {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-outline-accent:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Card and form styling */
+.card {
+    border-color: var(--accent-lighter);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+}
+
+/* Accordion customization */
+.accordion-button:not(.collapsed) {
+    background-color: var(--accent-lighter);
+    color: var(--accent-color);
+}
+
+.accordion-button:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.25);
+}
+
+/* Badge styling */
+.badge.bg-accent {
+    background-color: var(--accent-color) !important;
+}
+</style>
+
 <div class="container py-4">
     <!-- Header Section with improved styling -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
-            <h1 class="h2 mb-2 fw-bold text-primary">Daily Practice Entry</h1>
+            <h1 class="h2 mb-2 fw-bold text-accent">Daily Practice Entry</h1>
             <p class="text-muted lead">Add your English practice items for today</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="review.php" class="btn btn-outline-primary btn-lg">
+            <a href="review.php" class="btn btn-outline-accent btn-lg">
                 <i class="fas fa-list-alt me-2"></i> Review Entries
             </a>
         </div>
@@ -43,7 +110,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <!-- Date Selection with improved styling -->
     <div class="card shadow-sm border-0 rounded-3 mb-4">
-        <div class="card-body bg-light">
+        <div class="card-body bg-accent bg-opacity-10">
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">
@@ -62,7 +129,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <!-- Entry Form with enhanced styling -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-header bg-primary text-white py-3">
+                <div class="card-header bg-accent text-white py-3">
                     <h3 class="h5 mb-0">
                         <i class="fas fa-plus-circle me-2"></i>New Entry
                     </h3>
@@ -108,7 +175,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
                         <!-- Submit Button -->
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-accent btn-lg">
                                 <i class="fas fa-save me-2"></i>Save Entry
                             </button>
                         </div>
@@ -153,7 +220,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
             <?php if (!empty($entries_by_category)): ?>
                 <div class="card shadow-sm border-0 rounded-3">
-                    <div class="card-header bg-primary text-white py-3">
+                    <div class="card-header bg-accent text-white py-3">
                         <h3 class="h5 mb-0">
                             <i class="fas fa-list me-2"></i>Today's Entries
                         </h3>
@@ -162,17 +229,17 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php foreach ($entries_by_category as $cat_id => $category): ?>
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button" type="button" 
+                                    <button class="accordion-button collapsed" type="button" 
                                             data-bs-toggle="collapse" 
                                             data-bs-target="#category-<?php echo $cat_id; ?>">
                                         <span class="fw-bold"><?php echo htmlspecialchars($category['name']); ?></span>
-                                        <span class="badge bg-primary rounded-pill ms-2">
+                                        <span class="badge bg-accent rounded-pill ms-2">
                                             <?php echo count($category['entries']); ?>
                                         </span>
                                     </button>
                                 </h2>
                                 <div id="category-<?php echo $cat_id; ?>" 
-                                     class="accordion-collapse collapse show" 
+                                     class="accordion-collapse collapse" 
                                      data-bs-parent="#entriesAccordion">
                                     <div class="accordion-body p-0">
                                         <div class="list-group list-group-flush">
@@ -180,7 +247,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                 <div class="list-group-item">
                                                     <div class="d-flex justify-content-between align-items-start">
                                                         <div class="me-3">
-                                                            <h6 class="mb-1 text-primary">
+                                                            <h6 class="mb-1 text-accent">
                                                                 <?php echo htmlspecialchars($entry['item_title']); ?>
                                                             </h6>
                                                             <p class="mb-1 small text-muted">
@@ -191,7 +258,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                             </p>
                                                         </div>
                                                         <div class="btn-group btn-group-sm">
-                                                            <button type="button" class="btn btn-outline-primary edit-entry" 
+                                                            <button type="button" class="btn btn-outline-accent edit-entry" 
                                                                     data-id="<?php echo $entry['id']; ?>"
                                                                     data-title="<?php echo htmlspecialchars($entry['item_title']); ?>"
                                                                     data-meaning="<?php echo htmlspecialchars($entry['item_meaning']); ?>"
@@ -231,7 +298,7 @@ require_once __DIR__ . '/../../includes/header.php';
 <div class="modal fade" id="editEntryModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-accent text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-edit me-2"></i>Edit Entry
                 </h5>
@@ -278,7 +345,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancel
                 </button>
-                <button type="button" class="btn btn-primary" id="saveEdit">
+                <button type="button" class="btn btn-accent" id="saveEdit">
                     <i class="fas fa-save me-2"></i>Save Changes
                 </button>
             </div>
