@@ -450,19 +450,27 @@ require_once __DIR__ . '/../../includes/header.php';
                                   style="height: 100px" required></textarea>
                         <label>Example</label>
                     </div>
+                    <!-- Move buttons inside form -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-accent" id="saveEdit">
-                    <i class="fas fa-save me-2"></i>Save Changes
-                </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Delete Form -->
+<form id="deleteForm" method="POST">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="entry_id" id="deleteEntryId">
+    <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
+</form>
 
 <!-- Delete Confirmation Modal with improved styling -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
@@ -514,6 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Edit Entry
     const editModal = new bootstrap.Modal(document.getElementById('editEntryModal'));
+    const editForm = document.getElementById('editForm');
     
     document.querySelectorAll('.edit-entry').forEach(button => {
         button.addEventListener('click', function() {
@@ -528,6 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Delete Entry
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteForm = document.getElementById('deleteForm');
     
     document.querySelectorAll('.delete-entry').forEach(button => {
         button.addEventListener('click', function() {
@@ -537,7 +547,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('confirmDelete').addEventListener('click', function() {
-        document.getElementById('deleteForm').submit();
+        deleteForm.submit();
+    });
+
+    // Clear form when modal is hidden
+    const editEntryModal = document.getElementById('editEntryModal');
+    editEntryModal.addEventListener('hidden.bs.modal', function () {
+        editForm.reset();
+        editForm.classList.remove('was-validated');
     });
 });
 </script>
