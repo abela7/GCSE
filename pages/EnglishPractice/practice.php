@@ -141,31 +141,14 @@ require_once __DIR__ . '/../../includes/header.php'; // Uses conditional CSS loa
 
         <!-- Pass remaining items to JavaScript -->
         <script>
-            // Define global variables
+            // Simple variables for flashcard functionality
             const practiceItems = <?php echo $remaining_items_js; ?>;
             const totalItems = <?php echo $total_item_count; ?>;
-            const currentCategory = <?php echo json_encode($category_id); ?>;
-            const currentDateFilter = <?php echo json_encode($date_filter); ?>;
-            const currentFavoritesOnly = <?php echo json_encode($favorites_only); ?>;
-            let currentItemId = <?php echo $first_item['id']; ?>;
-            let currentIsFavorite = <?php echo $first_item['is_favorite']; ?>;
-
-            // Initialize when DOM is ready
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('DOM loaded, initializing...');
-                
-                // Initialize flashcards
-                if (document.getElementById('flashcard-term')) {
-                    console.log('Initializing flashcards...');
-                    initializeFlashcards();
-                }
-                
-                // Initialize favorites
-                if (document.querySelector('.toggle-favorite')) {
-                    console.log('Initializing favorites...');
-                    initializeFavorites();
-                }
-            });
+            
+            // Log to verify script is running
+            console.log('Practice page script running');
+            console.log('Total items:', totalItems);
+            console.log('Practice items:', practiceItems);
         </script>
 
     <?php endif; ?>

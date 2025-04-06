@@ -1,4 +1,5 @@
 // GCSE/pages/EnglishPractice/script.js
+console.log('Script.js loaded!');
 
 /**
  * Function to safely get elements by ID
