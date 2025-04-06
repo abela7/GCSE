@@ -1,221 +1,159 @@
 /* GCSE/pages/EnglishPractice/style.css */
 
-/* Styles specific to the English Practice feature will go here */
-
-/* Example: Styling for entry form items */
-.entry-item {
-    /* Add some light background or padding if needed */
-     background-color: #fdfdfd;
-     padding-top: 0.75rem;
-     border-radius: var(--border-radius-sm); /* Use variable from main CSS if defined globally */
-     transition: all 0.3s ease;
+:root {
+    --english-primary: #0d6efd; /* Bootstrap blue default, adjust if needed */
+    --english-secondary: #6c757d;
+    --english-light: #f8f9fa;
+    --english-dark: #343a40;
+    --english-border: #dee2e6;
+    --english-border-radius: 0.375rem; /* Bootstrap default */
+    --english-card-bg: #ffffff;
+    --english-card-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
 }
 
-.entry-item:last-of-type {
-    border-bottom: none !important; /* Remove border on last item */
-    margin-bottom: 1rem !important; /* Add margin after last standard item */
-    padding-bottom: 0.75rem !important;
+/* Basic styles for this feature */
+.english-practice-page {
+    /* Add common container styles if needed */
 }
 
-.entry-item:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+/* Daily Entry Page Styles */
+#dailyEntryForm .card {
+    margin-bottom: 1.5rem;
 }
-
-/* Style the extra item button */
-.add-extra-item {
-    display: block; /* Make it full width maybe? */
-    width: 100%;   /* Example */
-    margin-top: 0.5rem;
-    border-style: dashed;
-}
-
-/* Minor adjustments to form controls if needed */
-.form-control-sm {
-    /* Slightly smaller padding for compact entry */
-    /* padding: 0.3rem 0.6rem; */
-}
-
-/* Styles for Review Page Accordion */
-.review-accordion .accordion-button {
+#dailyEntryForm .card-header {
+    background-color: var(--english-light);
+    border-bottom: 1px solid var(--english-border);
     font-weight: 500;
 }
+#dailyEntryForm .entry-item {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--english-border);
+}
+#dailyEntryForm .entry-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0; /* Reduce padding on last item */
+}
+#dailyEntryForm textarea.form-control-sm {
+    min-height: calc(1.5em + 0.5rem + 2px); /* Ensure minimum height for textarea */
+    resize: vertical; /* Allow vertical resize only */
+}
+.add-extra-item {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+    border-style: dashed;
+    color: var(--english-secondary);
+    border-color: var(--english-border);
+}
+.add-extra-item:hover {
+    background-color: rgba(0,0,0,0.03);
+    color: var(--english-dark);
+}
+
+/* Review Page Accordion */
+.review-accordion .accordion-button {
+    font-weight: 500;
+    background-color: #f8f9fa; /* Light background */
+    color: var(--english-dark);
+}
+.review-accordion .accordion-button:not(.collapsed) {
+   background-color: var(--english-primary);
+   color: white;
+}
+.review-accordion .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); /* Use BS primary for focus */
+}
 .review-accordion .accordion-body ul {
-    list-style-type: none;
     padding-left: 0;
+    list-style: none;
 }
 .review-accordion .accordion-body li {
-    border-bottom: 1px solid #eee;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid var(--english-border);
 }
 .review-accordion .accordion-body li:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 .review-accordion .item-title {
     font-weight: 500;
-    color: var(--text-color); /* Use variable */
+    margin-bottom: 0.2rem;
 }
 .review-accordion .item-meta {
     font-size: 0.9em;
-    color: var(--text-muted); /* Use variable */
+    color: var(--english-secondary);
+    line-height: 1.4;
+    margin-bottom: 0.2rem;
 }
 
-
-/* Styles for Practice/Flashcard Page */
+/* Flashcard Practice Page */
+.flashcard-container {
+    max-width: 700px; /* Limit width */
+    margin-left: auto;
+    margin-right: auto;
+}
 .flashcard {
-    border: none;
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-    padding: 2rem;
-    border-radius: var(--border-radius-md);
-    min-height: 300px;
+    background-color: var(--english-card-bg);
+    border-radius: var(--english-border-radius);
+    box-shadow: var(--english-card-shadow);
+    border: 1px solid var(--english-border);
+    min-height: 250px; /* Min height for consistency */
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem 1.5rem;
+    position: relative; /* For potential animations/overlays */
+    transition: background-color 0.3s ease; /* Smooth transition */
 }
-
-.flashcard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.flashcard .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 300px;
-}
-
-#flashcard-term {
-    font-size: 2rem;
-    color: #2c3e50;
-    margin-bottom: 1.5rem;
-    transition: opacity 0.3s ease;
-}
-
-#flashcard-details {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-#flashcard-details p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
-}
-
-/* Progress Bar Styles */
-.progress {
-    background-color: #e9ecef;
-    border-radius: 1rem;
-    overflow: hidden;
-}
-
-.progress-bar {
-    background-color: #cdaf56;
-    transition: width 0.6s ease;
+.flashcard .term {
+    font-size: 1.75rem; /* Larger term */
     font-weight: 500;
+    margin-bottom: 1rem;
+    color: var(--english-dark);
+}
+.flashcard .details {
+    display: none; /* Hidden by default */
+    margin-top: 1rem;
+    border-top: 1px solid var(--english-border);
+    padding-top: 1rem;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+}
+.flashcard .details p:last-child {
+    margin-bottom: 0;
+}
+.flashcard .details strong {
+    color: var(--english-dark);
+}
+.flashcard-actions {
+    margin-top: 1.5rem;
 }
 
-/* Category Filter Styles */
-.form-select {
-    border-color: #dee2e6;
-    transition: all 0.2s ease;
-}
-
-.form-select:focus {
-    border-color: #cdaf56;
-    box-shadow: 0 0 0 0.25rem rgba(205, 175, 86, 0.25);
-}
-
-/* Keyboard Shortcut Styles */
-kbd {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
+/* Keyboard Hint Styling */
+.keyboard-hint kbd {
+    background-color: var(--english-light);
+    border: 1px solid #ccc;
     border-radius: 3px;
-    box-shadow: 0 1px 1px rgba(0,0,0,.12);
-    color: #6c757d;
+    box-shadow: inset 0 -1px 0 #bbb;
+    color: var(--english-secondary);
     display: inline-block;
-    font-size: 0.875em;
+    font-size: 0.8em;
     font-weight: 600;
     line-height: 1;
     padding: 0.2em 0.4em;
     white-space: nowrap;
 }
 
-/* Button Styles */
-.btn-primary {
-    background-color: #cdaf56;
-    border-color: #cdaf56;
+/* Progress Bar */
+.progress {
+    height: 20px; /* Slightly thinner */
+    font-size: 0.8rem;
+    border-radius: var(--english-border-radius);
 }
-
-.btn-primary:hover,
-.btn-primary:focus {
-    background-color: #b89b4a;
-    border-color: #b89b4a;
+.progress-bar {
+    background-color: var(--english-primary) !important; /* Force color */
+    transition: width 0.4s ease;
 }
-
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.btn-success:hover,
-.btn-success:focus {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
-
-/* Alert Styles */
-.alert {
-    border-radius: 0.5rem;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
-}
-
-.alert-info {
-    background-color: #e3f2fd;
-    color: #0c5460;
-}
-
-.alert-info .alert-link {
-    color: #0c5460;
-    text-decoration: underline;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .flashcard {
-        min-height: 250px;
-    }
-
-    .flashcard .card-body {
-        min-height: 250px;
-        padding: 1.5rem;
-    }
-
-    #flashcard-term {
-        font-size: 1.5rem;
-    }
-}
-
-/* Animation Classes */
-.fade-enter {
-    opacity: 0;
-}
-
-.fade-enter-active {
-    opacity: 1;
-    transition: opacity 300ms ease-in;
-}
-
-.fade-exit {
-    opacity: 1;
-}
-
-.fade-exit-active {
-    opacity: 0;
-    transition: opacity 300ms ease-in;
-} 

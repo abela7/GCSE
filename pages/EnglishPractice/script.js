@@ -1,165 +1,249 @@
 // GCSE/pages/EnglishPractice/script.js
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("English Practice Script Loaded"); // Confirmation
+/**
+ * Function to safely get elements by ID
+ */
+function getElement(id) {
+    const element = document.getElementById(id);
+    // Only log error if element is absolutely expected
+    // if (!element && id !== 'optionalElement') { console.error(`Element #${id} not found.`); }
+    return element;
+}
 
-    // --- Add Extra Item Functionality ---
+
+/**
+ * Adds event listeners when the DOM is ready.
+ */
+function initializeEnglishPractice() {
+    console.log("Initializing English Practice script...");
+
+    // --- Add Extra Item Button Functionality ---
     const addExtraItemButtons = document.querySelectorAll('.add-extra-item');
     if (addExtraItemButtons.length > 0) {
         addExtraItemButtons.forEach(button => {
+            button.removeEventListener('click', handleAddExtraItem); // Remove old listener just in case
             button.addEventListener('click', handleAddExtraItem);
         });
-        console.log(`Added listener to ${addExtraItemButtons.length} extra item buttons.`);
+        console.log(`Added listener to ${addExtraItemButtons.length} 'Add Extra Item' buttons.`);
     }
 
-    // --- Flashcard Functionality ---
-    initializeFlashcards();
-});
+    // --- Daily Entry Form Validation ---
+    const dailyForm = getElement('dailyEntryForm');
+     if (dailyForm) {
+        dailyForm.removeEventListener('submit', handleEntryFormValidation); // Remove old if exists
+        dailyForm.addEventListener('submit', handleEntryFormValidation);
+        console.log("Added validation listener to daily entry form.");
+     }
 
-// Function to handle adding extra item fields
+
+    // --- Flashcard Functionality Initialization ---
+    // Check if required elements for flashcard exist on the current page
+    if (getElement('flashcard-term') && typeof practiceItems !== 'undefined') {
+         initializeFlashcards();
+    }
+}
+
+/**
+ * Handle clicking the "Add Extra Item" button on the daily entry form.
+ */
 function handleAddExtraItem() {
-    console.log("Add extra item clicked");
-    const button = this; // The clicked button
-    const categoryId = button.getAttribute('data-category-id');
-    const nextIndex = parseInt(button.getAttribute('data-next-index'));
-    const cardBody = button.closest('.card-body');
-    if (!cardBody || !categoryId || isNaN(nextIndex)) {
-        console.error("Could not add extra item: Missing data attributes or parent element.");
-        return;
-    }
+     console.log("Add extra item clicked");
+     const button = this; // The clicked button
+     const categoryId = button.getAttribute('data-category-id');
+     let nextIndex = parseInt(button.getAttribute('data-next-index'));
+     const cardBody = button.closest('.card-body');
+     if (!cardBody || !categoryId || isNaN(nextIndex)) {
+          console.error("Cannot add extra item: Missing data attributes or parent element.");
+          return;
+     }
 
-    const placeholderCatNameElement = cardBody.closest('.card').querySelector('.card-header h2');
-    const placeholderCatName = placeholderCatNameElement ? placeholderCatNameElement.textContent : 'Category';
+     const placeholderCatNameElement = cardBody.closest('.card').querySelector('.card-header h2, .card-header h6'); // Adjust selector if header changed
+     const placeholderCatName = placeholderCatNameElement ? placeholderCatNameElement.textContent.trim() : 'Category';
+
 
     const newItemHtml = `
-    <div class="row g-2 mb-3 border-bottom pb-3 entry-item">
-        <div class="col-md-1 pt-2 text-center text-muted d-none d-md-block">
-            <span class="badge bg-secondary">${nextIndex}</span>
+    <div class="row gx-2 mb-2 pb-2 entry-item border-top pt-2">
+        <div class="col-md-1 pt-1 text-end pe-0 text-muted d-none d-md-block">
+            <small>Extra:</small>
         </div>
-        <div class="col-md-11">
-            <div class="mb-2">
-                <label for="item_title_${categoryId}_${nextIndex}" class="form-label visually-hidden">Title/Word</label>
-                <input type="text" class="form-control form-control-sm" id="item_title_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][title]" placeholder="Extra Title/Word ${nextIndex} for ${placeholderCatName}" required>
-                <div class="invalid-feedback">Please enter the title/word.</div>
-            </div>
-            <div class="mb-2">
-                <label for="item_meaning_${categoryId}_${nextIndex}" class="form-label visually-hidden">Meaning/Rule</label>
-                <textarea class="form-control form-control-sm" id="item_meaning_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][meaning]" rows="2" placeholder="Extra Meaning / Rule" required></textarea>
-                <div class="invalid-feedback">Please enter the meaning/rule.</div>
+        <div class="col-12 col-md-11">
+            <div class="mb-1">
+                <label for="item_title_${categoryId}_${nextIndex}" class="form-label visually-hidden">Extra Title/Word ${nextIndex}</label>
+                <input type="text" class="form-control form-control-sm" id="item_title_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][title]" placeholder="Extra Title/Word ${nextIndex} for ${placeholderCatName}">
+                <div class="invalid-feedback">Required.</div>
             </div>
             <div class="mb-1">
-                <label for="item_example_${categoryId}_${nextIndex}" class="form-label visually-hidden">Example</label>
-                <textarea class="form-control form-control-sm" id="item_example_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][example]" rows="1" placeholder="Extra Example Sentence" required></textarea>
-                <div class="invalid-feedback">Please enter an example sentence.</div>
+                 <label for="item_meaning_${categoryId}_${nextIndex}" class="form-label visually-hidden">Extra Meaning/Rule ${nextIndex}</label>
+                <textarea class="form-control form-control-sm" id="item_meaning_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][meaning]" rows="1" placeholder="Extra Meaning / Rule"></textarea>
+                <div class="invalid-feedback">Required.</div>
+            </div>
+            <div>
+                 <label for="item_example_${categoryId}_${nextIndex}" class="form-label visually-hidden">Extra Example ${nextIndex}</label>
+                <textarea class="form-control form-control-sm" id="item_example_${categoryId}_${nextIndex}" name="items[${categoryId}][${nextIndex}][example]" rows="1" placeholder="Extra Example Sentence"></textarea>
+                <div class="invalid-feedback">Required.</div>
             </div>
         </div>
     </div>`;
 
-    // Insert the new fields before the button itself
+    // Insert the new fields *before* the button
     button.insertAdjacentHTML('beforebegin', newItemHtml);
 
-    // Update the button's next index for the *next* click
-    button.setAttribute('data-next-index', nextIndex + 1);
-}
-
-// Flashcard functionality
-function initializeFlashcards() {
-    const flashcardRevealButton = document.getElementById('flashcard-reveal');
-    const flashcardDetails = document.getElementById('flashcard-details');
-    const flashcardNextButton = document.getElementById('flashcard-next');
-    const flashcardTerm = document.getElementById('flashcard-term');
-    const progressBar = document.querySelector('.progress-bar');
-    
-    // Only initialize if we're on the practice page
-    if (!flashcardRevealButton || !flashcardDetails) {
-        return;
+    // Focus the first input of the newly added item
+    const firstNewInput = getElement(`item_title_${categoryId}_${nextIndex}`);
+    if (firstNewInput) {
+        firstNewInput.focus();
     }
 
-    console.log("Initializing flashcard functionality");
+    // Update the button's index for the next potential click
+    button.setAttribute('data-next-index', nextIndex + 1);
+ }
 
-    // Handle reveal button click
+
+/**
+ * Basic frontend validation for the daily entry form.
+ */
+function handleEntryFormValidation(event) {
+    const form = event.target;
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.log("Daily entry form invalid based on HTML5 validation.");
+    } else {
+        console.log("Daily entry form seems valid (HTML5), submitting...");
+        // Optional: Add a loading indicator here
+    }
+    form.classList.add('was-validated'); // Show validation styles regardless
+}
+
+
+/**
+ * Initialize flashcard page elements and listeners.
+ */
+function initializeFlashcards() {
+    const flashcardDiv = getElement('flashcard');
+    const flashcardRevealButton = getElement('flashcard-reveal');
+    const flashcardDetails = getElement('flashcard-details');
+    const flashcardNextButton = getElement('flashcard-next');
+    const flashcardTerm = getElement('flashcard-term');
+    const progressBar = document.querySelector('.flashcard-progress .progress-bar'); // Target more specific class
+
+    if (!flashcardTerm || !flashcardRevealButton || !flashcardDetails || !flashcardNextButton || !progressBar || typeof practiceItems === 'undefined' || typeof totalItems === 'undefined') {
+        console.error("Flashcard initialization failed: Missing elements or data.");
+        return; // Exit if essential parts are missing
+    }
+     console.log(`Initializing flashcards. Found ${totalItems -1} remaining items.`);
+
+
+    let currentIndex = 0; // Index for the 'remainingItems' (practiceItems) array
+
+    // Function to update card content
+    function updateCard(item) {
+        flashcardTerm.textContent = item.item_title;
+        flashcardDetails.innerHTML = `
+            <p class="mb-2"><strong>Meaning/Rule:</strong><br>${item.item_meaning.replace(/\n/g, '<br>')}</p>
+            <p class="mb-2"><strong>Example:</strong><br>${item.item_example.replace(/\n/g, '<br>')}</p>
+            <p class="text-muted mb-0"><small>Category: ${item.category_name}</small></p>
+        `;
+        // Reset display
+        flashcardDetails.style.display = 'none';
+        flashcardRevealButton.style.display = 'inline-block';
+        flashcardNextButton.style.display = 'none';
+        flashcardDiv.style.opacity = '1'; // Fade in
+    }
+
+    // --- Event Listeners ---
     flashcardRevealButton.addEventListener('click', () => {
         flashcardDetails.style.display = 'block';
         flashcardRevealButton.style.display = 'none';
-        if(flashcardNextButton) {
-            flashcardNextButton.style.display = 'inline-block';
+        flashcardNextButton.style.display = 'inline-block';
+        // Focus next button for keyboard nav
+        setTimeout(() => flashcardNextButton.focus(), 50);
+    });
+
+    flashcardNextButton.addEventListener('click', function handleNextClick() {
+        if (currentIndex < practiceItems.length) {
+            const nextItem = practiceItems[currentIndex];
+            flashcardDiv.style.opacity = '0'; // Start fade out
+
+            setTimeout(() => {
+                updateCard(nextItem);
+                 // Update progress bar (currentIndex is 0-based for the array, add 2 for display count)
+                const currentCount = currentIndex + 2;
+                const progress = (currentCount / totalItems) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${currentCount}/${totalItems}`;
+                progressBar.setAttribute('aria-valuenow', currentCount);
+            }, 200); // Wait for fade out
+
+             currentIndex++; // Increment index for the *next* click
+
+        } else {
+            // --- End of practice ---
+            flashcardDiv.style.opacity = '0';
+            setTimeout(() => {
+                 flashcardDiv.innerHTML = `
+                    <div class="card-body text-center p-4">
+                        <h3 class="text-success"><i class="fas fa-check-circle fa-2x mb-3"></i></h3>
+                        <h3>Practice Complete!</h3>
+                        <p class="mb-4">You've reviewed all ${totalItems} items.</p>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="practice.php?category=${currentCategory || ''}" class="btn btn-primary">
+                                <i class="fas fa-redo me-1"></i>Practice Again ${currentCategory ? '(Same Category)' : '(All)'}
+                            </a>
+                            <a href="review.php" class="btn btn-outline-secondary">
+                                <i class="fas fa-list-alt me-1"></i>Review Entries
+                            </a>
+                        </div>
+                    </div>
+                `;
+                flashcardDiv.style.opacity = '1';
+                // Optionally update progress bar to 100%
+                progressBar.style.width = `100%`;
+                progressBar.textContent = `Complete! ${totalItems}/${totalItems}`;
+                progressBar.classList.add('bg-success'); // Change color
+                progressBar.setAttribute('aria-valuenow', totalItems);
+             }, 300);
+             // Remove keyboard listener? Maybe not necessary if element is removed.
         }
     });
 
-    // Handle next button click
-    if (flashcardNextButton && typeof practiceItems !== 'undefined') {
-        let currentIndex = 0;
-        const totalItems = practiceItems.length + 1; // +1 for the first item already displayed
+     // Keyboard Shortcuts (attach to document)
+    let spacebarHandler = function(event) {
+        if (event.code === 'Space' || event.keyCode === 32) {
+             if (flashcardRevealButton && flashcardRevealButton.style.display !== 'none') {
+                event.preventDefault(); // Prevent page scroll
+                flashcardRevealButton.click();
+             }
+        }
+    };
+    let arrowRightHandler = function(event) {
+         if (event.code === 'ArrowRight' || event.keyCode === 39) {
+             if (flashcardNextButton && flashcardNextButton.style.display !== 'none') {
+                 flashcardNextButton.click();
+             }
+        }
+    };
 
-        flashcardNextButton.addEventListener('click', function() {
-            if (currentIndex < practiceItems.length) {
-                const item = practiceItems[currentIndex];
-                
-                // Update flashcard content with animation
-                flashcardTerm.style.opacity = '0';
-                flashcardDetails.style.opacity = '0';
-                
-                setTimeout(() => {
-                    // Update content
-                    flashcardTerm.textContent = item.item_title;
-                    flashcardDetails.innerHTML = `
-                        <p><strong>Meaning:</strong> ${item.item_meaning}</p>
-                        <p><strong>Example:</strong> ${item.item_example}</p>
-                        <p class="text-muted"><small>Category: ${item.category_name}</small></p>
-                    `;
-                    
-                    // Reset visibility
-                    flashcardDetails.style.display = 'none';
-                    flashcardRevealButton.style.display = 'inline-block';
-                    flashcardNextButton.style.display = 'none';
-                    
-                    // Fade back in
-                    flashcardTerm.style.opacity = '1';
-                    flashcardDetails.style.opacity = '1';
-                    
-                    // Update progress
-                    currentIndex++;
-                    const progress = ((currentIndex + 1) / totalItems) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    progressBar.textContent = `${currentIndex + 1}/${totalItems}`;
-                }, 300);
-                
-            } else {
-                // End of practice with animation
-                const flashcard = document.querySelector('.flashcard');
-                flashcard.style.opacity = '0';
-                
-                setTimeout(() => {
-                    flashcard.innerHTML = `
-                        <h3>Practice Complete!</h3>
-                        <p class="mb-4">You've reviewed all ${totalItems} items.</p>
-                        <div class="d-flex gap-2 justify-content-center">
-                            <a href="practice.php" class="btn btn-primary">
-                                <i class="fas fa-redo me-2"></i>Practice Again
-                            </a>
-                            <a href="practice.php?category=${currentCategory}" class="btn btn-outline-primary">
-                                <i class="fas fa-filter me-2"></i>Same Category
-                            </a>
-                        </div>
-                    `;
-                    flashcard.style.opacity = '1';
-                }, 300);
-            }
-        });
-    }
+     document.removeEventListener('keydown', spacebarHandler); // Remove old listener first
+     document.removeEventListener('keydown', arrowRightHandler); // Remove old listener first
+     document.addEventListener('keydown', spacebarHandler);
+     document.addEventListener('keydown', arrowRightHandler);
+     console.log("Added keyboard listeners for flashcards.");
+
+
+    // Initial progress bar state
+    progressBar.style.width = `${(1 / totalItems) * 100}%`;
+    progressBar.textContent = `1/${totalItems}`;
+    progressBar.setAttribute('aria-valuemax', totalItems);
+    progressBar.setAttribute('aria-valuenow', 1);
+
+} // End initializeFlashcards
+
+
+// --- Run Initializer ---
+// Use DOMContentLoaded to ensure HTML is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeEnglishPractice);
+} else {
+    initializeEnglishPractice(); // DOM already loaded
 }
-
-// Add keyboard shortcuts for flashcard navigation
-document.addEventListener('keydown', function(event) {
-    const flashcardReveal = document.getElementById('flashcard-reveal');
-    const flashcardNext = document.getElementById('flashcard-next');
-    
-    if (event.code === 'Space' && flashcardReveal && flashcardReveal.style.display !== 'none') {
-        event.preventDefault(); // Prevent page scroll
-        flashcardReveal.click();
-    } else if (event.code === 'ArrowRight' && flashcardNext && flashcardNext.style.display !== 'none') {
-        flashcardNext.click();
-    }
-});
-
-// Add other JavaScript functions needed for this feature below 
