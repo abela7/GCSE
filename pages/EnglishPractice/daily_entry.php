@@ -4,33 +4,46 @@
 
 session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
-// Optional: General functions if needed
-// require_once __DIR__ . '/../../includes/functions.php';
-// require_once __DIR__ . '/_functions.php';
+require_once '_functions.php'; // Uncomment this line to include functions
 
 // --- Determine Date ---
 $selected_date_str = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
-try { $selected_date = new DateTimeImmutable($selected_date_str); }
-catch (Exception $e) { $selected_date = new DateTimeImmutable(); if(isset($_GET['date'])){ $_SESSION['warning_ep'] = "Invalid date. Showing today.";} }
-$formatted_selected_date = $selected_date->format('Y-m-d');
-$display_date_str = $selected_date->format('l, F j, Y');
-$prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
-$next_date = $selected_date->modify('+1 day')->format('Y-m-d');
+try { 
+    $selected_date = new DateTimeImmutable($selected_date_str); 
+    $formatted_selected_date = $selected_date->format('Y-m-d');
+    $display_date_str = $selected_date->format('l, F j, Y');
+    $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
+    $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
+} catch (Exception $e) { 
+    $selected_date = new DateTimeImmutable(); 
+    $formatted_selected_date = $selected_date->format('Y-m-d');
+    $display_date_str = $selected_date->format('l, F j, Y');
+    $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
+    $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
+    if(isset($_GET['date'])){ 
+        $_SESSION['warning_ep'] = "Invalid date. Showing today.";
+    }
+}
 
-// --- Get Practice Day ID ---
-$practice_day_id = null;
-$stmt_day = $conn->prepare("SELECT id FROM practice_days WHERE practice_date = ?");
-if ($stmt_day) {
-    $stmt_day->bind_param("s", $formatted_selected_date); $stmt_day->execute(); $result_day = $stmt_day->get_result();
-    if ($row_day = $result_day->fetch_assoc()) { $practice_day_id = $row_day['id']; }
-    else { $_SESSION['error_ep'] = "Practice day for {$formatted_selected_date} not found."; error_log("Day not found: $formatted_selected_date");}
-    $stmt_day->close();
-} else { $_SESSION['error_ep'] = "DB error checking day."; error_log("DB error prep day check: ".$conn->error); }
+// --- Get or Create Practice Day ID ---
+$practice_day_id = get_or_create_practice_day($conn, $formatted_selected_date);
+if ($practice_day_id === null) {
+    $_SESSION['error_ep'] = "Could not create or retrieve practice day.";
+    error_log("Failed to get/create practice day for: $formatted_selected_date");
+}
 
 // --- Fetch Categories ---
-$categories = []; $cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY id ASC");
-if ($cat_result) { while($cat_row = $cat_result->fetch_assoc()) { $categories[] = $cat_row; } $cat_result->free(); }
-else { $_SESSION['error_ep'] = "Could not load categories."; error_log("Error fetching cats: ".$conn->error); }
+$categories = []; 
+$cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY id ASC");
+if ($cat_result) { 
+    while($cat_row = $cat_result->fetch_assoc()) { 
+        $categories[] = $cat_row; 
+    } 
+    $cat_result->free(); 
+} else { 
+    $_SESSION['error_ep'] = "Could not load categories."; 
+    error_log("Error fetching categories: ".$conn->error); 
+}
 $items_per_category = 5;
 
 // --- Start HTML ---

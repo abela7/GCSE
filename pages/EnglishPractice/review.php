@@ -17,17 +17,7 @@ try {
 }
 
 // Get practice day ID
-$practice_day_id = null;
-$stmt = $conn->prepare("SELECT id FROM practice_days WHERE practice_date = ?");
-if ($stmt) {
-    $stmt->bind_param("s", $formatted_date);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        $practice_day_id = $row['id'];
-    }
-    $stmt->close();
-}
+$practice_day_id = get_or_create_practice_day($conn, $formatted_date);
 
 // Get items for this day
 $practice_items = [];

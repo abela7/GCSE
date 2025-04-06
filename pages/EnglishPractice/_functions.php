@@ -2,6 +2,58 @@
 // GCSE/pages/EnglishPractice/_functions.php
 
 /**
+ * Ensure required tables exist
+ */
+function ensure_tables_exist($conn) {
+    // Create practice_days table if it doesn't exist
+    $conn->query("CREATE TABLE IF NOT EXISTS practice_days (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        practice_date DATE NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Create practice_categories table if it doesn't exist
+    $conn->query("CREATE TABLE IF NOT EXISTS practice_categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // Create practice_items table if it doesn't exist
+    $conn->query("CREATE TABLE IF NOT EXISTS practice_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        practice_day_id INT NOT NULL,
+        category_id INT NOT NULL,
+        item_title VARCHAR(255) NOT NULL,
+        item_meaning TEXT NOT NULL,
+        item_example TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (practice_day_id) REFERENCES practice_days(id),
+        FOREIGN KEY (category_id) REFERENCES practice_categories(id)
+    )");
+
+    // Insert default categories if none exist
+    $result = $conn->query("SELECT COUNT(*) as count FROM practice_categories");
+    $row = $result->fetch_assoc();
+    if ($row['count'] == 0) {
+        $default_categories = [
+            'Vocabulary Words',
+            'Literary Devices',
+            'Grammar Rules',
+            'Writing Techniques',
+            'Common Phrases'
+        ];
+        
+        $stmt = $conn->prepare("INSERT INTO practice_categories (name) VALUES (?)");
+        foreach ($default_categories as $category) {
+            $stmt->bind_param("s", $category);
+            $stmt->execute();
+        }
+        $stmt->close();
+    }
+}
+
+/**
  * Get practice items for a specific day
  */
 function get_practice_items_by_day($conn, $practice_day_id) {
@@ -41,6 +93,9 @@ function get_practice_items_by_day($conn, $practice_day_id) {
  * Get practice day ID for a specific date, create if it doesn't exist
  */
 function get_or_create_practice_day($conn, $date) {
+    // Ensure tables exist first
+    ensure_tables_exist($conn);
+    
     // First try to get existing day
     $stmt = $conn->prepare("SELECT id FROM practice_days WHERE practice_date = ?");
     if (!$stmt) {
