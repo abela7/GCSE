@@ -111,4 +111,135 @@ function get_recent_practice_items($conn, $limit = 5) {
     }
     
     return $items;
+}
+
+/**
+ * Get today's habits with their status
+ * @param mysqli $conn Database connection
+ * @return array Habits array
+ */
+function get_todays_habits($conn) {
+    $habits = [];
+    
+    try {
+        $query = "
+            SELECT 
+                h.*,
+                c.name as category_name,
+                c.icon as category_icon,
+                c.color as category_color,
+                COALESCE(hp.status, 'pending') as today_status,
+                hp.notes
+            FROM habits h
+            JOIN categories c ON h.category_id = c.id
+            LEFT JOIN habit_progress hp ON h.id = hp.habit_id 
+                AND hp.date = CURDATE()
+            WHERE h.is_active = 1
+            ORDER BY h.target_time ASC
+        ";
+        
+        $result = $conn->query($query);
+        while ($row = $result->fetch_assoc()) {
+            $habits[] = $row;
+        }
+    } catch (Exception $e) {
+        error_log("Error getting today's habits: " . $e->getMessage());
+    }
+    
+    return $habits;
+}
+
+/**
+ * Get today's tasks
+ * @param mysqli $conn Database connection
+ * @return array Tasks array
+ */
+function get_todays_tasks($conn) {
+    $tasks = [];
+    
+    try {
+        $query = "
+            SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
+                   COALESCE(ti.status, t.status) as effective_status
+            FROM tasks t 
+            JOIN categories c ON t.category_id = c.id 
+            LEFT JOIN task_instances ti ON t.id = ti.task_id AND ti.due_date = CURDATE()
+            WHERE (t.task_type = 'one-time' AND t.due_date = CURDATE() AND t.status != 'completed')
+               OR (t.task_type = 'recurring' AND ti.id IS NOT NULL AND ti.status != 'completed')
+            ORDER BY t.priority DESC, t.due_date ASC
+        ";
+        
+        $result = $conn->query($query);
+        while ($row = $result->fetch_assoc()) {
+            $tasks[] = $row;
+        }
+    } catch (Exception $e) {
+        error_log("Error getting today's tasks: " . $e->getMessage());
+    }
+    
+    return $tasks;
+}
+
+/**
+ * Get upcoming exams
+ * @param mysqli $conn Database connection
+ * @param int $days Number of days to look ahead
+ * @return array Exams array
+ */
+function get_upcoming_exams($conn, $days = 30) {
+    $exams = [];
+    
+    try {
+        $query = "
+            SELECT e.*, s.name as subject_name, s.color as subject_color,
+                   DATEDIFF(e.exam_date, CURRENT_DATE) as days_remaining
+            FROM exams e 
+            JOIN subjects s ON e.subject_id = s.id 
+            WHERE e.exam_date > CURRENT_DATE 
+              AND e.exam_date <= DATE_ADD(CURRENT_DATE, INTERVAL ? DAY)
+            ORDER BY e.exam_date ASC
+        ";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('i', $days);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        while ($row = $result->fetch_assoc()) {
+            $exams[] = $row;
+        }
+    } catch (Exception $e) {
+        error_log("Error getting upcoming exams: " . $e->getMessage());
+    }
+    
+    return $exams;
+}
+
+/**
+ * Get exam reports for today
+ * @param mysqli $conn Database connection
+ * @return array Exam reports array
+ */
+function get_todays_exam_reports($conn) {
+    $reports = [];
+    
+    try {
+        $query = "
+            SELECT er.*, e.title as exam_title, s.name as subject_name, s.color as subject_color
+            FROM exam_reports er
+            JOIN exams e ON er.exam_id = e.id
+            JOIN subjects s ON e.subject_id = s.id
+            WHERE DATE(er.date) = CURDATE()
+            ORDER BY er.date DESC
+        ";
+        
+        $result = $conn->query($query);
+        while ($row = $result->fetch_assoc()) {
+            $reports[] = $row;
+        }
+    } catch (Exception $e) {
+        error_log("Error getting today's exam reports: " . $e->getMessage());
+    }
+    
+    return $reports;
 } 
