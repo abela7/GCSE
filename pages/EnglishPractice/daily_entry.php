@@ -4,139 +4,307 @@
 
 session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
-require_once '_functions.php'; // Uncomment this line to include functions
+require_once __DIR__ . '/_functions.php';
 
-// --- Determine Date ---
-$selected_date_str = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
-try { 
-    $selected_date = new DateTimeImmutable($selected_date_str); 
-    $formatted_selected_date = $selected_date->format('Y-m-d');
-    $display_date_str = $selected_date->format('l, F j, Y');
-    $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
-    $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
-} catch (Exception $e) { 
-    $selected_date = new DateTimeImmutable(); 
-    $formatted_selected_date = $selected_date->format('Y-m-d');
-    $display_date_str = $selected_date->format('l, F j, Y');
-    $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
-    $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
-    if(isset($_GET['date'])){ 
-        $_SESSION['warning_ep'] = "Invalid date. Showing today.";
+// Get current date
+$current_date = date('Y-m-d');
+$selected_date = isset($_GET['date']) ? $_GET['date'] : $current_date;
+
+// Get practice day ID
+$practice_day_id = get_or_create_practice_day($conn, $selected_date);
+
+// Get categories
+$categories = [];
+$cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY name ASC");
+if ($cat_result) {
+    while ($row = $cat_result->fetch_assoc()) {
+        $categories[] = $row;
     }
+    $cat_result->free();
 }
 
-// --- Get or Create Practice Day ID ---
-$practice_day_id = get_or_create_practice_day($conn, $formatted_selected_date);
-if ($practice_day_id === null) {
-    $_SESSION['error_ep'] = "Could not create or retrieve practice day.";
-    error_log("Failed to get/create practice day for: $formatted_selected_date");
-}
-
-// --- Fetch Categories ---
-$categories = []; 
-$cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY id ASC");
-if ($cat_result) { 
-    while($cat_row = $cat_result->fetch_assoc()) { 
-        $categories[] = $cat_row; 
-    } 
-    $cat_result->free(); 
-} else { 
-    $_SESSION['error_ep'] = "Could not load categories."; 
-    error_log("Error fetching categories: ".$conn->error); 
-}
-$items_per_category = 5;
-
-// --- Start HTML ---
-$page_title = "Daily English Entry - " . $selected_date->format('M d');
-require_once __DIR__ . '/../../includes/header.php'; // Should now include conditional CSS link
+$page_title = "Daily Entry - English";
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="container mt-4 mb-5"> <!-- Added mb-5 -->
-
-    <!-- Session Messages -->
-    <?php if (!empty($_SESSION['success_ep'])): ?><div class="alert alert-success alert-dismissible fade show" role="alert"><i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($_SESSION['success_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div><?php unset($_SESSION['success_ep']); endif; ?>
-    <?php if (!empty($_SESSION['error_ep'])): ?><div class="alert alert-danger alert-dismissible fade show" role="alert"><i class="fas fa-exclamation-triangle me-2"></i> <?php echo htmlspecialchars($_SESSION['error_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div><?php unset($_SESSION['error_ep']); endif; ?>
-    <?php if (!empty($_SESSION['warning_ep'])): ?><div class="alert alert-warning alert-dismissible fade show" role="alert"><i class="fas fa-exclamation-circle me-2"></i> <?php echo htmlspecialchars($_SESSION['warning_ep']); ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div><?php unset($_SESSION['warning_ep']); endif; ?>
-
-
-    <!-- Header and Date Navigation -->
-    <div class="text-center mb-4">
-        <div class="date-nav d-flex align-items-center justify-content-center mb-2">
-            <a href="?date=<?php echo $prev_date; ?>" class="btn btn-outline-secondary btn-sm me-3" aria-label="Previous Day"><i class="fas fa-chevron-left"></i> Prev</a>
-            <h1 class="h4 mb-0"><?php echo $display_date_str; ?></h1>
-            <a href="?date=<?php echo $next_date; ?>" class="btn btn-outline-secondary btn-sm ms-3" aria-label="Next Day">Next <i class="fas fa-chevron-right"></i></a>
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-2">Daily Practice Entry</h1>
+            <p class="text-muted">Add your English practice items for today</p>
         </div>
-         <small class="text-muted">Enter <?php echo $items_per_category ?> items for each category for this day.</small>
+        <div class="col-md-4 text-end">
+            <a href="review.php" class="btn btn-outline-secondary">
+                <i class="fas fa-list-alt me-1"></i> Back to Review
+            </a>
+        </div>
     </div>
 
-    <?php if ($practice_day_id === null && !isset($_SESSION['error_ep'])) :
-        // Show error only if DB query didn't fail but day wasn't found
-        if(!isset($_SESSION['error_ep'])) $_SESSION['error_ep'] = "Practice day record not found for date: {$formatted_selected_date}. Please add it to the database.";
+    <!-- Date Selection -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Select Date</label>
+                    <input type="date" class="form-control" name="date" value="<?php echo $selected_date; ?>" 
+                           max="<?php echo $current_date; ?>" onchange="this.form.submit()">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Entry Form -->
+    <div class="card">
+        <div class="card-body">
+            <form id="practiceForm" method="POST" action="save_entry.php">
+                <input type="hidden" name="practice_day_id" value="<?php echo $practice_day_id; ?>">
+                <input type="hidden" name="date" value="<?php echo $selected_date; ?>">
+
+                <!-- Category Selection -->
+                <div class="mb-4">
+                    <label class="form-label">Category</label>
+                    <select name="category_id" class="form-select" required>
+                        <option value="">Select a category</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat['id']; ?>">
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Item Title -->
+                <div class="mb-4">
+                    <label class="form-label">Item Title</label>
+                    <input type="text" class="form-control" name="item_title" required 
+                           placeholder="e.g., Present Perfect Tense">
+                </div>
+
+                <!-- Meaning/Rule -->
+                <div class="mb-4">
+                    <label class="form-label">Meaning/Rule</label>
+                    <textarea class="form-control" name="item_meaning" rows="3" required 
+                              placeholder="Explain the meaning or rule..."></textarea>
+                </div>
+
+                <!-- Example -->
+                <div class="mb-4">
+                    <label class="form-label">Example</label>
+                    <textarea class="form-control" name="item_example" rows="3" required 
+                              placeholder="Provide an example..."></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Entries -->
+    <?php
+    // Get recent entries for the selected date
+    $recent_entries = [];
+    $stmt = $conn->prepare("
+        SELECT pi.id, pi.item_title, pi.item_meaning, pi.item_example, pc.name as category_name
+        FROM practice_items pi
+        JOIN practice_categories pc ON pi.category_id = pc.id
+        WHERE pi.practice_day_id = ?
+        ORDER BY pi.id DESC
+    ");
+    
+    if ($stmt) {
+        $stmt->bind_param("i", $practice_day_id);
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $recent_entries[] = $row;
+            }
+            $result->free();
+        }
+        $stmt->close();
+    }
     ?>
-         <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error_ep']); unset($_SESSION['error_ep']); ?></div>
 
-    <?php elseif (empty($categories)): ?>
-         <div class="alert alert-warning">Practice categories missing. Cannot add entries.</div>
-
-    <?php else: ?>
-        <!-- Form targets save_entry.php -->
-        <form action="save_entry.php" method="POST" id="dailyEntryForm" novalidate>
-            <input type="hidden" name="practice_date" value="<?php echo htmlspecialchars($formatted_selected_date); ?>">
-            <input type="hidden" name="practice_day_id" value="<?php echo htmlspecialchars($practice_day_id); ?>"> <!-- Pass the found ID -->
-
-            <?php foreach ($categories as $category):
-                $cat_id = $category['id'];
-                $cat_name = htmlspecialchars($category['name']);
-            ?>
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-light py-2"> <!-- Reduced padding -->
-                        <h2 class="h6 mb-0 fw-normal"><?php echo $cat_name; ?></h2> <!-- Smaller header -->
-                    </div>
-                    <div class="card-body px-3 py-2"> <!-- Reduced padding -->
-                       <!-- Input fields loop -->
-                        <?php for ($i = 1; $i <= $items_per_category; $i++): ?>
-                            <div class="row gx-2 mb-2 pb-2 entry-item <?php if ($i < $items_per_category) echo 'border-bottom';?>"> <!-- gx-2 for smaller gutter -->
-                                <div class="col-md-1 pt-1 text-end pe-0 text-muted d-none d-md-block">
-                                    <small><?php echo $i; ?>.</small>
+    <?php if (!empty($recent_entries)): ?>
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Today's Entries</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <?php foreach ($recent_entries as $entry): ?>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1"><?php echo htmlspecialchars($entry['item_title']); ?></h6>
+                                    <small class="text-muted"><?php echo htmlspecialchars($entry['category_name']); ?></small>
                                 </div>
-                                <div class="col-12 col-md-11">
-                                    <div class="mb-1">
-                                        <label for="item_title_<?php echo $cat_id; ?>_<?php echo $i; ?>" class="form-label visually-hidden">Title/Word</label>
-                                        <input type="text" class="form-control form-control-sm" id="item_title_<?php echo $cat_id; ?>_<?php echo $i; ?>" name="items[<?php echo $cat_id; ?>][<?php echo $i; ?>][title]" placeholder="<?php echo $cat_name; ?> - Title/Word <?php echo $i; ?>" required>
-                                        <div class="invalid-feedback">Required.</div>
-                                    </div>
-                                    <div class="mb-1">
-                                        <label for="item_meaning_<?php echo $cat_id; ?>_<?php echo $i; ?>" class="form-label visually-hidden">Meaning/Rule</label>
-                                        <textarea class="form-control form-control-sm" id="item_meaning_<?php echo $cat_id; ?>_<?php echo $i; ?>" name="items[<?php echo $cat_id; ?>][<?php echo $i; ?>][meaning]" rows="1" placeholder="Meaning / Rule / Explanation" required></textarea>
-                                        <div class="invalid-feedback">Required.</div>
-                                    </div>
-                                    <div> <!-- Removed mb-1 -->
-                                        <label for="item_example_<?php echo $cat_id; ?>_<?php echo $i; ?>" class="form-label visually-hidden">Example</label>
-                                        <textarea class="form-control form-control-sm" id="item_example_<?php echo $cat_id; ?>_<?php echo $i; ?>" name="items[<?php echo $cat_id; ?>][<?php echo $i; ?>][example]" rows="1" placeholder="Example Sentence" required></textarea>
-                                        <div class="invalid-feedback">Required.</div>
-                                    </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary edit-entry" 
+                                            data-id="<?php echo $entry['id']; ?>"
+                                            data-title="<?php echo htmlspecialchars($entry['item_title']); ?>"
+                                            data-meaning="<?php echo htmlspecialchars($entry['item_meaning']); ?>"
+                                            data-example="<?php echo htmlspecialchars($entry['item_example']); ?>"
+                                            data-category="<?php echo $entry['category_id']; ?>">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-entry" 
+                                            data-id="<?php echo $entry['id']; ?>">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
-                        <?php endfor; ?>
-                         <!-- Optional: Add Extra Item Button -->
-                         <button type="button" class="btn btn-sm btn-outline-secondary add-extra-item mt-2" data-category-id="<?php echo $cat_id; ?>" data-next-index="<?php echo $items_per_category + 1; ?>">
-                             <i class="fas fa-plus fa-xs me-1"></i> Add Extra
-                         </button>
-                    </div> <!-- /card-body -->
-                </div> <!-- /card -->
-            <?php endforeach; ?>
-
-            <div class="text-center mt-4 mb-5">
-                 <button type="submit" class="btn btn-primary btn-lg" <?php if ($practice_day_id === null) echo 'disabled'; /* Disable save if day missing */ ?>>
-                     <i class="fas fa-save me-2"></i> Save Entries for <?php echo $selected_date->format('M d'); ?>
-                 </button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </form>
+        </div>
     <?php endif; ?>
+</div>
 
-</div><!-- /.container -->
+<!-- Edit Entry Modal -->
+<div class="modal fade" id="editEntryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editEntryForm">
+                    <input type="hidden" name="entry_id" id="editEntryId">
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category_id" class="form-select" id="editCategory" required>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>">
+                                    <?php echo htmlspecialchars($cat['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Item Title</label>
+                        <input type="text" class="form-control" name="item_title" id="editTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Meaning/Rule</label>
+                        <textarea class="form-control" name="item_meaning" id="editMeaning" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Example</label>
+                        <textarea class="form-control" name="item_example" id="editExample" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<?php
-// Include footer (should now include conditional JS link)
-require_once __DIR__ . '/../../includes/footer.php';
-?> 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this entry? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit Entry
+    const editModal = new bootstrap.Modal(document.getElementById('editEntryModal'));
+    const editForm = document.getElementById('editEntryForm');
+    let currentEntryId = null;
+
+    document.querySelectorAll('.edit-entry').forEach(button => {
+        button.addEventListener('click', function() {
+            currentEntryId = this.dataset.id;
+            document.getElementById('editEntryId').value = currentEntryId;
+            document.getElementById('editCategory').value = this.dataset.category;
+            document.getElementById('editTitle').value = this.dataset.title;
+            document.getElementById('editMeaning').value = this.dataset.meaning;
+            document.getElementById('editExample').value = this.dataset.example;
+            editModal.show();
+        });
+    });
+
+    document.getElementById('saveEdit').addEventListener('click', function() {
+        const formData = new FormData(editForm);
+        formData.append('entry_id', currentEntryId);
+
+        fetch('update_entry.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating entry: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the entry.');
+        });
+    });
+
+    // Delete Entry
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    let entryToDelete = null;
+
+    document.querySelectorAll('.delete-entry').forEach(button => {
+        button.addEventListener('click', function() {
+            entryToDelete = this.dataset.id;
+            deleteModal.show();
+        });
+    });
+
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        if (!entryToDelete) return;
+
+        fetch('delete_entry.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'entry_id=' + entryToDelete
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting entry: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the entry.');
+        });
+    });
+});
+</script>
+
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?> 
