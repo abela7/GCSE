@@ -3,50 +3,30 @@ session_start();
 require_once __DIR__ . '/../includes/db_connect.php';
 require_once __DIR__ . '/../functions/stats_functions.php';
 
-// Get today's stats
-$today_stats_query = "
-    SELECT 
-        COUNT(DISTINCT pi.id) as total_items,
-        COUNT(DISTINCT CASE WHEN fpi.practice_item_id IS NOT NULL THEN pi.id END) as favorite_items,
-        COUNT(DISTINCT CASE WHEN DATE(pi.created_at) = CURDATE() THEN pi.id END) as items_added_today,
-        (
-            SELECT COUNT(DISTINCT category_id) 
-            FROM practice_items 
-            WHERE DATE(created_at) = CURDATE()
-        ) as categories_practiced
-    FROM practice_items pi
-    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
-";
-$stats_result = $conn->query($today_stats_query);
-$stats = $stats_result->fetch_assoc();
+// Initialize variables with default values
+$stats = [
+    'total_items' => 0,
+    'favorite_items' => 0,
+    'items_added_today' => 0,
+    'categories_practiced' => 0
+];
+$assignments = [];
+$recent_items = [];
 
-// Get upcoming assignments
-$assignments_query = "
-    SELECT 
-        a.*, 
-        COUNT(ac.id) as total_criteria,
-        SUM(CASE WHEN acp.status = 'completed' THEN 1 ELSE 0 END) as completed_criteria
-    FROM access_assignments a
-    LEFT JOIN assessment_criteria ac ON a.id = ac.assignment_id
-    LEFT JOIN assignment_criteria_progress acp ON ac.id = acp.criteria_id
-    WHERE a.due_date >= CURDATE()
-    GROUP BY a.id
-    ORDER BY a.due_date ASC
-    LIMIT 3
-";
-$assignments_result = $conn->query($assignments_query);
-
-// Get recent practice items
-$recent_items_query = "
-    SELECT pi.*, pc.name as category_name,
-           CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
-    FROM practice_items pi
-    JOIN practice_categories pc ON pi.category_id = pc.id
-    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
-    ORDER BY pi.created_at DESC
-    LIMIT 5
-";
-$recent_items = $conn->query($recent_items_query);
+try {
+    // Get stats using the function
+    $stats = get_daily_stats($conn);
+    
+    // Get assignments using the function
+    $assignments = get_upcoming_assignments($conn);
+    
+    // Get recent items using the function
+    $recent_items = get_recent_practice_items($conn);
+    
+} catch (Exception $e) {
+    error_log("Error in Today.php: " . $e->getMessage());
+    // We'll continue with default values if there's an error
+}
 
 $page_title = "Today's Overview";
 require_once __DIR__ . '/../includes/header.php';
@@ -201,7 +181,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="row mb-5">
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['items_added_today']; ?></div>
+                <div class="stat-number"><?php echo (int)$stats['items_added_today']; ?></div>
                 <div class="text-muted">Items Added Today</div>
                 <div class="mt-3">
                     <i class="fas fa-plus-circle text-success"></i>
@@ -211,7 +191,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['categories_practiced']; ?></div>
+                <div class="stat-number"><?php echo (int)$stats['categories_practiced']; ?></div>
                 <div class="text-muted">Categories Practiced</div>
                 <div class="mt-3">
                     <i class="fas fa-layer-group text-primary"></i>
@@ -221,7 +201,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['total_items']; ?></div>
+                <div class="stat-number"><?php echo (int)$stats['total_items']; ?></div>
                 <div class="text-muted">Total Practice Items</div>
                 <div class="mt-3">
                     <i class="fas fa-book text-info"></i>
@@ -231,7 +211,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-number"><?php echo $stats['favorite_items']; ?></div>
+                <div class="stat-number"><?php echo (int)$stats['favorite_items']; ?></div>
                 <div class="text-muted">Favorite Items</div>
                 <div class="mt-3">
                     <i class="fas fa-star text-warning"></i>
@@ -273,9 +253,10 @@ require_once __DIR__ . '/../includes/header.php';
         <!-- Upcoming Assignments -->
         <div class="col-md-4 mb-4">
             <h2 class="h4 mb-4">Upcoming Assignments</h2>
-            <?php if ($assignments_result->num_rows > 0): ?>
-                <?php while ($assignment = $assignments_result->fetch_assoc()): 
-                    $progress = ($assignment['completed_criteria'] / $assignment['total_criteria']) * 100;
+            <?php if (!empty($assignments)): ?>
+                <?php foreach ($assignments as $assignment): 
+                    $progress = $assignment['total_criteria'] > 0 ? 
+                        ($assignment['completed_criteria'] / $assignment['total_criteria']) * 100 : 0;
                     $days_left = (strtotime($assignment['due_date']) - time()) / (60 * 60 * 24);
                 ?>
                     <div class="assignment-card">
@@ -306,7 +287,7 @@ require_once __DIR__ . '/../includes/header.php';
                             <a href="#" class="btn btn-sm btn-outline-primary">Continue</a>
                         </div>
                     </div>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             <?php else: ?>
                 <div class="text-center py-4 text-muted">
                     <i class="fas fa-check-circle fa-2x mb-3"></i>
@@ -318,8 +299,8 @@ require_once __DIR__ . '/../includes/header.php';
         <!-- Recent Practice Items -->
         <div class="col-md-4 mb-4">
             <h2 class="h4 mb-4">Recent Practice Items</h2>
-            <?php if ($recent_items->num_rows > 0): ?>
-                <?php while ($item = $recent_items->fetch_assoc()): ?>
+            <?php if (!empty($recent_items)): ?>
+                <?php foreach ($recent_items as $item): ?>
                     <div class="practice-item">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h3 class="h6 mb-1"><?php echo htmlspecialchars($item['item_title']); ?></h3>
@@ -334,7 +315,7 @@ require_once __DIR__ . '/../includes/header.php';
                             Added <?php echo date('j M', strtotime($item['created_at'])); ?>
                         </div>
                     </div>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             <?php else: ?>
                 <div class="text-center py-4 text-muted">
                     <i class="fas fa-book fa-2x mb-3"></i>
