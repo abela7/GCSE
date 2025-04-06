@@ -8,12 +8,17 @@
      background-color: #fdfdfd;
      padding-top: 0.75rem;
      border-radius: var(--border-radius-sm); /* Use variable from main CSS if defined globally */
+     transition: all 0.3s ease;
 }
 
 .entry-item:last-of-type {
     border-bottom: none !important; /* Remove border on last item */
     margin-bottom: 1rem !important; /* Add margin after last standard item */
     padding-bottom: 0.75rem !important;
+}
+
+.entry-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* Style the extra item button */
@@ -57,31 +62,160 @@
 
 /* Styles for Practice/Flashcard Page */
 .flashcard {
-    border: 1px solid var(--border-color);
-    background-color: #fff;
+    border: none;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
     padding: 2rem;
     border-radius: var(--border-radius-md);
-    min-height: 200px; /* Example height */
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.flashcard .term {
-    font-size: 1.5rem;
-    font-weight: 500;
+.flashcard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.flashcard .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 300px;
+}
+
+#flashcard-term {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    transition: opacity 0.3s ease;
+}
+
+#flashcard-details {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#flashcard-details p {
     margin-bottom: 1rem;
+    line-height: 1.6;
 }
 
-.flashcard .details {
-    /* Styles for hidden details */
-    display: none; /* Hidden initially */
-    font-size: 1rem;
-    color: var(--text-muted);
+/* Progress Bar Styles */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 1rem;
+    overflow: hidden;
 }
-.flashcard .details p {
-     margin-bottom: 0.5rem;
+
+.progress-bar {
+    background-color: #cdaf56;
+    transition: width 0.6s ease;
+    font-weight: 500;
+}
+
+/* Category Filter Styles */
+.form-select {
+    border-color: #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus {
+    border-color: #cdaf56;
+    box-shadow: 0 0 0 0.25rem rgba(205, 175, 86, 0.25);
+}
+
+/* Keyboard Shortcut Styles */
+kbd {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.12);
+    color: #6c757d;
+    display: inline-block;
+    font-size: 0.875em;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.2em 0.4em;
+    white-space: nowrap;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #cdaf56;
+    border-color: #cdaf56;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #b89b4a;
+    border-color: #b89b4a;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    color: #0c5460;
+}
+
+.alert-info .alert-link {
+    color: #0c5460;
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .flashcard {
+        min-height: 250px;
+    }
+
+    .flashcard .card-body {
+        min-height: 250px;
+        padding: 1.5rem;
+    }
+
+    #flashcard-term {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animation Classes */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms ease-in;
 } 
