@@ -21,7 +21,7 @@ require_once __DIR__ . '/../includes/header.php';
                             <h5 class="mb-0">Main Controls</h5>
                         </div>
                         <div class="card-body">
-                            <button class="btn btn-primary" onclick="requestPermission()">Enable Notifications</button>
+                            <button class="btn btn-primary" onclick="requestPermission()">Enable Notifications!</button>
                             <button class="btn btn-warning" onclick="testAllNotifications()">Test All Notifications</button>
                             <button class="btn btn-danger" onclick="pauseAllNotifications()">Pause All</button>
                             <button class="btn btn-success" onclick="resumeAllNotifications()">Resume All</button>
