@@ -1,0 +1,219 @@
+// Refresh data every 30 seconds (30000 ms)
+function refreshData() {
+    fetch('ajax/get_dashboard_data.php')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Dashboard data refreshed:", data);
+            
+            // Update task chart
+            if (data.tasks) {
+                taskProgressChart.data.datasets[0].data = [
+                    data.tasks.completed_tasks,
+                    data.tasks.overdue_tasks,
+                    data.tasks.today_tasks,
+                    data.tasks.upcoming_tasks
+                ];
+                taskProgressChart.update();
+                
+                // Update task counters
+                document.querySelectorAll('.card-body .text-danger + .h5')[0].textContent = data.tasks.overdue_tasks;
+                document.querySelectorAll('.card-body .text-warning + .h5')[0].textContent = data.tasks.today_tasks;
+                document.querySelectorAll('.card-body .text-info + .h5')[0].textContent = data.tasks.upcoming_tasks;
+                
+                // Update task completion percentage
+                let taskPercentage = data.tasks.total_tasks > 0 ? 
+                    Math.round((data.tasks.completed_tasks / data.tasks.total_tasks) * 100) : 0;
+                document.querySelector('.card-body .text-info.text-uppercase + .h5').textContent = taskPercentage + '%';
+                document.querySelector('.card-body .bg-info').style.width = taskPercentage + '%';
+                document.querySelector('.card-body .bg-info').setAttribute('aria-valuenow', taskPercentage);
+            }
+            
+            // Update assignment chart
+            if (data.assignments) {
+                assignmentChart.data.datasets[0].data = [
+                    data.assignments.completed,
+                    data.assignments.in_progress,
+                    data.assignments.not_started
+                ];
+                assignmentChart.update();
+                
+                // Update the numbers in the cards
+                document.querySelectorAll('.card-body .text-danger + .h5')[1].textContent = data.assignments.not_started;
+                document.querySelectorAll('.card-body .text-warning + .h5')[1].textContent = data.assignments.in_progress;
+                document.querySelectorAll('.card-body .text-success + .h5')[0].textContent = data.assignments.completed;
+            }
+            
+            // Update subject progress
+            if (data.subjects) {
+                for (const subject in data.subjects) {
+                    if (subject === "Mathematics" || subject === "English") {
+                        const subjData = data.subjects[subject];
+                        const progress = subjData.progress;
+                        const subjClass = subject === "Mathematics" ? "primary" : "success";
+                        
+                        // Find the correct div based on subject name in header
+                        const subjectDivs = document.querySelectorAll(".font-weight-bold");
+                        let targetDiv;
+                        
+                        for (const div of subjectDivs) {
+                            if (div.textContent.includes(subject)) {
+                                targetDiv = div.closest('.col-md-6');
+                                break;
+                            }
+                        }
+                        
+                        if (targetDiv) {
+                            // Update the progress bar
+                            const progressBar = targetDiv.querySelector(`.progress-bar.bg-${subjClass}`);
+                            if (progressBar) {
+                                progressBar.style.width = progress + '%';
+                                progressBar.setAttribute('aria-valuenow', progress);
+                                progressBar.textContent = progress + '%';
+                            }
+                            
+                            // Update the topic completion badge
+                            const topicsBadge = targetDiv.querySelector('.badge:first-child');
+                            if (topicsBadge) {
+                                topicsBadge.innerHTML = `<i class="fas fa-book"></i> ${subjData.completed}/${subjData.total} topics completed`;
+                            }
+                            
+                            // Update the confidence badge
+                            const confBadge = targetDiv.querySelector('.badge:last-child');
+                            if (confBadge) {
+                                confBadge.innerHTML = `<i class="fas fa-star"></i> Avg. confidence: ${subjData.confidence}/5`;
+                            }
+                        }
+                    }
+                }
+                
+                // Update overall progress
+                const mathData = data.subjects.Mathematics || { total: 0, completed: 0 };
+                const engData = data.subjects.English || { total: 0, completed: 0 };
+                const overall_topics = mathData.total + engData.total;
+                const overall_completed = mathData.completed + engData.completed;
+                const overall_percentage = overall_topics > 0 ? 
+                    Math.round((overall_completed / overall_topics) * 100) : 0;
+                
+                document.querySelector('.text-primary + .h5').textContent = overall_percentage + '%';
+                const overallProgressBar = document.querySelector('.text-primary + .h5 + .progress .progress-bar');
+                overallProgressBar.style.width = overall_percentage + '%';
+                overallProgressBar.setAttribute('aria-valuenow', overall_percentage);
+            }
+            
+            // Update section breakdown if topics data is available
+            if (data.topics && data.topics.length > 0) {
+                const tableBody = document.querySelector('.table-responsive tbody');
+                if (tableBody) {
+                    let tableContent = '';
+                    
+                    // Take only top 5 topics
+                    const topTopics = data.topics.slice(0, 5);
+                    
+                    for (const topic of topTopics) {
+                        let progressClass = 'bg-danger';
+                        if (topic.progress >= 75) {
+                            progressClass = 'bg-success';
+                        } else if (topic.progress >= 50) {
+                            progressClass = 'bg-info';
+                        } else if (topic.progress >= 25) {
+                            progressClass = 'bg-warning';
+                        }
+                        
+                        const badgeClass = topic.subject === 'Mathematics' ? 'bg-primary' : 'bg-success';
+                        
+                        tableContent += `
+                            <tr>
+                                <td>
+                                    <span class="badge ${badgeClass}">
+                                        ${topic.subject}
+                                    </span>
+                                </td>
+                                <td>${topic.section}</td>
+                                <td width="40%">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar ${progressClass}" role="progressbar"
+                                             style="width: ${topic.progress}%" 
+                                             aria-valuenow="${topic.progress}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    ${topic.completed_topics}/${topic.total_topics} 
+                                    (${topic.progress}%)
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    tableBody.innerHTML = tableContent;
+                }
+            }
+            
+            // Update habit streaks
+            if (data.habits && data.habits.length > 0) {
+                const habitContainer = document.querySelector('.habit-tracker .row');
+                if (habitContainer) {
+                    let habitContent = '';
+                    
+                    for (const habit of data.habits) {
+                        habitContent += `
+                            <div class="col-md-4 mb-3">
+                                <div class="card border">
+                                    <div class="card-body py-2 text-center">
+                                        <h6 class="text-truncate">${habit.name}</h6>
+                                        <div class="streak-count font-weight-bold h4">
+                                            ${habit.completion_count}
+                                        </div>
+                                        <div class="small text-muted">completions</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    habitContainer.innerHTML = habitContent;
+                }
+            }
+            
+            // Update habit today percentage
+            if (data.habits_today) {
+                const habitPercentage = data.habits_today.total_habits > 0 ?
+                    Math.round((data.habits_today.completed_today / data.habits_today.total_habits) * 100) : 0;
+                
+                document.querySelector('.text-warning + .h5').textContent = habitPercentage + '%';
+                const habitProgressBar = document.querySelector('.bg-warning');
+                habitProgressBar.style.width = habitPercentage + '%';
+                habitProgressBar.setAttribute('aria-valuenow', habitPercentage);
+            }
+            
+            // Update study time data
+            if (data.study) {
+                document.querySelector('.text-success + .h5').textContent = data.study.total_hours + ' hours';
+                
+                const lastStudyText = data.study.days_since_last > 0 ?
+                    `Last study: ${data.study.days_since_last} days ago` : 'Studied today';
+                document.querySelector('.text-success + .h5 + .small').textContent = lastStudyText;
+            }
+        })
+        .catch(error => console.error('Error fetching dashboard data:', error));
+}
+
+// Refresh every 30 seconds
+setInterval(refreshData, 30000);
+
+// Refresh dashboard button
+document.getElementById('refreshDashboard').addEventListener('click', function() {
+    // Show loading indicator
+    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+    this.disabled = true;
+    
+    // Refresh data
+    refreshData();
+    
+    // Reset button after 1 second
+    setTimeout(() => {
+        this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        this.disabled = false;
+    }, 1000);
+});

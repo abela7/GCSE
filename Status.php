@@ -314,7 +314,7 @@ if (in_array('assignments', $existing_tables)) {
             ROUND((SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) / COUNT(*)) * 100) as progress
         FROM assignments
         GROUP BY subject, topic
-        ORDER BY progress DESC
+        ORDER BY subject, topic
         LIMIT 5
     ";
     
