@@ -1,4 +1,4 @@
-const CACHE_NAME = 'just-do-it-v1';
+const CACHE_NAME = 'just-do-it-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.php',
@@ -22,40 +22,69 @@ const ASSETS_TO_CACHE = [
 
 // Install Service Worker
 self.addEventListener('install', (event) => {
-    console.log('Service Worker installing.');
+    console.log('[ServiceWorker] Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Caching app shell');
-                return cache.addAll(ASSETS_TO_CACHE);
+                console.log('[ServiceWorker] Caching app shell');
+                return cache.addAll(ASSETS_TO_CACHE).then(() => {
+                    console.log('[ServiceWorker] All assets cached');
+                });
             })
             .catch((error) => {
-                console.error('Error during cache.addAll():', error);
+                console.error('[ServiceWorker] Cache addAll error:', error);
             })
     );
+    // Force activation
+    self.skipWaiting();
 });
 
 // Activate Service Worker
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker activating.');
+    console.log('[ServiceWorker] Activating...');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        console.log('Deleting old cache:', cacheName);
+                        console.log('[ServiceWorker] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
+        }).then(() => {
+            console.log('[ServiceWorker] Claiming clients...');
+            return self.clients.claim();
         })
     );
 });
 
+// Helper function to determine if a resource should be cached
+function shouldCache(url) {
+    // Cache static assets
+    if (url.match(/\.(js|css|png|jpg|jpeg|gif|ico|json|html)$/)) {
+        return true;
+    }
+    // Cache specific PHP files
+    if (url.match(/\/(index|status)\.php$/)) {
+        return true;
+    }
+    return false;
+}
+
 // Fetch Event
 self.addEventListener('fetch', (event) => {
+    console.log('[ServiceWorker] Fetch:', event.request.url);
+    
+    // Handle non-GET requests
+    if (event.request.method !== 'GET') {
+        console.log('[ServiceWorker] Non-GET request:', event.request.method);
+        return;
+    }
+
     // Skip cross-origin requests
     if (!event.request.url.startsWith(self.location.origin)) {
+        console.log('[ServiceWorker] Skipping cross-origin request:', event.request.url);
         return;
     }
 
@@ -63,36 +92,40 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request)
             .then((response) => {
                 if (response) {
-                    console.log('Found in cache:', event.request.url);
+                    console.log('[ServiceWorker] Found in cache:', event.request.url);
                     return response;
                 }
 
-                console.log('Network request:', event.request.url);
+                console.log('[ServiceWorker] Network request:', event.request.url);
                 return fetch(event.request)
                     .then((response) => {
                         // Check if we received a valid response
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                        if (!response || response.status !== 200) {
+                            console.log('[ServiceWorker] Invalid response:', response?.status);
                             return response;
                         }
 
-                        // Clone the response
-                        const responseToCache = response.clone();
-
-                        caches.open(CACHE_NAME)
-                            .then((cache) => {
-                                console.log('Caching new resource:', event.request.url);
-                                cache.put(event.request, responseToCache);
-                            });
+                        // Only cache valid resources
+                        if (shouldCache(event.request.url)) {
+                            console.log('[ServiceWorker] Caching new resource:', event.request.url);
+                            const responseToCache = response.clone();
+                            caches.open(CACHE_NAME)
+                                .then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                });
+                        }
 
                         return response;
+                    })
+                    .catch((error) => {
+                        console.error('[ServiceWorker] Fetch error:', error);
+                        // Return offline page for navigation requests
+                        if (event.request.mode === 'navigate') {
+                            console.log('[ServiceWorker] Returning offline page');
+                            return caches.match('/offline.html');
+                        }
+                        throw error;
                     });
-            })
-            .catch(() => {
-                // Return offline page for navigation requests
-                if (event.request.mode === 'navigate') {
-                    console.log('Returning offline page');
-                    return caches.match('/offline.html');
-                }
             })
     );
 }); 

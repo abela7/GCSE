@@ -21,8 +21,9 @@ require_once 'db_connect.php';
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Just Do It">
-    <meta name="application-name" content="GCSE Study Tracker">
+    <meta name="application-name" content="Just Do It">
     <meta name="description" content="Track your GCSE study progress and stay motivated">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -31,6 +32,9 @@ require_once 'db_connect.php';
     <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon/android-chrome-192x192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/android-chrome-192x192.png">
     <link rel="apple-touch-icon" sizes="167x167" href="/assets/favicon/android-chrome-192x192.png">
+    
+    <!-- Load PWA Script First -->
+    <script src="/assets/js/pwa.js" defer></script>
     
     <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -227,9 +231,6 @@ require_once 'db_connect.php';
     <script>
         console.log('Notifications.js should be loaded now');
     </script>
-
-    <!-- Load PWA Script -->
-    <script src="/assets/js/pwa.js"></script>
 </head>
 <body>
     
