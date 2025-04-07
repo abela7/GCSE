@@ -39,11 +39,17 @@ $tasks_result = $conn->query($tasks_query);
 
 // Get today's habits
 $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color,
-                (SELECT status FROM habit_progress WHERE habit_id = h.id AND date = CURRENT_DATE) as today_status
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM habit_completions 
+                        WHERE habit_id = h.id 
+                        AND DATE(completion_date) = CURRENT_DATE
+                    ) THEN 'Completed'
+                    ELSE 'Pending'
+                END as today_status
                 FROM habits h
                 LEFT JOIN habit_categories hc ON h.category_id = hc.id
-                WHERE h.is_active = 1 AND 
-                (SELECT status FROM habit_progress WHERE habit_id = h.id AND date = CURRENT_DATE) != 'Completed'
+                WHERE h.is_active = 1
                 ORDER BY h.name ASC";
 $habits_result = $conn->query($habits_query);
 
@@ -111,21 +117,23 @@ require_once '../includes/header.php';
                         <?php if ($habits_result->num_rows > 0): ?>
                             <div class="list-group">
                                 <?php while ($habit = $habits_result->fetch_assoc()): ?>
-                                    <a href="habits.php?id=<?php echo $habit['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <input type="checkbox" class="form-check-input habit-checkbox" 
-                                                   data-habit-id="<?php echo $habit['id']; ?>">
-                                            <span class="ms-2"><?php echo htmlspecialchars($habit['name']); ?></span>
-                                            <?php if ($habit['category_name']): ?>
-                                                <span class="badge" style="background-color: <?php echo $habit['category_color']; ?>">
-                                                    <?php echo htmlspecialchars($habit['category_name']); ?>
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <small class="text-muted">
-                                            Target: <?php echo $habit['target_time']; ?> minutes
-                                        </small>
-                                    </a>
+                                    <?php if ($habit['today_status'] !== 'Completed'): ?>
+                                        <a href="habits.php?id=<?php echo $habit['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <input type="checkbox" class="form-check-input habit-checkbox" 
+                                                       data-habit-id="<?php echo $habit['id']; ?>">
+                                                <span class="ms-2"><?php echo htmlspecialchars($habit['name']); ?></span>
+                                                <?php if ($habit['category_name']): ?>
+                                                    <span class="badge" style="background-color: <?php echo $habit['category_color']; ?>">
+                                                        <?php echo htmlspecialchars($habit['category_name']); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <small class="text-muted">
+                                                Target: <?php echo $habit['target_time']; ?> minutes
+                                            </small>
+                                        </a>
+                                    <?php endif; ?>
                                 <?php endwhile; ?>
                             </div>
                         <?php else: ?>
