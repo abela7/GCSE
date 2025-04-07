@@ -35,7 +35,7 @@ $math_query = "
         SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
         ROUND(AVG(p.confidence_level)) as avg_confidence
     FROM math_topics t
-    LEFT JOIN math_progress p ON t.id = p.topic_id
+    LEFT JOIN math_topic_progress p ON t.id = p.topic_id
 ";
 $math_result = $conn->query($math_query);
 $math_data = $math_result->fetch_assoc();
@@ -52,7 +52,7 @@ $english_query = "
         SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
         ROUND(AVG(p.confidence_level)) as avg_confidence
     FROM eng_topics t
-    LEFT JOIN eng_progress p ON t.id = p.topic_id
+    LEFT JOIN eng_topic_progress p ON t.id = p.topic_id
 ";
 $english_result = $conn->query($english_query);
 $english_data = $english_result->fetch_assoc();
@@ -432,7 +432,7 @@ include __DIR__ . '/includes/header.php';
                                             FROM math_sections s
                                             JOIN math_subsections sub ON s.id = sub.section_id
                                             JOIN math_topics t ON sub.id = t.subsection_id
-                                            LEFT JOIN math_progress p ON t.id = p.topic_id
+                                            LEFT JOIN math_topic_progress p ON t.id = p.topic_id
                                             GROUP BY s.name
                                             ORDER BY progress DESC)
                                             UNION
@@ -445,7 +445,7 @@ include __DIR__ . '/includes/header.php';
                                             FROM eng_sections s
                                             JOIN eng_subsections sub ON s.id = sub.section_id
                                             JOIN eng_topics t ON sub.id = t.subsection_id
-                                            LEFT JOIN eng_progress p ON t.id = p.topic_id
+                                            LEFT JOIN eng_topic_progress p ON t.id = p.topic_id
                                             GROUP BY s.name
                                             ORDER BY progress DESC)
                                             ORDER BY progress DESC
