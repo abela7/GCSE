@@ -51,8 +51,19 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
 
+                    <!-- Permission Request -->
+                    <div id="permissionRequest" class="mb-4 d-none">
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">Enable Notifications</h5>
+                            <p>To receive notifications about tasks, exams, and daily motivation, please enable notifications.</p>
+                            <button class="btn btn-warning" onclick="requestPermission()">
+                                Enable Notifications
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Settings Form -->
-                    <form id="notificationForm" class="mb-4">
+                    <form id="notificationForm" class="mb-4 d-none">
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="taskNotifications" name="taskNotifications">
@@ -86,28 +97,17 @@ require_once __DIR__ . '/includes/header.php';
                         <button type="submit" class="btn btn-primary">Save Settings</button>
                     </form>
 
-                    <!-- Permission Request -->
-                    <div id="permissionRequest" class="d-none">
-                        <div class="alert alert-warning">
-                            <h5 class="alert-heading">Enable Notifications</h5>
-                            <p>To receive notifications, please allow them when prompted.</p>
-                            <button class="btn btn-warning" onclick="requestNotificationPermission()">
-                                Enable Notifications
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Test Notifications -->
                     <div id="testNotifications" class="d-none">
                         <h5 class="mb-3">Test Notifications</h5>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-outline-primary" onclick="testTaskNotification()">
+                            <button class="btn btn-outline-primary" onclick="testNotification('task')">
                                 Test Task Reminder
                             </button>
-                            <button class="btn btn-outline-primary" onclick="testExamNotification()">
+                            <button class="btn btn-outline-primary" onclick="testNotification('exam')">
                                 Test Exam Reminder
                             </button>
-                            <button class="btn btn-outline-primary" onclick="testMotivationalNotification()">
+                            <button class="btn btn-outline-primary" onclick="testNotification('motivation')">
                                 Test Motivation Message
                             </button>
                         </div>
@@ -123,6 +123,7 @@ require_once __DIR__ . '/includes/header.php';
 async function updateUI() {
     const statusDiv = document.getElementById('notificationStatus');
     const permissionDiv = document.getElementById('permissionRequest');
+    const settingsForm = document.getElementById('notificationForm');
     const testDiv = document.getElementById('testNotifications');
     
     if (!window.notifications) {
@@ -132,12 +133,14 @@ async function updateUI() {
     }
 
     const permission = await window.notifications.checkPermission();
+    console.log('Current permission:', permission);
     
     switch (permission) {
         case 'granted':
             statusDiv.className = 'alert alert-success';
             statusDiv.textContent = 'Notifications are enabled';
             permissionDiv.classList.add('d-none');
+            settingsForm.classList.remove('d-none');
             testDiv.classList.remove('d-none');
             break;
             
@@ -151,47 +154,109 @@ async function updateUI() {
                 '4. Enable notifications' :
                 'Notifications are blocked. Please enable them in your browser settings.';
             permissionDiv.classList.add('d-none');
+            settingsForm.classList.add('d-none');
             testDiv.classList.add('d-none');
             break;
             
-        default:
+        default: // 'default' or not granted yet
             statusDiv.className = 'alert alert-warning';
             statusDiv.textContent = 'Notifications require permission';
             permissionDiv.classList.remove('d-none');
+            settingsForm.classList.add('d-none');
             testDiv.classList.add('d-none');
     }
 }
 
 // Request notification permission
-async function requestNotificationPermission() {
-    const permission = await window.notifications.requestPermission();
-    updateUI();
-    return permission === 'granted';
+async function requestPermission() {
+    const statusDiv = document.getElementById('notificationStatus');
+    statusDiv.className = 'alert alert-info';
+    statusDiv.textContent = 'Requesting permission...';
+
+    try {
+        const permission = await window.notifications.requestPermission();
+        console.log('Permission result:', permission);
+        await updateUI();
+        
+        if (permission === 'granted') {
+            // Show a test notification
+            await testNotification('welcome');
+        }
+    } catch (error) {
+        console.error('Error requesting permission:', error);
+        statusDiv.className = 'alert alert-danger';
+        statusDiv.textContent = 'Error requesting notification permission';
+    }
 }
 
-// Test notification functions
-async function testTaskNotification() {
-    await window.notifications.testTaskNotification();
+// Test notifications
+async function testNotification(type) {
+    try {
+        switch (type) {
+            case 'task':
+                await window.notifications.testTaskNotification();
+                break;
+            case 'exam':
+                await window.notifications.testExamNotification();
+                break;
+            case 'motivation':
+                await window.notifications.testMotivationalNotification();
+                break;
+            case 'welcome':
+                await window.notifications.showNotification('Notifications Enabled', {
+                    body: 'You will now receive notifications for tasks, exams, and daily motivation!',
+                    icon: '/assets/images/icon-192x192.png',
+                    badge: '/assets/images/icon-96x96.png',
+                    vibrate: [200, 100, 200]
+                });
+                break;
+        }
+    } catch (error) {
+        console.error('Error showing notification:', error);
+        alert('Error showing notification. Please check console for details.');
+    }
 }
 
-async function testExamNotification() {
-    await window.notifications.testExamNotification();
-}
-
-async function testMotivationalNotification() {
-    await window.notifications.testMotivationalNotification();
-}
+// Save notification settings
+document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const settings = {
+        taskNotifications: form.taskNotifications.checked,
+        examNotifications: form.examNotifications.checked,
+        motivationalNotifications: form.motivationalNotifications.checked
+    };
+    
+    try {
+        const response = await fetch('/api/save_notification_settings.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        if (response.ok) {
+            alert('Settings saved successfully!');
+        } else {
+            throw new Error('Failed to save settings');
+        }
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        alert('Error saving settings. Please try again.');
+    }
+});
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize notifications
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Page loaded, initializing notifications...');
     if (window.notifications) {
-        window.notifications.init().then(() => {
-            updateUI();
-        });
+        await window.notifications.init();
+        await updateUI();
     } else {
         console.error('Notifications module not loaded');
-        updateUI();
+        document.getElementById('notificationStatus').textContent = 
+            'Error: Notification system not available';
     }
 });
 </script>
