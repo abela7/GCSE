@@ -69,18 +69,18 @@ $habits_query = "
     SELECT 
         COUNT(h.id) as total_habits,
         SUM(CASE WHEN EXISTS (
-            SELECT 1 FROM habit_tracking ht 
-            WHERE ht.habit_id = h.id AND DATE(ht.tracking_date) = CURRENT_DATE AND ht.status = 'completed'
+            SELECT 1 FROM habit_completions hc 
+            WHERE hc.habit_id = h.id AND DATE(hc.completion_date) = CURRENT_DATE AND hc.status = 'completed'
         ) THEN 1 ELSE 0 END) as completed_today,
         SUM(CASE WHEN NOT EXISTS (
-            SELECT 1 FROM habit_tracking ht 
-            WHERE ht.habit_id = h.id AND DATE(ht.tracking_date) = CURRENT_DATE
+            SELECT 1 FROM habit_completions hc 
+            WHERE hc.habit_id = h.id AND DATE(hc.completion_date) = CURRENT_DATE
         ) THEN 1 ELSE 0 END) as pending_today
     FROM habits h
     WHERE h.is_active = 1
 ";
 $habits_result = $conn->query($habits_query);
-$habits_data = $habits_result->fetch_assoc();
+$habits_data = $habits_result ? $habits_result->fetch_assoc() : null;
 
 // EXAM COUNTDOWN
 $exams_query = "
@@ -707,10 +707,10 @@ include __DIR__ . '/includes/header.php';
                             c.name as category,
                             c.color as category_color,
                             c.icon as category_icon,
-                            COALESCE(ht.status, 'pending') as status
+                            COALESCE(hc.status, 'pending') as status
                         FROM habits h
                         LEFT JOIN habit_categories c ON h.category_id = c.id
-                        LEFT JOIN habit_tracking ht ON h.id = ht.habit_id AND DATE(ht.tracking_date) = CURRENT_DATE
+                        LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND DATE(hc.completion_date) = CURRENT_DATE
                         WHERE h.is_active = 1
                         ORDER BY h.name ASC
                         LIMIT 5
@@ -759,37 +759,11 @@ include __DIR__ . '/includes/header.php';
                     // Fetch top 3 habit streaks
                     $streak_query = "
                         SELECT 
-                            h.name,
-                            (
-                                SELECT COUNT(*)
-                                FROM (
-                                    SELECT 
-                                        t1.habit_id,
-                                        t1.tracking_date,
-                                        DATE_SUB(t1.tracking_date, INTERVAL ROW_NUMBER() OVER (PARTITION BY t1.habit_id ORDER BY t1.tracking_date) DAY) as grp
-                                    FROM habit_tracking t1
-                                    WHERE t1.status = 'completed'
-                                    ORDER BY t1.habit_id, t1.tracking_date
-                                ) as t2
-                                WHERE t2.habit_id = h.id
-                                GROUP BY t2.habit_id, t2.grp
-                                ORDER BY COUNT(*) DESC
-                                LIMIT 1
-                            ) as max_streak
-                        FROM habits h
-                        WHERE h.is_active = 1
-                        ORDER BY max_streak DESC
-                        LIMIT 3
-                    ";
-                    
-                    // Simplified query that works in MySQL
-                    $streak_query = "
-                        SELECT 
                             h.id,
                             h.name,
-                            COUNT(ht.id) as completion_count
+                            COUNT(hc.id) as completion_count
                         FROM habits h
-                        LEFT JOIN habit_tracking ht ON h.id = ht.habit_id AND ht.status = 'completed'
+                        LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.status = 'completed'
                         WHERE h.is_active = 1
                         GROUP BY h.id, h.name
                         ORDER BY completion_count DESC
