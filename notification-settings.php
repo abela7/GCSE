@@ -1,27 +1,12 @@
 <?php
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include database connection first
-require_once 'includes/db_connect.php';
-
-// Set page title
-$page_title = "Notification Settings";
-
-// Initialize variables
-$error = null;
-$success = null;
-$settings = [
-    'task_reminders' => 1,
-    'exam_reminders' => 1,
-    'daily_motivation' => 1
-];
+// Include required files
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -29,36 +14,49 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Set page title
+$page_title = "Notification Settings";
+
+// Initialize variables
+$settings = [
+    'task_reminders' => 1,
+    'exam_reminders' => 1,
+    'daily_motivation' => 1
+];
+
 try {
     // Check if notification_settings table exists
     $tableExists = $pdo->query("SHOW TABLES LIKE 'notification_settings'")->rowCount() > 0;
     
     if (!$tableExists) {
         // Create the table if it doesn't exist
-        $sql = "CREATE TABLE IF NOT EXISTS notification_settings (
+        $pdo->exec("CREATE TABLE IF NOT EXISTS notification_settings (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
             task_reminders TINYINT(1) DEFAULT 1,
             exam_reminders TINYINT(1) DEFAULT 1,
             daily_motivation TINYINT(1) DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )";
-        
-        $pdo->exec($sql);
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_user_settings (user_id)
+        )");
     }
 
     // Get current notification settings from database
     $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
     $stmt->execute([$_SESSION['user_id']]);
-    $dbSettings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // If no settings exist, create default settings
-    if (!$dbSettings) {
+    if (!$settings) {
         $stmt = $pdo->prepare("INSERT INTO notification_settings (user_id, task_reminders, exam_reminders, daily_motivation) VALUES (?, 1, 1, 1)");
         $stmt->execute([$_SESSION['user_id']]);
-    } else {
-        $settings = $dbSettings;
+        $settings = [
+            'task_reminders' => 1,
+            'exam_reminders' => 1,
+            'daily_motivation' => 1
+        ];
     }
 
     // Handle form submission
@@ -77,10 +75,10 @@ try {
             
             $success = "Notification settings updated successfully!";
             
-            // Update local settings
-            $settings['task_reminders'] = $task_reminders;
-            $settings['exam_reminders'] = $exam_reminders;
-            $settings['daily_motivation'] = $daily_motivation;
+            // Refresh settings after update
+            $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
         }
     }
 } catch (PDOException $e) {
@@ -89,8 +87,8 @@ try {
     $error = "Error: " . $e->getMessage();
 }
 
-// Include header after all processing
-require_once 'includes/header.php';
+// Include header after setting variables
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -102,18 +100,14 @@ require_once 'includes/header.php';
                 </div>
                 <div class="card-body">
                     <?php if (isset($error)): ?>
-                        <div class="alert alert-danger">
-                            <h5>Error Details:</h5>
-                            <p><?php echo $error; ?></p>
-                            <p>Please check your database connection and table structure.</p>
-                        </div>
+                        <div class="alert alert-danger"><?php echo $error; ?></div>
                     <?php endif; ?>
 
                     <?php if (isset($success)): ?>
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
 
-                    <form method="POST">
+                    <form method="POST" action="">
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="task_reminders" name="task_reminders" 
@@ -191,19 +185,19 @@ async function testTaskNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('api/get_incomplete_tasks.php');
+        const response = await fetch('/api/get_incomplete_tasks.php');
         const data = await response.json();
         
         if (data.success && data.tasks.length > 0) {
             const task = data.tasks[0];
             new Notification("Test Task Reminder", {
                 body: `You have an incomplete task: ${task.title}`,
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Task Reminder", {
                 body: "You have no incomplete tasks",
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -217,19 +211,19 @@ async function testExamNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('api/get_exam_countdown.php');
+        const response = await fetch('/api/get_exam_countdown.php');
         const data = await response.json();
         
         if (data.success && data.exams.length > 0) {
             const exam = data.exams[0];
             new Notification("Test Exam Reminder", {
                 body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Exam Reminder", {
                 body: "No upcoming exams found",
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -243,18 +237,18 @@ async function testMotivationNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('api/get_motivational_message.php');
+        const response = await fetch('/api/get_motivational_message.php');
         const data = await response.json();
         
         if (data.success) {
             new Notification("Test Motivation Message", {
                 body: data.message,
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Motivation Message", {
                 body: "Keep going! You're doing great!",
-                icon: 'assets/images/icon-192x192.png'
+                icon: '/assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -264,4 +258,4 @@ async function testMotivationNotification() {
 }
 </script>
 
-<?php require_once 'includes/footer.php'; ?> 
+<?php require_once __DIR__ . '/includes/footer.php'; ?> 
