@@ -524,52 +524,52 @@ if (empty($habit_streak_data)) {
     );
 }
 
-// Include header
-include 'includes/header.php';
-?>
-
+// Include headeractice data
+include 'includes/header.php';();
+?> (in_array('practice_items', $existing_tables) && in_array('practice_days', $existing_tables)) {
+    // Get recent practice items
 <div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
+    <div class="row mb-4">tem_title, pi.item_meaning, pi.item_example, pc.name as category_name,
+        <div class="col">e_date, pd.day_number
             <h1 class="h3 mb-0 text-gray-800">Status Dashboard</h1>
             <p class="text-muted">Comprehensive overview of your GCSE preparation</p>
-        </div>
-        <div class="col-auto">
+        </div>ractice_days pd ON pi.practice_day_id = pd.id
+        <div class="col-auto">ate DESC, pi.id DESC
             <div class="btn-group">
                 <a href="dashboard.php" class="btn btn-outline-secondary">
                     <i class="fas fa-home"></i> Dashboard
                 </a>
                 <button type="button" class="btn btn-primary" id="refreshDashboard">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
+                    <i class="fas fa-sync-alt"></i> Refresh> 0) {
+                </button>= $practice_result->fetch_assoc()) {
+            </div>nglish_practice_data[] = $item;
         </div>
     </div>
-
-    <!-- Key Metrics -->
+    } catch (Exception $e) {
+    <!-- Key Metrics --> fetching English practice data: " . $e->getMessage());
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
+                <div class="card-body">ms', $existing_tables)) {
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Overall Progress
-                            </div>
+                                Overall Progressractice_items) as favorite_items,
+                            </div>INCT practice_date) FROM practice_days) as practice_days,
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php echo $overall_percentage; ?>%
-                            </div>
+                                <?php echo $overall_percentage; ?>%te >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY))
+                            </div>ek
                             <div class="progress progress-sm mt-2">
                                 <div class="progress-bar" role="progressbar" style="width: <?php echo $overall_percentage; ?>%" 
                                      aria-valuenow="<?php echo $overall_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                        <div class="col-auto">
+                            </div>>query($practice_stats_query);
+                        </div>&& $stats_result->num_rows > 0) {
+                        <div class="col-auto">t->fetch_assoc();
                             <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
-                        </div>
+                        </div>ice_data['stats'] = $practice_stats;
                     </div>
-                </div>
-            </div>
+                </div>tion $e) {
+            </div>log("Error fetching English practice stats: " . $e->getMessage());
         </div>
         
         <div class="col-xl-3 col-md-6 mb-4">
@@ -586,46 +586,46 @@ include 'includes/header.php';
                                     Last study: <?php echo $days_since_study; ?> days ago
                                 <?php else: ?>
                                     Studied today
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                                <?php endif; ?>s.id
+                            </div>NT_DATE
+                        </div>SC
                         <div class="col-auto">
                             <i class="fas fa-clock fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
+                </div>ult = $conn->query($next_exam_query);
+            </div>exam_result && $next_exam_result->num_rows > 0) {
+        </div>pcoming_exam = $next_exam_result->fetch_assoc();
+        }
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card border-left-info shadow h-100 py-2">age());
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Tasks Completed
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php 
+                            </div>s,
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">ams,
+                                <?php RRENT_DATE)) as days_to_next_exam
                                     $task_completion = $tasks_data['total_tasks'] > 0 
                                         ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) 
                                         : 0;
                                     echo $task_completion . '%';
                                 ?>
-                            </div>
-                            <div class="progress progress-sm mt-2">
+                            </div>->query($exam_stats_query);
+                            <div class="progress progress-sm mt-2"> {
                                 <div class="progress-bar bg-info" role="progressbar" style="width: <?php echo $task_completion; ?>%" 
                                      aria-valuenow="<?php echo $task_completion; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
-                        </div>
+                        </div>ing exam statistics: " . $e->getMessage());
                         <div class="col-auto">
                             <i class="fas fa-tasks fa-2x text-gray-300"></i>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
+                    </div>and deadlines
+                </div>array();
+            </div>ss_assignments', $existing_tables)) {
+        </div>ts_detail_query = "
+        SELECT 
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
@@ -639,7 +639,7 @@ include 'includes/header.php';
                                     $habits_total = $habits_data['total_habits'] ?: 0;
                                     $habits_completed = $habits_data['completed_today'] ?: 0;
                                     echo $habits_completed . '/' . $habits_total; 
-                                ?>
+                                ?>l[] = $assignment;
                             </div>
                             <?php if ($habits_total > 0): ?>
                                 <div class="progress progress-sm mt-2">
@@ -654,19 +654,19 @@ include 'includes/header.php';
                             <i class="fas fa-check-circle fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+                </div>$existing_tables)) {
+            </div>_query = "
+        </div> 
+    </div>  priority,
+            COUNT(*) as count
     <!-- Subject Progress and Exam Countdown -->
-    <div class="row mb-4">
+    <div class="row mb-4">ompleted' AND due_date >= CURRENT_DATE
         <!-- Subject Progress -->
         <div class="col-lg-8 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold">Subject Progress</h6>
-                    <div class="dropdown no-arrow">
+                    <div class="dropdown no-arrow">um_rows > 0) {
                         <a class="dropdown-toggle" href="#" role="button" id="subjectDropdown" 
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
@@ -678,13 +678,13 @@ include 'includes/header.php';
                             <a class="dropdown-item" href="#">Science Detail</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="#">All Subjects</a>
-                        </div>
-                    </div>
-                </div>
+                        </div>ue_date, t.due_time, 
+                    </div>estimated_duration,
+                </div> category_name,
                 <div class="card-body">
                     <div class="row mb-4">
                         <!-- Math Progress -->
-                        <div class="col-lg-4 mb-3">
+                        <div class="col-lg-4 mb-3">id = tc.id
                             <h6 class="font-weight-bold">Mathematics</h6>
                             <div class="progress mb-2" style="height: 25px;">
                                 <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $math_progress; ?>%">
@@ -694,11 +694,11 @@ include 'includes/header.php';
                             <div class="small">
                                 <span class="font-weight-bold"><?php echo $math_completed; ?>/<?php echo $math_total; ?></span> topics completed
                                 <span class="float-right">Confidence: <?php echo $math_confidence; ?>/10</span>
-                            </div>
-                        </div>
-                        
+                            </div>y();
+                        </div>coming_tasks_result->fetch_assoc()) {
+                        g_tasks[] = $task;
                         <!-- English Progress -->
-                        <div class="col-lg-4 mb-3">
+                        <div class="col-lg-4 mb-3">g_tasks;
                             <h6 class="font-weight-bold">English</h6>
                             <div class="progress mb-2" style="height: 25px;">
                                 <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $english_progress; ?>%">
@@ -710,28 +710,28 @@ include 'includes/header.php';
                                 <span class="float-right">Confidence: <?php echo $english_confidence; ?>/10</span>
                             </div>
                         </div>
-                        
+                        me, hc.color, hc.icon,
                         <!-- Science Progress -->
                         <div class="col-lg-4 mb-3">
                             <h6 class="font-weight-bold">Science</h6>
-                            <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress mb-2" style="height: 25px;"> hp.status = 'completed'
                                 <div class="progress-bar bg-info" role="progressbar" 
                                      style="width: <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%">
                                     <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%
-                                </div>
+                                </div>lor, hc.icon
                             </div>
                             <div class="small">
                                 <span class="font-weight-bold"><?php echo $subjects['Science']['completed']; ?>/<?php echo $subjects['Science']['total']; ?></span> topics completed
                                 <span class="float-right">Confidence: <?php echo $subjects['Science']['confidence']; ?>/10</span>
                             </div>
-                        </div>
-                    </div>
-
+                        </div>nn->query($habit_category_query);
+                    </div>lt && $category_result->num_rows > 0) {
+            while ($category = $category_result->fetch_assoc()) {
                     <h6 class="font-weight-bold mb-3">Section Breakdown</h6>
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
-                                <tr>
+                                <tr>bit category data: " . $e->getMessage());
                                     <th>Subject</th>
                                     <th>Section</th>
                                     <th>Progress</th>
@@ -743,36 +743,36 @@ include 'includes/header.php';
                                 <tr>
                                     <td><?php echo $section['subject']; ?></td>
                                     <td><?php echo $section['section']; ?></td>
-                                    <td>
+                                    <td>hensive overview of your GCSE preparation</p>
                                         <div class="progress" style="height: 10px;">
                                             <div class="progress-bar bg-primary" role="progressbar" 
                                                  style="width: <?php echo $section['progress']; ?>%" 
                                                  aria-valuenow="<?php echo $section['progress']; ?>" 
                                                  aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                    </td>
+                                    </td>ss="btn btn-primary" id="refreshDashboard">
                                     <td><?php echo $section['completed_topics']; ?>/<?php echo $section['total_topics']; ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Exam Countdown -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
+                </div>->
+            </div>w mb-4">
+        </div>lass="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+        <!-- Exam Countdown -->d-body">
+        <div class="col-lg-4 mb-4"> no-gutters align-items-center">
+            <div class="card shadow h-100">2">
+                <div class="card-header py-3">s font-weight-bold text-primary text-uppercase mb-1">
                     <h6 class="m-0 font-weight-bold">Upcoming Exams</h6>
-                </div>
-                <div class="card-body">
+                </div>      </div>
+                <div class="card-body">"h5 mb-0 font-weight-bold text-gray-800">
                     <?php if ($exams_result && $exams_result->num_rows > 0): ?>
                         <ul class="list-group list-group-flush">
                         <?php while ($exam = $exams_result->fetch_assoc()): ?>
-                            <li class="list-group-item px-0">
-                                <div class="d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0">e="progressbar" style="width: <?php echo $overall_percentage; ?>%" 
+                                <div class="d-flex justify-content-between align-items-center">luemin="0" aria-valuemax="100"></div>
                                     <div>
                                         <h6 class="font-weight-bold mb-0"><?php echo $exam['title']; ?></h6>
                                         <div class="small text-muted">
@@ -786,240 +786,796 @@ include 'includes/header.php';
                                                     echo 'text-danger';
                                                 } elseif ($exam['days_remaining'] <= 30) {
                                                     echo 'text-warning';
-                                                } else {
+                                                } else {ms-center">
                                                     echo 'text-info';
-                                                }
+                                                }ont-weight-bold text-success text-uppercase mb-1">
                                             ?>">
                                             <?php echo $exam['days_remaining']; ?>
-                                        </div>
+                                        </div>0 font-weight-bold text-gray-800"><?php echo $total_study_hours; ?> hours</div>
                                         <div class="small text-muted">days left</div>
-                                    </div>
-                                </div>
-                            </li>
-                        <?php endwhile; ?>
-                        </ul>
+                                    </div>$days_since_study > 0): ?>
+                                </div>st study: <?php echo $days_since_study; ?> days ago
+                            </li>?php else: ?>
+                        <?php endwhile; ?>d today
+                        </ul>   <?php endif; ?>
                     <?php else: ?>
                         <div class="text-center py-4">
                             <i class="fas fa-calendar-check fa-3x text-gray-300 mb-3"></i>
-                            <p class="mb-0">No upcoming exams scheduled</p>
+                            <p class="mb-0">No upcoming exams scheduled</p>>
                             <a href="#" class="btn btn-sm btn-primary mt-3">Add Exam</a>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Tasks and Assignments -->
-    <div class="row">
-        <!-- Tasks -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
+    </div>iv class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+    <!-- Tasks and Assignments -->ody">
+    <div class="row">div class="row no-gutters align-items-center">
+        <!-- Tasks -->  <div class="col mr-2">
+        <div class="col-lg-6 mb-4">ass="text-xs font-weight-bold text-info text-uppercase mb-1">
+            <div class="card shadow h-100">eted
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Tasks Overview</h6>
+                    <h6 class="m-0 font-weight-bold">Tasks Overview</h6>ay-800">
                     <a href="tasks.php" class="btn btn-sm btn-primary">Manage Tasks</a>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-6">
+                </div>              $task_completion = $tasks_data['total_tasks'] > 0 
+                <div class="card-body"> ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) 
+                    <div class="row mb-4">0;
+                        <div class="col-6">ask_completion . '%';
                             <div class="small text-muted">Completion Rate</div>
                             <div class="h4 font-weight-bold">
-                                <?php
-                                    echo $tasks_data['total_tasks'] > 0 
-                                        ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) . '%' 
+                                <?phps="progress progress-sm mt-2">
+                                    echo $tasks_data['total_tasks'] > 0 progressbar" style="width: <?php echo $task_completion; ?>%" 
+                                        ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) . '%' </div>
                                         : '0%';
                                 ?>
-                            </div>
-                        </div>
+                            </div>="col-auto">
+                        </div> class="fas fa-tasks fa-2x text-gray-300"></i>
                         <div class="col-6">
                             <div class="small text-muted">Total Tasks</div>
                             <div class="h4 font-weight-bold">
                                 <?php echo $tasks_data['total_tasks']; ?>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
+                    </div>-3 col-md-6 mb-4">
+                    <div class="row">eft-warning shadow h-100 py-2">
                         <div class="col-4 text-center">
-                            <div class="border rounded py-2">
+                            <div class="border rounded py-2">nter">
                                 <div class="h4 mb-0 text-danger font-weight-bold">
-                                    <?php echo $tasks_data['overdue_tasks']; ?>
-                                </div>
+                                    <?php echo $tasks_data['overdue_tasks']; ?>ext-uppercase mb-1">
+                                </div> Today
                                 <div class="small text-muted">Overdue</div>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div class="border rounded py-2">
+                            </div>lass="h5 mb-0 font-weight-bold text-gray-800">
+                        </div>  <?php 
+                        <div class="col-4 text-center">bits_data['total_habits'] ?: 0;
+                            <div class="border rounded py-2">ts_data['completed_today'] ?: 0;
                                 <div class="h4 mb-0 text-warning font-weight-bold">
                                     <?php echo $tasks_data['today_tasks']; ?>
                                 </div>
                                 <div class="small text-muted">Due Today</div>
-                            </div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div class="border rounded py-2">
-                                <div class="h4 mb-0 text-info font-weight-bold">
+                            </div>iv class="progress progress-sm mt-2">
+                        </div>      <div class="progress-bar bg-warning" role="progressbar" 
+                        <div class="col-4 text-center"><?php echo ($habits_completed / $habits_total) * 100; ?>%" 
+                            <div class="border rounded py-2"> echo ($habits_completed / $habits_total) * 100; ?>" 
+                                <div class="h4 mb-0 text-info font-weight-bold">/div>
                                     <?php echo $tasks_data['upcoming_tasks']; ?>
-                                </div>
+                                </div>f; ?>
                                 <div class="small text-muted">Upcoming</div>
-                            </div>
-                        </div>
-                    </div>
+                            </div>="col-auto">
+                        </div> class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>div>
+                    div>
+                    <?php if (!empty($tasks_data['upcoming_list'])): ?>div>
+                    <div class="mt-4">div>
+                        <h6 class="font-weight-bold mb-3">Upcoming Tasks</h6></div>
+                        <div class="list-group">
+                            <?php foreach ($tasks_data['upcoming_list'] as $task): ?>
+                            <div class="list-group-item list-group-item-action flex-column align-items-start p-2">n -->
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <?php if (!empty($task['category_icon'])): ?>
+                                        <div class="mr-2" style="width: 24px; height: 24px; border-radius: 50%; background-color: <?php echo $task['category_color']; ?> !important; display: flex; align-items: center; justify-content: center">="card shadow">
+                                            <i class="<?php echo $task['category_icon']; ?> text-white small"></i> py-3 d-flex flex-row align-items-center justify-content-between">
+                                        </div>ss</h6>
+                                        <?php endif; ?>
+                                        <h6 class="mb-0 text-truncate" style="max-width: 180px;"><?php echo htmlspecialchars($task['title']); ?></h6>"dropdown-toggle" href="#" role="button" id="subjectDropdown" 
+                                    </div>
+                                    <small class="text-muted">ss="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                        <?php 
+                                            $due_date = new DateTime($task['due_date']);dby="subjectDropdown">
+                                            $today = new DateTime('today');
+                                            $diff = $today->diff($due_date);dropdown-item" href="#">Math Detail</a>
+                                            
+                                            if ($diff->days == 0) {ss="dropdown-item" href="#">Science Detail</a>
+                                                echo 'Today';iv class="dropdown-divider"></div>
+                                                if ($task['due_time']) {s</a>
+                                                    echo ' ' . date('g:i A', strtotime($task['due_time']));
+                                                }
+                                            } elseif ($diff->days == 1) {
+                                                echo 'Tomorrow';lass="card-body">
+                                            } else {  <div class="row mb-4">
+                                                echo date('j M', strtotime($task['due_date']));          <!-- Math Progress -->
+                                            }              <div class="col-lg-4 mb-3">
+                                        ?>                      <h6 class="font-weight-bold">Mathematics</h6>
+                                    </small>                            <div class="progress mb-2" style="height: 25px;">
+                                </div>  <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $math_progress; ?>%">
+                                <div class="d-flex justify-content-between align-items-center mt-1">; ?>%
+                                    <div>                        </div>
+                                        <span class="badge badge-<?php 
+                                            echo $task['priority'] == 'high' ? 'danger' :   <div class="small">
+                                                ($task['priority'] == 'medium' ? 'warning' : 'info'); mpleted; ?>/<?php echo $math_total; ?></span> topics completed
+                                        ?>"><?php echo ucfirst($task['priority']); ?></span>-right">Confidence: <?php echo $math_confidence; ?>/10</span>
+                                           </div>
+                                        <?php if ($task['estimated_duration']): ?>         </div>
+                                        <span class="badge badge-light">
+                                            <i class="far fa-clock"></i> <?php echo $task['estimated_duration']; ?> min<!-- English Progress -->
+                                        </span> <div class="col-lg-4 mb-3">
+                                        <?php endif; ?>6>
+                                    </div>ght: 25px;">
+                                    <small class="text-muted"><?php echo $task['category_name'] ?: 'Uncategorized'; ?></small>cess" role="progressbar" style="width: <?php echo $english_progress; ?>%">
+                                </div>; ?>%
+                            </div>              </div>
+                            <?php endforeach; ?>
+                        </div>mall">
+                    </div>ass="font-weight-bold"><?php echo $english_completed; ?>/<?php echo $english_total; ?></span> topics completed
+                    <?php endif; ?>ss="float-right">Confidence: <?php echo $english_confidence; ?>/10</span>
                 </div>
-            </div>
+            </div>      </div>
         </div>
-        
-        <!-- Habit Streaks -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Top Habit Streaks</h6>
-                    <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>
-                </div>
-                <div class="card-body">
-                    <?php foreach($habit_streak_data as $habit): ?>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-0 font-weight-bold"><?php echo $habit['name']; ?></h6>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <div class="h5 mb-0 mr-2 font-weight-bold text-primary">
-                                    <?php echo $habit['completion_count']; ?>
-                                </div>
-                                <div class="text-xs text-uppercase text-muted">completions</div>
-                            </div>
+        cience Progress -->
+        <!-- Habit Categories -->lass="col-lg-4 mb-3">
+        <div class="col-lg-6 mb-4">6 class="font-weight-bold">Science</h6>
+            <div class="card shadow h-100">div class="progress mb-2" style="height: 25px;">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">              <div class="progress-bar bg-info" role="progressbar" 
+                    <h6 class="m-0 font-weight-bold">Habits by Category</h6>       style="width: <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%">
+                    <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>                      <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%
+                </div>                      </div>
+                <div class="card-body">          </div>
+                    <?php if (!empty($habit_categories)): ?>"small">
+                        <div class="row">          <span class="font-weight-bold"><?php echo $subjects['Science']['completed']; ?>/<?php echo $subjects['Science']['total']; ?></span> topics completed
+                            <?php foreach($habit_categories as $category): ?>       <span class="float-right">Confidence: <?php echo $subjects['Science']['confidence']; ?>/10</span>
+                            <div class="col-md-6 mb-3">
+                                <div class="border rounded p-3 h-100">>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="mr-2" style="width: 30px; height: 30px; border-radius: 50%; background-color: <?php echo $category['color']; ?>; display: flex; align-items: center; justify-content: center">h6 class="font-weight-bold mb-3">Section Breakdown</h6>
+                                                <i class="<?php echo $category['icon']; ?> text-white"></i>   <div class="table-responsive">
+                                            </div>          <table class="table table-sm">
+                                            <h6 class="mb-0 font-weight-bold"><?php echo $category['name']; ?></h6>   <thead>
+                                        </div>                       <tr>
+                                    </div>                             <th>Subject</th>
+                                    <div class="d-flex justify-content-between align-items-center">                                    <th>Section</th>
+                                        <div class="small">h>Progress</th>
+                                            <span class="font-weight-bold"><?php echo $category['completed_today']; ?>/<?php echo $category['total_habits']; ?></span> completed today
+                                        </div>
+                                        <div>        </thead>
+                                            <?php              <tbody>
+                                                $completion_percent = $category['total_habits'] > 0 ? $section): ?>
+                                                    round(($category['completed_today'] / $category['total_habits']) * 100) : 0;        <tr>
+                                            ?>td><?php echo $section['subject']; ?></td>
+                                            <span class="badge badge-<?php              <td><?php echo $section['section']; ?></td>
+                                                echo $completion_percent == 100 ? 'success' : 
+                                                     ($completion_percent >= 50 ? 'primary' : 'secondary');"height: 10px;">
+                                            ?>"><?php echo $completion_percent; ?>%</span>r bg-primary" role="progressbar" 
+                                        </div>                               style="width: <?php echo $section['progress']; ?>%" 
+                                    </div>               aria-valuenow="<?php echo $section['progress']; ?>" 
+                                    <div class="progress mt-2" style="height: 6px;">        aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar" style="width: <?php echo $completion_percent; ?>%; background-color: <?php echo $category['color']; ?>"></div>/div>
+                                    </div>>
+                                </div>                  <td><?php echo $section['completed_topics']; ?>/<?php echo $section['total_topics']; ?></td>
+                            </div>  </tr>
+                            <?php endforeach; ?>                  <?php endforeach; ?>
+                        </div>                  </tbody>
+                    <?php else: ?>      </table>
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-gray-300 mb-3"></i>>
+                            <p class="mb-0">No habit categories found</p>
+                            <a href="habit_categories.php" class="btn btn-sm btn-primary mt-3">Create Categories</a>
                         </div>
-                        <div class="progress mb-4" style="height: 10px;">
-                            <div class="progress-bar" role="progressbar" style="width: <?php echo min($habit['completion_count'] * 5, 100); ?>%"></div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for Charts -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Task Progress Chart
-    const taskCtx = document.getElementById('taskProgressChart').getContext('2d');
-    const taskProgressChart = new Chart(taskCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Completed', 'Overdue', 'Today', 'Upcoming'],
-            datasets: [{
-                data: [
-                    <?php echo $tasks_data['completed_tasks']; ?>, 
-                    <?php echo $tasks_data['overdue_tasks']; ?>, 
-                    <?php echo $tasks_data['today_tasks']; ?>, 
-                    <?php echo $tasks_data['upcoming_tasks']; ?>
-                ],
-                backgroundColor: [
-                    '#1cc88a', // success
-                    '#e74a3b', // danger
-                    '#f6c23e', // warning
-                    '#36b9cc'  // info
-                ],
-                hoverBackgroundColor: [
-                    '#17a673',
-                    '#c63825',
-                    '#dda20a',
-                    '#2c9faf'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
-                }
-            },
-            cutout: '70%'
-        }
-    });
-
-    // Assignment Chart with real data
-    const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');
-    const assignmentChart = new Chart(assignmentCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Completed', 'In Progress', 'Not Started'],
-            datasets: [{
-                label: 'Assignments',
-                data: [
-                    <?php echo $assignments_data['completed']; ?>,
-                    <?php echo $assignments_data['in_progress']; ?>,
-                    <?php echo $assignments_data['not_started']; ?>
-                ],
-                backgroundColor: [
-                    '#1cc88a', // success
-                    '#f6c23e', // warning
-                    '#e74a3b'  // danger
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-
-    // Refresh data every 30 seconds (30000 ms)
-    function refreshData() {
-        fetch('ajax/get_dashboard_data.php')
-            .then(response => response.json())
-            .then(data => {
-                // Update task chart
-                if (data.tasks) {
-                    taskProgressChart.data.datasets[0].data = [
-                        data.tasks.completed_tasks,
-                        data.tasks.overdue_tasks,
-                        data.tasks.today_tasks,
-                        data.tasks.upcoming_tasks
-                    ];
-                    taskProgressChart.update();
-                }
-                
-                // Update assignment chart
-                if (data.assignments) {
-                    assignmentChart.data.datasets[0].data = [
-                        data.assignments.completed,
-                        data.assignments.in_progress,
-                        data.assignments.not_started
-                    ];
-                    assignmentChart.update();
-                    
-                    // Update the numbers in the cards
-                    document.querySelector('.text-danger + .h5').textContent = data.assignments.not_started;
-                    document.querySelector('.text-warning + .h5').textContent = data.assignments.in_progress;
-                    document.querySelector('.text-success + .h5').textContent = data.assignments.completed;
-                }
-            })
-            .catch(error => console.error('Error fetching dashboard data:', error));
-    }
+                    <?php endif; ?>
+                </div>ol-lg-4 mb-4">
+            </div>class="card shadow h-100">
+        </div>  <div class="card-header py-3">
+    </div>6 class="m-0 font-weight-bold">Upcoming Exams</h6>
     
-    // Refresh every 30 seconds
-    setInterval(refreshData, 30000);
+    <!-- English Practice and Assignments -->ody">
+    <div class="row mb-4">   <?php if ($exams_result && $exams_result->num_rows > 0): ?>
+        <!-- English Practice -->           <ul class="list-group list-group-flush">
+        <div class="col-lg-6 mb-4">               <?php while ($exam = $exams_result->fetch_assoc()): ?>
+            <div class="card shadow h-100">                     <li class="list-group-item px-0">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">                                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">English Practice</h6>
+                    <a href="english_practice.php" class="btn btn-sm btn-primary">View All</a>            <h6 class="font-weight-bold mb-0"><?php echo $exam['title']; ?></h6>
+                </div> class="small text-muted">
+                <div class="card-body">php echo date('j M Y, g:i a', strtotime($exam['exam_date'])); ?>
+                    <?php if (!empty($english_practice_data)): ?>             </div>
+                        <?php if (isset($english_practice_data['stats'])): ?></div>
+                        <div class="row mb-4">   <div class="text-center">
+                            <div class="col-3 text-center">t-weight-bold 
+                                <div class="h4 mb-0 font-weight-bold"><?php echo $english_practice_data['stats']['total_items']; ?></div>
+                                <div class="small text-muted">Total Items</div>f ($exam['days_remaining'] <= 7) {
+                            </div>     echo 'text-danger';
+                            <div class="col-3 text-center"> elseif ($exam['days_remaining'] <= 30) {
+                                <div class="h4 mb-0 font-weight-bold"><?php echo $english_practice_data['stats']['favorite_items']; ?></div>                              echo 'text-warning';
+                                <div class="small text-muted">Favorites</div> } else {
+                            </div>                                   echo 'text-info';
+                            <div class="col-3 text-center">                                }
+                                <div class="h4 mb-0 font-weight-bold"><?php echo $english_practice_data['stats']['practice_days']; ?></div>  ?>">
+                                <div class="small text-muted">Days</div>     <?php echo $exam['days_remaining']; ?>
+                            </div>
+                            <div class="col-3 text-center">"small text-muted">days left</div>
+                                <div class="h4 mb-0 font-weight-bold"><?php echo $english_practice_data['stats']['items_last_week']; ?></div>
+                                <div class="small text-muted">Last Week</div>
+                            </div>      </li>
+                        </div>
+                        <?php endif; ?>    </ul>
+                        
+                        <h6 class="font-weight-bold mb-3">Recent Practice Items</h6>
+                        <div class="list-group">
+                            <?php 
+                            $counter = 0;           <a href="#" class="btn btn-sm btn-primary mt-3">Add Exam</a>
+                            foreach($english_practice_data as $item):           </div>
+                                if (!isset($item['id'])) continue; // Skip stats array
+                                $counter++;           </div>
+                                if ($counter > 5) break;        </div>
+                            ?>
+                                <div class="list-group-item p-3 mb-2">
+                                    <div class="d-flex w-100 justify-content-between">    
+                                        <h6 class="mb-1 font-weight-bold"><?php echo htmlspecialchars($item['item_title']); ?></h6>-->
+                                        <small class="text-muted"><?php echo date('j M', strtotime($item['practice_date'])); ?></small>
+                                    </div>
+                                    <p class="mb-1"><small><?php echo htmlspecialchars($item['item_meaning']); ?></small></p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">shadow h-100">
+                                        <span class="badge badge-light"><?php echo htmlspecialchars($item['category_name']); ?></span>        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                        <span class="small text-muted">Day <?php echo $item['day_number']; ?></span> class="m-0 font-weight-bold">Tasks Overview</h6>
+                                    </div> href="tasks.php" class="btn btn-sm btn-primary">Manage Tasks</a>
+                                </div>        </div>
+                            <?php endforeach; ?>">
+                        </div>lass="row mb-4">
+                    <?php else: ?>lass="col-6">
+                        <div class="text-center py-4">           <div class="small text-muted">Completion Rate</div>
+                            <i class="fas fa-book fa-3x text-gray-300 mb-3"></i>                     <div class="h4 font-weight-bold">
+                            <p class="mb-0">No practice items found</p>                             <?php
+                            <a href="english_practice.php" class="btn btn-sm btn-primary mt-3">Start Practice</a>                           echo $tasks_data['total_tasks'] > 0 
+                        </div>                                        ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) . '%' 
+                    <?php endif; ?>                                 : '0%';
+                </div>               ?>
+            </div>                     </div>
+        </div> </div>
+         class="col-6">
+        <!-- Assignments -->div class="small text-muted">Total Tasks</div>
+        <div class="col-lg-6 mb-4">   <div class="h4 font-weight-bold">
+            <div class="card shadow h-100">         <?php echo $tasks_data['total_tasks']; ?>
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">        </div>
+                    <h6 class="m-0 font-weight-bold">Assignment Deadlines</h6> </div>
+                    <a href="assignments.php" class="btn btn-sm btn-primary">View All</a>div>
+                </div>div class="row">
+                <div class="card-body">    <div class="col-4 text-center">
+                    <?php if (!empty($assignments_detail)): ?>      <div class="border rounded py-2">
+                        <div class="table-responsive">                               <div class="h4 mb-0 text-danger font-weight-bold">
+                            <table class="table table-sm">                                    <?php echo $tasks_data['overdue_tasks']; ?>
+                                <thead>
+                                    <tr>ext-muted">Overdue</div>
+                                        <th>Assignment</th>
+                                        <th>Due Date</th>
+                                        <th>Progress</th>nter">
+                                        <th>Priority</th>                            <div class="border rounded py-2">
+                                    </tr>ning font-weight-bold">
+                                </thead>today_tasks']; ?>
+                                <tbody>
+                                    <?php foreach($assignments_detail as $assignment): ?>">Due Today</div>
+                                    <tr>
+                                        <td>
+                                            <span class="font-weight-bold"><?php echo htmlspecialchars($assignment['title']); ?></span>>
+                                            <?php if ($assignment['credits']): ?>                            <div class="border rounded py-2">
+                                                <br><small class="text-muted"><?php echo $assignment['credits']; ?> credits</small>ont-weight-bold">
+                                            <?php endif; ?>oming_tasks']; ?>
+                                        </td>
+                                        <td>pcoming</div>
+                                            <?php 
+                                                $due_date = new DateTime($assignment['due_date']);                        </div>
+                                                $today = new DateTime('today');             </div>
+                                                $diff = $today->diff($due_date);
+                                                
+                                                if ($diff->days == 0) {
+                                                    echo '<span class="text-warning">Today</span>';       
+                                                } elseif ($diff->days == 1) {        <!-- Habit Streaks -->
+                                                    echo '<span class="text-warning">Tomorrow</span>';class="col-lg-6 mb-4">
+                                                } else {dow h-100">
+                                                    echo date('j M', strtotime($assignment['due_date']));               <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                    echo '<br><small class="text-muted">' . $diff->days . ' days left</small>';                    <h6 class="m-0 font-weight-bold">Top Habit Streaks</h6>
+                                                }           <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>
+                                            ?>
+                                        </td>               <div class="card-body">
+                                        <td>                    <?php foreach($habit_streak_data as $habit): ?>
+                                            <div class="progress" style="height: 8px; width: 80px;">          <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <div class="progress-bar <?php iv>
+                                                    echo $assignment['progress_percentage'] == 100 ? 'bg-success' : mb-0 font-weight-bold"><?php echo $habit['name']; ?></h6>
+                                                        ($assignment['progress_percentage'] >= 50 ? 'bg-info' : 'bg-warning');                            </div>
+                                                ?>" role="progressbar" style="width: <?php echo $assignment['progress_percentage']; ?>%"></div>                            <div class="d-flex align-items-center">
+                                            </div>             <div class="h5 mb-0 mr-2 font-weight-bold text-primary">
+                                            <small class="text-muted"><?php echo $assignment['progress_percentage']; ?>%</small>    <?php echo $habit['completion_count']; ?>
+                                        </td>                               </div>
+                                        <td>                                <div class="text-xs text-uppercase text-muted">completions</div>
+                                            <span class="badge badge-<?php                  </div>
+                                                echo $assignment['priority'] == 'high' ? 'danger' : </div>
+                                                    ($assignment['priority'] == 'medium' ? 'warning' : 'info');      <div class="progress mb-4" style="height: 10px;">
+                                            ?>"><?php echo ucfirst($assignment['priority']); ?></span>iv class="progress-bar" role="progressbar" style="width: <?php echo min($habit['completion_count'] * 5, 100); ?>%"></div>
+                                        </td>                       </div>
+                                    </tr>                    <?php endforeach; ?>
+                                    <?php endforeach; ?> </div>
+                                </tbody>
+                            </table>       </div>
+                        </div>    </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-alt fa-3x text-gray-300 mb-3"></i>!-- JavaScript for Charts -->
+                            <p class="mb-0">No upcoming assignments found</p><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                            <a href="assignments.php" class="btn btn-sm btn-primary mt-3">Add Assignment</a>
+                        </div>ContentLoaded', function() {
+                    <?php endif; ?>   // Task Progress Chart
+                </div>    const taskCtx = document.getElementById('taskProgressChart').getContext('2d');
+            </div>ssChart = new Chart(taskCtx, {
+        </div>ughnut',
+    </div>
+    'Completed', 'Overdue', 'Today', 'Upcoming'],
+    <!-- Exam Countdown Detail -->
+    <?php if ($upcoming_exam): ?>
+    <div class="row mb-4">                   <?php echo $tasks_data['completed_tasks']; ?>, 
+        <div class="col-12">                    <?php echo $tasks_data['overdue_tasks']; ?>, 
+            <div class="card shadow">  <?php echo $tasks_data['today_tasks']; ?>, 
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">       <?php echo $tasks_data['upcoming_tasks']; ?>
+                    <h6 class="m-0 font-weight-bold">Next Exam Countdown</h6>
+                    <a href="exams.php" class="btn btn-sm btn-primary">All Exams</a>ndColor: [
+                </div>', // success
+                <div class="card-body">    '#e74a3b', // danger
+                    <div class="row align-items-center">   '#f6c23e', // warning
+                        <div class="col-md-4 text-center">cc'  // info
+                            <div class="h1 font-weight-bold <?php ,
+                                echo $upcoming_exam['days_remaining'] <= 7 ? 'text-danger' :                hoverBackgroundColor: [
+                                    ($upcoming_exam['days_remaining'] <= 30 ? 'text-warning' : 'text-info');                     '#17a673',
+                            ?>"><?php echo $upcoming_exam['days_remaining']; ?></div>       '#c63825',
+                            <div class="h5 text-muted">Days Remaining</div>
+                            <div class="mt-3">                   '#2c9faf'
+                                <div class="countdown-date">                ],
+                                    <?php echo date('l, j F Y', strtotime($upcoming_exam['exam_date'])); ?>derWidth: 0
+                                </div>
+                                <div class="countdown-time font-weight-bold">       },
+                                    <?php echo date('g:i A', strtotime($upcoming_exam['exam_date'])); ?>        options: {
+                                </div>ectRatio: false,
+                            </div> {
+                        </div> {
+                        <div class="col-md-8">ition: 'bottom',
+                            <h4 class="font-weight-bold" style="color: <?php echo $upcoming_exam['subject_color'] ?: '#333'; ?>">                   labels: {
+                                <?php echo htmlspecialchars($upcoming_exam['title']); ?>                        padding: 20,
+                            </h4>ointStyle: true
+                            <p class="lead"><?php echo htmlspecialchars($upcoming_exam['subject_name']); ?></p>    }
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6"> cutout: '70%'
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fas fa-clock text-primary mr-2"></i>
+                                        <div>
+                                            <div class="small text-muted">Duration</div>   // Assignment Chart with real data
+                                            <div class="font-weight-bold">    const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');
+                                                <?php echo floor($upcoming_exam['duration'] / 60); ?> hr mentChart = new Chart(assignmentCtx, {
+                                                <?php echo $upcoming_exam['duration'] % 60; ?> min
+                                            </div>
+                                        </div>mpleted', 'In Progress', 'Not Started'],
+                                    </div>           datasets: [{
+                                                    label: 'Assignments',
+                                    <div class="d-flex align-items-center mb-3">data: [
+                                        <i class="fas fa-map-marker-alt text-danger mr-2"></i>hp echo $assignments_data['completed']; ?>,
+                                        <div>    <?php echo $assignments_data['in_progress']; ?>,
+                                            <div class="small text-muted">Location</div>    <?php echo $assignments_data['not_started']; ?>
+                                            <div class="font-weight-bold"><?php echo htmlspecialchars($upcoming_exam['location']); ?></div>,
+                                        </div>undColor: [
+                                    </div>cess
+                                </div>   '#f6c23e', // warning
+                                  '#e74a3b'  // danger
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center mb-3"> 0
+                                        <i class="fas fa-clipboard-list text-success mr-2"></i>
+                                        <div>       },
+                                            <div class="small text-muted">Exam Board</div>        options: {
+                                            <div class="font-weight-bold"><?php echo htmlspecialchars($upcoming_exam['exam_board']); ?></div>tainAspectRatio: false,
+                                        </div>
+                                    </div>
+                                                       beginAtZero: true,
+                                    <div class="d-flex align-items-center mb-3">                    ticks: {
+                                        <i class="fas fa-calculator text-info mr-2"></i>        precision: 0
+                                        <div>
+                                            <div class="small text-muted">Equipment</div>
+                                            <div class="font-weight-bold">           },
+                                                <?php echo $upcoming_exam['calculator_allowed'] ? 'Calculator Allowed' : 'No Calculator'; ?>            plugins: {
+                                            </div>: {
+                                        </div>: false
+                                    </div>}
+                                </div>
+                            </div>   }
+                            });
+                            <div class="mt-3 text-right">
+                                <a href="exam_detail.php?id=<?php echo $upcoming_exam['id']; ?>" class="btn btn-primary">0 seconds (30000 ms)
+                                    <i class="fas fa-info-circle"></i> Exam Detailsunction refreshData() {
+                                </a>    fetch('ajax/get_dashboard_data.php')
+                                <a href="revision_plan.php?exam_id=<?php echo $upcoming_exam['id']; ?>" class="btn btn-success ml-2">sponse.json())
+                                    <i class="fas fa-tasks"></i> Revision Planata => {
+                                </a>           // Update task chart
+                            </div>            if (data.tasks) {
+                        </div>taskProgressChart.data.datasets[0].data = [
+                    </div>    data.tasks.completed_tasks,
+                </div>    data.tasks.overdue_tasks,
+            </div>   data.tasks.today_tasks,
+        </div>                   data.tasks.upcoming_tasks
+    </div>                   ];
+    <?php endif; ?>                    taskProgressChart.update();
+</div>
+  
+<!-- JavaScript for Charts -->     // Update assignment chart
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>data.datasets[0].data = [
+document.addEventListener('DOMContentLoaded', function() {                   data.assignments.completed,
+    // Task Progress Chart                    data.assignments.in_progress,
+    const taskCtx = document.getElementById('taskProgressChart').getContext('2d');   data.assignments.not_started
+    const taskProgressChart = new Chart(taskCtx, {
+        type: 'doughnut',               assignmentChart.update();
+        data: {                   
+            labels: ['Completed', 'Overdue', 'Today', 'Upcoming'],            // Update the numbers in the cards
+            datasets: [{                    document.querySelector('.text-danger + .h5').textContent = data.assignments.not_started;
+                data: [               document.querySelector('.text-warning + .h5').textContent = data.assignments.in_progress;
+                    <?php echo $tasks_data['completed_tasks']; ?>,    document.querySelector('.text-success + .h5').textContent = data.assignments.completed;
+                    <?php echo $tasks_data['overdue_tasks']; ?>, 
+                    <?php echo $tasks_data['today_tasks']; ?>,             })
+                    <?php echo $tasks_data['upcoming_tasks']; ?>console.error('Error fetching dashboard data:', error));
+                ],
+                backgroundColor: [  
+                    '#1cc88a', // success    // Refresh every 30 seconds
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+?>close_connection($conn);// Close database connectioninclude 'includes/footer.php';// Include footer<?php</style>}    }        font-size: 0.9rem;    .table-responsive {        }        font-size: 1rem;    .countdown-date, .countdown-time {@media (max-width: 767px) {}    transform: translateY(-3px);.list-group-item:hover {}    border-radius: 0.5rem !important;    transition: transform 0.15s ease-in-out;.list-group-item {}    font-size: 1.2rem;.countdown-time {}    color: #6c757d;    font-size: 1.1rem;.countdown-date {/* Custom styles for the detailed sections */<style><!-- Additional CSS for the new sections --></style>}    }        display: none !important;    .btn, .dropdown {        }        box-shadow: none !important;        border: 1px solid #ddd !important;    .card {@media print {/* Print styles */}    }        height: 30px;        width: 30px;        left: -30px;    .activity-icon {        }        left: 15px;    .activity-timeline::before {        }        padding-left: 30px;    .activity-timeline {        }        padding: 1rem;    .card-body {@media (max-width: 768px) {/* Responsive fixes */}    color: #858796;    font-size: 0.85rem;.activity-date {}    line-height: 1.4;    font-weight: 600;.activity-text {}    z-index: 1;    justify-content: center;    align-items: center;    display: flex;    color: white;    background-color: var(--primary);    border-radius: 50%;    height: 40px;    width: 40px;    left: -40px;    position: absolute;.activity-icon {}    margin-bottom: 20px;    padding-bottom: 20px;    position: relative;.activity-item {}    background-color: #e3e6f0;    height: 100%;    width: 2px;    top: 0;    left: 20px;    position: absolute;    content: '';.activity-timeline::before {}    padding-left: 40px;    position: relative;.activity-timeline {/* Activity Timeline */}    background-color: #f8f9fc;.habit-item:hover {}    transition: background-color 0.2s;.habit-item {}    color: white;    border-radius: 0.5rem;    height: 35px;    width: 35px;    justify-content: center;    align-items: center;    display: flex;.habit-icon {/* Habit Styles */}    border: 1px solid var(--border);    background-color: #f8f9fc;    padding: 0.75rem;    border-radius: 0.5rem;.exam-countdown {/* Exam Countdown */}    color: #5a5c69 !important;.text-gray-800 {}    color: #dddfeb !important;.text-gray-300 {}    border-radius: 1rem;.progress-bar {}    background-color: #eaecf4;    height: 0.5rem;    border-radius: 1rem;.progress {}    font-weight: 700 !important;.font-weight-bold {}    border-bottom: 1px solid var(--border);    background-color: #f8f9fc;.card-header {}    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1) !important;.shadow {}    transform: translateY(-5px);.card:hover {}    transition: transform 0.2s ease-in-out;    border: 1px solid var(--border);    border-radius: 0.75rem;.card {.border-left-danger { border-left: 4px solid var(--danger); }.border-left-warning { border-left: 4px solid var(--warning); }.border-left-info { border-left: 4px solid var(--info); }.border-left-success { border-left: 4px solid var(--success); }.border-left-primary { border-left: 4px solid var(--primary); }.bg-dark { background-color: var(--dark) !important; }.bg-light { background-color: var(--light) !important; }.bg-danger { background-color: var(--danger) !important; }.bg-warning { background-color: var(--warning) !important; }.bg-info { background-color: var(--info) !important; }.bg-success { background-color: var(--success) !important; }.bg-primary { background-color: var(--primary) !important; }.text-danger { color: var(--danger) !important; }.text-warning { color: var(--warning) !important; }.text-info { color: var(--info) !important; }.text-success { color: var(--success) !important; }.text-primary { color: var(--primary) !important; }}    --border: #e3e6f0;    --dark: #5a5c69;    --light: #f8f9fc;    --danger: #e74a3b;    --warning: #f6c23e;    --info: #36b9cc;    --success: #1cc88a;    --secondary: #2c3e50;    --primary-light: #e6d5a7;    --primary-dark: #b69a45;    --primary: #cdaf56;:root {/* Main Styles */<style></script>});    });        }, 1000);            location.reload();        setTimeout(() => {        // Reload page after 1 second                refreshData();        // Refresh data                this.disabled = true;        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';        // Show loading indicator    document.getElementById('refreshDashboard').addEventListener('click', function() {    // Refresh dashboard button    setInterval(refreshData, 30000);    // Refresh every 30 seconds        }            .catch(error => console.error('Error fetching dashboard data:', error));            })                }                    document.querySelector('.text-success + .h5').textContent = data.assignments.completed;                    document.querySelector('.text-warning + .h5').textContent = data.assignments.in_progress;                    document.querySelector('.text-danger + .h5').textContent = data.assignments.not_started;                    // Update the numbers in the cards                                        assignmentChart.update();                    ];                        data.assignments.not_started                        data.assignments.in_progress,                        data.assignments.completed,                    assignmentChart.data.datasets[0].data = [                if (data.assignments) {                // Update assignment chart                                }                    taskProgressChart.update();                    ];                        data.tasks.upcoming_tasks                        data.tasks.today_tasks,                        data.tasks.overdue_tasks,                        data.tasks.completed_tasks,                    taskProgressChart.data.datasets[0].data = [                if (data.tasks) {                // Update task chart            .then(data => {            .then(response => response.json())        fetch('ajax/get_dashboard_data.php')    function refreshData() {    // Refresh data every 30 seconds (30000 ms)    });        }            }                }                    display: false                legend: {            plugins: {            },                }                    }                        precision: 0                    ticks: {                    beginAtZero: true,                y: {            scales: {            maintainAspectRatio: false,        options: {        },            }]                borderWidth: 0                ],                    '#e74a3b'  // danger                    '#f6c23e', // warning                    '#1cc88a', // success                backgroundColor: [                ],                    <?php echo $assignments_data['not_started']; ?>                    <?php echo $assignments_data['in_progress']; ?>,                    <?php echo $assignments_data['completed']; ?>,                data: [                label: 'Assignments',            datasets: [{            labels: ['Completed', 'In Progress', 'Not Started'],        data: {        type: 'bar',    const assignmentChart = new Chart(assignmentCtx, {    const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');    // Assignment Chart with real data    });        }            cutout: '70%'            },                }                    }                        usePointStyle: true                        padding: 20,                    labels: {                    position: 'bottom',                legend: {            plugins: {            maintainAspectRatio: false,        options: {        },            }]                borderWidth: 0                ],                    '#2c9faf'                    '#dda20a',                    '#c63825',                    '#17a673',                hoverBackgroundColor: [                ],                    '#36b9cc'  // info                    '#f6c23e', // warning                    '#e74a3b', // danger    setInterval(refreshData, 30000);
 
     // Refresh dashboard button
     document.getElementById('refreshDashboard').addEventListener('click', function() {
