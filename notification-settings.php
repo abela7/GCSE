@@ -1,14 +1,18 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Include database connection first
+require_once 'includes/db_connect.php';
+
 // Set page title
 $page_title = "Notification Settings";
-
-// Include header first to ensure proper styling
-require_once __DIR__ . '/includes/header.php';
 
 // Initialize variables
 $error = null;
@@ -26,9 +30,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    // Include database connection
-    require_once __DIR__ . '/includes/db_connect.php';
-    
     // Check if notification_settings table exists
     $tableExists = $pdo->query("SHOW TABLES LIKE 'notification_settings'")->rowCount() > 0;
     
@@ -45,30 +46,19 @@ try {
         )";
         
         $pdo->exec($sql);
-        
-        // Add foreign key constraint separately to avoid errors
-        try {
-            $pdo->exec("ALTER TABLE notification_settings ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE");
-            $pdo->exec("ALTER TABLE notification_settings ADD UNIQUE KEY unique_user_settings (user_id)");
-        } catch (PDOException $e) {
-            // Ignore error if constraint already exists
-        }
     }
 
     // Get current notification settings from database
     $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
     $stmt->execute([$_SESSION['user_id']]);
-    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $dbSettings = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // If no settings exist, create default settings
-    if (!$settings) {
+    if (!$dbSettings) {
         $stmt = $pdo->prepare("INSERT INTO notification_settings (user_id, task_reminders, exam_reminders, daily_motivation) VALUES (?, 1, 1, 1)");
         $stmt->execute([$_SESSION['user_id']]);
-        $settings = [
-            'task_reminders' => 1,
-            'exam_reminders' => 1,
-            'daily_motivation' => 1
-        ];
+    } else {
+        $settings = $dbSettings;
     }
 
     // Handle form submission
@@ -87,10 +77,10 @@ try {
             
             $success = "Notification settings updated successfully!";
             
-            // Refresh settings after update
-            $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Update local settings
+            $settings['task_reminders'] = $task_reminders;
+            $settings['exam_reminders'] = $exam_reminders;
+            $settings['daily_motivation'] = $daily_motivation;
         }
     }
 } catch (PDOException $e) {
@@ -98,6 +88,9 @@ try {
 } catch (Exception $e) {
     $error = "Error: " . $e->getMessage();
 }
+
+// Include header after all processing
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -120,7 +113,7 @@ try {
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
+                    <form method="POST">
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="task_reminders" name="task_reminders" 
@@ -198,19 +191,19 @@ async function testTaskNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('/api/get_incomplete_tasks.php');
+        const response = await fetch('api/get_incomplete_tasks.php');
         const data = await response.json();
         
         if (data.success && data.tasks.length > 0) {
             const task = data.tasks[0];
             new Notification("Test Task Reminder", {
                 body: `You have an incomplete task: ${task.title}`,
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Task Reminder", {
                 body: "You have no incomplete tasks",
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -224,19 +217,19 @@ async function testExamNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('/api/get_exam_countdown.php');
+        const response = await fetch('api/get_exam_countdown.php');
         const data = await response.json();
         
         if (data.success && data.exams.length > 0) {
             const exam = data.exams[0];
             new Notification("Test Exam Reminder", {
                 body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Exam Reminder", {
                 body: "No upcoming exams found",
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -250,18 +243,18 @@ async function testMotivationNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('/api/get_motivational_message.php');
+        const response = await fetch('api/get_motivational_message.php');
         const data = await response.json();
         
         if (data.success) {
             new Notification("Test Motivation Message", {
                 body: data.message,
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         } else {
             new Notification("Test Motivation Message", {
                 body: "Keep going! You're doing great!",
-                icon: '/assets/images/icon-192x192.png'
+                icon: 'assets/images/icon-192x192.png'
             });
         }
     } catch (error) {
@@ -271,4 +264,4 @@ async function testMotivationNotification() {
 }
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?> 
+<?php require_once 'includes/footer.php'; ?> 
