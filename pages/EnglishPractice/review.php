@@ -1,5 +1,8 @@
 <?php
 // GCSE/pages/EnglishPractice/review.php
+// Set timezone to London
+date_default_timezone_set('Europe/London');
+
 session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
 require_once __DIR__ . '/_functions.php';
@@ -92,11 +95,11 @@ $view_mode = isset($_GET['view']) ? $_GET['view'] : 'day'; // Default to day vie
 $page_title = "Review Practice Items";
 
 // Daily View Logic
-$selected_date_str = date('Y-m-d'); // Default
+$selected_date_str = date('Y-m-d'); // Default to current date in London timezone
 if ($view_mode === 'day') {
     $selected_date_str = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
     try {
-        $selected_date = new DateTimeImmutable($selected_date_str);
+        $selected_date = new DateTimeImmutable($selected_date_str, new DateTimeZone('Europe/London'));
         $formatted_date = $selected_date->format('Y-m-d');
         $display_date = format_practice_date($formatted_date); // Format for display
         $page_title = "Review - " . $selected_date->format('M d, Y');
