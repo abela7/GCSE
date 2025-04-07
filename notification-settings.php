@@ -119,26 +119,74 @@ async function requestNotificationPermission() {
     return permission === "granted";
 }
 
+// Function to register service worker
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/service-worker.js');
+            console.log('ServiceWorker registration successful');
+
+            // Register for periodic sync if supported
+            if ('periodicSync' in registration) {
+                try {
+                    await registration.periodicSync.register('sync-notifications', {
+                        minInterval: 60 * 60 * 1000 // Sync every hour
+                    });
+                    console.log('Periodic background sync registered');
+                } catch (error) {
+                    console.log('Periodic background sync registration failed:', error);
+                }
+            }
+
+            return registration;
+        } catch (error) {
+            console.log('ServiceWorker registration failed:', error);
+            return null;
+        }
+    }
+    return null;
+}
+
+// Initialize notifications
+async function initializeNotifications() {
+    const hasPermission = await requestNotificationPermission();
+    if (hasPermission) {
+        const registration = await registerServiceWorker();
+        if (registration) {
+            // Trigger initial sync
+            try {
+                await registration.sync.register('sync-notifications');
+            } catch (error) {
+                console.log('Background sync registration failed:', error);
+            }
+        }
+    }
+}
+
+// Call initialize on page load
+initializeNotifications();
+
 // Test Task Notification
 async function testTaskNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('/api/get_incomplete_tasks.php');
-        const data = await response.json();
-        
-        if (data.success && data.tasks.length > 0) {
-            const task = data.tasks[0];
-            new Notification("Test Task Reminder", {
-                body: `You have an incomplete task: ${task.title}`,
-                icon: '/assets/images/icon-192x192.png'
-            });
-        } else {
-            new Notification("Test Task Reminder", {
-                body: "You have no incomplete tasks",
-                icon: '/assets/images/icon-192x192.png'
-            });
-        }
+        const registration = await navigator.serviceWorker.ready;
+        registration.showNotification("Test Task Reminder", {
+            body: "This is a test task reminder",
+            icon: '/assets/images/icon-192x192.png',
+            vibrate: [100, 50, 100],
+            actions: [
+                {
+                    action: 'explore',
+                    title: 'View Tasks'
+                },
+                {
+                    action: 'close',
+                    title: 'Close'
+                }
+            ]
+        });
     } catch (error) {
         console.error('Error testing task notification:', error);
         alert('Error testing task notification. Please check console for details.');
@@ -150,21 +198,22 @@ async function testExamNotification() {
     if (!await requestNotificationPermission()) return;
 
     try {
-        const response = await fetch('/api/get_exam_countdown.php');
-        const data = await response.json();
-        
-        if (data.success && data.exams.length > 0) {
-            const exam = data.exams[0];
-            new Notification("Test Exam Reminder", {
-                body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
-                icon: '/assets/images/icon-192x192.png'
-            });
-        } else {
-            new Notification("Test Exam Reminder", {
-                body: "No upcoming exams found",
-                icon: '/assets/images/icon-192x192.png'
-            });
-        }
+        const registration = await navigator.serviceWorker.ready;
+        registration.showNotification("Test Exam Reminder", {
+            body: "This is a test exam reminder",
+            icon: '/assets/images/icon-192x192.png',
+            vibrate: [100, 50, 100],
+            actions: [
+                {
+                    action: 'explore',
+                    title: 'View Exams'
+                },
+                {
+                    action: 'close',
+                    title: 'Close'
+                }
+            ]
+        });
     } catch (error) {
         console.error('Error testing exam notification:', error);
         alert('Error testing exam notification. Please check console for details.');
@@ -179,17 +228,18 @@ async function testMotivationNotification() {
         const response = await fetch('/api/get_motivational_message.php');
         const data = await response.json();
         
-        if (data.success) {
-            new Notification("Test Motivation Message", {
-                body: data.message,
-                icon: '/assets/images/icon-192x192.png'
-            });
-        } else {
-            new Notification("Test Motivation Message", {
-                body: "Keep going! You're doing great!",
-                icon: '/assets/images/icon-192x192.png'
-            });
-        }
+        const registration = await navigator.serviceWorker.ready;
+        registration.showNotification("Test Motivation Message", {
+            body: data.success ? data.message : "Keep going! You're doing great!",
+            icon: '/assets/images/icon-192x192.png',
+            vibrate: [100, 50, 100],
+            actions: [
+                {
+                    action: 'close',
+                    title: 'Thanks!'
+                }
+            ]
+        });
     } catch (error) {
         console.error('Error testing motivation notification:', error);
         alert('Error testing motivation notification. Please check console for details.');

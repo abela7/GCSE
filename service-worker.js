@@ -28,82 +28,139 @@ function debugResponse(prefix, response) {
     });
 }
 
-const CACHE_NAME = 'just-do-it-v8';
+const CACHE_NAME = 'web-app-v1';
+const OFFLINE_URL = '/offline.html';
+
+// Assets to cache
 const ASSETS_TO_CACHE = [
-    '.',
-    'pages/dashboard.php',
-    'manifest.json',
-    'offline.html',
-    'assets/js/pwa.js',
-    'assets/js/main.js',
-    'assets/css/main.css',
-    'assets/css/responsive.css',
-    'assets/favicon/android-chrome-192x192.png',
-    'assets/favicon/android-chrome-512x512.png',
-    'assets/favicon/apple-touch-icon.png',
-    'assets/favicon/favicon-16x16.png',
-    'assets/favicon/favicon-32x32.png',
-    'assets/favicon/favicon.ico',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-    'https://code.jquery.com/jquery-3.6.0.min.js'
+    '/',
+    '/offline.html',
+    '/assets/css/style.css',
+    '/assets/js/task-notifications.js',
+    '/assets/images/icon-192x192.png',
+    '/manifest.json'
 ];
 
-// Install Service Worker
-self.addEventListener('install', (event) => {
-    console.log('[DEBUG] Service Worker installing...');
+// Install event - cache assets
+self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[DEBUG] Caching app shell');
-                const cachePromises = ASSETS_TO_CACHE.map(url => {
-                    const resourceUrl = url.startsWith('http') ? url : new URL(url, self.location.origin).href;
-                    console.log('[DEBUG] Attempting to cache:', resourceUrl);
-                    return fetch(resourceUrl)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch ${resourceUrl}: ${response.status} ${response.statusText}`);
-                            }
-                            return cache.put(resourceUrl, response);
-                        })
-                        .then(() => console.log('[DEBUG] Successfully cached:', resourceUrl))
-                        .catch(error => console.error('[DEBUG] Failed to cache:', resourceUrl, error));
+            .then(cache => cache.addAll(ASSETS_TO_CACHE))
+    );
+});
+
+// Activate event - clean old caches
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames
+                    .filter(name => name !== CACHE_NAME)
+                    .map(name => caches.delete(name))
+            );
+        })
+    );
+});
+
+// Fetch event - serve from cache or network
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => {
+                return response || fetch(event.request).catch(() => {
+                    if (event.request.mode === 'navigate') {
+                        return caches.match(OFFLINE_URL);
+                    }
                 });
-                return Promise.all(cachePromises);
-            })
-            .then(() => {
-                console.log('[DEBUG] All assets cached successfully');
-                return self.skipWaiting();
             })
     );
 });
 
-// Activate Service Worker
-self.addEventListener('activate', (event) => {
-    console.log('[DEBUG] Service Worker activating...');
+// Push event - handle incoming push messages
+self.addEventListener('push', event => {
+    const options = {
+        body: event.data.text(),
+        icon: '/assets/images/icon-192x192.png',
+        badge: '/assets/images/icon-192x192.png',
+        vibrate: [100, 50, 100],
+        data: {
+            dateOfArrival: Date.now(),
+            primaryKey: 1
+        },
+        actions: [
+            {
+                action: 'explore',
+                title: 'View Details'
+            },
+            {
+                action: 'close',
+                title: 'Close'
+            }
+        ]
+    };
+
     event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                console.log('[DEBUG] Existing caches:', cacheNames);
-                return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== CACHE_NAME) {
-                            console.log('[DEBUG] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            })
-            .then(() => {
-                console.log('[DEBUG] Claiming clients...');
-                return self.clients.claim();
-            })
-            .then(() => {
-                console.log('[DEBUG] Service Worker activated and claimed clients');
-            })
+        self.registration.showNotification('Web App Notification', options)
     );
 });
+
+// Notification click event
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+
+    if (event.action === 'explore') {
+        event.waitUntil(
+            clients.openWindow('/')
+        );
+    }
+});
+
+// Background sync event
+self.addEventListener('sync', event => {
+    if (event.tag === 'sync-notifications') {
+        event.waitUntil(syncNotifications());
+    }
+});
+
+// Function to sync notifications
+async function syncNotifications() {
+    try {
+        // Check task reminders
+        const taskResponse = await fetch('/api/get_incomplete_tasks.php');
+        const taskData = await taskResponse.json();
+        if (taskData.success && taskData.tasks.length > 0) {
+            self.registration.showNotification('Task Reminder', {
+                body: `You have ${taskData.tasks.length} incomplete tasks`,
+                icon: '/assets/images/icon-192x192.png',
+                vibrate: [100, 50, 100]
+            });
+        }
+
+        // Check exam reminders
+        const examResponse = await fetch('/api/get_exam_countdown.php');
+        const examData = await examResponse.json();
+        if (examData.success && examData.exams.length > 0) {
+            self.registration.showNotification('Exam Reminder', {
+                body: `You have upcoming exams`,
+                icon: '/assets/images/icon-192x192.png',
+                vibrate: [100, 50, 100]
+            });
+        }
+
+        // Send motivation
+        const motivationResponse = await fetch('/api/get_motivational_message.php');
+        const motivationData = await motivationResponse.json();
+        if (motivationData.success) {
+            self.registration.showNotification('Daily Motivation', {
+                body: motivationData.message,
+                icon: '/assets/images/icon-192x192.png',
+                vibrate: [100, 50, 100]
+            });
+        }
+    } catch (error) {
+        console.error('Error syncing notifications:', error);
+    }
+}
 
 // Handle root URL redirect
 function handleRootRequest(request) {
