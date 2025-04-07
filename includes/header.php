@@ -237,10 +237,6 @@ require_once 'db_connect.php';
     
     <!-- Mobile Notifications -->
     <script src="/assets/js/mobile-notifications.js"></script>
-
-    <!-- Debug Console -->
-    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
 </head>
 <body>
     
@@ -293,7 +289,7 @@ require_once 'db_connect.php';
                                 <li><a class="dropdown-item" href="/pages/habits/index.php">Habits</a></li>
                                 <li><a class="dropdown-item" href="/pages/tasks/index.php">Tasks</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/notification-settings.php">
+                                <li><a class="dropdown-item" href="/pages/scheduled-notifications-test.php">
                                     <i class="fas fa-cog me-2"></i>Notification Settings
                                 </a></li>
                                 <!-- More time-related items will be added here -->
