@@ -89,7 +89,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <script>
 // Notification configurations
-const notifications = {
+let notifications = {
     hourly: {
         title: "Time Check",
         body: "Make sure you are on track, keep doing all your tasks!",
@@ -233,6 +233,12 @@ async function testActualNotification(type) {
         debugLog(`Testing ${type} notification...`, 'info');
         const registration = await navigator.serviceWorker.ready;
         
+        if (!registration.active) {
+            debugLog('Service worker not active', 'error');
+            alert('Service worker not ready. Please wait a moment and try again.');
+            return;
+        }
+
         registration.active.postMessage({
             type: 'NOTIFICATION_STATES',
             states: {
@@ -245,14 +251,23 @@ async function testActualNotification(type) {
         debugLog(`Test message sent to service worker for ${type}`, 'success');
     } catch (error) {
         debugLog(`Error testing notification: ${error}`, 'error');
+        alert('Error testing notification: ' + error.message);
     }
 }
 
 // Test all notifications
 async function testAllNotifications() {
+    if (Notification.permission !== 'granted') {
+        debugLog('Cannot test notifications - permission not granted', 'warning');
+        alert('Please enable notifications first');
+        return;
+    }
+
     for (const type in notifications) {
-        await testActualNotification(type);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between notifications
+        if (notifications[type].enabled) {
+            await testActualNotification(type);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between notifications
+        }
     }
 }
 
