@@ -1,771 +1,399 @@
 <?php
-session_start();
-require_once __DIR__ . '/../includes/db_connect.php';
-require_once __DIR__ . '/../functions/stats_functions.php';
+// Set page title
+$page_title = "Today";
 
-// Initialize variables with default values
-$stats = [
-    'total_items' => 0,
-    'favorite_items' => 0,
-    'items_added_today' => 0,
-    'categories_practiced' => 0
-];
-$assignments = [];
-$recent_items = [];
+// Include database connection
+require_once '../config/db_connect.php';
 
-try {
-    // Get stats using the function
-    $stats = get_daily_stats($conn);
-    
-    // Get assignments using the function
-    $assignments = get_upcoming_assignments($conn);
-    
-    // Get recent items using the function
-    $recent_items = get_recent_practice_items($conn);
+// Get today's date in Y-m-d format
+$today = date('Y-m-d');
+
+// Get tasks for today (including recurring tasks)
+$tasks_query = "SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
+                COALESCE(ti.status, t.status) as effective_status
+                FROM tasks t 
+                JOIN task_categories c ON t.category_id = c.id 
+                LEFT JOIN task_instances ti ON t.id = ti.task_id AND ti.due_date = '$today'
+                WHERE (t.task_type = 'one-time' AND t.due_date = '$today' AND t.status != 'completed')
+                OR (t.task_type = 'recurring' AND ti.id IS NOT NULL AND ti.status != 'completed')
+                ORDER BY t.priority DESC, t.due_date ASC";
+$tasks_result = $conn->query($tasks_query);
 
 // Get habits for today
-    $habits = get_todays_habits($conn);
-    
-    // Get tasks for today
-    $tasks = get_todays_tasks($conn);
-    
-    // Get upcoming exams
-    $exams = get_upcoming_exams($conn);
-    
-    // Get today's exam reports
-    $exam_reports = get_todays_exam_reports($conn);
-    
-} catch (Exception $e) {
-    error_log("Error in Today.php: " . $e->getMessage());
-    // We'll continue with default values if there's an error
-}
+$habits_query = "SELECT h.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
+                 hp.status as today_status
+                 FROM habits h
+                 JOIN habit_categories c ON h.category_id = c.id
+                 LEFT JOIN habit_progress hp ON h.id = hp.habit_id AND hp.date = '$today'
+                 WHERE h.is_active = 1
+                 AND (hp.id IS NULL OR hp.status != 'completed')
+                 ORDER BY h.target_time ASC";
+$habits_result = $conn->query($habits_query);
 
-$page_title = "Today's Overview";
-require_once __DIR__ . '/../includes/header.php';
+// Get upcoming exams (next 30 days)
+$exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color,
+                DATEDIFF(e.exam_date, CURRENT_DATE) as days_remaining
+                FROM exams e 
+                JOIN subjects s ON e.subject_id = s.id 
+                WHERE e.exam_date > CURRENT_DATE 
+                AND e.exam_date <= DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY)
+                ORDER BY e.exam_date ASC";
+$exams_result = $conn->query($exams_query);
+
+// Get upcoming assignments (next 7 days)
+$assignments_query = "SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
+                     DATEDIFF(t.due_date, CURRENT_DATE) as days_remaining
+                     FROM tasks t 
+                     JOIN task_categories c ON t.category_id = c.id
+                     WHERE t.due_date > CURRENT_DATE 
+                     AND t.due_date <= DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY)
+                     AND t.category_id IN (SELECT id FROM task_categories WHERE name LIKE '%Assignment%' OR name LIKE '%Homework%')
+                     AND t.status != 'completed'
+                     ORDER BY t.due_date ASC, t.priority DESC
+                     LIMIT 5";
+$assignments_result = $conn->query($assignments_query);
+
+// Get exam reports for today
+$exam_reports_query = "SELECT er.*, e.title as exam_title, s.name as subject_name, s.color as subject_color
+                      FROM exam_reports er
+                      JOIN exams e ON er.exam_id = e.id
+                      JOIN subjects s ON e.subject_id = s.id
+                      WHERE DATE(er.date) = '$today'
+                      ORDER BY er.date DESC";
+$exam_reports_result = $conn->query($exam_reports_query);
+
+// Get study progress for today
+$progress_query = "SELECT 
+                    (SELECT COUNT(*) FROM topic_progress WHERE DATE(last_studied) = '$today') +
+                    (SELECT COUNT(*) FROM eng_topic_progress WHERE DATE(last_studied) = '$today') as topics_studied,
+                    (SELECT SUM(total_time_spent) FROM topic_progress WHERE DATE(last_studied) = '$today') +
+                    (SELECT SUM(total_time_spent) FROM eng_topic_progress WHERE DATE(last_studied) = '$today') as total_study_time";
+$progress_result = $conn->query($progress_query);
+$progress = $progress_result->fetch_assoc();
+
+// Include header
+include '../includes/header.php';
 ?>
 
 <style>
-:root {
-    --primary-gradient: linear-gradient(135deg, #cdaf56 0%, #e6ce89 100%);
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --transition-speed: 0.3s;
+.task-card, .habit-card, .overview-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    margin-bottom: 1rem;
+    border-radius: 12px;
 }
-
-.hero-section {
-    background: var(--primary-gradient);
-    padding: 3rem 0;
-    margin-bottom: 2rem;
-    color: white;
-    position: relative;
-    overflow: hidden;
+.task-card:hover, .habit-card:hover, .overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-
-.hero-section::before {
-    content: '';
+.priority-indicator {
+    width: 4px;
     position: absolute;
-    top: 0;
     left: 0;
-    right: 0;
+    top: 0;
     bottom: 0;
-    background: url('/assets/images/pattern.png');
-    opacity: 0.1;
+    border-radius: 4px 0 0 4px;
 }
-
-.stat-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    box-shadow: var(--card-shadow);
-    transition: transform var(--transition-speed);
-    height: 100%;
+.priority-high { background-color: #dc3545; }
+.priority-medium { background-color: #ffc107; }
+.priority-low { background-color: #28a745; }
+.exam-countdown {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #1a1a1a;
 }
-
-.stat-card:hover {
-    transform: translateY(-5px);
+.countdown-urgent {
+    color: #dc3545;
 }
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #cdaf56;
-    margin-bottom: 0.5rem;
+.countdown-warning {
+    color: #ffc107;
 }
-
-.quick-action {
-    padding: 1rem;
-    border-radius: 0.75rem;
-    background: white;
-    box-shadow: var(--card-shadow);
-    transition: all var(--transition-speed);
-    text-decoration: none;
-    color: inherit;
+.countdown-safe {
+    color: #28a745;
+}
+.progress-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+    background: conic-gradient(var(--progress-color) var(--progress), #eee 0deg);
+    position: relative;
 }
-
-.quick-action:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
-    color: #cdaf56;
-}
-
-.quick-action i {
-    font-size: 1.5rem;
-    color: #cdaf56;
-}
-
-.assignment-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: var(--card-shadow);
-    transition: all var(--transition-speed);
-}
-
-.assignment-card:hover {
-    transform: translateY(-3px);
-}
-
-.progress-ring {
-    width: 60px;
-    height: 60px;
-}
-
-.practice-item {
-    padding: 1rem;
-    border-left: 4px solid #cdaf56;
-    background: white;
-    margin-bottom: 1rem;
-    border-radius: 0 0.5rem 0.5rem 0;
-    transition: all var(--transition-speed);
-}
-
-.practice-item:hover {
-    transform: translateX(5px);
-    box-shadow: var(--card-shadow);
-}
-
-.category-badge {
-    background: rgba(205, 175, 86, 0.1);
-    color: #cdaf56;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-}
-
-@media (max-width: 768px) {
-    .stat-card {
-        margin-bottom: 1rem;
-    }
-    
-    .quick-actions {
-        grid-template-columns: 1fr;
-    }
-}
-
-.priority-dot {
-    width: 8px;
-    height: 8px;
+.progress-circle::before {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    display: inline-block;
-}
-
-.habits-timeline {
-    position: relative;
-}
-
-.habits-timeline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 24px;
-    width: 2px;
-    background-color: #e9ecef;
-    z-index: 0;
-}
-
-.habit-item {
     background: white;
+}
+.progress-circle-content {
     position: relative;
     z-index: 1;
-    transition: transform 0.2s;
+    text-align: center;
 }
-
-.habit-item:hover {
-    transform: translateX(5px);
+.accordion-button:not(.collapsed) {
+    background-color: rgba(205, 175, 86, 0.1);
+    color: var(--primary-color);
 }
-
-.exam-item {
-    transition: transform 0.2s;
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(205, 175, 86, 0.25);
 }
-
-.exam-item:hover {
-    transform: translateY(-3px);
-}
-
-.countdown-badge {
-    font-size: 0.75rem;
-    padding: 0.25em 0.75em;
-    border-radius: 1rem;
-    color: white;
-}
-
-.exam-report {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: #f8f9fa;
-    transition: transform 0.2s;
-}
-
-.exam-report:hover {
-    transform: translateY(-2px);
-    background-color: #fff;
-    box-shadow: var(--card-shadow);
-}
-
-/* Enhanced Animations and Effects */
-@keyframes slideIn {
-    from { transform: translateX(-20px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Enhanced Hero Section */
-.hero-section {
-    background: linear-gradient(135deg, #cdaf56 0%, #e6ce89 100%);
-    padding: 4rem 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 20%),
-        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 20%),
-        url('/assets/images/pattern.png');
-    opacity: 0.1;
-    animation: pulse 8s infinite;
-}
-
-.hero-content {
-    animation: fadeIn 1s ease-out;
-}
-
-/* Enhanced Stats Cards */
-.stat-card {
-    position: relative;
-    overflow: hidden;
-    border: none;
-    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #cdaf56, #e6ce89);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.stat-card:hover::before {
-    opacity: 1;
-}
-
-.stat-icon {
-    position: absolute;
-    right: -20px;
-    bottom: -20px;
-    font-size: 5rem;
-    opacity: 0.05;
-    transform: rotate(-15deg);
-    transition: all 0.3s;
-}
-
-.stat-card:hover .stat-icon {
-    transform: rotate(0);
-    opacity: 0.08;
-}
-
-/* Enhanced Task and Habit Items */
-.task-item, .habit-item {
-    position: relative;
-    overflow: hidden;
-}
-
-.task-item::after, .habit-item::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(205,175,86,0.1) 0%, rgba(230,206,137,0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.task-item:hover::after, .habit-item:hover::after {
-    opacity: 1;
-}
-
-/* Enhanced Progress Indicators */
-.circular-progress {
-    position: relative;
-    width: 60px;
-    height: 60px;
-}
-
-.progress-ring {
-    transform: rotate(-90deg);
-}
-
-.progress-ring-circle {
-    transition: stroke-dashoffset 0.3s;
-    transform-origin: 50% 50%;
-}
-
-/* Enhanced Quick Actions */
-.quick-action {
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.quick-action::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #cdaf56 0%, #e6ce89 100%);
-    opacity: 0;
-    z-index: -1;
-    transition: opacity 0.3s;
-}
-
-.quick-action:hover::before {
-    opacity: 0.1;
-}
-
-.quick-action:hover i {
-    animation: pulse 1s infinite;
-}
-
-/* Responsive Enhancements */
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 2rem 0;
-    }
-    
-    .stat-card {
+.overview-icon {
+    font-size: 2rem;
+    color: #cdaf56;
     margin-bottom: 1rem;
 }
-    
-    .quick-actions {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
+.overview-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
-
-/* Loading Skeleton Animation */
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-
-.skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 1000px 100%;
-    animation: shimmer 2s infinite;
-}
-
-/* Toast Notifications */
-.feedback-message {
-    position: fixed;
-    bottom: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    z-index: 1000;
-    transition: bottom 0.3s ease-in-out;
+.overview-subtitle {
     font-size: 0.9rem;
-    border-left: 4px solid #cdaf56;
+    color: #6c757d;
 }
-
-.feedback-message.show {
-    bottom: 20px;
+.study-stat {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(205, 175, 86, 0.1);
+    border-radius: 12px;
 }
-
-.feedback-message.success {
-    border-color: #28a745;
+.stat-number {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #cdaf56;
 }
-
-.feedback-message.error {
-    border-color: #dc3545;
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
 }
 </style>
 
-<div class="hero-section">
-    <div class="container position-relative">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="display-4 mb-3">Welcome Back!</h1>
-                <p class="lead mb-0">Here's your learning progress for today</p>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <div class="d-flex justify-content-md-end align-items-center">
-                    <div class="me-3">
-                        <div class="text-sm opacity-75">Today's Date</div>
-                        <div class="h4 mb-0"><?php echo date('j M Y'); ?></div>
-                    </div>
-                    <div class="h1 mb-0">
-                        <i class="fas fa-calendar-day"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container mb-5">
-    <!-- Stats Section -->
-    <div class="row mb-5">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo (int)$stats['items_added_today']; ?></div>
-                <div class="text-muted">Items Added Today</div>
-                <div class="mt-3">
-                    <i class="fas fa-plus-circle text-success"></i>
-                    <span class="ms-2 small">New Entries</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo (int)$stats['categories_practiced']; ?></div>
-                <div class="text-muted">Categories Practiced</div>
-                <div class="mt-3">
-                    <i class="fas fa-layer-group text-primary"></i>
-                    <span class="ms-2 small">Topics Covered</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo (int)$stats['total_items']; ?></div>
-                <div class="text-muted">Total Practice Items</div>
-                <div class="mt-3">
-                    <i class="fas fa-book text-info"></i>
-                    <span class="ms-2 small">Learning Material</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-number"><?php echo (int)$stats['favorite_items']; ?></div>
-                <div class="text-muted">Favorite Items</div>
-                <div class="mt-3">
-                    <i class="fas fa-star text-warning"></i>
-                    <span class="ms-2 small">Saved for Review</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<div class="container-fluid">
     <div class="row">
-        <!-- Left Column -->
         <div class="col-md-8">
-            <!-- Habits Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-clock text-primary me-2"></i>
-                        Today's Habits
-                    </h5>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addHabitModal">
-                        <i class="fas fa-plus"></i> Add Habit
+            <!-- Study Overview Accordion -->
+            <div class="accordion mb-4" id="studyOverviewAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#studyOverviewCollapse">
+                            <i class="fas fa-graduation-cap me-2"></i>Study Overview
                         </button>
-                </div>
+                    </h2>
+                    <div id="studyOverviewCollapse" class="accordion-collapse collapse show" data-bs-parent="#studyOverviewAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-4">
+                                <!-- Upcoming Assignments -->
+                                <div class="col-md-6">
+                                    <div class="overview-card">
                                         <div class="card-body">
-                    <?php if (!empty($habits)): ?>
-                        <div class="habits-timeline">
-                            <?php foreach ($habits as $habit): ?>
-                                <div class="habit-item mb-3 p-3 border-start border-4 rounded-end" 
-                                     style="border-color: <?php echo htmlspecialchars($habit['category_color']); ?>">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">
-                                                <i class="<?php echo htmlspecialchars($habit['category_icon']); ?> me-2"></i>
-                                                <?php echo htmlspecialchars($habit['name']); ?>
-                                            </h6>
-                                            <div class="text-muted small">
-                                                <i class="far fa-clock me-1"></i>
-                                                <?php echo date('g:i A', strtotime($habit['target_time'])); ?>
+                                            <div class="text-center mb-3">
+                                                <i class="fas fa-book-reader overview-icon"></i>
+                                                <h5 class="overview-title">Upcoming Assignments</h5>
                                             </div>
+                                            <?php if ($assignments_result->num_rows > 0): ?>
+                                                <?php while ($assignment = $assignments_result->fetch_assoc()): ?>
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        <div class="flex-grow-1">
+                                                            <div class="fw-medium"><?php echo htmlspecialchars($assignment['title']); ?></div>
+                                                            <small class="text-muted">Due in <?php echo $assignment['days_remaining']; ?> days</small>
                                                         </div>
-                                        <div>
-                                            <?php if ($habit['today_status'] == 'completed'): ?>
-                                                <span class="badge bg-success">Completed</span>
-                                            <?php else: ?>
-                                                <button class="btn btn-sm btn-outline-success complete-habit" 
-                                                        data-habit-id="<?php echo $habit['id']; ?>">
-                                                    Complete
-                                                </button>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                                            </div>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-tasks fa-2x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No habits scheduled for today</p>
-                                                        </div>
-                    <?php endif; ?>
-                                                        </div>
-                                                    </div>
-
-            <!-- Tasks Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tasks text-warning me-2"></i>
-                        Today's Tasks
-                    </h5>
-                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                        <i class="fas fa-plus"></i> Add Task
-                    </button>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($tasks)): ?>
-                        <?php foreach ($tasks as $task): ?>
-                            <div class="task-item mb-3 p-3 border rounded shadow-sm">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="priority-dot me-2" 
-                                                  style="background-color: <?php 
-                                                    echo $task['priority'] == 'high' ? '#dc3545' : 
-                                                        ($task['priority'] == 'medium' ? '#ffc107' : '#28a745'); 
-                                                    ?>">
-                                            </span>
-                                            <h6 class="mb-0"><?php echo htmlspecialchars($task['title']); ?></h6>
-                                        </div>
-                                        <?php if ($task['description']): ?>
-                                            <p class="text-muted small mb-2"><?php echo htmlspecialchars($task['description']); ?></p>
-                                            <?php endif; ?>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
-                                                <i class="<?php echo htmlspecialchars($task['category_icon']); ?> me-1"></i>
-                                                <?php echo htmlspecialchars($task['category_name']); ?>
-                                            </span>
-                                            <span class="text-muted small ms-2">
-                                                <i class="far fa-clock me-1"></i>
-                                                <?php echo date('g:i A', strtotime($task['due_date'])); ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="ms-3">
-                                        <button class="btn btn-sm btn-success complete-task" data-task-id="<?php echo $task['id']; ?>">
-                                            <i class="fas fa-check"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-check-circle fa-2x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No tasks for today</p>
-                                            </div>
-                    <?php endif; ?>
-                                                    </div>
-                                                </div>
-
-            <!-- Quick Actions -->
-            <div class="col-md-4 mb-4">
-                <h2 class="h4 mb-4">Quick Actions</h2>
-                <div class="d-grid gap-3">
-                    <a href="/pages/EnglishPractice/practice.php" class="quick-action">
-                        <i class="fas fa-play-circle"></i>
-                        <div>
-                            <div class="fw-bold">Start Practice</div>
-                            <div class="small text-muted">Review your flashcards</div>
-                        </div>
-                    </a>
-                    <a href="/pages/EnglishPractice/daily_entry.php" class="quick-action">
-                        <i class="fas fa-plus-circle"></i>
-                        <div>
-                            <div class="fw-bold">Add New Entry</div>
-                            <div class="small text-muted">Create practice items</div>
-                        </div>
-                    </a>
-                    <a href="/pages/EnglishPractice/review.php?favorites=1" class="quick-action">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <div class="fw-bold">Review Favorites</div>
-                            <div class="small text-muted">Practice saved items</div>
-                                                        </div>
-                    </a>
-                                                    </div>
-            </div>
-
-            <!-- Upcoming Assignments -->
-            <div class="col-md-4 mb-4">
-                <h2 class="h4 mb-4">Upcoming Assignments</h2>
-                <?php if (!empty($assignments)): ?>
-                    <?php foreach ($assignments as $assignment): 
-                        $progress = $assignment['total_criteria'] > 0 ? 
-                            ($assignment['completed_criteria'] / $assignment['total_criteria']) * 100 : 0;
-                        $days_left = (strtotime($assignment['due_date']) - time()) / (60 * 60 * 24);
-                    ?>
-                        <div class="assignment-card">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h3 class="h6 mb-1"><?php echo htmlspecialchars($assignment['title']); ?></h3>
-                                    <div class="text-muted small">
-                                        Due in <?php echo ceil($days_left); ?> days
-                                                </div>
-                                            </div>
-                                <div class="ms-3">
-                                    <div class="progress" style="width: 60px; height: 60px;">
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                             style="width: <?php echo $progress; ?>%" 
-                                             aria-valuenow="<?php echo $progress; ?>" 
-                                             aria-valuemin="0" 
-                                             aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="small">
-                                    <span class="text-success">
-                                        <?php echo $assignment['completed_criteria']; ?>/<?php echo $assignment['total_criteria']; ?>
-                                    </span> criteria completed
-                                </div>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Continue</a>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="text-center py-4 text-muted">
-                        <i class="fas fa-check-circle fa-2x mb-3"></i>
-                        <p class="mb-0">No upcoming assignments!</p>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Recent Practice Items -->
-            <div class="col-md-4 mb-4">
-                <h2 class="h4 mb-4">Recent Practice Items</h2>
-                <?php if (!empty($recent_items)): ?>
-                    <?php foreach ($recent_items as $item): ?>
-                        <div class="practice-item">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h3 class="h6 mb-1"><?php echo htmlspecialchars($item['item_title']); ?></h3>
-                                <button class="btn btn-link p-0 toggle-favorite" data-item-id="<?php echo $item['id']; ?>">
-                                    <i class="<?php echo $item['is_favorite'] ? 'fas' : 'far'; ?> fa-star text-warning"></i>
-                        </button>
-                            </div>
-                            <span class="category-badge">
-                                <?php echo htmlspecialchars($item['category_name']); ?>
+                                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($assignment['category_color']); ?>">
+                                                            <?php echo htmlspecialchars($assignment['category_name']); ?>
                                                         </span>
-                            <div class="mt-2 small text-muted">
-                                Added <?php echo date('j M', strtotime($item['created_at'])); ?>
+                                                    </div>
+                                                <?php endwhile; ?>
+                                            <?php else: ?>
+                                                <p class="text-muted text-center mb-0">No upcoming assignments</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Upcoming Exams -->
+                                <div class="col-md-6">
+                                    <div class="overview-card">
+                                        <div class="card-body">
+                                            <div class="text-center mb-3">
+                                                <i class="fas fa-file-alt overview-icon"></i>
+                                                <h5 class="overview-title">Exam Countdown</h5>
+                                            </div>
+                                            <?php if ($exams_result->num_rows > 0): ?>
+                                                <?php while ($exam = $exams_result->fetch_assoc()): ?>
+                                                    <div class="d-flex align-items-center mb-3">
+                                                        <div class="flex-grow-1">
+                                                            <div class="fw-medium"><?php echo htmlspecialchars($exam['title']); ?></div>
+                                                            <small class="text-muted"><?php echo date('M j, Y', strtotime($exam['exam_date'])); ?></small>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <div class="exam-countdown <?php 
+                                                                echo $exam['days_remaining'] <= 7 ? 'countdown-urgent' : 
+                                                                    ($exam['days_remaining'] <= 14 ? 'countdown-warning' : 'countdown-safe'); 
+                                                            ?>">
+                                                                <?php echo $exam['days_remaining']; ?> days
+                                                            </div>
+                                                            <span class="badge" style="background-color: <?php echo htmlspecialchars($exam['subject_color']); ?>">
+                                                                <?php echo htmlspecialchars($exam['subject_name']); ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <?php endwhile; ?>
+                                            <?php else: ?>
+                                                <p class="text-muted text-center mb-0">No upcoming exams</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Today's Study Stats -->
+                                <div class="col-12">
+                                    <div class="overview-card">
+                                        <div class="card-body">
+                                            <div class="text-center mb-3">
+                                                <i class="fas fa-chart-line overview-icon"></i>
+                                                <h5 class="overview-title">Today's Progress</h5>
+                                            </div>
+                                            <div class="row g-4">
+                                                <div class="col-md-6">
+                                                    <div class="study-stat">
+                                                        <div class="stat-number"><?php echo $progress['topics_studied'] ?: 0; ?></div>
+                                                        <div class="stat-label">Topics Studied</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="study-stat">
+                                                        <div class="stat-number">
+                                                            <?php 
+                                                            $hours = floor(($progress['total_study_time'] ?: 0) / 3600);
+                                                            $minutes = floor((($progress['total_study_time'] ?: 0) % 3600) / 60);
+                                                            echo $hours > 0 ? $hours . 'h ' : '';
+                                                            echo $minutes . 'm';
+                                                            ?>
+                                                        </div>
+                                                        <div class="stat-label">Study Time</div>
+                                                    </div>
                                                 </div>
                                             </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="text-center py-4 text-muted">
-                        <i class="fas fa-book fa-2x mb-3"></i>
-                        <p class="mb-0">No practice items yet!</p>
+                                        </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Accordion -->
+            <div class="accordion mb-4" id="tasksAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#tasksCollapse">
+                            <i class="fas fa-tasks me-2"></i>Today's Tasks
+                        </button>
+                    </h2>
+                    <div id="tasksCollapse" class="accordion-collapse collapse show" data-bs-parent="#tasksAccordion">
+                        <div class="accordion-body">
+                            <?php if ($tasks_result->num_rows > 0): ?>
+                                <?php while ($task = $tasks_result->fetch_assoc()): ?>
+                                    <div class="card task-card">
+                                        <div class="priority-indicator priority-<?php echo strtolower($task['priority']); ?>"></div>
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h6>
+                                                    <?php if ($task['category_name']): ?>
+                                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
+                                                            <i class="<?php echo htmlspecialchars($task['category_icon']); ?> me-1"></i>
+                                                            <?php echo htmlspecialchars($task['category_name']); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="text-end">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        <?php echo date('g:i A', strtotime($task['due_date'])); ?>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <?php if ($task['description']): ?>
+                                                <p class="card-text mt-2 mb-0"><?php echo htmlspecialchars($task['description']); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No tasks scheduled for today.</p>
                             <?php endif; ?>
                         </div>
                     </div>
-
-        <!-- Right Column -->
-        <div class="col-md-4">
-            <!-- Exam Countdown -->
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-graduation-cap text-info me-2"></i>
-                        Upcoming Exams
-                    </h5>
                 </div>
+
+                <!-- Habits Accordion -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#habitsCollapse">
+                            <i class="fas fa-repeat me-2"></i>Daily Habits
+                        </button>
+                    </h2>
+                    <div id="habitsCollapse" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
+                        <div class="accordion-body">
+                            <?php if ($habits_result && $habits_result->num_rows > 0): ?>
+                                <?php while ($habit = $habits_result->fetch_assoc()): ?>
+                                    <div class="card habit-card">
                                         <div class="card-body">
-                    <?php if (!empty($exams)): ?>
-                        <?php foreach ($exams as $exam): ?>
-                            <div class="exam-item mb-3 p-3 border rounded">
-                                <h6 class="mb-2"><?php echo htmlspecialchars($exam['title']); ?></h6>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge" style="background-color: <?php echo htmlspecialchars($exam['subject_color']); ?>">
-                                        <?php echo htmlspecialchars($exam['subject_name']); ?>
-                                    </span>
-                                    <span class="countdown-badge <?php 
-                                        echo $exam['days_remaining'] <= 7 ? 'bg-danger' : 
-                                            ($exam['days_remaining'] <= 14 ? 'bg-warning' : 'bg-success'); 
-                                    ?>">
-                                        <?php echo $exam['days_remaining']; ?> days left
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="mb-1"><?php echo htmlspecialchars($habit['name']); ?></h6>
+                                                    <?php if ($habit['category_name']): ?>
+                                                        <span class="badge" style="background-color: <?php echo htmlspecialchars($habit['category_color']); ?>">
+                                                            <i class="<?php echo htmlspecialchars($habit['category_icon']); ?> me-1"></i>
+                                                            <?php echo htmlspecialchars($habit['category_name']); ?>
                                                         </span>
+                                                    <?php endif; ?>
                                                 </div>
-                                <div class="progress" style="height: 4px;">
-                                    <div class="progress-bar bg-info" role="progressbar" 
-                                         style="width: <?php echo (30 - $exam['days_remaining']) / 30 * 100; ?>%">
+                                                <div class="text-end">
+                                                    <small class="text-muted me-2">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        <?php echo date('g:i A', strtotime($habit['target_time'])); ?>
+                                                    </small>
+                                                    <?php if ($habit['today_status'] == 'completed'): ?>
+                                                        <span class="badge bg-success">Completed</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                            <?php if ($habit['description']): ?>
+                                                <p class="card-text mt-2 mb-0"><?php echo htmlspecialchars($habit['description']); ?></p>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                                <?php endwhile; ?>
                             <?php else: ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-book fa-2x text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No upcoming exams</p>
+                                <p class="text-muted mb-0">No habits scheduled for today.</p>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Today's Exam Reports -->
-            <?php if (!empty($exam_reports)): ?>
-                <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-bar text-success me-2"></i>
-                            Today's Exam Results
-                        </h5>
                     </div>
+                </div>
+
+                <!-- Exam Reports Accordion -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#examReportsCollapse">
+                            <i class="fas fa-file-alt me-2"></i>Exam Reports
+                        </button>
+                    </h2>
+                    <div id="examReportsCollapse" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
+                        <div class="accordion-body">
+                            <?php if ($exam_reports_result && $exam_reports_result->num_rows > 0): ?>
+                                <?php while ($report = $exam_reports_result->fetch_assoc()): ?>
+                                    <div class="card mb-3">
                                         <div class="card-body">
-                        <?php foreach ($exam_reports as $report): ?>
-                            <div class="exam-report mb-3">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div>
                                                     <h6 class="mb-1"><?php echo htmlspecialchars($report['exam_title']); ?></h6>
@@ -773,200 +401,74 @@ require_once __DIR__ . '/../includes/header.php';
                                                         <?php echo htmlspecialchars($report['subject_name']); ?>
                                                     </span>
                                                 </div>
+                                                <div class="text-end">
                                                     <span class="badge bg-<?php echo $report['score'] >= 70 ? 'success' : ($report['score'] >= 50 ? 'warning' : 'danger'); ?>">
-                                        <?php echo $report['score']; ?>%
+                                                        Score: <?php echo $report['score']; ?>%
                                                     </span>
+                                                </div>
                                             </div>
                                             <?php if ($report['notes']): ?>
-                                    <p class="text-muted small mt-2 mb-0"><?php echo htmlspecialchars($report['notes']); ?></p>
+                                                <p class="card-text mt-2 mb-0"><?php echo htmlspecialchars($report['notes']); ?></p>
                                             <?php endif; ?>
                                         </div>
-                        <?php endforeach; ?>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No exam reports for today.</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Right Column: Exams and Quick Links -->
+        <div class="col-md-4">
+            <!-- Quick Links -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-link me-2"></i>Quick Links</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="/pages/subjects.php" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book me-2"></i>Subjects
+                        </a>
+                        <a href="/pages/exams.php" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-check me-2"></i>Exam Schedule
+                        </a>
+                        <a href="/pages/tasks.php" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tasks me-2"></i>Tasks
+                        </a>
+                        <a href="/pages/progress.php" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-bar me-2"></i>Progress Overview
+                        </a>
+                        <a href="/pages/resources.php" class="list-group-item list-group-item-action">
+                            <i class="fas fa-folder me-2"></i>Study Resources
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Enhanced Stats Animation
-    function animateValue(element, start, end, duration) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const value = Math.floor(progress * (end - start) + start);
-            element.textContent = value;
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
-    }
-
-    // Circular Progress Animation
-    function createCircularProgress(percentage, element) {
-        const radius = 24;
-        const circumference = radius * 2 * Math.PI;
-        const html = `
-            <svg class="progress-ring" width="60" height="60">
-                <circle
-                    class="progress-ring-circle-bg"
-                    stroke="#e9ecef"
-                    stroke-width="4"
-                    fill="transparent"
-                    r="${radius}"
-                    cx="30"
-                    cy="30"
-                />
-                <circle
-                    class="progress-ring-circle"
-                    stroke="#cdaf56"
-                    stroke-width="4"
-                    fill="transparent"
-                    r="${radius}"
-                    cx="30"
-                    cy="30"
-                    style="stroke-dasharray: ${circumference} ${circumference};
-                           stroke-dashoffset: ${circumference - (percentage / 100) * circumference}"
-                />
-                <text x="30" y="30" text-anchor="middle" dy=".3em" fill="#cdaf56">
-                    ${percentage}%
-                </text>
-            </svg>
-        `;
-        element.innerHTML = html;
-    }
-
-    // Subtle Feedback Message
-    function showFeedback(message, type = 'success') {
-        // Remove any existing feedback messages
-        const existingMessages = document.querySelectorAll('.feedback-message');
-        existingMessages.forEach(msg => msg.remove());
-
-        // Create new feedback message
-        const feedback = document.createElement('div');
-        feedback.className = `feedback-message ${type}`;
-        feedback.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'} me-2"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        document.body.appendChild(feedback);
-
-        // Show the message
-        setTimeout(() => feedback.classList.add('show'), 100);
-
-        // Hide and remove the message
-        setTimeout(() => {
-            feedback.classList.remove('show');
-            setTimeout(() => feedback.remove(), 300);
-        }, 2000);
-    }
-
-    // Enhanced Task and Habit Completion
-    function handleCompletion(endpoint, id, type) {
-        const button = event.currentTarget;
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `${type}_id=${id}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                button.innerHTML = '<i class="fas fa-check"></i>';
-                showFeedback(`${type.charAt(0).toUpperCase() + type.slice(1)} completed`);
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                throw new Error(data.message || 'Something went wrong');
-            }
-        })
-        .catch(error => {
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            showFeedback(error.message, 'error');
-        });
-    }
-
-    // Initialize all progress rings
-    document.querySelectorAll('[data-progress]').forEach(el => {
-        createCircularProgress(parseInt(el.dataset.progress), el);
-    });
-
-    // Initialize tooltips with enhanced options
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipTriggerList.forEach(el => {
-        new bootstrap.Tooltip(el, {
-            animation: true,
-            delay: { show: 100, hide: 100 },
-            html: true
-        });
-    });
-
-    // Enhanced favorite toggle with animation
-    document.querySelectorAll('.toggle-favorite').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const icon = this.querySelector('i');
-            icon.style.transform = 'scale(1.2)';
-            
-            const itemId = this.dataset.itemId;
-            
-            fetch('EnglishPractice/toggle_favorite.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `item_id=${itemId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    icon.classList.toggle('far');
-                    icon.classList.toggle('fas');
-                    showFeedback(data.isFavorite ? 'Added to favorites' : 'Removed from favorites');
-                }
-                icon.style.transform = 'scale(1)';
-            })
-            .catch(error => {
-                showFeedback('Could not update favorite status', 'error');
-                icon.style.transform = 'scale(1)';
-            });
+    // Initialize all accordions
+    var accordions = document.querySelectorAll('.accordion');
+    accordions.forEach(function(accordion) {
+        new bootstrap.Collapse(accordion, {
+            toggle: false
         });
     });
 });
 </script>
 
-<!-- Add loading state templates -->
-<template id="loading-task">
-    <div class="task-item mb-3 p-3 border rounded shadow-sm skeleton">
-        <div class="d-flex justify-content-between">
-            <div class="w-75">
-                <div class="h6 mb-2" style="width: 60%; height: 20px;"></div>
-                <div style="width: 40%; height: 16px;"></div>
-            </div>
-            <div style="width: 40px; height: 40px;"></div>
-        </div>
-    </div>
-</template>
+<?php
+// Include footer
+include '../includes/footer.php';
 
-<template id="loading-habit">
-    <div class="habit-item mb-3 p-3 border rounded skeleton">
-        <div class="d-flex justify-content-between">
-            <div class="w-75">
-                <div class="h6 mb-2" style="width: 70%; height: 20px;"></div>
-                <div style="width: 30%; height: 16px;"></div>
-            </div>
-            <div style="width: 60px; height: 30px;"></div>
-        </div>
-    </div>
-</template>
-
-<?php require_once __DIR__ . '/../includes/footer.php'; ?> 
+// Close database connection
+close_connection($conn);
+?> 
