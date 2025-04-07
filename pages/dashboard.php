@@ -2,6 +2,10 @@
 session_start();
 require_once __DIR__ . '/../includes/db_connect.php';
 require_once __DIR__ . '/../functions/stats_functions.php';
+require_once __DIR__ . '/../functions/task_functions.php';
+require_once __DIR__ . '/../functions/habit_functions.php';
+require_once __DIR__ . '/../functions/exam_functions.php';
+require_once __DIR__ . '/../functions/vocabulary_functions.php';
 
 // Initialize variables with default values
 $today_tasks = [];
@@ -21,9 +25,19 @@ $daily_words = [];
 $assignments = [];
 
 try {
-    // Fetch today's tasks and habits
-    $today_tasks = get_todays_tasks($conn);
-    $today_habits = get_todays_habits($conn);
+    $user_id = $_SESSION['user_id'];
+
+    // Fetch today's tasks with full details
+    $today_tasks = get_todays_tasks_with_details($conn, $user_id);
+    
+    // Fetch today's habits with progress
+    $today_habits = get_todays_habits_with_progress($conn, $user_id);
+    
+    // Fetch upcoming exams with countdown
+    $upcoming_exams = get_upcoming_exams_with_countdown($conn, $user_id);
+    
+    // Fetch daily words with practice status
+    $daily_words = get_daily_words_with_status($conn, $user_id);
     
     // Fetch subject progress
     $stmt = $conn->prepare("
@@ -32,7 +46,6 @@ try {
         WHERE user_id = ? AND completion_date IS NOT NULL
         GROUP BY subject_id
     ");
-    $user_id = $_SESSION['user_id'];
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -47,33 +60,7 @@ try {
         }
     }
     
-    // Fetch upcoming exams
-    $stmt = $conn->prepare("
-        SELECT e.*, s.name as subject_name, s.color as subject_color,
-               DATEDIFF(exam_date, CURRENT_DATE) as days_remaining
-        FROM exams e
-        JOIN subjects s ON e.subject_id = s.id
-        WHERE e.user_id = ? AND exam_date >= CURRENT_DATE
-        ORDER BY exam_date ASC
-        LIMIT 5
-    ");
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    $upcoming_exams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    
-    // Fetch daily words
-    $stmt = $conn->prepare("
-        SELECT w.*, 
-               CASE WHEN wp.word_id IS NOT NULL THEN 1 ELSE 0 END as is_practiced
-        FROM daily_words w
-        LEFT JOIN word_practice wp ON w.id = wp.word_id AND wp.practice_date = CURRENT_DATE
-        WHERE w.assigned_date = CURRENT_DATE
-        LIMIT 5
-    ");
-    $stmt->execute();
-    $daily_words = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    
-    // Fetch assignments
+    // Fetch assignments with progress
     $assignments = get_upcoming_assignments($conn);
     
 } catch (Exception $e) {
@@ -293,6 +280,61 @@ require_once __DIR__ . '/../includes/header.php';
     background: var(--accent-gradient);
     color: white;
     border-radius: 1rem 1rem 0 0;
+}
+
+/* Feedback Message System */
+.feedback-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.feedback-message.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.feedback-message.success {
+    border-left: 4px solid #28a745;
+}
+
+.feedback-message.error {
+    border-left: 4px solid #dc3545;
+}
+
+/* Enhanced Countdown Display */
+.exam-countdown {
+    transition: transform 0.3s ease;
+}
+
+.exam-countdown:hover {
+    transform: translateY(-2px);
+}
+
+.countdown-timer .badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.7em;
+}
+
+/* Word Practice Enhancements */
+.word-example {
+    background: rgba(205, 175, 86, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.word-accordion .accordion-button:not(.collapsed) {
+    background: var(--accent-gradient);
+    color: white;
 }
 </style>
 
@@ -732,7 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.countdown-timer').forEach(createCountdownRing);
 
-    // Handle Task Completion
+    // Handle Task Completion with proper error handling
     document.querySelectorAll('.complete-task').forEach(button => {
         button.addEventListener('click', function() {
             const taskId = this.dataset.taskId;
@@ -743,120 +785,136 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `task_id=${taskId}`
+                body: `task_id=${taskId}&user_id=${<?php echo $_SESSION['user_id']; ?>}`
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    showFeedback('Task completed successfully!', 'success');
                     taskItem.classList.add('completed');
-                    setTimeout(() => {
-                        taskItem.style.height = taskItem.offsetHeight + 'px';
-                        taskItem.style.opacity = '0';
-                        setTimeout(() => {
-                            taskItem.remove();
-                            if (document.querySelectorAll('.task-item').length === 0) {
-                                location.reload();
-                            }
-                        }, 300);
-                    }, 500);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFeedback(data.message || 'Error completing task', 'error');
                 }
+            })
+            .catch(error => {
+                showFeedback('Error completing task', 'error');
+                console.error('Error:', error);
             });
         });
     });
 
-    // Handle Word Practice
+    // Handle Habit Completion with proper error handling
+    document.querySelectorAll('.complete-habit').forEach(button => {
+        button.addEventListener('click', function() {
+            const habitId = this.dataset.habitId;
+            const habitItem = this.closest('.habit-item');
+            
+            fetch('/includes/complete_habit.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `habit_id=${habitId}&user_id=${<?php echo $_SESSION['user_id']; ?>}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFeedback('Habit completed successfully!', 'success');
+                    habitItem.classList.add('completed');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showFeedback(data.message || 'Error completing habit', 'error');
+                }
+            })
+            .catch(error => {
+                showFeedback('Error completing habit', 'error');
+                console.error('Error:', error);
+            });
+        });
+    });
+
+    // Handle Word Practice with proper error handling
     document.querySelectorAll('.mark-practiced').forEach(button => {
         button.addEventListener('click', function() {
             const wordId = this.dataset.wordId;
-            const wordCard = this.closest('.word-card');
+            const wordItem = this.closest('.accordion-item');
             
             fetch('/includes/mark_word_practiced.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `word_id=${wordId}`
+                body: `word_id=${wordId}&user_id=${<?php echo $_SESSION['user_id']; ?>}`
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    wordCard.classList.add('practiced');
-                    this.outerHTML = `
-                        <span class="badge bg-success">
-                            <i class="fas fa-check"></i> Practiced
-                        </span>
-                    `;
+                    showFeedback('Word marked as practiced!', 'success');
+                    const button = wordItem.querySelector('.mark-practiced');
+                    const header = wordItem.querySelector('.accordion-button');
+                    
+                    // Add practiced badge to header
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success ms-2';
+                    badge.innerHTML = '<i class="fas fa-check"></i> Practiced';
+                    header.querySelector('.d-flex').appendChild(badge);
+                    
+                    // Remove practice button
+                    button.closest('.mt-3').remove();
+                } else {
+                    showFeedback(data.message || 'Error marking word as practiced', 'error');
                 }
+            })
+            .catch(error => {
+                showFeedback('Error marking word as practiced', 'error');
+                console.error('Error:', error);
             });
         });
     });
 
-    // Add animation classes on scroll
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-fade-in');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.subject-card, .task-item, .exam-countdown, .word-card').forEach(el => {
-        observer.observe(el);
-    });
-
-    // Add Task Form Handler
-    document.getElementById('addTaskForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
+    // Feedback message system
+    function showFeedback(message, type = 'success') {
+        const feedback = document.createElement('div');
+        feedback.className = `feedback-message ${type}`;
+        feedback.innerHTML = message;
+        document.body.appendChild(feedback);
         
-        fetch(this.action, {
-            method: 'POST',
-            body: new URLSearchParams(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error adding task');
-            }
-        });
-    });
+        setTimeout(() => {
+            feedback.classList.add('show');
+            setTimeout(() => {
+                feedback.classList.remove('show');
+                setTimeout(() => feedback.remove(), 300);
+            }, 2000);
+        }, 100);
+    }
 
-    // Add Habit Form Handler
-    document.getElementById('addHabitForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        fetch(this.action, {
-            method: 'POST',
-            body: new URLSearchParams(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Error adding habit');
-            }
-        });
-    });
-
-    // Real-time Exam Countdown
+    // Real-time Exam Countdown with proper date handling
     function updateExamCountdowns() {
         document.querySelectorAll('.countdown-timer').forEach(timer => {
             const examDate = new Date(timer.dataset.examDate);
             const now = new Date();
             
+            if (isNaN(examDate.getTime())) {
+                console.error('Invalid exam date:', timer.dataset.examDate);
+                return;
+            }
+            
             const diff = examDate - now;
+            if (diff < 0) {
+                timer.innerHTML = '<span class="badge bg-secondary">Exam Passed</span>';
+                return;
+            }
+            
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             
+            const urgencyClass = days <= 7 ? 'bg-danger' : (days <= 14 ? 'bg-warning' : 'bg-primary');
+            
             timer.innerHTML = `
                 <div class="d-flex align-items-center">
-                    <span class="badge bg-primary me-2">${days}d</span>
+                    <span class="badge ${urgencyClass} me-2">${days}d</span>
                     <span class="badge bg-secondary me-2">${hours}h</span>
                     <span class="badge bg-info">${minutes}m</span>
                 </div>
