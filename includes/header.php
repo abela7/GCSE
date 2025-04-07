@@ -221,22 +221,14 @@ require_once 'db_connect.php';
 
     <!-- Test script loading -->
     <script>
-        console.log('Header loaded, about to load notifications.js');
-    </script>
-
-    <!-- Notifications -->
-    <script src="/assets/js/notifications.js"></script>
-
-    <!-- Test notifications loaded -->
-    <script>
-        console.log('Notifications.js should be loaded now');
+        console.log('Header loaded, about to load notifications');
     </script>
 
     <!-- Custom CSS -->
-    <link href="/GCSE/assets/css/style.css" rel="stylesheet">
+    <link href="/assets/css/style.css" rel="stylesheet">
     
     <!-- Task Notifications -->
-    <script src="/GCSE/assets/js/task-notifications.js"></script>
+    <script src="/assets/js/task-notifications.js"></script>
 </head>
 <body>
     

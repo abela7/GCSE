@@ -1,8 +1,10 @@
 // Function to check for incomplete tasks and show notifications
 function checkIncompleteTasks() {
-    fetch('/Web-App/api/get_incomplete_tasks.php')
+    console.log('Checking for incomplete tasks...');
+    fetch('/api/get_incomplete_tasks.php')
         .then(response => response.json())
         .then(data => {
+            console.log('Incomplete tasks response:', data);
             if (data.tasks && data.tasks.length > 0) {
                 // Create notification text
                 let notificationText = "You have not done:\n";
@@ -15,20 +17,22 @@ function checkIncompleteTasks() {
                 if (Notification.permission === "granted") {
                     new Notification("Web-App Tasks", {
                         body: notificationText,
-                        icon: "/Web-App/assets/favicon/favicon.ico",
+                        icon: "/assets/favicon/favicon.ico",
                         vibrate: [200, 100, 200]
                     });
                 }
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error checking tasks:', error));
 }
 
 // Function to show exam countdown notification
 function showExamCountdown() {
-    fetch('/Web-App/api/get_exam_countdown.php')
+    console.log('Checking exam countdown...');
+    fetch('/api/get_exam_countdown.php')
         .then(response => response.json())
         .then(data => {
+            console.log('Exam countdown response:', data);
             if (data.exams && data.exams.length > 0) {
                 let notificationText = "Upcoming Exams:\n";
                 data.exams.forEach(exam => {
@@ -38,21 +42,22 @@ function showExamCountdown() {
                 if (Notification.permission === "granted") {
                     new Notification("Web-App Exams", {
                         body: notificationText,
-                        icon: "/Web-App/assets/favicon/favicon.ico",
+                        icon: "/assets/favicon/favicon.ico",
                         vibrate: [200, 100, 200]
                     });
                 }
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error checking exams:', error));
 }
 
 // Function to show productive day message
 function showProductiveDay() {
+    console.log('Showing productive day message...');
     if (Notification.permission === "granted") {
-        new Notification("Web-App", {
+        new Notification("Good Morning! 🌟", {
             body: "Have a productive day ahead! Remember, every small step counts towards your success.",
-            icon: "/Web-App/assets/favicon/favicon.ico",
+            icon: "/assets/favicon/favicon.ico",
             vibrate: [200, 100, 200]
         });
     }
@@ -60,19 +65,25 @@ function showProductiveDay() {
 
 // Request notification permission
 function requestNotificationPermission() {
+    console.log('Requesting notification permission...');
     if (!("Notification" in window)) {
         console.log("This browser does not support notifications");
-        return;
+        return Promise.reject("Notifications not supported");
     }
 
+    console.log('Current notification permission:', Notification.permission);
     if (Notification.permission !== "granted") {
-        return Notification.requestPermission();
+        return Notification.requestPermission().then(permission => {
+            console.log('Permission response:', permission);
+            return permission;
+        });
     }
     return Promise.resolve(Notification.permission);
 }
 
 // Function to show all notifications with delay
 function showAllNotificationsWithDelay() {
+    console.log('Showing all notifications with delay...');
     // Show notifications in sequence with delays
     setTimeout(() => {
         showExamCountdown();
@@ -91,6 +102,7 @@ function showAllNotificationsWithDelay() {
 
 // Function to schedule notifications
 function scheduleNotifications() {
+    console.log('Scheduling notifications...');
     const now = new Date();
     
     // Schedule 7 AM exam countdown
@@ -99,11 +111,14 @@ function scheduleNotifications() {
     if (now > examTime) {
         examTime.setDate(examTime.getDate() + 1);
     }
+    const examDelay = examTime - now;
+    console.log(`Exam notification scheduled for: ${examTime} (in ${examDelay}ms)`);
+    
     setTimeout(() => {
         showExamCountdown();
         // Schedule next day's exam countdown
         setInterval(showExamCountdown, 24 * 60 * 60 * 1000);
-    }, examTime - now);
+    }, examDelay);
 
     // Schedule 9 AM productive day message
     const productiveTime = new Date();
@@ -111,11 +126,14 @@ function scheduleNotifications() {
     if (now > productiveTime) {
         productiveTime.setDate(productiveTime.getDate() + 1);
     }
+    const productiveDelay = productiveTime - now;
+    console.log(`Productive message scheduled for: ${productiveTime} (in ${productiveDelay}ms)`);
+    
     setTimeout(() => {
         showProductiveDay();
         // Schedule next day's productive message
         setInterval(showProductiveDay, 24 * 60 * 60 * 1000);
-    }, productiveTime - now);
+    }, productiveDelay);
 
     // Continue checking incomplete tasks every hour
     setInterval(checkIncompleteTasks, 3600000);
@@ -123,8 +141,10 @@ function scheduleNotifications() {
 
 // Initialize notifications
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing notifications...');
     // Request permission and then show all notifications
     requestNotificationPermission().then((permission) => {
+        console.log('Permission status:', permission);
         if (permission === "granted") {
             // Show all notifications immediately with delays
             showAllNotificationsWithDelay();
@@ -132,5 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Set up scheduled notifications
             scheduleNotifications();
         }
+    }).catch(error => {
+        console.error('Error setting up notifications:', error);
     });
 }); 
