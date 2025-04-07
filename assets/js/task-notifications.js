@@ -139,6 +139,81 @@ function scheduleNotifications() {
     setInterval(checkIncompleteTasks, 3600000);
 }
 
+// Function to check if notifications are enabled for a specific type
+async function isNotificationEnabled(type) {
+    try {
+        const response = await fetch('/api/get_notification_settings.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            return data.settings[type] === 1;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error checking notification settings:', error);
+        return false;
+    }
+}
+
+// Function to show task reminder notification
+async function showTaskReminderNotification() {
+    if (!await isNotificationEnabled('task_reminders')) return;
+    
+    try {
+        const response = await fetch('/api/get_incomplete_tasks.php');
+        const data = await response.json();
+        
+        if (data.success && data.tasks.length > 0) {
+            const task = data.tasks[0];
+            new Notification("Task Reminder", {
+                body: `You have an incomplete task: ${task.title}`,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error showing task reminder:', error);
+    }
+}
+
+// Function to show exam countdown notification
+async function showExamCountdownNotification() {
+    if (!await isNotificationEnabled('exam_reminders')) return;
+    
+    try {
+        const response = await fetch('/api/get_exam_countdown.php');
+        const data = await response.json();
+        
+        if (data.success && data.exams.length > 0) {
+            const exam = data.exams[0];
+            new Notification("Exam Countdown", {
+                body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error showing exam countdown:', error);
+    }
+}
+
+// Function to show daily motivation notification
+async function showDailyMotivationNotification() {
+    if (!await isNotificationEnabled('daily_motivation')) return;
+    
+    try {
+        const response = await fetch('/api/get_motivational_message.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            new Notification("Daily Motivation", {
+                body: data.message,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error showing motivation message:', error);
+    }
+}
+
 // Initialize notifications
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing notifications...');

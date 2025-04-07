@@ -288,6 +288,10 @@ require_once 'db_connect.php';
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/pages/habits/index.php">Habits</a></li>
                                 <li><a class="dropdown-item" href="/pages/tasks/index.php">Tasks</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/notification-settings.php">
+                                    <i class="fas fa-cog me-2"></i>Notification Settings
+                                </a></li>
                                 <!-- More time-related items will be added here -->
                             </ul>
                         </li>
