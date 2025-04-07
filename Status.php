@@ -38,11 +38,11 @@ $math_query = "
     LEFT JOIN math_topic_progress p ON t.id = p.topic_id
 ";
 $math_result = $conn->query($math_query);
-$math_data = $math_result->fetch_assoc();
+$math_data = $math_result ? $math_result->fetch_assoc() : null;
 
-$math_total = $math_data['total_topics'] ?: 0;
-$math_completed = $math_data['completed_topics'] ?: 0;
-$math_confidence = $math_data['avg_confidence'] ?: 0;
+$math_total = $math_data ? ($math_data['total_topics'] ?: 0) : 0;
+$math_completed = $math_data ? ($math_data['completed_topics'] ?: 0) : 0;
+$math_confidence = $math_data ? ($math_data['avg_confidence'] ?: 0) : 0;
 $math_progress = $math_total > 0 ? round(($math_completed / $math_total) * 100) : 0;
 
 // Fetch English progress
@@ -55,11 +55,11 @@ $english_query = "
     LEFT JOIN eng_topic_progress p ON t.id = p.topic_id
 ";
 $english_result = $conn->query($english_query);
-$english_data = $english_result->fetch_assoc();
+$english_data = $english_result ? $english_result->fetch_assoc() : null;
 
-$english_total = $english_data['total_topics'] ?: 0;
-$english_completed = $english_data['completed_topics'] ?: 0;
-$english_confidence = $english_data['avg_confidence'] ?: 0;
+$english_total = $english_data ? ($english_data['total_topics'] ?: 0) : 0;
+$english_completed = $english_data ? ($english_data['completed_topics'] ?: 0) : 0;
+$english_confidence = $english_data ? ($english_data['avg_confidence'] ?: 0) : 0;
 $english_progress = $english_total > 0 ? round(($english_completed / $english_total) * 100) : 0;
 
 // TASK COMPLETION
