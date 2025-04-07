@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline - Just Do It</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             min-height: 100vh;
@@ -16,24 +17,34 @@
         .offline-container {
             text-align: center;
             padding: 2rem;
+            max-width: 400px;
+            margin: 0 auto;
         }
         .offline-icon {
             font-size: 4rem;
             color: #cdaf56;
             margin-bottom: 1rem;
         }
+        .btn-primary {
+            background-color: #cdaf56;
+            border-color: #cdaf56;
+        }
+        .btn-primary:hover {
+            background-color: #b89a45;
+            border-color: #b89a45;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="offline-container">
-            <div class="offline-icon">
-                ⚡
-            </div>
-            <h1 class="mb-4">You're Offline</h1>
-            <p class="mb-4">Please check your internet connection and try again.</p>
-            <button class="btn btn-primary" onclick="window.location.reload()">Retry</button>
+    <div class="offline-container">
+        <div class="offline-icon">
+            <i class="fas fa-wifi-slash"></i>
         </div>
+        <h2 class="mb-4">You're Offline</h2>
+        <p class="text-muted mb-4">Please check your internet connection and try again.</p>
+        <button onclick="window.location.reload()" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-2"></i>Try Again
+        </button>
     </div>
 </body>
 </html>

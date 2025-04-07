@@ -1,4 +1,4 @@
-const CACHE_NAME = 'just-do-it-v2';
+const CACHE_NAME = 'just-do-it-v3';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.php',
@@ -61,71 +61,83 @@ self.addEventListener('activate', (event) => {
 
 // Helper function to determine if a resource should be cached
 function shouldCache(url) {
-    // Cache static assets
-    if (url.match(/\.(js|css|png|jpg|jpeg|gif|ico|json|html)$/)) {
+    const parsedUrl = new URL(url);
+    
+    // Always cache static assets
+    if (parsedUrl.pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|json|html)$/)) {
         return true;
     }
-    // Cache specific PHP files
-    if (url.match(/\/(index|status)\.php$/)) {
+    
+    // Don't cache PHP files except index.php
+    if (parsedUrl.pathname === '/index.php' || parsedUrl.pathname === '/') {
         return true;
     }
+    
     return false;
+}
+
+// Network-first strategy for dynamic content
+async function networkFirst(request) {
+    try {
+        // Try network first
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.status === 200) {
+            // Cache successful responses
+            if (shouldCache(request.url)) {
+                const cache = await caches.open(CACHE_NAME);
+                cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+        }
+        throw new Error('Network response was not ok');
+    } catch (error) {
+        console.log('[ServiceWorker] Network fetch failed, falling back to cache');
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+        // If it's a navigation request, return the offline page
+        if (request.mode === 'navigate') {
+            const cache = await caches.open(CACHE_NAME);
+            return cache.match('/offline.html');
+        }
+        throw error;
+    }
+}
+
+// Cache-first strategy for static assets
+async function cacheFirst(request) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.error('[ServiceWorker] Cache first strategy failed:', error);
+        throw error;
+    }
 }
 
 // Fetch Event
 self.addEventListener('fetch', (event) => {
-    console.log('[ServiceWorker] Fetch:', event.request.url);
-    
-    // Handle non-GET requests
-    if (event.request.method !== 'GET') {
-        console.log('[ServiceWorker] Non-GET request:', event.request.method);
-        return;
-    }
+    // Skip non-GET requests
+    if (event.request.method !== 'GET') return;
 
     // Skip cross-origin requests
-    if (!event.request.url.startsWith(self.location.origin)) {
-        console.log('[ServiceWorker] Skipping cross-origin request:', event.request.url);
-        return;
-    }
+    if (!event.request.url.startsWith(self.location.origin)) return;
 
+    const url = new URL(event.request.url);
+    
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                if (response) {
-                    console.log('[ServiceWorker] Found in cache:', event.request.url);
-                    return response;
-                }
-
-                console.log('[ServiceWorker] Network request:', event.request.url);
-                return fetch(event.request)
-                    .then((response) => {
-                        // Check if we received a valid response
-                        if (!response || response.status !== 200) {
-                            console.log('[ServiceWorker] Invalid response:', response?.status);
-                            return response;
-                        }
-
-                        // Only cache valid resources
-                        if (shouldCache(event.request.url)) {
-                            console.log('[ServiceWorker] Caching new resource:', event.request.url);
-                            const responseToCache = response.clone();
-                            caches.open(CACHE_NAME)
-                                .then((cache) => {
-                                    cache.put(event.request, responseToCache);
-                                });
-                        }
-
-                        return response;
-                    })
-                    .catch((error) => {
-                        console.error('[ServiceWorker] Fetch error:', error);
-                        // Return offline page for navigation requests
-                        if (event.request.mode === 'navigate') {
-                            console.log('[ServiceWorker] Returning offline page');
-                            return caches.match('/offline.html');
-                        }
-                        throw error;
-                    });
-            })
+        // Use cache-first for static assets, network-first for everything else
+        shouldCache(event.request.url) ?
+            cacheFirst(event.request) :
+            networkFirst(event.request)
     );
 }); 
