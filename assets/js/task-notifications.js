@@ -66,17 +66,8 @@ function requestNotificationPermission() {
     }
 
     if (Notification.permission !== "granted") {
-        return Notification.requestPermission();
+        Notification.requestPermission();
     }
-    return Promise.resolve(Notification.permission);
-}
-
-// Function to show all notifications with delay
-function showAllNotifications() {
-    // Show notifications in sequence with small delays
-    setTimeout(() => showExamCountdown(), 1000);  // Show exam countdown after 1 second
-    setTimeout(() => showProductiveDay(), 2000);  // Show productive message after 2 seconds
-    setTimeout(() => checkIncompleteTasks(), 3000);  // Show incomplete tasks after 3 seconds
 }
 
 // Function to schedule notifications
@@ -113,14 +104,9 @@ function scheduleNotifications() {
 
 // Initialize notifications
 document.addEventListener('DOMContentLoaded', () => {
-    // Request permission and show notifications when granted
-    requestNotificationPermission().then(permission => {
-        if (permission === "granted") {
-            // Show all notifications immediately when opening the app
-            showAllNotifications();
-            
-            // Set up scheduled notifications
-            scheduleNotifications();
-        }
-    });
+    requestNotificationPermission();
+    scheduleNotifications();
+    
+    // Check tasks immediately on page load
+    checkIncompleteTasks();
 }); 
