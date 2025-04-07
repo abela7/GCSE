@@ -307,9 +307,83 @@ if (in_array('assignments', $existing_tables)) {
     }
 }
 
-// Create a query to get section breakdown
+// Create a query to get section breakdown from actual section tables
 $section_data = array();
-if (in_array('assignments', $existing_tables)) {
+
+// First check for math sections
+if (in_array('math_sections', $existing_tables) && in_array('math_subsections', $existing_tables) && in_array('math_topics', $existing_tables) && in_array('topic_progress', $existing_tables)) {
+    $math_sections_query = "
+        SELECT 
+            'Mathematics' as subject,
+            ms.name as section,
+            COUNT(mt.id) as total_topics,
+            SUM(CASE WHEN tp.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
+            ROUND(SUM(CASE WHEN tp.status = 'completed' THEN 1 ELSE 0 END) * 100 / COUNT(mt.id)) as progress
+        FROM math_sections ms
+        JOIN math_subsections mss ON ms.id = mss.section_id
+        JOIN math_topics mt ON mss.id = mt.subsection_id
+        LEFT JOIN topic_progress tp ON mt.id = tp.topic_id
+        GROUP BY ms.id, ms.name
+        ORDER BY ms.section_number
+        LIMIT 5
+    ";
+    
+    try {
+        $math_sections_result = $conn->query($math_sections_query);
+        if ($math_sections_result && $math_sections_result->num_rows > 0) {
+            while ($section = $math_sections_result->fetch_assoc()) {
+                $section_data[] = array(
+                    'subject' => $section['subject'],
+                    'section' => $section['section'],
+                    'total_topics' => (int)$section['total_topics'],
+                    'completed_topics' => (int)$section['completed_topics'],
+                    'progress' => (int)$section['progress']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching math section data: " . $e->getMessage());
+    }
+}
+
+// Then check for English sections
+if (in_array('eng_sections', $existing_tables) && in_array('eng_subsections', $existing_tables) && in_array('eng_topics', $existing_tables) && in_array('eng_topic_progress', $existing_tables)) {
+    $eng_sections_query = "
+        SELECT 
+            'English' as subject,
+            es.name as section,
+            COUNT(et.id) as total_topics,
+            SUM(CASE WHEN etp.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
+            ROUND(SUM(CASE WHEN etp.status = 'completed' THEN 1 ELSE 0 END) * 100 / COUNT(et.id)) as progress
+        FROM eng_sections es
+        JOIN eng_subsections ess ON es.id = ess.section_id
+        JOIN eng_topics et ON ess.id = et.subsection_id
+        LEFT JOIN eng_topic_progress etp ON et.id = etp.topic_id
+        GROUP BY es.id, es.name
+        ORDER BY es.section_number
+        LIMIT 5
+    ";
+    
+    try {
+        $eng_sections_result = $conn->query($eng_sections_query);
+        if ($eng_sections_result && $eng_sections_result->num_rows > 0) {
+            while ($section = $eng_sections_result->fetch_assoc()) {
+                $section_data[] = array(
+                    'subject' => $section['subject'],
+                    'section' => $section['section'],
+                    'total_topics' => (int)$section['total_topics'],
+                    'completed_topics' => (int)$section['completed_topics'],
+                    'progress' => (int)$section['progress']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching English section data: " . $e->getMessage());
+    }
+}
+
+// Fallback to the assignments table if no sections are found yet
+if (empty($section_data) && in_array('assignments', $existing_tables)) {
     $sections_query = "
         SELECT 
             subject,
