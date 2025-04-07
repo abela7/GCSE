@@ -4,24 +4,47 @@ class MobileNotifications {
         this.swRegistration = null;
         this.isAndroid = /Android/i.test(navigator.userAgent);
         this.initialized = false;
+        // Get the base URL from the current page
+        this.baseUrl = window.location.origin;
+        console.log('[Notifications] Base URL:', this.baseUrl);
     }
 
     async init() {
         console.log('[Notifications] Initializing...');
+        console.log('[Notifications] User Agent:', navigator.userAgent);
+        console.log('[Notifications] Is Android:', this.isAndroid);
         
-        if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-            console.log('[Notifications] Browser does not support notifications');
+        if (!('serviceWorker' in navigator)) {
+            console.error('[Notifications] Service Worker not supported');
+            return false;
+        }
+        
+        if (!('Notification' in window)) {
+            console.error('[Notifications] Notifications not supported');
             return false;
         }
 
         try {
-            // Wait for service worker registration
-            this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
-            console.log('[Notifications] Service Worker registered:', this.swRegistration);
+            // Get the absolute path to service worker
+            const swPath = `${this.baseUrl}/service-worker.js`;
+            console.log('[Notifications] Registering SW at:', swPath);
+
+            // Unregister any existing service workers first
+            const existingRegs = await navigator.serviceWorker.getRegistrations();
+            for (let reg of existingRegs) {
+                console.log('[Notifications] Unregistering existing SW:', reg.scope);
+                await reg.unregister();
+            }
+
+            // Register new service worker
+            this.swRegistration = await navigator.serviceWorker.register(swPath, {
+                scope: '/'
+            });
+            console.log('[Notifications] SW registered:', this.swRegistration);
 
             // Wait for the service worker to be ready
-            await navigator.serviceWorker.ready;
-            console.log('[Notifications] Service Worker is ready');
+            const readyRegistration = await navigator.serviceWorker.ready;
+            console.log('[Notifications] SW is ready:', readyRegistration);
             
             // Check permission
             const permission = await this.checkPermission();
@@ -37,13 +60,17 @@ class MobileNotifications {
 
     async checkPermission() {
         if (!('Notification' in window)) {
+            console.error('[Notifications] Notifications API not available');
             return 'unsupported';
         }
-        return Notification.permission;
+        const permission = Notification.permission;
+        console.log('[Notifications] Current permission status:', permission);
+        return permission;
     }
 
     async requestPermission() {
         try {
+            console.log('[Notifications] Requesting permission...');
             const permission = await Notification.requestPermission();
             console.log('[Notifications] Permission response:', permission);
             
@@ -60,43 +87,62 @@ class MobileNotifications {
     }
 
     async ensureServiceWorkerReady() {
+        console.log('[Notifications] Ensuring SW is ready...');
+        
         if (!this.initialized || !this.swRegistration) {
+            console.log('[Notifications] Not initialized, reinitializing...');
             await this.init();
         }
 
-        // Double check service worker is ready
-        const registration = await navigator.serviceWorker.ready;
-        if (registration !== this.swRegistration) {
-            this.swRegistration = registration;
+        try {
+            // Double check service worker is ready
+            const registration = await navigator.serviceWorker.ready;
+            console.log('[Notifications] Got ready registration:', registration);
+            
+            if (registration !== this.swRegistration) {
+                console.log('[Notifications] Updating registration reference');
+                this.swRegistration = registration;
+            }
+            return this.swRegistration;
+        } catch (error) {
+            console.error('[Notifications] Error ensuring SW ready:', error);
+            return null;
         }
-        return this.swRegistration;
     }
 
     async showNotification(title, options = {}) {
+        console.log('[Notifications] Showing notification:', title);
+        
         try {
             const registration = await this.ensureServiceWorkerReady();
             if (!registration) {
-                console.error('[Notifications] Service Worker not ready');
+                console.error('[Notifications] No active registration');
                 return false;
             }
 
             const permission = await this.checkPermission();
             if (permission !== 'granted') {
-                console.log('[Notifications] Permission not granted');
+                console.error('[Notifications] Permission not granted');
                 return false;
             }
 
-            // Default options
+            // Default options with absolute paths
             const defaultOptions = {
-                icon: '/assets/images/icon-192x192.png',
-                badge: '/assets/images/icon-96x96.png',
+                icon: `${this.baseUrl}/assets/images/icon-192x192.png`,
+                badge: `${this.baseUrl}/assets/images/icon-96x96.png`,
                 vibrate: [200, 100, 200],
                 requireInteraction: false,
-                renotify: true
+                renotify: true,
+                silent: false
             };
 
-            // Merge default options with provided options
+            // Merge options and ensure paths are absolute
             const notificationOptions = { ...defaultOptions, ...options };
+            if (options.data && options.data.url) {
+                notificationOptions.data.url = `${this.baseUrl}${options.data.url}`;
+            }
+
+            console.log('[Notifications] Showing with options:', notificationOptions);
 
             // Use the active service worker to show notification
             await registration.showNotification(title, notificationOptions);

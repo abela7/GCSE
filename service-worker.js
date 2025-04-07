@@ -28,10 +28,20 @@ function debugResponse(prefix, response) {
     });
 }
 
+// Debug logging function
+const log = (message, ...args) => {
+    console.log(`[Service Worker] ${message}`, ...args);
+};
+
+// Get the base URL
+const getBaseUrl = () => {
+    return self.registration.scope;
+};
+
 const CACHE_NAME = 'web-app-v1';
 const OFFLINE_URL = '/offline.html';
 
-// Assets to cache
+// Assets to cache - paths will be made absolute during install
 const ASSETS_TO_CACHE = [
     '/',
     '/offline.html',
@@ -42,21 +52,36 @@ const ASSETS_TO_CACHE = [
     '/assets/images/icon-96x96.png'
 ];
 
-// Debug logging function
-const log = (message, ...args) => {
-    console.log(`[Service Worker] ${message}`, ...args);
+// Make a URL absolute using the service worker scope
+const makeAbsoluteUrl = (path) => {
+    const base = getBaseUrl();
+    // Remove leading slash if present as base already has trailing slash
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return new URL(cleanPath, base).href;
 };
 
 // Install event - cache assets
 self.addEventListener('install', event => {
     log('Installing...');
+    log('Scope:', self.registration.scope);
+    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 log('Caching app shell');
-                return cache.addAll(ASSETS_TO_CACHE);
+                // Make all paths absolute before caching
+                const absoluteUrls = ASSETS_TO_CACHE.map(path => makeAbsoluteUrl(path));
+                log('Caching URLs:', absoluteUrls);
+                return cache.addAll(absoluteUrls);
             })
-            .then(() => self.skipWaiting())
+            .then(() => {
+                log('Install completed');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                log('Install failed:', error);
+                throw error;
+            })
     );
 });
 
@@ -75,18 +100,23 @@ self.addEventListener('activate', event => {
                         })
                 );
             }),
-            self.clients.claim()
+            self.clients.claim().then(() => {
+                log('Claimed clients');
+            })
         ])
     );
 });
 
 // Fetch event - serve from cache or network
 self.addEventListener('fetch', event => {
+    log('Fetch:', event.request.url);
+    
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
                 .catch(() => {
-                    return caches.match(OFFLINE_URL);
+                    log('Navigation fetch failed, serving offline page');
+                    return caches.match(makeAbsoluteUrl(OFFLINE_URL));
                 })
         );
         return;
@@ -96,13 +126,16 @@ self.addEventListener('fetch', event => {
         caches.match(event.request)
             .then(response => {
                 if (response) {
+                    log('Serving from cache:', event.request.url);
                     return response;
                 }
+                log('Fetching from network:', event.request.url);
                 return fetch(event.request);
             })
             .catch(() => {
                 if (event.request.mode === 'navigate') {
-                    return caches.match(OFFLINE_URL);
+                    log('Fetch failed, serving offline page');
+                    return caches.match(makeAbsoluteUrl(OFFLINE_URL));
                 }
             })
     );
@@ -110,33 +143,35 @@ self.addEventListener('fetch', event => {
 
 // Notification click event
 self.addEventListener('notificationclick', event => {
-    log('Notification click received:', event);
+    log('Notification click:', event);
 
     // Close the notification
     event.notification.close();
 
-    // Get the notification data
+    // Get the notification data and base URL
     const data = event.notification.data || {};
-    let urlToOpen = '/';
+    const baseUrl = getBaseUrl();
+    let urlToOpen = baseUrl;
 
     // Handle different notification types
     if (data.url) {
-        urlToOpen = data.url;
+        urlToOpen = new URL(data.url, baseUrl).href;
     } else {
         switch (event.notification.tag) {
             case 'task-reminder':
-                urlToOpen = '/pages/tasks/index.php';
+                urlToOpen = new URL('/pages/tasks/index.php', baseUrl).href;
                 break;
             case 'exam-reminder':
-                urlToOpen = '/pages/exam_countdown.php';
+                urlToOpen = new URL('/pages/exam_countdown.php', baseUrl).href;
                 break;
         }
     }
 
+    log('Opening URL:', urlToOpen);
+
     // Handle action buttons
     if (event.action === 'view') {
-        // Use the URL from the notification data
-        urlToOpen = data.url || urlToOpen;
+        urlToOpen = data.url ? new URL(data.url, baseUrl).href : urlToOpen;
     }
 
     event.waitUntil(
@@ -145,13 +180,17 @@ self.addEventListener('notificationclick', event => {
             includeUncontrolled: true
         })
         .then(function(clientList) {
+            log('Found clients:', clientList.length);
+            
             // If we have a client, focus it
             for (let client of clientList) {
                 if (client.url === urlToOpen && 'focus' in client) {
+                    log('Focusing existing client');
                     return client.focus();
                 }
             }
             // If no client is found, open a new window
+            log('Opening new window');
             return clients.openWindow(urlToOpen);
         })
     );
@@ -164,8 +203,8 @@ self.addEventListener('push', event => {
     let notification = {
         title: 'Web-App',
         body: 'New notification',
-        icon: '/assets/images/icon-192x192.png',
-        badge: '/assets/images/icon-96x96.png',
+        icon: makeAbsoluteUrl('/assets/images/icon-192x192.png'),
+        badge: makeAbsoluteUrl('/assets/images/icon-96x96.png'),
         vibrate: [200, 100, 200],
         tag: 'default',
         renotify: true,
