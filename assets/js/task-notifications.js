@@ -66,8 +66,27 @@ function requestNotificationPermission() {
     }
 
     if (Notification.permission !== "granted") {
-        Notification.requestPermission();
+        return Notification.requestPermission();
     }
+    return Promise.resolve(Notification.permission);
+}
+
+// Function to show all notifications with delay
+function showAllNotificationsWithDelay() {
+    // Show notifications in sequence with delays
+    setTimeout(() => {
+        showExamCountdown();
+        
+        // Show productive day message after 2 seconds
+        setTimeout(() => {
+            showProductiveDay();
+            
+            // Show incomplete tasks after another 2 seconds
+            setTimeout(() => {
+                checkIncompleteTasks();
+            }, 2000);
+        }, 2000);
+    }, 1000);
 }
 
 // Function to schedule notifications
@@ -104,9 +123,14 @@ function scheduleNotifications() {
 
 // Initialize notifications
 document.addEventListener('DOMContentLoaded', () => {
-    requestNotificationPermission();
-    scheduleNotifications();
-    
-    // Check tasks immediately on page load
-    checkIncompleteTasks();
+    // Request permission and then show all notifications
+    requestNotificationPermission().then((permission) => {
+        if (permission === "granted") {
+            // Show all notifications immediately with delays
+            showAllNotificationsWithDelay();
+            
+            // Set up scheduled notifications
+            scheduleNotifications();
+        }
+    });
 }); 
