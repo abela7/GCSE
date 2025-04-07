@@ -1,4 +1,7 @@
 <?php
+// Set timezone to London
+date_default_timezone_set('Europe/London');
+
 require_once '../../includes/header.php';
 require_once '../../includes/db_connect.php';
 

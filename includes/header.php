@@ -288,6 +288,7 @@ require_once 'db_connect.php';
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/pages/habits/index.php">Habits</a></li>
                                 <li><a class="dropdown-item" href="/pages/tasks/index.php">Tasks</a></li>
+                                <li><a class="dropdown-item" href="/pages/tasks.php">Manage Tasks</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/pages/scheduled-notifications-test.php">
                                     <i class="fas fa-cog me-2"></i>Notification Settings
