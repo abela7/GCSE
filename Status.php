@@ -17,12 +17,69 @@ while ($table = $tables_result->fetch_array(MYSQLI_NUM)) {
     $existing_tables[] = $table[0];
 }
 
-// SUBJECT PROGRESS - Create temporary structure since tables don't exist
+// Get subject progress data from assignments table
 $subjects = array(
-    'Mathematics' => ['total' => 20, 'completed' => 8, 'confidence' => 3],
-    'English' => ['total' => 18, 'completed' => 12, 'confidence' => 4],
-    'Science' => ['total' => 25, 'completed' => 15, 'confidence' => 3]
+    'Mathematics' => ['total' => 0, 'completed' => 0, 'confidence' => 0],
+    'English' => ['total' => 0, 'completed' => 0, 'confidence' => 0],
+    'Science' => ['total' => 0, 'completed' => 0, 'confidence' => 0]
 );
+
+if (in_array('assignments', $existing_tables)) {
+    try {
+        // Get math assignments
+        $math_query = "
+            SELECT 
+                COUNT(*) as total_topics,
+                SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) as completed_topics,
+                ROUND(AVG(confidence_level)) as avg_confidence
+            FROM assignments
+            WHERE subject = 'Mathematics'
+        ";
+        $math_result = $conn->query($math_query);
+        if ($math_result && $math_result->num_rows > 0) {
+            $math_data = $math_result->fetch_assoc();
+            $subjects['Mathematics']['total'] = $math_data['total_topics'] ?: 0;
+            $subjects['Mathematics']['completed'] = $math_data['completed_topics'] ?: 0;
+            $subjects['Mathematics']['confidence'] = $math_data['avg_confidence'] ?: 0;
+        }
+        
+        // Get English assignments
+        $english_query = "
+            SELECT 
+                COUNT(*) as total_topics,
+                SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) as completed_topics,
+                ROUND(AVG(confidence_level)) as avg_confidence
+            FROM assignments
+            WHERE subject = 'English'
+        ";
+        $english_result = $conn->query($english_query);
+        if ($english_result && $english_result->num_rows > 0) {
+            $english_data = $english_result->fetch_assoc();
+            $subjects['English']['total'] = $english_data['total_topics'] ?: 0;
+            $subjects['English']['completed'] = $english_data['completed_topics'] ?: 0;
+            $subjects['English']['confidence'] = $english_data['avg_confidence'] ?: 0;
+        }
+        
+        // Get Science assignments
+        $science_query = "
+            SELECT 
+                COUNT(*) as total_topics,
+                SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) as completed_topics,
+                ROUND(AVG(confidence_level)) as avg_confidence
+            FROM assignments
+            WHERE subject = 'Science'
+        ";
+        $science_result = $conn->query($science_query);
+        if ($science_result && $science_result->num_rows > 0) {
+            $science_data = $science_result->fetch_assoc();
+            $subjects['Science']['total'] = $science_data['total_topics'] ?: 0;
+            $subjects['Science']['completed'] = $science_data['completed_topics'] ?: 0;
+            $subjects['Science']['confidence'] = $science_data['avg_confidence'] ?: 0;
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching subject data: " . $e->getMessage());
+    }
+}
 
 // Assign math data
 $math_total = $subjects['Mathematics']['total'];
@@ -229,13 +286,105 @@ if (in_array('assignments', $existing_tables)) {
     ";
     try {
         $assignments_result = $conn->query($assignments_query);
-        if ($assignments_result) {
+        if ($assignments_result && $assignments_result->num_rows > 0) {
             $assignments_data = $assignments_result->fetch_assoc();
+            
+            // Ensure we have integer values
+            $assignments_data['total'] = (int)$assignments_data['total'];
+            $assignments_data['completed'] = (int)$assignments_data['completed'];
+            $assignments_data['in_progress'] = (int)$assignments_data['in_progress'];
+            $assignments_data['not_started'] = (int)$assignments_data['not_started'];
+            $assignments_data['avg_progress'] = round((float)$assignments_data['avg_progress'], 1);
         }
     } catch (Exception $e) {
         // Handle query error
         error_log("Error querying assignments table: " . $e->getMessage());
     }
+}
+
+// Create a query to get section breakdown
+$section_data = array();
+if (in_array('assignments', $existing_tables)) {
+    $sections_query = "
+        SELECT 
+            subject,
+            topic as section,
+            COUNT(*) as total_topics,
+            SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) as completed_topics,
+            ROUND((SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) / COUNT(*)) * 100) as progress
+        FROM assignments
+        GROUP BY subject, topic
+        ORDER BY progress DESC
+        LIMIT 5
+    ";
+    
+    try {
+        $sections_result = $conn->query($sections_query);
+        if ($sections_result && $sections_result->num_rows > 0) {
+            while ($section = $sections_result->fetch_assoc()) {
+                $section_data[] = array(
+                    'subject' => $section['subject'],
+                    'section' => $section['section'],
+                    'total_topics' => (int)$section['total_topics'],
+                    'completed_topics' => (int)$section['completed_topics'],
+                    'progress' => (int)$section['progress']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching section data: " . $e->getMessage());
+    }
+}
+
+// If no sections found, use the temporary data
+if (empty($section_data)) {
+    $section_data = array(
+        array('subject' => 'Mathematics', 'section' => 'Algebra', 'total_topics' => 8, 'completed_topics' => 6, 'progress' => 75),
+        array('subject' => 'Mathematics', 'section' => 'Geometry', 'total_topics' => 7, 'completed_topics' => 2, 'progress' => 29),
+        array('subject' => 'English', 'section' => 'Literature', 'total_topics' => 6, 'completed_topics' => 5, 'progress' => 83),
+        array('subject' => 'English', 'section' => 'Language', 'total_topics' => 8, 'completed_topics' => 4, 'progress' => 50),
+        array('subject' => 'Science', 'section' => 'Biology', 'total_topics' => 9, 'completed_topics' => 6, 'progress' => 67)
+    );
+}
+
+// Get habit streak data
+$habit_streak_data = array();
+if (in_array('habits', $existing_tables) && in_array('habit_tracking', $existing_tables)) {
+    $streak_query = "
+        SELECT 
+            h.id,
+            h.name,
+            COUNT(ht.id) as completion_count
+        FROM habits h
+        LEFT JOIN habit_tracking ht ON h.id = ht.habit_id AND ht.status = 'completed'
+        WHERE h.is_active = 1
+        GROUP BY h.id, h.name
+        ORDER BY completion_count DESC
+        LIMIT 3
+    ";
+    
+    try {
+        $streak_result = $conn->query($streak_query);
+        if ($streak_result && $streak_result->num_rows > 0) {
+            while ($habit = $streak_result->fetch_assoc()) {
+                $habit_streak_data[] = array(
+                    'name' => $habit['name'],
+                    'completion_count' => (int)$habit['completion_count']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching habit streak data: " . $e->getMessage());
+    }
+}
+
+// If no habit streak data, use temporary data
+if (empty($habit_streak_data)) {
+    $habit_streak_data = array(
+        array('name' => 'Math Practice', 'completion_count' => 15),
+        array('name' => 'Reading', 'completion_count' => 8),
+        array('name' => 'Flashcards', 'completion_count' => 12)
+    );
 }
 
 // Include header
@@ -454,16 +603,7 @@ include 'includes/header.php';
                                     </thead>
                                     <tbody>
                                     <?php
-                                        // Create temporary section data instead of querying non-existent tables
-                                        $temp_sections = array(
-                                            array('subject' => 'Mathematics', 'section' => 'Algebra', 'total_topics' => 8, 'completed_topics' => 6, 'progress' => 75),
-                                            array('subject' => 'Mathematics', 'section' => 'Geometry', 'total_topics' => 7, 'completed_topics' => 2, 'progress' => 29),
-                                            array('subject' => 'English', 'section' => 'Literature', 'total_topics' => 6, 'completed_topics' => 5, 'progress' => 83),
-                                            array('subject' => 'English', 'section' => 'Language', 'total_topics' => 8, 'completed_topics' => 4, 'progress' => 50),
-                                            array('subject' => 'Science', 'section' => 'Biology', 'total_topics' => 9, 'completed_topics' => 6, 'progress' => 67)
-                                        );
-                                        
-                                        foreach ($temp_sections as $section):
+                                        foreach ($section_data as $section):
                                             $progress_class = 'bg-danger';
                                             if ($section['progress'] >= 75) {
                                                 $progress_class = 'bg-success';
@@ -826,17 +966,8 @@ include 'includes/header.php';
                     
                     <!-- Habit Streak -->
                     <h6 class="font-weight-bold mb-3 mt-4">Streak Analysis</h6>
-                    <?php 
-                    // Create temporary streak data instead of complex query
-                    $temp_streak_data = array(
-                        array('name' => 'Math Practice', 'completion_count' => 15),
-                        array('name' => 'Reading', 'completion_count' => 8),
-                        array('name' => 'Flashcards', 'completion_count' => 12)
-                    );
-                    ?>
-                    
                     <div class="row">
-                        <?php foreach ($temp_streak_data as $habit): ?>
+                        <?php foreach ($habit_streak_data as $habit): ?>
                             <div class="col-md-4 mb-3">
                                 <div class="card border">
                                     <div class="card-body py-2 text-center">
@@ -1008,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Assignment Chart
+    // Assignment Chart with real data
     const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');
     const assignmentChart = new Chart(assignmentCtx, {
         type: 'bar',
@@ -1047,9 +1178,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Refresh data every 30 seconds (30000 ms)
+    function refreshData() {
+        fetch('ajax/get_dashboard_data.php')
+            .then(response => response.json())
+            .then(data => {
+                // Update task chart
+                if (data.tasks) {
+                    taskProgressChart.data.datasets[0].data = [
+                        data.tasks.completed_tasks,
+                        data.tasks.overdue_tasks,
+                        data.tasks.today_tasks,
+                        data.tasks.upcoming_tasks
+                    ];
+                    taskProgressChart.update();
+                }
+                
+                // Update assignment chart
+                if (data.assignments) {
+                    assignmentChart.data.datasets[0].data = [
+                        data.assignments.completed,
+                        data.assignments.in_progress,
+                        data.assignments.not_started
+                    ];
+                    assignmentChart.update();
+                    
+                    // Update the numbers in the cards
+                    document.querySelector('.text-danger + .h5').textContent = data.assignments.not_started;
+                    document.querySelector('.text-warning + .h5').textContent = data.assignments.in_progress;
+                    document.querySelector('.text-success + .h5').textContent = data.assignments.completed;
+                }
+            })
+            .catch(error => console.error('Error fetching dashboard data:', error));
+    }
+    
+    // Refresh every 30 seconds
+    setInterval(refreshData, 30000);
+
     // Refresh dashboard button
     document.getElementById('refreshDashboard').addEventListener('click', function() {
-        location.reload();
+        // Show loading indicator
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+        this.disabled = true;
+        
+        // Refresh data
+        refreshData();
+        
+        // Reload page after 1 second
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     });
 });
 </script>
