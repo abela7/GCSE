@@ -93,6 +93,11 @@ $english_completed = $subjects['English']['completed'];
 $english_confidence = $subjects['English']['confidence'];
 $english_progress = $english_total > 0 ? round(($english_completed / $english_total) * 100) : 0;
 
+// Calculate overall percentage
+$total_topics = $math_total + $english_total;
+$completed_topics = $math_completed + $english_completed;
+$overall_percentage = $total_topics > 0 ? round(($completed_topics / $total_topics) * 100) : 0;
+
 // TASK COMPLETION - Check if tasks table exists
 $tasks_data = array(
     'total_tasks' => 0,
@@ -420,15 +425,10 @@ include 'includes/header.php';
                                 Overall Progress
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php 
-                                    $overall_topics = $math_total + $english_total;
-                                    $overall_completed = $math_completed + $english_completed;
-                                    $overall_percentage = $overall_topics > 0 ? round(($overall_completed / $overall_topics) * 100) : 0;
-                                    echo $overall_percentage . '%';
-                                ?>
+                                <?php echo $overall_percentage; ?>%
                             </div>
                             <div class="progress progress-sm mt-2">
-                                <div class="progress-bar" role="progressbar" style="width: <?php echo $overall_percentage; ?>%"
+                                <div class="progress-bar" role="progressbar" style="width: <?php echo $overall_percentage; ?>%" 
                                      aria-valuenow="<?php echo $overall_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
@@ -475,14 +475,15 @@ include 'includes/header.php';
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                 <?php 
-                                    $task_percentage = $tasks_data['total_tasks'] > 0 ? 
-                                        round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) : 0;
-                                    echo $task_percentage . '%';
+                                    $task_completion = $tasks_data['total_tasks'] > 0 
+                                        ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) 
+                                        : 0;
+                                    echo $task_completion . '%';
                                 ?>
                             </div>
                             <div class="progress progress-sm mt-2">
-                                <div class="progress-bar bg-info" role="progressbar" style="width: <?php echo $task_percentage; ?>%"
-                                     aria-valuenow="<?php echo $task_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="progress-bar bg-info" role="progressbar" style="width: <?php echo $task_completion; ?>%" 
+                                     aria-valuenow="<?php echo $task_completion; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -503,18 +504,22 @@ include 'includes/header.php';
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                 <?php 
-                                    $habit_percentage = $habits_data['total_habits'] > 0 ? 
-                                        round(($habits_data['completed_today'] / $habits_data['total_habits']) * 100) : 0;
-                                    echo $habit_percentage . '%';
+                                    $habits_total = $habits_data['total_habits'] ?: 0;
+                                    $habits_completed = $habits_data['completed_today'] ?: 0;
+                                    echo $habits_completed . '/' . $habits_total; 
                                 ?>
                             </div>
-                            <div class="progress progress-sm mt-2">
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: <?php echo $habit_percentage; ?>%"
-                                     aria-valuenow="<?php echo $habit_percentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
+                            <?php if ($habits_total > 0): ?>
+                                <div class="progress progress-sm mt-2">
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                         style="width: <?php echo ($habits_completed / $habits_total) * 100; ?>%" 
+                                         aria-valuenow="<?php echo ($habits_completed / $habits_total) * 100; ?>" 
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -531,114 +536,94 @@ include 'includes/header.php';
                     <h6 class="m-0 font-weight-bold">Subject Progress</h6>
                     <div class="dropdown no-arrow">
                         <a class="dropdown-toggle" href="#" role="button" id="subjectDropdown" 
-                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="subjectDropdown">
-                            <a class="dropdown-item" href="pages/subjects/math.php">View Mathematics</a>
-                            <a class="dropdown-item" href="pages/subjects/english.php">View English</a>
+                            <div class="dropdown-header">View Options:</div>
+                            <a class="dropdown-item" href="#">Math Detail</a>
+                            <a class="dropdown-item" href="#">English Detail</a>
+                            <a class="dropdown-item" href="#">Science Detail</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="pages/subjects.php">All Subjects</a>
+                            <a class="dropdown-item" href="#">All Subjects</a>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-4">
-                        <div class="col-md-6">
+                        <!-- Math Progress -->
+                        <div class="col-lg-4 mb-3">
                             <h6 class="font-weight-bold">Mathematics</h6>
-                            <div class="progress mb-1" style="height: 20px;">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: <?php echo $math_progress; ?>%"
-                                     aria-valuenow="<?php echo $math_progress; ?>" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $math_progress; ?>%">
                                     <?php echo $math_progress; ?>%
                                 </div>
                             </div>
-                            <div class="row mt-2 px-1">
-                                <div class="col">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-book"></i> <?php echo $math_completed; ?>/<?php echo $math_total; ?> topics completed
-                                    </span>
-                                </div>
-                                <div class="col text-end">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-star"></i> Avg. confidence: <?php echo $math_confidence; ?>/5
-                                    </span>
-                                </div>
+                            <div class="small">
+                                <span class="font-weight-bold"><?php echo $math_completed; ?>/<?php echo $math_total; ?></span> topics completed
+                                <span class="float-right">Confidence: <?php echo $math_confidence; ?>/10</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        
+                        <!-- English Progress -->
+                        <div class="col-lg-4 mb-3">
                             <h6 class="font-weight-bold">English</h6>
-                            <div class="progress mb-1" style="height: 20px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $english_progress; ?>%"
-                                     aria-valuenow="<?php echo $english_progress; ?>" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $english_progress; ?>%">
                                     <?php echo $english_progress; ?>%
                                 </div>
                             </div>
-                            <div class="row mt-2 px-1">
-                                <div class="col">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-book"></i> <?php echo $english_completed; ?>/<?php echo $english_total; ?> topics completed
-                                    </span>
+                            <div class="small">
+                                <span class="font-weight-bold"><?php echo $english_completed; ?>/<?php echo $english_total; ?></span> topics completed
+                                <span class="float-right">Confidence: <?php echo $english_confidence; ?>/10</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Science Progress -->
+                        <div class="col-lg-4 mb-3">
+                            <h6 class="font-weight-bold">Science</h6>
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%">
+                                    <?php echo $subjects['Science']['total'] > 0 ? round(($subjects['Science']['completed'] / $subjects['Science']['total']) * 100) : 0; ?>%
                                 </div>
-                                <div class="col text-end">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-star"></i> Avg. confidence: <?php echo $english_confidence; ?>/5
-                                    </span>
-                                </div>
+                            </div>
+                            <div class="small">
+                                <span class="font-weight-bold"><?php echo $subjects['Science']['completed']; ?>/<?php echo $subjects['Science']['total']; ?></span> topics completed
+                                <span class="float-right">Confidence: <?php echo $subjects['Science']['confidence']; ?>/10</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="font-weight-bold">Section Breakdown</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Subject</th>
-                                            <th>Section</th>
-                                            <th>Progress</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php
-                                        foreach ($section_data as $section):
-                                            $progress_class = 'bg-danger';
-                                            if ($section['progress'] >= 75) {
-                                                $progress_class = 'bg-success';
-                                            } elseif ($section['progress'] >= 50) {
-                                                $progress_class = 'bg-info';
-                                            } elseif ($section['progress'] >= 25) {
-                                                $progress_class = 'bg-warning';
-                                            }
-                                        ?>
-                                        <tr>
-                                            <td>
-                                                <span class="badge <?php echo $section['subject'] == 'Mathematics' ? 'bg-primary' : 'bg-success'; ?>">
-                                                    <?php echo $section['subject']; ?>
-                                                </span>
-                                            </td>
-                                            <td><?php echo $section['section']; ?></td>
-                                            <td width="40%">
-                                                <div class="progress" style="height: 8px;">
-                                                    <div class="progress-bar <?php echo $progress_class; ?>" role="progressbar"
-                                                         style="width: <?php echo $section['progress']; ?>%" 
-                                                         aria-valuenow="<?php echo $section['progress']; ?>" 
-                                                         aria-valuemin="0" aria-valuemax="100">
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <?php echo $section['completed_topics']; ?>/<?php echo $section['total_topics']; ?> 
-                                                (<?php echo $section['progress']; ?>%)
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+
+                    <h6 class="font-weight-bold mb-3">Section Breakdown</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Section</th>
+                                    <th>Progress</th>
+                                    <th>Topics</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($section_data as $section): ?>
+                                <tr>
+                                    <td><?php echo $section['subject']; ?></td>
+                                    <td><?php echo $section['section']; ?></td>
+                                    <td>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" 
+                                                 style="width: <?php echo $section['progress']; ?>%" 
+                                                 aria-valuenow="<?php echo $section['progress']; ?>" 
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                    <td><?php echo $section['completed_topics']; ?>/<?php echo $section['total_topics']; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -646,58 +631,46 @@ include 'includes/header.php';
         
         <!-- Exam Countdown -->
         <div class="col-lg-4 mb-4">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold">Upcoming Exams</h6>
-                    <a href="pages/exam_countdown.php" class="btn btn-sm btn-primary">
-                        <i class="fas fa-calendar-alt"></i> View All
-                    </a>
                 </div>
                 <div class="card-body">
                     <?php if ($exams_result && $exams_result->num_rows > 0): ?>
+                        <ul class="list-group list-group-flush">
                         <?php while ($exam = $exams_result->fetch_assoc()): ?>
-                            <div class="exam-countdown mb-3">
-                                <h6 class="font-weight-bold mb-1"><?php echo htmlspecialchars($exam['exam_name']); ?></h6>
-                                <div class="progress mb-2" style="height: 5px;">
-                                    <?php 
-                                        // Calculate percentage of time left
-                                        $created_at = isset($exam['created_at']) ? $exam['created_at'] : date('Y-m-d', strtotime('-30 days'));
-                                        $total_prep_time = (strtotime($exam['exam_date']) - strtotime($created_at)) / (60 * 60 * 24);
-                                        $time_left_percent = $total_prep_time > 0 ? 
-                                            min(100, round(($exam['days_remaining'] / $total_prep_time) * 100)) : 0;
-                                        $progress_class = $exam['days_remaining'] <= 7 ? 'bg-danger' : 
-                                                        ($exam['days_remaining'] <= 30 ? 'bg-warning' : 'bg-info');
-                                    ?>
-                                    <div class="progress-bar <?php echo $progress_class; ?>" role="progressbar" 
-                                         style="width: <?php echo $time_left_percent; ?>%" 
-                                         aria-valuenow="<?php echo $time_left_percent; ?>" 
-                                         aria-valuemin="0" aria-valuemax="100">
-                                    </div>
-                                </div>
+                            <li class="list-group-item px-0">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="small text-muted">
-                                        <i class="far fa-calendar-alt"></i> 
-                                        <?php echo date('j M Y', strtotime($exam['exam_date'])); ?>
-                                        <?php if (isset($exam['exam_time'])): ?>
-                                            <?php echo date('g:i A', strtotime($exam['exam_time'])); ?>
-                                        <?php endif; ?>
-                                    </div>
                                     <div>
-                                        <span class="badge <?php echo $exam['days_remaining'] <= 7 ? 'bg-danger' : 
-                                            ($exam['days_remaining'] <= 30 ? 'bg-warning' : 'bg-primary'); ?>">
-                                            <?php echo $exam['days_remaining']; ?> days left
-                                        </span>
+                                        <h6 class="font-weight-bold mb-0"><?php echo $exam['title']; ?></h6>
+                                        <div class="small text-muted">
+                                            <?php echo date('j M Y, g:i a', strtotime($exam['exam_date'])); ?>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 font-weight-bold 
+                                            <?php 
+                                                if ($exam['days_remaining'] <= 7) {
+                                                    echo 'text-danger';
+                                                } elseif ($exam['days_remaining'] <= 30) {
+                                                    echo 'text-warning';
+                                                } else {
+                                                    echo 'text-info';
+                                                }
+                                            ?>">
+                                            <?php echo $exam['days_remaining']; ?>
+                                        </div>
+                                        <div class="small text-muted">days left</div>
                                     </div>
                                 </div>
-                            </div>
+                            </li>
                         <?php endwhile; ?>
+                        </ul>
                     <?php else: ?>
                         <div class="text-center py-4">
-                            <i class="far fa-calendar-check fa-3x mb-3 text-muted"></i>
-                            <p>No upcoming exams</p>
-                            <a href="pages/exams.php" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus"></i> Add Exam
-                            </a>
+                            <i class="fas fa-calendar-check fa-3x text-gray-300 mb-3"></i>
+                            <p class="mb-0">No upcoming exams scheduled</p>
+                            <a href="#" class="btn btn-sm btn-primary mt-3">Add Exam</a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -706,386 +679,87 @@ include 'includes/header.php';
     </div>
     
     <!-- Tasks and Assignments -->
-    <div class="row mb-4">
-        <!-- Task Overview -->
+    <div class="row">
+        <!-- Tasks -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow h-100">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Task Overview</h6>
-                    <a href="pages/tasks/" class="btn btn-sm btn-primary">
-                        <i class="fas fa-tasks"></i> Manage Tasks
-                    </a>
+                    <h6 class="m-0 font-weight-bold">Tasks Overview</h6>
+                    <a href="tasks.php" class="btn btn-sm btn-primary">Manage Tasks</a>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="card border-left-danger h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                                Overdue
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $tasks_data['overdue_tasks']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <div class="small text-muted">Completion Rate</div>
+                            <div class="h4 font-weight-bold">
+                                <?php
+                                    echo $tasks_data['total_tasks'] > 0 
+                                        ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) . '%' 
+                                        : '0%';
+                                ?>
                             </div>
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="card border-left-warning h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Today
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $tasks_data['today_tasks']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-left-info h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                Upcoming
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $tasks_data['upcoming_tasks']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-6">
+                            <div class="small text-muted">Total Tasks</div>
+                            <div class="h4 font-weight-bold">
+                                <?php echo $tasks_data['total_tasks']; ?>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="chart-container" style="height: 250px;">
-                        <canvas id="taskProgressChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Assignment Progress -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Assignment Progress</h6>
-                    <a href="pages/assignments.php" class="btn btn-sm btn-primary">
-                        <i class="fas fa-file-alt"></i> View Assignments
-                    </a>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="card border-left-danger h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                                Not Started
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $assignments_data['not_started']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="card border-left-warning h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                In Progress
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $assignments_data['in_progress']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-left-success h-100 py-2">
-                                <div class="card-body py-2">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Completed
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                <?php echo $assignments_data['completed']; ?>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container" style="height: 250px;">
-                        <canvas id="assignmentChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Habits and Recent Activity -->
-    <div class="row mb-4">
-        <!-- Habit Tracker -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Habit Tracking</h6>
-                    <a href="pages/habits/" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check"></i> View Habits
-                    </a>
-                </div>
-                <div class="card-body">
-                    <!-- Habits Today -->
-                    <h6 class="font-weight-bold mb-3">Today's Habits</h6>
-                    <?php 
-                    // Check if habits and habit_tracking tables exist
-                    $todays_habits_result = null;
-                    if (in_array('habits', $existing_tables) && in_array('habit_tracking', $existing_tables)) {
-                        $todays_habits_query = "
-                            SELECT 
-                                h.id, 
-                                h.name,
-                                h.description,
-                                COALESCE(c.name, 'General') as category,
-                                COALESCE(c.color, '#6c757d') as category_color,
-                                COALESCE(c.icon, 'fas fa-check') as category_icon,
-                                COALESCE(ht.status, 'pending') as status
-                            FROM habits h
-                            LEFT JOIN habit_categories c ON h.category_id = c.id
-                            LEFT JOIN habit_tracking ht ON h.id = ht.habit_id AND DATE(ht.tracking_date) = CURRENT_DATE
-                            WHERE h.is_active = 1
-                            ORDER BY h.name ASC
-                            LIMIT 5
-                        ";
-                        try {
-                            $todays_habits_result = $conn->query($todays_habits_query);
-                        } catch (Exception $e) {
-                            // Handle error
-                            error_log("Error querying today's habits: " . $e->getMessage());
-                        }
-                    }
-
-                    // If habits table doesn't exist or query failed, create temporary data
-                    if (!$todays_habits_result || $todays_habits_result->num_rows == 0) {
-                        // Create temporary habits for display
-                        $temp_habits = array(
-                            array('name' => 'Math Practice', 'description' => 'Complete 30 minutes of practice problems', 'category' => 'Academic', 'category_color' => '#4e73df', 'category_icon' => 'fas fa-book', 'status' => 'completed'),
-                            array('name' => 'Reading', 'description' => 'Read English literature for 20 minutes', 'category' => 'Academic', 'category_color' => '#1cc88a', 'category_icon' => 'fas fa-book-open', 'status' => 'pending'),
-                            array('name' => 'Flashcards', 'description' => 'Review science terms with flashcards', 'category' => 'Study', 'category_color' => '#36b9cc', 'category_icon' => 'fas fa-sticky-note', 'status' => 'pending')
-                        );
-                    ?>
-                        <div class="habit-list">
-                            <?php foreach ($temp_habits as $habit): ?>
-                                <div class="habit-item d-flex align-items-center p-2 mb-2 border rounded">
-                                    <div class="me-3">
-                                        <span class="habit-icon" style="background-color: <?php echo $habit['category_color']; ?>">
-                                            <i class="<?php echo $habit['category_icon']; ?>"></i>
-                                        </span>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-0"><?php echo htmlspecialchars($habit['name']); ?></h6>
-                                        <p class="small text-muted mb-0"><?php echo htmlspecialchars($habit['description']); ?></p>
-                                    </div>
-                                    <div>
-                                        <?php if ($habit['status'] == 'completed'): ?>
-                                            <span class="badge bg-success rounded-pill">Completed</span>
-                                        <?php elseif ($habit['status'] == 'skipped'): ?>
-                                            <span class="badge bg-secondary rounded-pill">Skipped</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-warning rounded-pill">Pending</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php } else { ?>
-                        <div class="habit-list">
-                            <?php while ($habit = $todays_habits_result->fetch_assoc()): ?>
-                                <div class="habit-item d-flex align-items-center p-2 mb-2 border rounded">
-                                    <div class="me-3">
-                                        <span class="habit-icon" style="background-color: <?php echo $habit['category_color']; ?>">
-                                            <i class="<?php echo $habit['category_icon']; ?>"></i>
-                                        </span>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-0"><?php echo htmlspecialchars($habit['name']); ?></h6>
-                                        <p class="small text-muted mb-0"><?php echo htmlspecialchars(substr($habit['description'], 0, 50)); ?></p>
-                                    </div>
-                                    <div>
-                                        <?php if ($habit['status'] == 'completed'): ?>
-                                            <span class="badge bg-success rounded-pill">Completed</span>
-                                        <?php elseif ($habit['status'] == 'skipped'): ?>
-                                            <span class="badge bg-secondary rounded-pill">Skipped</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-warning rounded-pill">Pending</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php endwhile; ?>
-                        </div>
-                    <?php } ?>
-                    
-                    <!-- Habit Streak -->
-                    <h6 class="font-weight-bold mb-3 mt-4">Streak Analysis</h6>
                     <div class="row">
-                        <?php foreach ($habit_streak_data as $habit): ?>
-                            <div class="col-md-4 mb-3">
-                                <div class="card border">
-                                    <div class="card-body py-2 text-center">
-                                        <h6 class="text-truncate"><?php echo htmlspecialchars($habit['name']); ?></h6>
-                                        <div class="streak-count font-weight-bold h4">
-                                            <?php echo $habit['completion_count']; ?>
-                                        </div>
-                                        <div class="small text-muted">completions</div>
-                                    </div>
+                        <div class="col-4 text-center">
+                            <div class="border rounded py-2">
+                                <div class="h4 mb-0 text-danger font-weight-bold">
+                                    <?php echo $tasks_data['overdue_tasks']; ?>
                                 </div>
+                                <div class="small text-muted">Overdue</div>
                             </div>
-                        <?php endforeach; ?>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="border rounded py-2">
+                                <div class="h4 mb-0 text-warning font-weight-bold">
+                                    <?php echo $tasks_data['today_tasks']; ?>
+                                </div>
+                                <div class="small text-muted">Due Today</div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="border rounded py-2">
+                                <div class="h4 mb-0 text-info font-weight-bold">
+                                    <?php echo $tasks_data['upcoming_tasks']; ?>
+                                </div>
+                                <div class="small text-muted">Upcoming</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Recent Activity -->
+        <!-- Habit Streaks -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow h-100">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold">Recent Activity</h6>
+                    <h6 class="m-0 font-weight-bold">Top Habit Streaks</h6>
+                    <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>
                 </div>
                 <div class="card-body">
-                    <div class="activity-timeline">
-                        <?php 
-                        if ($activity_result && $activity_result->num_rows > 0):
-                            while ($activity = $activity_result->fetch_assoc()):
-                        ?>
-                            <div class="activity-item">
-                                <div class="activity-icon 
-                                    <?php echo $activity['type'] == 'task' ? 'bg-info' : 
-                                        ($activity['type'] == 'habit' ? 'bg-success' : 'bg-primary'); ?>">
-                                    <i class="fas 
-                                        <?php echo $activity['type'] == 'task' ? 'fa-tasks' : 
-                                            ($activity['type'] == 'habit' ? 'fa-check' : 'fa-book'); ?>">
-                                    </i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-text"><?php echo htmlspecialchars($activity['description']); ?></div>
-                                    <div class="activity-date">
-                                        <?php 
-                                            $activity_date = new DateTime($activity['activity_date']);
-                                            $now = new DateTime();
-                                            $diff = $activity_date->diff($now);
-                                            
-                                            if ($diff->d == 0) {
-                                                if ($diff->h == 0) {
-                                                    if ($diff->i == 0) {
-                                                        echo 'Just now';
-                                                    } else {
-                                                        echo $diff->i . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
-                                                    }
-                                                } else {
-                                                    echo $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
-                                                }
-                                            } elseif ($diff->d < 7) {
-                                                echo $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
-                                            } else {
-                                                echo $activity_date->format('j M Y');
-                                            }
-                                        ?>
-                                    </div>
-                                </div>
+                    <?php foreach($habit_streak_data as $habit): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-0 font-weight-bold"><?php echo $habit['name']; ?></h6>
                             </div>
-                        <?php 
-                            endwhile;
-                        else:
-                            // Create temporary activity data if none exists
-                            $temp_activities = array(
-                                array('type' => 'task', 'description' => 'Task completed: Math homework', 'activity_date' => date('Y-m-d H:i:s', strtotime('-2 hours'))),
-                                array('type' => 'habit', 'description' => 'Habit tracked: Reading practice', 'activity_date' => date('Y-m-d H:i:s', strtotime('-5 hours'))),
-                                array('type' => 'session', 'description' => 'Study session: English', 'activity_date' => date('Y-m-d H:i:s', strtotime('-1 day'))),
-                                array('type' => 'task', 'description' => 'Task completed: Science report', 'activity_date' => date('Y-m-d H:i:s', strtotime('-2 days')))
-                            );
-                        
-                            foreach ($temp_activities as $activity):
-                                $activity_date = new DateTime($activity['activity_date']);
-                                $now = new DateTime();
-                                $diff = $activity_date->diff($now);
-                        ?>
-                            <div class="activity-item">
-                                <div class="activity-icon 
-                                    <?php echo $activity['type'] == 'task' ? 'bg-info' : 
-                                        ($activity['type'] == 'habit' ? 'bg-success' : 'bg-primary'); ?>">
-                                    <i class="fas 
-                                        <?php echo $activity['type'] == 'task' ? 'fa-tasks' : 
-                                            ($activity['type'] == 'habit' ? 'fa-check' : 'fa-book'); ?>">
-                                    </i>
+                            <div class="d-flex align-items-center">
+                                <div class="h5 mb-0 mr-2 font-weight-bold text-primary">
+                                    <?php echo $habit['completion_count']; ?>
                                 </div>
-                                <div class="activity-content">
-                                    <div class="activity-text"><?php echo htmlspecialchars($activity['description']); ?></div>
-                                    <div class="activity-date">
-                                        <?php 
-                                            if ($diff->d == 0) {
-                                                if ($diff->h == 0) {
-                                                    if ($diff->i == 0) {
-                                                        echo 'Just now';
-                                                    } else {
-                                                        echo $diff->i . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
-                                                    }
-                                                } else {
-                                                    echo $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
-                                                }
-                                            } elseif ($diff->d < 7) {
-                                                echo $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
-                                            } else {
-                                                echo $activity_date->format('j M Y');
-                                            }
-                                        ?>
-                                    </div>
-                                </div>
+                                <div class="text-xs text-uppercase text-muted">completions</div>
                             </div>
-                        <?php 
-                            endforeach; 
-                        endif; 
-                        ?>
-                    </div>
+                        </div>
+                        <div class="progress mb-4" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar" style="width: <?php echo min($habit['completion_count'] * 5, 100); ?>%"></div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
