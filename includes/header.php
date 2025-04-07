@@ -27,11 +27,19 @@ require_once 'db_connect.php';
     
     <!-- PWA Icons -->
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="/assets/favicon/android-chrome-192x192.png">
-    <link rel="apple-touch-icon" href="/assets/favicon/android-chrome-192x192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon/android-chrome-192x192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon/favicon-48x48.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/favicon/android-chrome-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="/assets/favicon/android-chrome-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="/assets/favicon/android-chrome-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/favicon/android-chrome-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon/android-chrome-152x152.png">
     <link rel="apple-touch-icon" sizes="167x167" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="/assets/favicon/android-chrome-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/favicon/android-chrome-512x512.png">
     
     <!-- Load PWA Script First -->
     <script src="/assets/js/pwa.js" defer></script>
