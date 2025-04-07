@@ -28,46 +28,41 @@ function debugResponse(prefix, response) {
     });
 }
 
-const CACHE_NAME = 'do-it-v1';
+const CACHE_NAME = 'web-app-v1';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache
 const ASSETS_TO_CACHE = [
     '/',
-    '/index.php',
     '/offline.html',
     '/assets/css/style.css',
-    '/assets/js/task-notifications.js',
+    '/assets/js/mobile-notifications.js',
     '/manifest.json',
-    '/assets/images/icon-72x72.png',
-    '/assets/images/icon-96x96.png',
-    '/assets/images/icon-128x128.png',
-    '/assets/images/icon-144x144.png',
-    '/assets/images/icon-152x152.png',
     '/assets/images/icon-192x192.png',
-    '/assets/images/icon-384x384.png',
-    '/assets/images/icon-512x512.png'
+    '/assets/images/icon-96x96.png'
 ];
+
+// Debug logging function
+const log = (message, ...args) => {
+    console.log(`[Service Worker] ${message}`, ...args);
+};
 
 // Install event - cache assets
 self.addEventListener('install', event => {
-    console.log('[Service Worker] Installing...');
+    log('Installing...');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('[Service Worker] Caching app shell');
+                log('Caching app shell');
                 return cache.addAll(ASSETS_TO_CACHE);
             })
-            .then(() => {
-                console.log('[Service Worker] Install completed');
-                return self.skipWaiting();
-            })
+            .then(() => self.skipWaiting())
     );
 });
 
 // Activate event - clean old caches
 self.addEventListener('activate', event => {
-    console.log('[Service Worker] Activating...');
+    log('Activating...');
     event.waitUntil(
         Promise.all([
             caches.keys().then(cacheNames => {
@@ -75,7 +70,7 @@ self.addEventListener('activate', event => {
                     cacheNames
                         .filter(name => name !== CACHE_NAME)
                         .map(name => {
-                            console.log('[Service Worker] Deleting old cache:', name);
+                            log('Deleting old cache:', name);
                             return caches.delete(name);
                         })
                 );
@@ -113,54 +108,21 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// Push event - handle incoming push messages
-self.addEventListener('push', event => {
-    console.log('[Service Worker] Push received');
-    let notification = {
-        title: 'Do-It',
-        body: 'New notification',
-        icon: '/assets/images/icon-192x192.png',
-        badge: '/assets/images/icon-96x96.png',
-        vibrate: [200, 100, 200],
-        tag: 'do-it-notification',
-        renotify: true,
-        actions: [
-            {
-                action: 'open',
-                title: 'Open App'
-            },
-            {
-                action: 'close',
-                title: 'Close'
-            }
-        ]
-    };
-
-    try {
-        if (event.data) {
-            const data = event.data.json();
-            notification = {
-                ...notification,
-                ...data
-            };
-        }
-    } catch (e) {
-        console.error('[Service Worker] Error parsing push data:', e);
-    }
-
-    event.waitUntil(
-        self.registration.showNotification(notification.title, notification)
-    );
-});
-
 // Notification click event
 self.addEventListener('notificationclick', event => {
-    console.log('[Service Worker] Notification click received');
+    log('Notification click received:', event);
 
+    // Close the notification
     event.notification.close();
 
+    // Get the notification data
+    const data = event.notification.data || {};
     let urlToOpen = '/';
-    if (event.action === 'open' || !event.action) {
+
+    // Handle different notification types
+    if (data.url) {
+        urlToOpen = data.url;
+    } else {
         switch (event.notification.tag) {
             case 'task-reminder':
                 urlToOpen = '/pages/tasks/index.php';
@@ -168,9 +130,13 @@ self.addEventListener('notificationclick', event => {
             case 'exam-reminder':
                 urlToOpen = '/pages/exam_countdown.php';
                 break;
-            default:
-                urlToOpen = '/';
         }
+    }
+
+    // Handle action buttons
+    if (event.action === 'view') {
+        // Use the URL from the notification data
+        urlToOpen = data.url || urlToOpen;
     }
 
     event.waitUntil(
@@ -179,14 +145,47 @@ self.addEventListener('notificationclick', event => {
             includeUncontrolled: true
         })
         .then(function(clientList) {
-            for (let i = 0; i < clientList.length; i++) {
-                const client = clientList[i];
+            // If we have a client, focus it
+            for (let client of clientList) {
                 if (client.url === urlToOpen && 'focus' in client) {
                     return client.focus();
                 }
             }
+            // If no client is found, open a new window
             return clients.openWindow(urlToOpen);
         })
+    );
+});
+
+// Push event - handle incoming push messages
+self.addEventListener('push', event => {
+    log('Push received:', event);
+
+    let notification = {
+        title: 'Web-App',
+        body: 'New notification',
+        icon: '/assets/images/icon-192x192.png',
+        badge: '/assets/images/icon-96x96.png',
+        vibrate: [200, 100, 200],
+        tag: 'default',
+        renotify: true,
+        requireInteraction: false
+    };
+
+    if (event.data) {
+        try {
+            const data = event.data.json();
+            notification = {
+                ...notification,
+                ...data
+            };
+        } catch (e) {
+            log('Error parsing push data:', e);
+        }
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(notification.title, notification)
     );
 });
 

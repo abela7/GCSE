@@ -42,20 +42,21 @@ require_once __DIR__ . '/includes/header.php';
                     <h4 class="mb-0">Notification Settings</h4>
                 </div>
                 <div class="card-body">
-                    <div id="notificationStatus" class="alert alert-info d-none">
-                        Checking notification permission...
+                    <!-- Status Display -->
+                    <div id="notificationStatus" class="alert alert-info mb-4">
+                        Checking notification status...
                     </div>
 
                     <?php if (isset($success)): ?>
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
+                    <!-- Settings Form -->
+                    <form id="notificationForm" class="mb-4">
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="task_reminders" name="task_reminders" 
-                                    <?php echo $settings['task_reminders'] ? 'checked' : ''; ?>>
-                                <label class="form-check-label" for="task_reminders">
+                                <input class="form-check-input" type="checkbox" id="taskNotifications" name="taskNotifications">
+                                <label class="form-check-label" for="taskNotifications">
                                     Task Reminders
                                 </label>
                             </div>
@@ -64,9 +65,8 @@ require_once __DIR__ . '/includes/header.php';
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="exam_reminders" name="exam_reminders" 
-                                    <?php echo $settings['exam_reminders'] ? 'checked' : ''; ?>>
-                                <label class="form-check-label" for="exam_reminders">
+                                <input class="form-check-input" type="checkbox" id="examNotifications" name="examNotifications">
+                                <label class="form-check-label" for="examNotifications">
                                     Exam Reminders
                                 </label>
                             </div>
@@ -75,37 +75,42 @@ require_once __DIR__ . '/includes/header.php';
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="daily_motivation" name="daily_motivation" 
-                                    <?php echo $settings['daily_motivation'] ? 'checked' : ''; ?>>
-                                <label class="form-check-label" for="daily_motivation">
+                                <input class="form-check-input" type="checkbox" id="motivationalNotifications" name="motivationalNotifications">
+                                <label class="form-check-label" for="motivationalNotifications">
                                     Daily Motivation
                                 </label>
                             </div>
                             <small class="text-muted">Receive daily motivational messages</small>
                         </div>
 
-                        <button type="submit" name="update_settings" class="btn btn-primary">Save Settings</button>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
                     </form>
 
-                    <hr>
-
-                    <h5 class="mb-3">Test Notifications</h5>
-                    <div id="permissionButton" class="mb-3 d-none">
-                        <button class="btn btn-warning w-100" onclick="requestNotificationPermission()">
-                            Enable Notifications
-                        </button>
+                    <!-- Permission Request -->
+                    <div id="permissionRequest" class="d-none">
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">Enable Notifications</h5>
+                            <p>To receive notifications, please allow them when prompted.</p>
+                            <button class="btn btn-warning" onclick="requestNotificationPermission()">
+                                Enable Notifications
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="d-grid gap-2" id="testButtons">
-                        <button class="btn btn-outline-primary" onclick="testTaskNotification()">
-                            Test Task Reminder
-                        </button>
-                        <button class="btn btn-outline-primary" onclick="testExamNotification()">
-                            Test Exam Reminder
-                        </button>
-                        <button class="btn btn-outline-primary" onclick="testMotivationNotification()">
-                            Test Motivation Message
-                        </button>
+                    <!-- Test Notifications -->
+                    <div id="testNotifications" class="d-none">
+                        <h5 class="mb-3">Test Notifications</h5>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" onclick="testTaskNotification()">
+                                Test Task Reminder
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="testExamNotification()">
+                                Test Exam Reminder
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="testMotivationalNotification()">
+                                Test Motivation Message
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -114,202 +119,81 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-// Check if running on Android
-const isAndroid = /Android/i.test(navigator.userAgent);
-
-// Function to update UI based on notification permission
-function updateNotificationUI(permission) {
+// Update UI based on notification status
+async function updateUI() {
     const statusDiv = document.getElementById('notificationStatus');
-    const permissionButton = document.getElementById('permissionButton');
-    const testButtons = document.getElementById('testButtons');
-
-    statusDiv.classList.remove('d-none');
+    const permissionDiv = document.getElementById('permissionRequest');
+    const testDiv = document.getElementById('testNotifications');
     
-    if (permission === 'granted') {
-        statusDiv.className = 'alert alert-success';
-        statusDiv.textContent = 'Notifications are enabled!';
-        permissionButton.classList.add('d-none');
-        testButtons.classList.remove('d-none');
-    } else if (permission === 'denied') {
+    if (!window.notifications) {
         statusDiv.className = 'alert alert-danger';
-        if (isAndroid) {
-            statusDiv.innerHTML = 'Notifications are blocked. Please enable them in your device settings:<br>' +
+        statusDiv.textContent = 'Notifications are not supported in this browser';
+        return;
+    }
+
+    const permission = await window.notifications.checkPermission();
+    
+    switch (permission) {
+        case 'granted':
+            statusDiv.className = 'alert alert-success';
+            statusDiv.textContent = 'Notifications are enabled';
+            permissionDiv.classList.add('d-none');
+            testDiv.classList.remove('d-none');
+            break;
+            
+        case 'denied':
+            statusDiv.className = 'alert alert-danger';
+            statusDiv.innerHTML = window.notifications.isAndroid ? 
+                'Notifications are blocked. Please enable them in your device settings:<br>' +
                 '1. Go to Settings > Apps<br>' +
-                '2. Find "Do-It"<br>' +
+                '2. Find your browser app<br>' +
                 '3. Tap Notifications<br>' +
-                '4. Enable notifications';
-        } else {
-            statusDiv.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-        }
-        permissionButton.classList.add('d-none');
-        testButtons.classList.add('d-none');
-    } else {
-        statusDiv.className = 'alert alert-warning';
-        statusDiv.textContent = 'Notifications require permission to work.';
-        permissionButton.classList.remove('d-none');
-        testButtons.classList.add('d-none');
+                '4. Enable notifications' :
+                'Notifications are blocked. Please enable them in your browser settings.';
+            permissionDiv.classList.add('d-none');
+            testDiv.classList.add('d-none');
+            break;
+            
+        default:
+            statusDiv.className = 'alert alert-warning';
+            statusDiv.textContent = 'Notifications require permission';
+            permissionDiv.classList.remove('d-none');
+            testDiv.classList.add('d-none');
     }
 }
 
-// Function to request notification permission
+// Request notification permission
 async function requestNotificationPermission() {
-    if (!("Notification" in window)) {
-        alert("This browser does not support notifications");
-        return false;
-    }
-
-    try {
-        const permission = await Notification.requestPermission();
-        updateNotificationUI(permission);
-        
-        if (permission === "granted") {
-            const registration = await registerServiceWorker();
-            if (registration && 'periodicSync' in registration) {
-                try {
-                    await registration.periodicSync.register('sync-notifications', {
-                        minInterval: 60 * 60 * 1000 // Sync every hour
-                    });
-                } catch (error) {
-                    console.log('Periodic sync registration failed:', error);
-                }
-            }
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error requesting notification permission:', error);
-        return false;
-    }
+    const permission = await window.notifications.requestPermission();
+    updateUI();
+    return permission === 'granted';
 }
 
-// Function to register service worker
-async function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        try {
-            const registration = await navigator.serviceWorker.register('/service-worker.js', {
-                scope: '/'
-            });
-            console.log('ServiceWorker registration successful');
-            return registration;
-        } catch (error) {
-            console.error('ServiceWorker registration failed:', error);
-            return null;
-        }
-    }
-    return null;
-}
-
-// Initialize notifications
-async function initializeNotifications() {
-    if ("Notification" in window) {
-        updateNotificationUI(Notification.permission);
-        if (Notification.permission === "granted") {
-            await registerServiceWorker();
-        }
-    } else {
-        document.getElementById('notificationStatus').className = 'alert alert-danger';
-        document.getElementById('notificationStatus').textContent = 'Your browser does not support notifications';
-        document.getElementById('testButtons').classList.add('d-none');
-    }
-}
-
-// Call initialize on page load
-initializeNotifications();
-
-// Test Task Notification
+// Test notification functions
 async function testTaskNotification() {
-    try {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification("Test Task Reminder", {
-            body: "This is a test task reminder",
-            icon: '/assets/images/icon-192x192.png',
-            badge: '/assets/images/icon-96x96.png',
-            vibrate: [200, 100, 200],
-            tag: 'task-reminder',
-            renotify: true,
-            actions: [
-                {
-                    action: 'open',
-                    title: 'View Tasks'
-                },
-                {
-                    action: 'close',
-                    title: 'Close'
-                }
-            ]
-        });
-    } catch (error) {
-        console.error('Error testing task notification:', error);
-        if (isAndroid) {
-            alert('Error showing notification. Please check if notifications are enabled in your device settings.');
-        } else {
-            alert('Error showing notification. Please check if notifications are enabled.');
-        }
-    }
+    await window.notifications.testTaskNotification();
 }
 
-// Test Exam Notification
 async function testExamNotification() {
-    try {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification("Test Exam Reminder", {
-            body: "This is a test exam reminder",
-            icon: '/assets/images/icon-192x192.png',
-            badge: '/assets/images/icon-96x96.png',
-            vibrate: [200, 100, 200],
-            tag: 'exam-reminder',
-            renotify: true,
-            actions: [
-                {
-                    action: 'open',
-                    title: 'View Exams'
-                },
-                {
-                    action: 'close',
-                    title: 'Close'
-                }
-            ]
-        });
-    } catch (error) {
-        console.error('Error testing exam notification:', error);
-        if (isAndroid) {
-            alert('Error showing notification. Please check if notifications are enabled in your device settings.');
-        } else {
-            alert('Error showing notification. Please check if notifications are enabled.');
-        }
-    }
+    await window.notifications.testExamNotification();
 }
 
-// Test Motivation Notification
-async function testMotivationNotification() {
-    try {
-        const response = await fetch('/api/get_motivational_message.php');
-        const data = await response.json();
-        
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification("Test Motivation Message", {
-            body: data.success ? data.message : "Keep going! You're doing great!",
-            icon: '/assets/images/icon-192x192.png',
-            badge: '/assets/images/icon-96x96.png',
-            vibrate: [200, 100, 200],
-            tag: 'motivation',
-            renotify: true,
-            actions: [
-                {
-                    action: 'close',
-                    title: 'Thanks!'
-                }
-            ]
-        });
-    } catch (error) {
-        console.error('Error testing motivation notification:', error);
-        if (isAndroid) {
-            alert('Error showing notification. Please check if notifications are enabled in your device settings.');
-        } else {
-            alert('Error showing notification. Please check if notifications are enabled.');
-        }
-    }
+async function testMotivationalNotification() {
+    await window.notifications.testMotivationalNotification();
 }
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize notifications
+    if (window.notifications) {
+        window.notifications.init().then(() => {
+            updateUI();
+        });
+    } else {
+        console.error('Notifications module not loaded');
+        updateUI();
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?> 

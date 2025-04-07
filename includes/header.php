@@ -229,15 +229,16 @@ require_once 'db_connect.php';
 
     <!-- Test script loading -->
     <script>
-        console.log('Header loaded, about to load notifications');
+        console.log('Header loaded, initializing notifications...');
     </script>
 
     <!-- Custom CSS -->
     <link href="/assets/css/style.css" rel="stylesheet">
     
-    <!-- Task Notifications -->
-    <script src="/assets/js/task-notifications.js"></script>
+    <!-- Mobile Notifications -->
+    <script src="/assets/js/mobile-notifications.js"></script>
 
+    <!-- Debug Console -->
     <script src="//cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 </head>
