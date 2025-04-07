@@ -28,24 +28,7 @@ $page_title = "Status Dashboard";
 $today = date('Y-m-d');
 
 // SUBJECT PROGRESS
-// Fetch Mathematics progress
-$math_query = "
-    SELECT 
-        COUNT(DISTINCT t.id) as total_topics,
-        SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
-        ROUND(AVG(p.confidence_level)) as avg_confidence
-    FROM math_topics t
-    LEFT JOIN math_topic_progress p ON t.id = p.topic_id
-";
-$math_result = $conn->query($math_query);
-$math_data = $math_result ? $math_result->fetch_assoc() : null;
-
-$math_total = $math_data ? ($math_data['total_topics'] ?: 0) : 0;
-$math_completed = $math_data ? ($math_data['completed_topics'] ?: 0) : 0;
-$math_confidence = $math_data ? ($math_data['avg_confidence'] ?: 0) : 0;
-$math_progress = $math_total > 0 ? round(($math_completed / $math_total) * 100) : 0;
-
-// Fetch English progress
+// Only fetch English progress since math tables don't exist
 $english_query = "
     SELECT 
         COUNT(DISTINCT t.id) as total_topics,
@@ -61,6 +44,12 @@ $english_total = $english_data ? ($english_data['total_topics'] ?: 0) : 0;
 $english_completed = $english_data ? ($english_data['completed_topics'] ?: 0) : 0;
 $english_confidence = $english_data ? ($english_data['avg_confidence'] ?: 0) : 0;
 $english_progress = $english_total > 0 ? round(($english_completed / $english_total) * 100) : 0;
+
+// Set math values to 0 since we don't have math tables
+$math_total = 0;
+$math_completed = 0;
+$math_confidence = 0;
+$math_progress = 0;
 
 // TASK COMPLETION
 $tasks_query = "
@@ -421,22 +410,9 @@ include __DIR__ . '/includes/header.php';
                                     </thead>
                                     <tbody>
                                         <?php
-                                        // Fetch top sections by progress
+                                        // Section Breakdown query - only for English
                                         $sections_query = "
-                                            (SELECT 
-                                                'Mathematics' as subject,
-                                                s.name as section, 
-                                                COUNT(t.id) as total_topics,
-                                                SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) as completed_topics,
-                                                ROUND((SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) / COUNT(t.id)) * 100) as progress
-                                            FROM math_sections s
-                                            JOIN math_subsections sub ON s.id = sub.section_id
-                                            JOIN math_topics t ON sub.id = t.subsection_id
-                                            LEFT JOIN math_topic_progress p ON t.id = p.topic_id
-                                            GROUP BY s.name
-                                            ORDER BY progress DESC)
-                                            UNION
-                                            (SELECT 
+                                            SELECT 
                                                 'English' as subject,
                                                 s.name as section, 
                                                 COUNT(t.id) as total_topics,
@@ -447,7 +423,6 @@ include __DIR__ . '/includes/header.php';
                                             JOIN eng_topics t ON sub.id = t.subsection_id
                                             LEFT JOIN eng_topic_progress p ON t.id = p.topic_id
                                             GROUP BY s.name
-                                            ORDER BY progress DESC)
                                             ORDER BY progress DESC
                                             LIMIT 5
                                         ";
@@ -465,7 +440,7 @@ include __DIR__ . '/includes/header.php';
                                         ?>
                                         <tr>
                                             <td>
-                                                <span class="badge <?php echo $section['subject'] == 'Mathematics' ? 'bg-primary' : 'bg-success'; ?>">
+                                                <span class="badge bg-success">
                                                     <?php echo $section['subject']; ?>
                                                 </span>
                                             </td>
