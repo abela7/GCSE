@@ -43,47 +43,6 @@ while ($habit = $habits_result->fetch_assoc()) {
         $evening_habits[] = $habit;
     }
 }
-
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $habit_id = $_POST['habit_id'] ?? null;
-    $action = $_POST['action'] ?? '';
-    
-    if (!$habit_id) {
-        header("Location: index.php?scroll_to=0&error=no_habit_id");
-        exit;
-    }
-
-    switch ($action) {
-        case 'complete':
-            // ... existing complete case code ...
-            break;
-            
-        case 'done_later':
-            $update_query = "UPDATE habits SET last_skipped = CURRENT_TIMESTAMP WHERE id = ?";
-            $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("i", $habit_id);
-            if ($stmt->execute()) {
-                header("Location: index.php?scroll_to=0&success=habit_skipped");
-            } else {
-                header("Location: index.php?scroll_to=0&error=update_failed");
-            }
-            exit;
-            break;
-            
-        case 'skip':
-            $update_query = "UPDATE habits SET last_skipped = CURRENT_TIMESTAMP, total_skips = total_skips + 1 WHERE id = ?";
-            $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("i", $habit_id);
-            if ($stmt->execute()) {
-                header("Location: index.php?scroll_to=0&success=habit_skipped");
-            } else {
-                header("Location: index.php?scroll_to=0&error=update_failed");
-            }
-            exit;
-            break;
-    }
-}
 ?>
 
 <div class="container-fluid">

@@ -85,6 +85,14 @@ if ($action === 'create' || $action === 'update') {
                   VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
         $stmt->bind_param('siissi', $name, $category_id, $point_rule_id, $target_time, $description, $is_active);
+        
+        if ($stmt->execute()) {
+            // Get the newly inserted habit's ID
+            $new_habit_id = $conn->insert_id;
+            echo json_encode(['success' => true, 'id' => $new_habit_id]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
+        }
     } else {
         // Update existing habit
         if (!isset($_POST['id'])) {
@@ -99,12 +107,12 @@ if ($action === 'create' || $action === 'update') {
                   WHERE id = ?";
         $stmt = $conn->prepare($query);
         $stmt->bind_param('siissii', $name, $category_id, $point_rule_id, $target_time, $description, $is_active, $id);
-    }
-    
-    if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
+        
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
+        }
     }
     exit;
 }
