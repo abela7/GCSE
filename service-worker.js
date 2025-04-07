@@ -73,7 +73,45 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('notificationclick', event => {
     console.log('Notification clicked:', event);
+    
+    // Close the notification
     event.notification.close();
+    
+    // Handle actions
+    let url = '/';
+    
+    if (event.action === 'view' || !event.action) {
+        // Get URL from notification data
+        if (event.notification.data && event.notification.data.url) {
+            url = event.notification.data.url;
+        } else {
+            // Default URLs based on notification tag
+            switch (event.notification.tag) {
+                case 'pending-tasks':
+                    url = '/pages/tasks/index.php';
+                    break;
+                // Add more cases as needed
+            }
+        }
+        
+        // Open or focus the window
+        event.waitUntil(
+            clients.matchAll({
+                type: 'window',
+                includeUncontrolled: true
+            })
+            .then(function(clientList) {
+                // If we have a matching window, focus it
+                for (let client of clientList) {
+                    if (client.url === url && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                // If no matching window, open a new one
+                return clients.openWindow(url);
+            })
+        );
+    }
 });
 
 // Message event - handle skip waiting
