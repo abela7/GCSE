@@ -193,6 +193,7 @@ while ($task = $result->fetch_assoc()) {
     </div>
 </div>
 
+
     <!-- Greeting Section -->
     <div class="greeting-section">
         <div class="greeting-container">
