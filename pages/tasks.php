@@ -92,15 +92,48 @@ include '../includes/header.php';
 
 <!-- Tasks List -->
 <div class="card mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Tasks</h5>
-        <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-secondary active" id="showAllTasks">All</button>
-            <button type="button" class="btn btn-outline-secondary" id="showPendingTasks">Pending</button>
-            <button type="button" class="btn btn-outline-secondary" id="showCompletedTasks">Completed</button>
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Tasks</h5>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i class="fas fa-plus me-1"></i> Add Task
+            </button>
         </div>
     </div>
     <div class="card-body">
+        <!-- Filter Section -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-4">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <?php 
+                    $categories_result->data_seek(0); // Reset pointer
+                    while ($category = $categories_result->fetch_assoc()): 
+                    ?>
+                    <option value="<?php echo $category['id']; ?>">
+                        <?php echo htmlspecialchars($category['name']); ?>
+                    </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="dateFilter">
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="overdue">Overdue</option>
+                </select>
+            </div>
+        </div>
+
         <?php if ($tasks_result->num_rows > 0): ?>
             <div class="table-responsive">
                 <table class="table table-hover align-middle" id="tasksTable">
@@ -108,16 +141,19 @@ include '../includes/header.php';
                         <tr>
                             <th style="width: 50px;"></th>
                             <th>Task</th>
-                            <th class="d-none d-md-table-cell">Category</th>
                             <th class="d-none d-md-table-cell">Due Date</th>
-                            <th class="d-none d-md-table-cell">Priority</th>
-                            <th class="d-none d-md-table-cell">Status</th>
                             <th style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($task = $tasks_result->fetch_assoc()): ?>
-                            <tr class="task-row <?php echo $task['status'] == 'completed' ? 'completed-task' : ''; ?>">
+                        <?php 
+                        $tasks_result->data_seek(0); // Reset pointer
+                        while ($task = $tasks_result->fetch_assoc()): 
+                        ?>
+                            <tr class="task-row <?php echo $task['status'] == 'completed' ? 'completed-task' : ''; ?>" 
+                                data-category="<?php echo $task['category_id']; ?>"
+                                data-status="<?php echo $task['status']; ?>"
+                                data-due-date="<?php echo $task['due_date']; ?>">
                                 <td>
                                     <div class="form-check">
                                         <input class="form-check-input task-checkbox" type="checkbox" value="<?php echo $task['id']; ?>" 
@@ -130,11 +166,11 @@ include '../includes/header.php';
                                         <?php if ($task['description']): ?>
                                             <small class="text-muted"><?php echo htmlspecialchars($task['description']); ?></small>
                                         <?php endif; ?>
-                                        <div class="d-md-none mt-1">
-                                            <span class="badge me-1" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            <span class="badge" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
                                                 <?php echo htmlspecialchars($task['category_name']); ?>
                                             </span>
-                                            <span class="badge bg-<?php echo $task['priority'] == 'high' ? 'danger' : ($task['priority'] == 'medium' ? 'warning' : 'info'); ?> me-1">
+                                            <span class="badge bg-<?php echo $task['priority'] == 'high' ? 'danger' : ($task['priority'] == 'medium' ? 'warning' : 'info'); ?>">
                                                 <?php echo ucfirst($task['priority']); ?>
                                             </span>
                                             <span class="badge bg-<?php echo $task['status'] == 'completed' ? 'success' : ($task['status'] == 'pending' ? 'secondary' : 'warning'); ?>">
@@ -144,20 +180,7 @@ include '../includes/header.php';
                                     </div>
                                 </td>
                                 <td class="d-none d-md-table-cell">
-                                    <span class="badge" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
-                                        <?php echo htmlspecialchars($task['category_name']); ?>
-                                    </span>
-                                </td>
-                                <td class="d-none d-md-table-cell"><?php echo $task['due_date'] ? date('M d, Y', strtotime($task['due_date'])) : '-'; ?></td>
-                                <td class="d-none d-md-table-cell">
-                                    <span class="badge bg-<?php echo $task['priority'] == 'high' ? 'danger' : ($task['priority'] == 'medium' ? 'warning' : 'info'); ?>">
-                                        <?php echo ucfirst($task['priority']); ?>
-                                    </span>
-                                </td>
-                                <td class="d-none d-md-table-cell">
-                                    <span class="badge bg-<?php echo $task['status'] == 'completed' ? 'success' : ($task['status'] == 'pending' ? 'secondary' : 'warning'); ?>">
-                                        <?php echo ucfirst($task['status']); ?>
-                                    </span>
+                                    <?php echo $task['due_date'] ? date('M d, Y', strtotime($task['due_date'])) : '-'; ?>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
@@ -186,42 +209,75 @@ include '../includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Task filtering
-    const showAllBtn = document.getElementById('showAllTasks');
-    const showPendingBtn = document.getElementById('showPendingTasks');
-    const showCompletedBtn = document.getElementById('showCompletedTasks');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
     const taskRows = document.querySelectorAll('.task-row');
     
-    function filterTasks(filter) {
-        showAllBtn.classList.remove('active');
-        showPendingBtn.classList.remove('active');
-        showCompletedBtn.classList.remove('active');
+    function filterTasks() {
+        const selectedCategory = categoryFilter.value;
+        const selectedStatus = statusFilter.value;
+        const selectedDate = dateFilter.value;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
         taskRows.forEach(row => {
-            const isCompleted = row.classList.contains('completed-task');
-            if (filter === 'all' || (filter === 'pending' && !isCompleted) || (filter === 'completed' && isCompleted)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
+            const category = row.dataset.category;
+            const status = row.dataset.status;
+            const dueDate = row.dataset.dueDate;
+            
+            let showRow = true;
+            
+            // Category filter
+            if (selectedCategory && category !== selectedCategory) {
+                showRow = false;
             }
+            
+            // Status filter
+            if (selectedStatus && status !== selectedStatus) {
+                showRow = false;
+            }
+            
+            // Date filter
+            if (selectedDate && dueDate) {
+                const taskDate = new Date(dueDate);
+                taskDate.setHours(0, 0, 0, 0);
+                
+                switch(selectedDate) {
+                    case 'today':
+                        if (taskDate.getTime() !== today.getTime()) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'week':
+                        const weekStart = new Date(today);
+                        weekStart.setDate(today.getDate() - today.getDay());
+                        const weekEnd = new Date(weekStart);
+                        weekEnd.setDate(weekStart.getDate() + 6);
+                        if (taskDate < weekStart || taskDate > weekEnd) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'month':
+                        if (taskDate.getMonth() !== today.getMonth() || taskDate.getFullYear() !== today.getFullYear()) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'overdue':
+                        if (taskDate >= today || status === 'completed') {
+                            showRow = false;
+                        }
+                        break;
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
         });
-        
-        // Update active button
-        switch(filter) {
-            case 'all':
-                showAllBtn.classList.add('active');
-                break;
-            case 'pending':
-                showPendingBtn.classList.add('active');
-                break;
-            case 'completed':
-                showCompletedBtn.classList.add('active');
-                break;
-        }
     }
     
-    showAllBtn.addEventListener('click', () => filterTasks('all'));
-    showPendingBtn.addEventListener('click', () => filterTasks('pending'));
-    showCompletedBtn.addEventListener('click', () => filterTasks('completed'));
+    categoryFilter.addEventListener('change', filterTasks);
+    statusFilter.addEventListener('change', filterTasks);
+    dateFilter.addEventListener('change', filterTasks);
     
     // Task checkbox handling
     const taskCheckboxes = document.querySelectorAll('.task-checkbox');
@@ -402,6 +458,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 /* Responsive styles */
 @media (max-width: 768px) {
+    .filter-section {
+        margin-bottom: 1rem;
+    }
+    
     .table-responsive {
         margin: 0 -1rem;
     }
@@ -412,6 +472,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .btn-group {
         margin-top: 0.5rem;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
     }
 }
 
@@ -439,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* Form styles */
-.form-control:focus {
+.form-control:focus, .form-select:focus {
     border-color: #cdaf56;
     box-shadow: 0 0 0 0.2rem rgba(205, 175, 86, 0.25);
 }
