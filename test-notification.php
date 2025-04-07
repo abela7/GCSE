@@ -41,13 +41,13 @@ $page_title = "Notification Testing";
         <!-- Hourly Reminder -->
         <div class="card notification-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Hourly Reminder</h5>
+                <h5 class="mb-0">Hourly Reminder (21:00 onwards)</h5>
                 <span class="badge bg-secondary status-badge" id="hourlyStatus">Checking...</span>
             </div>
             <div class="card-body">
                 <p>Reminds you every hour to stay on track with your tasks.</p>
                 <p><strong>Next notification:</strong> <span id="hourlyNext">Calculating...</span></p>
-                <button class="btn btn-primary" onclick="testNotification('hourly')">Test Hourly Notification</button>
+                <button class="btn btn-primary" onclick="testActualNotification('hourly')">Test Hourly Notification</button>
                 <button class="btn btn-warning" onclick="toggleNotification('hourly')" id="hourlyToggle">Pause</button>
             </div>
         </div>
@@ -61,7 +61,7 @@ $page_title = "Notification Testing";
             <div class="card-body">
                 <p>Daily morning motivation message.</p>
                 <p><strong>Next notification:</strong> <span id="morningNext">Calculating...</span></p>
-                <button class="btn btn-primary" onclick="testNotification('morning')">Test Morning Notification</button>
+                <button class="btn btn-primary" onclick="testActualNotification('morning')">Test Morning Notification</button>
                 <button class="btn btn-warning" onclick="toggleNotification('morning')" id="morningToggle">Pause</button>
             </div>
         </div>
@@ -75,7 +75,7 @@ $page_title = "Notification Testing";
             <div class="card-body">
                 <p>Daily night reminder for Bible study.</p>
                 <p><strong>Next notification:</strong> <span id="nightNext">Calculating...</span></p>
-                <button class="btn btn-primary" onclick="testNotification('night')">Test Night Notification</button>
+                <button class="btn btn-primary" onclick="testActualNotification('night')">Test Night Notification</button>
                 <button class="btn btn-warning" onclick="toggleNotification('night')" id="nightToggle">Pause</button>
             </div>
         </div>
@@ -177,18 +177,31 @@ $page_title = "Notification Testing";
         });
     }
 
-    // Test specific notification
-    async function testNotification(type) {
-        const config = notifications[type];
-        if (!config) return;
+    // Test actual notification
+    async function testActualNotification(type) {
+        if (Notification.permission !== 'granted') {
+            alert('Please enable notifications first');
+            return;
+        }
 
-        await showNotification(config.title, config.body, config.tag);
+        const registration = await navigator.serviceWorker.ready;
+        
+        // Send message to service worker to show the actual notification
+        registration.active.postMessage({
+            type: 'NOTIFICATION_STATES',
+            states: {
+                hourly: type === 'hourly',
+                morning: type === 'morning',
+                night: type === 'night'
+            },
+            isTest: true
+        });
     }
 
     // Test all notifications
     async function testAllNotifications() {
         for (const type in notifications) {
-            await testNotification(type);
+            await testActualNotification(type);
             await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between notifications
         }
     }

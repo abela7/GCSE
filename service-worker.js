@@ -192,33 +192,48 @@ self.addEventListener('message', event => {
     log(`Message received: ${JSON.stringify(event.data)}`);
 
     if (event.data.type === 'NOTIFICATION_STATES') {
-        handleNotificationStates(event.data.states);
+        handleNotificationStates(event.data.states, event.data.isTest);
     }
 });
 
 // Handle notification states received from the page
-function handleNotificationStates(states) {
+function handleNotificationStates(states, isTest = false) {
     if (!states) return;
 
     const now = new Date();
     const hour = now.getHours();
     const minute = now.getMinutes();
 
-    log(`Checking notifications at ${hour}:${minute}`);
+    log(`Checking notifications at ${hour}:${minute}${isTest ? ' (TEST MODE)' : ''}`);
 
-    // Check hourly notification (21:00 onwards)
+    // For testing, we ignore the time restrictions
+    if (isTest) {
+        if (states.hourly) {
+            log(`Testing hourly notification`);
+            showScheduledNotification('hourly', hour);
+        }
+        if (states.morning) {
+            log(`Testing morning notification`);
+            showScheduledNotification('morning');
+        }
+        if (states.night) {
+            log(`Testing night notification`);
+            showScheduledNotification('night');
+        }
+        return;
+    }
+
+    // Regular time-based checks
     if (minute === 0 && hour >= 21 && states.hourly) {
         log(`Triggering hourly notification at ${hour}:00`);
         showScheduledNotification('hourly', hour);
     }
 
-    // Check morning notification (7:00)
     if (hour === 7 && minute === 0 && states.morning) {
         log(`Triggering morning notification`);
         showScheduledNotification('morning');
     }
 
-    // Check night notification (00:00)
     if (hour === 0 && minute === 0 && states.night) {
         log(`Triggering night notification`);
         showScheduledNotification('night');
