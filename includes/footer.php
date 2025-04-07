@@ -6,7 +6,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-0 text-muted">&copy; <?php echo date('Y'); ?> GCSE Tracker</p>
+                        <p class="mb-0 text-muted">&copy; 2025 GCSE Tracker</p>
                     </div>
                     <div class="col-md-6 text-md-end">
                         <a href="#" class="text-muted me-2">Privacy Policy</a>
