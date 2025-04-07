@@ -41,6 +41,19 @@ $tasks_query = "
 $tasks_result = $conn->query($tasks_query);
 $tasks = $tasks_result->fetch_all(MYSQLI_ASSOC);
 
+// Get today's habits
+$habits_query = "
+    SELECT h.*, hc.name as category_name, hc.color as category_color,
+           hp.status as today_status
+    FROM habits h
+    LEFT JOIN habit_categories hc ON h.category_id = hc.id
+    LEFT JOIN habit_progress hp ON h.id = hp.habit_id AND hp.date = CURRENT_DATE
+    WHERE h.is_active = 1
+    ORDER BY h.target_time ASC
+";
+$habits_result = $conn->query($habits_query);
+$habits = $habits_result->fetch_all(MYSQLI_ASSOC);
+
 // Fetch today's English practice items
 $english_query = "
     SELECT pi.*, pc.name as category_name,
@@ -92,6 +105,45 @@ require_once '../includes/header.php';
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <!-- Today's Habits -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Today's Habits</h5>
+                            <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>
+                        </div>
+                        <?php if (empty($habits)): ?>
+                            <p class="text-muted mb-0">No habits set for today</p>
+                        <?php else: ?>
+                            <div class="habits-list">
+                                <?php foreach ($habits as $habit): ?>
+                                    <div class="habit-item d-flex align-items-center p-2 border-bottom">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input habit-checkbox" 
+                                                   data-habit-id="<?php echo $habit['id']; ?>"
+                                                   <?php echo $habit['today_status'] === 'completed' ? 'checked' : ''; ?>>
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-1"><?php echo htmlspecialchars($habit['name']); ?></h6>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge" style="background-color: <?php echo $habit['category_color']; ?>">
+                                                    <?php echo htmlspecialchars($habit['category_name']); ?>
+                                                </span>
+                                                <?php if ($habit['target_time']): ?>
+                                                    <span class="ms-2 text-muted small">
+                                                        <i class="far fa-clock"></i> 
+                                                        <?php echo date('g:i A', strtotime($habit['target_time'])); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
                 <!-- Today's Tasks -->
                 <div class="card mb-4">
@@ -223,15 +275,15 @@ require_once '../includes/header.php';
     background-color: var(--accent-color);
 }
 
-.task-item:hover {
+.task-item:hover, .habit-item:hover {
     background-color: rgba(0, 0, 0, 0.02);
 }
 
-.task-checkbox {
+.task-checkbox, .habit-checkbox {
     border-color: var(--accent-color);
 }
 
-.task-checkbox:checked {
+.task-checkbox:checked, .habit-checkbox:checked {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
 }
@@ -258,6 +310,30 @@ require_once '../includes/header.php';
     font-weight: 500;
     padding: 0.5em 0.75em;
 }
+
+.completion-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
 </style>
 
 <script>
@@ -280,7 +356,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success) {
                         taskItem.style.opacity = '0.5';
-                        setTimeout(() => taskItem.remove(), 500);
+                        setTimeout(() => {
+                            taskItem.remove();
+                            checkAllCompleted('.task-list', 'tasks');
+                        }, 500);
+                    } else {
+                        this.checked = false;
+                    }
+                });
+            }
+        });
+    });
+
+    // Habit completion handling
+    document.querySelectorAll('.habit-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const habitId = this.dataset.habitId;
+            const habitItem = this.closest('.habit-item');
+            
+            if (this.checked) {
+                fetch('update_habit_status.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `habit_id=${habitId}&status=completed`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        habitItem.style.opacity = '0.5';
+                        setTimeout(() => {
+                            habitItem.remove();
+                            checkAllCompleted('.habits-list', 'habits');
+                        }, 500);
                     } else {
                         this.checked = false;
                     }
@@ -311,6 +420,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Function to check if all items are completed
+    function checkAllCompleted(containerSelector, type) {
+        const container = document.querySelector(containerSelector);
+        if (container && container.children.length === 0) {
+            showCompletionMessage(`All ${type} completed for today!`);
+        }
+    }
+
+    // Function to show completion message
+    function showCompletionMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'completion-message';
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.style.opacity = '0';
+            setTimeout(() => messageDiv.remove(), 300);
+        }, 3000);
+    }
 });
 </script>
 
