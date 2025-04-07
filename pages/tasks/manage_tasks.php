@@ -128,7 +128,57 @@ $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
 $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
 
 // Fetch tasks using UNION ALL
-$sql = " SELECT t.id AS task_id, t.title, t.description, t.priority, t.task_type, t.category_id, t.is_active AS task_is_active, t.estimated_duration, c.name AS category_name, c.icon AS category_icon, c.color AS category_color, NULL AS instance_id, t.due_date AS effective_due_date, t.due_time AS effective_due_time, t.status AS effective_status FROM tasks t JOIN task_categories c ON t.category_id = c.id WHERE t.task_type = 'one-time' AND t.is_active = 1 AND t.due_date = ? UNION ALL SELECT t.id AS task_id, t.title, t.description, t.priority, t.task_type, t.category_id, t.is_active AS task_is_active, t.estimated_duration, c.name AS category_name, c.icon AS category_icon, c.color AS category_color, ti.id AS instance_id, ti.due_date AS effective_due_date, ti.due_time AS effective_due_time, ti.status AS effective_status FROM task_instances ti JOIN tasks t ON ti.task_id = t.id JOIN task_categories c ON t.category_id = c.id WHERE t.is_active = 1 AND ti.due_date = ? ORDER BY CASE WHEN effective_due_time IS NULL THEN 1 ELSE 0 END, effective_due_time ASC, FIELD(priority, 'high', 'medium', 'low'), title ASC";
+$sql = "SELECT 
+    t.id AS task_id, 
+    t.title, 
+    t.description, 
+    t.priority, 
+    t.task_type, 
+    t.category_id, 
+    t.is_active AS task_is_active, 
+    t.estimated_duration, 
+    c.name AS category_name, 
+    c.icon AS category_icon, 
+    c.color AS category_color, 
+    NULL AS instance_id, 
+    t.due_date AS effective_due_date, 
+    t.due_time AS effective_due_time, 
+    t.status AS effective_status 
+FROM tasks t 
+JOIN task_categories c ON t.category_id = c.id 
+WHERE t.task_type = 'one-time' 
+AND t.is_active = 1 
+AND t.due_date = ?
+
+UNION ALL
+
+SELECT 
+    t.id AS task_id, 
+    t.title, 
+    t.description, 
+    t.priority, 
+    t.task_type, 
+    t.category_id, 
+    t.is_active AS task_is_active, 
+    t.estimated_duration, 
+    c.name AS category_name, 
+    c.icon AS category_icon, 
+    c.color AS category_color, 
+    ti.id AS instance_id, 
+    ti.due_date AS effective_due_date, 
+    ti.due_time AS effective_due_time, 
+    ti.status AS effective_status 
+FROM task_instances ti 
+JOIN tasks t ON ti.task_id = t.id 
+JOIN task_categories c ON t.category_id = c.id 
+WHERE t.is_active = 1 
+AND ti.due_date = ?
+
+ORDER BY 
+    CASE WHEN effective_due_time IS NULL THEN 1 ELSE 0 END, 
+    effective_due_time ASC, 
+    FIELD(priority, 'high', 'medium', 'low'), 
+    title ASC";
 $stmt = $conn->prepare($sql);
 $morning_tasks = []; $evening_tasks = [];
 if (!$stmt) { error_log("Prepare failed (UNION query): " . $conn->error); $_SESSION['error'] = "Error fetching tasks.";
