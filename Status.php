@@ -1,7 +1,25 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
-require_once 'config/db_connect.php';
-require_once 'includes/functions.php';
+
+// Database connection with error handling
+try {
+    require_once '../config/db_connect.php';
+    if (!$conn) {
+        throw new Exception("Database connection failed");
+    }
+} catch (Exception $e) {
+    die("Database connection error: " . $e->getMessage());
+}
+
+try {
+    require_once '../includes/functions.php';
+} catch (Exception $e) {
+    die("Functions file error: " . $e->getMessage());
+}
 
 // Page title
 $page_title = "Status Dashboard";
@@ -188,7 +206,7 @@ $assignments_result = $conn->query($assignments_query);
 $assignments_data = $assignments_result->fetch_assoc();
 
 // Include header
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -1164,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 // Include footer
-include 'includes/footer.php';
+include '../includes/footer.php';
 
 // Close database connection
 close_connection($conn);

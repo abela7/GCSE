@@ -112,33 +112,33 @@ require_once '../includes/header.php';
                         <a href="habits/index.php" class="btn btn-sm btn-accent">
                             <i class="bi bi-plus"></i> Add Habit
                         </a>
-                    </div>
-                    <div class="card-body">
+            </div>
+                                        <div class="card-body">
                         <?php if ($habits_result->num_rows > 0): ?>
                             <div class="list-group">
                                 <?php while ($habit = $habits_result->fetch_assoc()): ?>
                                     <?php if ($habit['today_status'] !== 'Completed'): ?>
                                         <a href="habits/index.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                            <div>
+                                                <div>
                                                 <input type="checkbox" class="form-check-input habit-checkbox" 
                                                        data-habit-id="<?php echo $habit['id']; ?>">
                                                 <span class="ms-2"><?php echo htmlspecialchars($habit['name']); ?></span>
                                                 <?php if ($habit['category_name']): ?>
                                                     <span class="badge" style="background-color: <?php echo $habit['category_color']; ?>">
                                                         <?php echo htmlspecialchars($habit['category_name']); ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <small class="text-muted">
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                                    <small class="text-muted">
                                                 Target: <?php echo $habit['target_time']; ?> minutes
-                                            </small>
+                                                    </small>
                                         </a>
-                                    <?php endif; ?>
+                                            <?php endif; ?>
                                 <?php endwhile; ?>
                             </div>
-                        <?php else: ?>
+                            <?php else: ?>
                             <p class="text-muted">No habits set for today</p>
-                        <?php endif; ?>
+                            <?php endif; ?>
                     </div>
                 </div>
 
