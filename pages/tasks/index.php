@@ -997,33 +997,67 @@ while ($task = $result->fetch_assoc()) {
 /* Add this to the existing style section */
 .date-navigation {
     background: white;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    margin-left: 1rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
 .date-display {
     font-weight: 500;
-    min-width: 200px;
+    color: #2d3436;
     text-align: center;
+    flex: 1;
+    font-size: 1.1rem;
 }
 
-@media (max-width: 768px) {
+.date-navigation .btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: none;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.date-navigation .btn:hover {
+    background: #e9ecef;
+    color: #2d3436;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 576px) {
     .date-navigation {
-        margin-left: 0;
-        margin-top: 1rem;
-        width: 100%;
+        padding: 0.625rem;
+        margin: 0.5rem 0;
     }
     
     .date-display {
         font-size: 0.9rem;
-        min-width: 150px;
+        padding: 0 0.5rem;
+    }
+    
+    .date-navigation .btn {
+        width: 32px;
+        height: 32px;
     }
     
     .page-header .d-flex {
         flex-direction: column;
-        align-items: flex-start !important;
+        align-items: stretch !important;
+        width: 100%;
+    }
+    
+    .page-header .d-flex > div {
+        width: 100%;
     }
 }
 </style>
