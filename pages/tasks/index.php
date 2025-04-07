@@ -165,7 +165,7 @@ while ($task = $result->fetch_assoc()) {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex">
                 
-                <div class="date-navigation d-flex align-items-center gap-2">
+                <div class="date-navigation d-flex mb-3 gap-2">
                     <a href="?date=<?php echo $prevDate; ?>" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-chevron-left"></i>
                     </a>
