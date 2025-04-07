@@ -1,19 +1,19 @@
-const CACHE_NAME = 'just-do-it-v4';
+const CACHE_NAME = 'just-do-it-v5';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.php',
-    '/manifest.json',
-    '/offline.html',
-    '/assets/js/pwa.js',
-    '/assets/js/main.js',
-    '/assets/css/main.css',
-    '/assets/css/responsive.css',
-    '/assets/favicon/android-chrome-192x192.png',
-    '/assets/favicon/android-chrome-512x512.png',
-    '/assets/favicon/apple-touch-icon.png',
-    '/assets/favicon/favicon-16x16.png',
-    '/assets/favicon/favicon-32x32.png',
-    '/assets/favicon/favicon.ico',
+    './',
+    './index.php',
+    './manifest.json',
+    './offline.html',
+    './assets/js/pwa.js',
+    './assets/js/main.js',
+    './assets/css/main.css',
+    './assets/css/responsive.css',
+    './assets/favicon/android-chrome-192x192.png',
+    './assets/favicon/android-chrome-512x512.png',
+    './assets/favicon/apple-touch-icon.png',
+    './assets/favicon/favicon-16x16.png',
+    './assets/favicon/favicon-32x32.png',
+    './assets/favicon/favicon.ico',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
@@ -61,21 +61,35 @@ self.addEventListener('activate', (event) => {
 
 // Helper function to determine if a resource should be cached
 function shouldCache(url) {
-    const parsedUrl = new URL(url);
-    
-    // Always cache static assets
-    if (parsedUrl.pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|json|html)$/)) {
-        return true;
+    try {
+        const parsedUrl = new URL(url);
+        
+        // Don't cache cross-origin requests except for our CDN resources
+        if (!parsedUrl.href.startsWith(self.location.origin) && 
+            !parsedUrl.href.includes('cdn.jsdelivr.net') && 
+            !parsedUrl.href.includes('cdnjs.cloudflare.com') &&
+            !parsedUrl.href.includes('code.jquery.com')) {
+            return false;
+        }
+        
+        // Always cache static assets
+        if (parsedUrl.pathname.match(/\.(js|css|png|jpg|jpeg|gif|ico|json|html)$/)) {
+            return true;
+        }
+        
+        // Cache the main entry points
+        const path = parsedUrl.pathname.replace(/^\/+/, '');
+        if (path === '' || 
+            path === 'index.php' || 
+            path.endsWith('/index.php')) {
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('[ServiceWorker] Error in shouldCache:', error);
+        return false;
     }
-    
-    // Cache the main entry points
-    if (parsedUrl.pathname === '/index.php' || 
-        parsedUrl.pathname === '/' || 
-        parsedUrl.pathname.endsWith('/index.php')) {
-        return true;
-    }
-    
-    return false;
 }
 
 // Network-first strategy for dynamic content
@@ -104,7 +118,7 @@ async function networkFirst(request) {
         if (request.mode === 'navigate') {
             console.log('[ServiceWorker] Returning offline page for:', request.url);
             const cache = await caches.open(CACHE_NAME);
-            return cache.match('/offline.html');
+            return cache.match('./offline.html');
         }
         throw error;
     }
