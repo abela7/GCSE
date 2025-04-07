@@ -265,16 +265,10 @@ require_once 'db_connect.php';
                                 </a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <li class="nav-item">
+                            <a href="/pages/assignments.php" class="nav-link <?php echo $current_page == 'assignments.php' ? 'active' : ''; ?>">
                                 <i class="fas fa-graduation-cap me-1"></i> Access to HE
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/pages/assignments.php">Assignments</a></li>
-                                <li><a class="dropdown-item" href="/pages/access_progress.php">Progress</a></li>
-                                <li><a class="dropdown-item" href="/pages/access_resources.php">Resources</a></li>
-                                <li><a class="dropdown-item" href="/pages/access_schedule.php">Schedule</a></li>
-                            </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
