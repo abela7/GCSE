@@ -1,6 +1,14 @@
+// Enhanced debug logging function
+function log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = `[ServiceWorker ${type.toUpperCase()}]`;
+    console.log(`${prefix} [${timestamp}] ${message}`);
+}
+
 // Debug function to log all details about a request
 function debugRequest(prefix, request) {
-    console.log(`[DEBUG] ${prefix} Details:`, {
+    log(`${prefix} Details:`, 'debug');
+    log(JSON.stringify({
         url: request.url,
         method: request.method,
         mode: request.mode,
@@ -9,28 +17,24 @@ function debugRequest(prefix, request) {
         referrer: request.referrer,
         headers: Array.from(request.headers.entries()),
         cache: request.cache
-    });
+    }, null, 2), 'debug');
 }
 
 // Debug function to log response details
 function debugResponse(prefix, response) {
     if (!response) {
-        console.log(`[DEBUG] ${prefix}: Response is null or undefined`);
+        log(`${prefix}: Response is null or undefined`, 'error');
         return;
     }
-    console.log(`[DEBUG] ${prefix} Details:`, {
+    log(`${prefix} Details:`, 'debug');
+    log(JSON.stringify({
         url: response.url,
         status: response.status,
         statusText: response.statusText,
         type: response.type,
         headers: Array.from(response.headers.entries()),
         redirected: response.redirected
-    });
-}
-
-// Debug logging function
-function log(message) {
-    console.log(`[ServiceWorker] ${message}`);
+    }, null, 2), 'debug');
 }
 
 // Get the base URL
@@ -39,17 +43,17 @@ const getBaseUrl = () => {
 };
 
 const CACHE_NAME = 'gcse-app-v1';
-const OFFLINE_URL = 'offline.html';
+const OFFLINE_URL = '/offline.html';
 
 // Assets to cache
 const ASSETS_TO_CACHE = [
-    './',
-    'offline.html',
-    'assets/css/style.css',
-    'assets/js/mobile-notifications.js',
-    'manifest.json',
-    'assets/images/icon-192x192.png',
-    'assets/images/icon-96x96.png'
+    '/',
+    '/offline.html',
+    '/assets/css/style.css',
+    '/assets/js/mobile-notifications.js',
+    '/manifest.json',
+    '/assets/images/icon-192x192.png',
+    '/assets/images/icon-96x96.png'
 ];
 
 // Make a URL absolute using the service worker scope
@@ -62,25 +66,48 @@ const makeAbsoluteUrl = (path) => {
 
 // Service Worker installation
 self.addEventListener('install', event => {
-    log('Installing...');
-    self.skipWaiting();
-    log('Installed');
+    log('Installation started', 'info');
+    event.waitUntil(
+        Promise.resolve()
+            .then(() => {
+                log('Skipping waiting', 'info');
+                return self.skipWaiting();
+            })
+            .then(() => {
+                log('Installation completed successfully', 'success');
+            })
+            .catch(error => {
+                log(`Installation failed: ${error}`, 'error');
+                throw error;
+            })
+    );
 });
 
 // Service Worker activation
 self.addEventListener('activate', event => {
-    log('Activating...');
+    log('Activation started', 'info');
     event.waitUntil(
         Promise.all([
-            clients.claim(),
-            checkScheduledNotifications() // Start the notification checker
-        ]).then(() => {
-            log('Activated and claimed clients');
-            // Notify all clients that the service worker is ready
-            return self.clients.matchAll()
-                .then(clients => {
-                    clients.forEach(client => client.postMessage({ type: 'SW_READY' }));
-                });
+            clients.claim().then(() => {
+                log('Clients claimed successfully', 'success');
+            }),
+            checkScheduledNotifications().then(() => {
+                log('Initial notification check completed', 'success');
+            })
+        ])
+        .then(() => {
+            log('Activation completed successfully', 'success');
+            return self.clients.matchAll();
+        })
+        .then(clients => {
+            clients.forEach(client => {
+                log(`Notifying client: ${client.id}`, 'info');
+                client.postMessage({ type: 'SW_READY' });
+            });
+        })
+        .catch(error => {
+            log(`Activation failed: ${error}`, 'error');
+            throw error;
         })
     );
 });
@@ -93,16 +120,16 @@ self.addEventListener('notificationclick', event => {
     event.notification.close();
 
     // Handle different notification types
-    let url = './';
+    let url = '/';
     switch (event.notification.tag) {
         case 'hourly-reminder':
-            url = 'tasks.php';
+            url = '/tasks.php';
             break;
         case 'morning-motivation':
-            url = 'dashboard.php';
+            url = '/dashboard.php';
             break;
         case 'night-reminder':
-            url = 'bible-study.php';
+            url = '/bible-study.php';
             break;
     }
 
@@ -242,6 +269,8 @@ function handleNotificationStates(states, isTest = false) {
 
 // Show a scheduled notification
 async function showScheduledNotification(type, hour = null) {
+    log(`Preparing to show ${type} notification${hour ? ` for ${hour}:00` : ''}`, 'info');
+    
     const notifications = {
         hourly: {
             title: "Time Check",
@@ -264,21 +293,26 @@ async function showScheduledNotification(type, hour = null) {
     };
 
     const config = notifications[type];
-    if (!config) return;
+    if (!config) {
+        log(`Invalid notification type: ${type}`, 'error');
+        return;
+    }
 
     try {
+        log(`Showing ${type} notification`, 'info');
         await self.registration.showNotification(config.title, {
             body: config.body,
-            icon: 'assets/images/icon-192x192.png',
+            icon: '/assets/images/icon-192x192.png',
             tag: config.tag,
             vibrate: [200, 100, 200],
             requireInteraction: true,
             silent: false,
             timestamp: Date.now()
         });
-        log(`Scheduled notification shown: ${type} at ${new Date().toLocaleTimeString()}`);
+        log(`${type} notification shown successfully`, 'success');
     } catch (error) {
-        log(`Error showing scheduled notification: ${error}`);
+        log(`Error showing ${type} notification: ${error}`, 'error');
+        throw error;
     }
 }
 

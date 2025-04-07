@@ -69,6 +69,18 @@ require_once __DIR__ . '/../includes/header.php';
                             <button class="btn btn-warning" onclick="toggleNotification('night')" id="nightToggle">Pause</button>
                         </div>
                     </div>
+
+                    <!-- Debug Console -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Debug Console</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="debugConsole" style="background: #f8f9fa; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto; font-family: monospace;">
+                            </div>
+                            <button class="btn btn-secondary mt-2" onclick="clearDebugConsole()">Clear Debug Log</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,34 +93,64 @@ const notifications = {
     hourly: {
         title: "Time Check",
         body: "Make sure you are on track, keep doing all your tasks!",
-        icon: "../assets/images/icon-192x192.png",
+        icon: "/assets/images/icon-192x192.png",
         tag: "hourly-reminder",
         enabled: true
     },
     morning: {
         title: "Good Morning Abela",
         body: "Make sure you stay productive today, Time is your only Precious Gift!",
-        icon: "../assets/images/icon-192x192.png",
+        icon: "/assets/images/icon-192x192.png",
         tag: "morning-motivation",
         enabled: true
     },
     night: {
         title: "Good Night Reflection",
         body: "Tomorrow is a new Day! Thank GOD for everything, Do not forget to Study Bible.",
-        icon: "../assets/images/icon-192x192.png",
+        icon: "/assets/images/icon-192x192.png",
         tag: "night-reminder",
         enabled: true
     }
 };
 
+// Debug logging function
+function debugLog(message, type = 'info') {
+    const debugConsole = document.getElementById('debugConsole');
+    const timestamp = new Date().toLocaleTimeString();
+    const colors = {
+        info: 'text-info',
+        success: 'text-success',
+        warning: 'text-warning',
+        error: 'text-danger'
+    };
+    
+    const logEntry = document.createElement('div');
+    logEntry.className = colors[type];
+    logEntry.textContent = `[${timestamp}] ${message}`;
+    debugConsole.appendChild(logEntry);
+    debugConsole.scrollTop = debugConsole.scrollHeight;
+    
+    // Also log to browser console
+    console.log(`[DEBUG] ${message}`);
+}
+
+function clearDebugConsole() {
+    document.getElementById('debugConsole').innerHTML = '';
+    debugLog('Debug console cleared', 'info');
+}
+
 // Initialize notification system
 async function initializeNotifications() {
+    debugLog('Initializing notifications...', 'info');
     updatePermissionStatus();
     
     if (Notification.permission === 'granted') {
+        debugLog('Notification permission already granted', 'success');
         await registerServiceWorker();
         updateAllStatuses();
         startNotificationScheduler();
+    } else {
+        debugLog('Notification permission not granted', 'warning');
     }
 }
 
@@ -133,14 +175,14 @@ function updatePermissionStatus() {
 // Register service worker
 async function registerServiceWorker() {
     try {
-        // Use relative path for service worker
-        const registration = await navigator.serviceWorker.register('../service-worker.js', {
-            scope: '../'
+        debugLog('Registering service worker...', 'info');
+        const registration = await navigator.serviceWorker.register('/service-worker.js', {
+            scope: '/'
         });
-        console.log('ServiceWorker registered:', registration);
+        debugLog('ServiceWorker registered successfully', 'success');
         return registration;
     } catch (error) {
-        console.error('ServiceWorker registration failed:', error);
+        debugLog(`ServiceWorker registration failed: ${error}`, 'error');
         throw error;
     }
 }
@@ -148,15 +190,19 @@ async function registerServiceWorker() {
 // Request notification permission
 async function requestPermission() {
     try {
+        debugLog('Requesting notification permission...', 'info');
         const permission = await Notification.requestPermission();
         updatePermissionStatus();
         
         if (permission === 'granted') {
+            debugLog('Notification permission granted', 'success');
             await initializeNotifications();
             showNotification('Welcome', 'Notifications have been enabled!');
+        } else {
+            debugLog(`Notification permission ${permission}`, 'warning');
         }
     } catch (error) {
-        console.error('Error requesting permission:', error);
+        debugLog(`Error requesting permission: ${error}`, 'error');
         alert('Error requesting notification permission: ' + error.message);
     }
 }
@@ -168,7 +214,7 @@ async function showNotification(title, body, tag = 'test') {
     const registration = await navigator.serviceWorker.ready;
     await registration.showNotification(title, {
         body: body,
-        icon: '../assets/images/icon-192x192.png',
+        icon: '/assets/images/icon-192x192.png',
         tag: tag,
         vibrate: [200, 100, 200],
         requireInteraction: true
@@ -178,22 +224,28 @@ async function showNotification(title, body, tag = 'test') {
 // Test actual notification
 async function testActualNotification(type) {
     if (Notification.permission !== 'granted') {
+        debugLog('Cannot test notification - permission not granted', 'warning');
         alert('Please enable notifications first');
         return;
     }
 
-    const registration = await navigator.serviceWorker.ready;
-    
-    // Send message to service worker to show the actual notification
-    registration.active.postMessage({
-        type: 'NOTIFICATION_STATES',
-        states: {
-            hourly: type === 'hourly',
-            morning: type === 'morning',
-            night: type === 'night'
-        },
-        isTest: true
-    });
+    try {
+        debugLog(`Testing ${type} notification...`, 'info');
+        const registration = await navigator.serviceWorker.ready;
+        
+        registration.active.postMessage({
+            type: 'NOTIFICATION_STATES',
+            states: {
+                hourly: type === 'hourly',
+                morning: type === 'morning',
+                night: type === 'night'
+            },
+            isTest: true
+        });
+        debugLog(`Test message sent to service worker for ${type}`, 'success');
+    } catch (error) {
+        debugLog(`Error testing notification: ${error}`, 'error');
+    }
 }
 
 // Test all notifications
@@ -207,9 +259,13 @@ async function testAllNotifications() {
 // Toggle notification state
 function toggleNotification(type) {
     const config = notifications[type];
-    if (!config) return;
+    if (!config) {
+        debugLog(`Invalid notification type: ${type}`, 'error');
+        return;
+    }
 
     config.enabled = !config.enabled;
+    debugLog(`${type} notifications ${config.enabled ? 'enabled' : 'disabled'}`, 'info');
     updateStatus(type);
     saveNotificationStates();
 }
@@ -341,8 +397,11 @@ function checkScheduledNotifications() {
     const hour = now.getHours();
     const minute = now.getMinutes();
 
+    debugLog(`Checking scheduled notifications at ${hour}:${minute}`, 'info');
+
     // Hourly notification (21:00 onwards)
     if (minute === 0 && hour >= 21 && notifications.hourly.enabled) {
+        debugLog('Triggering hourly notification', 'info');
         showNotification(
             notifications.hourly.title,
             `${hour}:00 - ${notifications.hourly.body}`,
@@ -352,6 +411,7 @@ function checkScheduledNotifications() {
 
     // Morning notification (7:00)
     if (hour === 7 && minute === 0 && notifications.morning.enabled) {
+        debugLog('Triggering morning notification', 'info');
         showNotification(
             notifications.morning.title,
             notifications.morning.body,
@@ -361,6 +421,7 @@ function checkScheduledNotifications() {
 
     // Night notification (00:00)
     if (hour === 0 && minute === 0 && notifications.night.enabled) {
+        debugLog('Triggering night notification', 'info');
         showNotification(
             notifications.night.title,
             notifications.night.body,
@@ -371,6 +432,7 @@ function checkScheduledNotifications() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    debugLog('Page loaded, initializing notification system...', 'info');
     loadNotificationStates();
     initializeNotifications();
 });
