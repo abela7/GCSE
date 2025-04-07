@@ -187,7 +187,7 @@ while ($task = $result->fetch_assoc()) {
                 <div class="greeting-icon">
                     <i class="fas <?php echo $icon; ?>"></i>
                 </div>
-                <span class="greeting-text"><?php echo $greeting; ?> • <?php echo date('l, j F Y'); ?></span>
+                <span class="greeting-text"><?php echo $greeting; ?></span>
             </div>
             <div class="greeting-actions">
                 <a href="manage_tasks.php" class="action-btn settings-btn">
