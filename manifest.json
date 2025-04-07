@@ -2,7 +2,8 @@
   "name": "Just Do It",
   "short_name": "Do It",
   "description": "GCSE Study Tracker - Track your progress and stay motivated",
-  "start_url": "/index.php",
+  "start_url": "./index.php",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#cdaf56",
@@ -26,13 +27,13 @@
       "name": "Tasks",
       "short_name": "Tasks",
       "description": "View your tasks",
-      "url": "/pages/tasks.php"
+      "url": "./pages/tasks.php"
     },
     {
       "name": "Status",
       "short_name": "Status",
       "description": "Check your progress",
-      "url": "/status.php"
+      "url": "./status.php"
     }
   ]
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'just-do-it-v3';
+const CACHE_NAME = 'just-do-it-v4';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.php',
@@ -68,8 +68,10 @@ function shouldCache(url) {
         return true;
     }
     
-    // Don't cache PHP files except index.php
-    if (parsedUrl.pathname === '/index.php' || parsedUrl.pathname === '/') {
+    // Cache the main entry points
+    if (parsedUrl.pathname === '/index.php' || 
+        parsedUrl.pathname === '/' || 
+        parsedUrl.pathname.endsWith('/index.php')) {
         return true;
     }
     
@@ -79,25 +81,28 @@ function shouldCache(url) {
 // Network-first strategy for dynamic content
 async function networkFirst(request) {
     try {
-        // Try network first
+        console.log('[ServiceWorker] Trying network first for:', request.url);
         const networkResponse = await fetch(request);
         if (networkResponse && networkResponse.status === 200) {
             // Cache successful responses
             if (shouldCache(request.url)) {
                 const cache = await caches.open(CACHE_NAME);
-                cache.put(request, networkResponse.clone());
+                await cache.put(request, networkResponse.clone());
+                console.log('[ServiceWorker] Cached network response for:', request.url);
             }
             return networkResponse;
         }
         throw new Error('Network response was not ok');
     } catch (error) {
-        console.log('[ServiceWorker] Network fetch failed, falling back to cache');
+        console.log('[ServiceWorker] Network fetch failed, falling back to cache for:', request.url);
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
+            console.log('[ServiceWorker] Returning cached response for:', request.url);
             return cachedResponse;
         }
         // If it's a navigation request, return the offline page
         if (request.mode === 'navigate') {
+            console.log('[ServiceWorker] Returning offline page for:', request.url);
             const cache = await caches.open(CACHE_NAME);
             return cache.match('/offline.html');
         }
@@ -107,19 +112,22 @@ async function networkFirst(request) {
 
 // Cache-first strategy for static assets
 async function cacheFirst(request) {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-        return cachedResponse;
-    }
     try {
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+            console.log('[ServiceWorker] Returning cached response for:', request.url);
+            return cachedResponse;
+        }
+        console.log('[ServiceWorker] No cache found, fetching from network:', request.url);
         const networkResponse = await fetch(request);
         if (networkResponse && networkResponse.status === 200) {
             const cache = await caches.open(CACHE_NAME);
-            cache.put(request, networkResponse.clone());
+            await cache.put(request, networkResponse.clone());
+            console.log('[ServiceWorker] Cached network response for:', request.url);
         }
         return networkResponse;
     } catch (error) {
-        console.error('[ServiceWorker] Cache first strategy failed:', error);
+        console.error('[ServiceWorker] Cache first strategy failed for:', request.url, error);
         throw error;
     }
 }
@@ -129,11 +137,7 @@ self.addEventListener('fetch', (event) => {
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;
 
-    // Skip cross-origin requests
-    if (!event.request.url.startsWith(self.location.origin)) return;
-
-    const url = new URL(event.request.url);
-    
+    // Handle the fetch event for all requests
     event.respondWith(
         // Use cache-first for static assets, network-first for everything else
         shouldCache(event.request.url) ?
