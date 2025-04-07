@@ -95,20 +95,33 @@ $view_mode = isset($_GET['view']) ? $_GET['view'] : 'day'; // Default to day vie
 $page_title = "Review Practice Items";
 
 // Daily View Logic
-$selected_date_str = date('Y-m-d'); // Default to current date in London timezone
+$today = new DateTimeImmutable('now', new DateTimeZone('Europe/London'));
+$selected_date_str = $today->format('Y-m-d'); // Always default to actual current day
+
 if ($view_mode === 'day') {
-    $selected_date_str = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+    // Only use the date from URL if it's explicitly provided and valid
+    if (isset($_GET['date'])) {
+        try {
+            $selected_date = new DateTimeImmutable($_GET['date'], new DateTimeZone('Europe/London'));
+            $selected_date_str = $selected_date->format('Y-m-d');
+        } catch (Exception $e) {
+            // If invalid date, fall back to today
+            $_SESSION['error_ep'] = "Invalid date format provided. Showing today's items.";
+            $selected_date_str = $today->format('Y-m-d');
+        }
+    }
+    
     try {
         $selected_date = new DateTimeImmutable($selected_date_str, new DateTimeZone('Europe/London'));
         $formatted_date = $selected_date->format('Y-m-d');
-        $display_date = format_practice_date($formatted_date); // Format for display
+        $display_date = format_practice_date($formatted_date);
         $page_title = "Review - " . $selected_date->format('M d, Y');
         $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
         $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
         $practice_day_id = get_practice_day_id($conn, $formatted_date);
     } catch (Exception $e) {
         $_SESSION['error_ep'] = "Invalid date format provided.";
-        header('Location: review.php'); // Redirect to default (today)
+        header('Location: review.php?view=day'); // Redirect to today's view
         exit;
     }
     $items_for_display = $practice_day_id ? get_practice_items_by_day($conn, $practice_day_id) : [];
