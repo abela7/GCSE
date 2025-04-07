@@ -2,56 +2,56 @@
   "name": "Do-It",
   "short_name": "Do-It",
   "description": "Track your tasks and stay motivated",
-  "start_url": "/GCSE/index.php",
+  "start_url": "/index.php",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#cdaf56",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/GCSE/assets/images/icon-72x72.png",
+      "src": "/assets/images/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-96x96.png",
+      "src": "/assets/images/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-128x128.png",
+      "src": "/assets/images/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-144x144.png",
+      "src": "/assets/images/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-152x152.png",
+      "src": "/assets/images/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-192x192.png",
+      "src": "/assets/images/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/GCSE/assets/images/icon-384x384.png",
+      "src": "/assets/images/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCSE/assets/images/icon-512x512.png",
+      "src": "/assets/images/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -62,27 +62,27 @@
       "name": "Tasks",
       "short_name": "Tasks",
       "description": "View your tasks",
-      "url": "/GCSE/pages/tasks/index.php",
-      "icons": [{ "src": "/GCSE/assets/images/icon-96x96.png", "sizes": "96x96" }]
+      "url": "/pages/tasks/index.php",
+      "icons": [{ "src": "/assets/images/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Exams",
       "short_name": "Exams",
       "description": "View your exams",
-      "url": "/GCSE/pages/exam_countdown.php",
-      "icons": [{ "src": "/GCSE/assets/images/icon-96x96.png", "sizes": "96x96" }]
+      "url": "/pages/exam_countdown.php",
+      "icons": [{ "src": "/assets/images/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
   "screenshots": [
     {
-      "src": "/GCSE/assets/screenshots/home.png",
+      "src": "/assets/screenshots/home.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Home screen of Do-It"
     },
     {
-      "src": "/GCSE/assets/screenshots/tasks.png",
+      "src": "/assets/screenshots/tasks.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
@@ -94,10 +94,10 @@
   "lang": "en",
   "prefer_related_applications": false,
   "related_applications": [],
-  "scope": "/GCSE/",
+  "scope": "/",
   "iarc_rating_id": "",
   "share_target": {
-    "action": "/GCSE/pages/tasks/add.php",
+    "action": "/pages/tasks/add.php",
     "method": "GET",
     "params": {
       "title": "title",
