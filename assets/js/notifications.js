@@ -36,7 +36,7 @@ async function requestNotificationPermission() {
     if (!('Notification' in window)) {
         console.error('This browser does not support notifications');
         if (isMobileDevice()) {
-            alert('Notifications might not be supported on your mobile browser. For best experience, please ensure notifications are enabled in your browser settings.');
+            alert('Notifications might not be supported on your mobile browser. For best experience, please ensure notifications are enabled in your browser settings!.');
         }
         return;
     }
