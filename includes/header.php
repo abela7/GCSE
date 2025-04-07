@@ -14,15 +14,15 @@ require_once 'db_connect.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GCSE Tracker<?php echo isset($page_title) ? ' - ' . $page_title : ''; ?></title>
+    <title><?php echo isset($page_title) ? $page_title . ' - Just Do It' : 'Just Do It'; ?></title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#cdaf56">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="StudyTracker">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Just Do It">
     <meta name="application-name" content="GCSE Study Tracker">
-    <meta name="description" content="Track your GCSE study progress, tasks, habits, and exams">
+    <meta name="description" content="Track your GCSE study progress and stay motivated">
     
     <!-- PWA Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -234,6 +234,21 @@ require_once 'db_connect.php';
     <script>
         console.log('Notifications.js should be loaded now');
     </script>
+
+    <!-- PWA Registration Script -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
     
@@ -328,3 +343,14 @@ require_once 'db_connect.php';
                 </div>
             </div>
             <?php endif; ?>
+
+            <!-- Add Install Prompt -->
+            <div id="installPrompt" class="alert alert-info alert-dismissible fade d-none" role="alert">
+                <strong>Install App!</strong> Add this app to your home screen for quick access.
+                <button id="installButton" class="btn btn-outline-primary btn-sm ms-3">Install</button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
