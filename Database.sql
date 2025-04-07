@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 07, 2025 at 11:04 AM
+-- Generation Time: Apr 08, 2025 at 12:09 AM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -560,7 +560,7 @@ CREATE TABLE `exams` (
 INSERT INTO `exams` (`id`, `subject_id`, `title`, `exam_date`, `duration`, `location`, `exam_board`, `paper_code`, `importance`, `notes`, `section_a_topics`, `section_b_topics`, `total_marks`, `calculator_allowed`, `formula_sheet_provided`, `equipment_needed`, `special_instructions`, `revision_resources`, `exam_tips`, `syllabus_link`) VALUES
 (1, 2, 'Mathematics Paper 1: Non-Calculator (Higher Tier)', '2025-05-15 09:00:00', 90, 'Main Hall', 'Edexcel', 'MATH1', 5, 'This is the first of three papers for the Edexcel GCSE Maths Higher Tier. No calculator allowed. Paper contributes one-third to the overall Maths GCSE grade.', 'Covers:\n\r\n- Number\n\r\n- Algebra\n\r\n- Ratio, proportion and rates of change\n\r\n- Geometry and measures\n\r\n- Probability\n\r\n- Statistics\n\n\r\nSkills Tested:\n\r\n- Manual calculation skills\n\r\n- Algebraic manipulation\n\r\n- Applying maths to problem-solving situations\n\r\n- Interpreting data and diagrams', 'All questions are compulsory.\n\r\n- Mixture of short, structured and multi-step questions\n\r\n- Word problems, diagrams, real-world maths scenarios', 80, 0, 1, 'Black pen\nPencil\nRuler\nRubber\nProtractor\nCompass\nScientific calculator (not allowed for Paper 1)', '- Show full working out\n\r\n- Write clearly and label diagrams\n\r\n- Attempt every question\n\r\n- Answer all questions in the spaces provided', '1. Pearson Maths Higher Tier Revision Guide\n\r\n2. Exam-style practice papers (non-calculator)\n\r\n3. GCSE Maths Tutor YouTube\n\r\n4. Corbettmaths revision cards\n\r\n5. Dr Frost Maths practice sets', '- Read each question carefully\n\r\n- Show full method even if unsure\n\r\n- Watch your units and rounding\n\r\n- Check your work with estimation', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/mathematics/2015/specification-and-sample-assesment/gcse-maths-2015-specification.pdf'),
 (2, 2, 'Mathematics Paper 2: Calculator (Higher Tier)', '2025-06-04 09:00:00', 90, 'Main Hall', 'Edexcel', 'MATH2', 5, 'This is the second of three papers for Edexcel GCSE Maths Higher Tier. A calculator is allowed. Paper contributes one-third to the overall Maths GCSE grade.', 'Covers:\n\r\n- Number\n\r\n- Algebra\n\r\n- Ratio, proportion and rates of change\n\r\n- Geometry and measures\n\r\n- Probability\n\r\n- Statistics\n\n\r\nSkills Tested:\n\r\n- Calculator-based problem solving\n\r\n- Interpreting multi-step problems\n\r\n- Working with percentages, indices, graphs, etc.', 'All questions are compulsory.\n\r\n- Real-world applications of maths\n\r\n- Use of formulae, diagrams, conversions\n\r\n- Mix of short and long questions requiring written methods', 80, 1, 1, 'Black pen\nPencil\nRuler\nRubber\nProtractor\nCompass\nScientific calculator', '- Use your calculator efficiently\n\r\n- Show working even when using a calculator\n\r\n- Write clearly and neatly\n\r\n- Round answers only when instructed', '1. Pearson Maths Higher Tier Workbook\n\r\n2. JustMaths practice sets\n\r\n3. Corbettmaths and Maths Genie topic videos\n\r\n4. Examwizard past papers\n\r\n5. Dr Frost diagnostic quizzes', '- Use the calculator for accuracy\n\r\n- Check mode (degrees/radians) before you begin\n\r\n- Use formula sheet to save time\n\r\n- Estimate answers to catch errors', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/mathematics/2015/specification-and-sample-assesment/gcse-maths-2015-specification.pdf'),
-(3, 2, 'Mathematics Paper 3: Calculator (Higher Tier)', '2025-06-11 09:00:00', 90, 'Main Hall', 'Edexcel', 'MATH3', 5, 'This is the third and final paper for Edexcel GCSE Maths Higher Tier. A calculator is allowed. Paper contributes one-third to the overall Maths GCSE grade.', 'Covers:\n\r\n- Number\n\r\n- Algebra\n\r\n- Ratio, proportion and rates of change\n\r\n- Geometry and measures\n\r\n- Probability\n\r\n- Statistics\n\n\r\nSkills Tested:\n\r\n- Deep understanding across all topics\n\r\n- Linking multiple mathematical skills in one question\n\r\n- Problem-solving and logical reasoning', 'All questions are compulsory.\n\r\n- Longer, more challenging questions often appear here\n\r\n- Expect multi-step reasoning and application\n\r\n- Requires strong topic crossover understanding', 80, 1, 1, 'Black pen\nPencil\nRuler\nRubber\nProtractor\nCompass\nScientific calculator', '- Don’t panic on tricky questions – break them down\n\r\n- Show all working\n\r\n- Use formula sheet and calculator together wisely\n\r\n- Answer all questions – attempt even hard ones', '1. Advanced Maths Problem Packs\n\r\n2. Mixed-topic mock papers\n\r\n3. Corbettmaths Practice Papers\n\r\n4. Hegarty Maths Tasks\n\r\n5. GCSE Maths Tutor challenge questions', '- Paper 3 often includes trickier, unseen question types\n\r\n- Stay calm and take time to understand the problem\n\r\n- Label diagrams clearly\n\r\n- Check calculations at the end', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/mathematics/2015/specification-and-sample-assesment/gcse-maths-2015-specification.pdf'),
+(3, 2, 'Mathematics Paper 3: Calculator (Higher Tier)', '2025-06-11 09:00:00', 90, 'Main Hall', 'Edexcel', 'MATH3', 5, 'This is the third and final paper for Edexcel GCSE Maths Higher Tier. A calculator is allowed. Paper contributes one-third to the overall Maths GCSE grade.', 'Covers:\n\r\n- Number\n\r\n- Algebra\n\r\n- Ratio, proportion and rates of change\n\r\n- Geometry and measures\n\r\n- Probability\n\r\n- Statistics\n\n\r\nSkills Tested:\n\r\n- Deep understanding across all topics\n\r\n- Linking multiple mathematical skills in one question\n\r\n- Problem-solving and logical reasoning', 'All questions are compulsory.\n\r\n- Longer, more challenging questions often appear here\n\r\n- Expect multi-step reasoning and application\n\r\n- Requires strong topic crossover understanding', 80, 1, 1, 'Black pen\nPencil\nRuler\nRubber\nProtractor\nCompass\nScientific calculator', '- Don't panic on tricky questions – break them down\n\r\n- Show all working\n\r\n- Use formula sheet and calculator together wisely\n\r\n- Answer all questions – attempt even hard ones', '1. Advanced Maths Problem Packs\n\r\n2. Mixed-topic mock papers\n\r\n3. Corbettmaths Practice Papers\n\r\n4. Hegarty Maths Tasks\n\r\n5. GCSE Maths Tutor challenge questions', '- Paper 3 often includes trickier, unseen question types\n\r\n- Stay calm and take time to understand the problem\n\r\n- Label diagrams clearly\n\r\n- Check calculations at the end', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/mathematics/2015/specification-and-sample-assesment/gcse-maths-2015-specification.pdf'),
 (4, 1, 'English Language Paper 1: Fiction and Imaginative Writing', '2025-05-23 09:00:00', 105, 'Main Hall', 'Edexcel', 'ENG1', 5, 'Paper 1 = 50% of overall English Language GCSE grade. Focus on 19th-century fiction and creative writing.', 'SECTION A - READING (40 marks, 55 minutes):\n\r\n- Question 1 (4 marks): Identify 4 things from text\n\r\n- Question 2 (6 marks): Language analysis\n\r\n- Question 3 (6 marks): Structure analysis\n\r\n- Question 4 (24 marks): Evaluation\n\n\r\nSkills Tested:\n\r\n- Understanding explicit & implicit meanings\n\r\n- Analysing writer\'s use of language and structure\n\r\n- Evaluating text effectiveness\n\r\n- Selecting and using evidence', 'SECTION B - CREATIVE WRITING (40 marks, 50 minutes):\n\r\n- 24 marks: Content & Organisation\n\r\n- 16 marks: Spelling, Punctuation & Grammar (SPaG)\n\n\r\nTask Types:\n\r\n- Narrative story writing\n\r\n- Descriptive scene writing\n\n\r\nSkills Tested:\n\r\n- Creative use of language\n\r\n- Using structure effectively\n\r\n- Clear voice and sense of audience/purpose\n\r\n- Technical accuracy (SPaG)', 64, 0, 0, 'Black pen (required)\nHighlighter (optional but recommended)\nEraser', '- Answer ALL questions in Section A\n\r\n- Choose ONE question from Section B\n\r\n- SPaG is assessed (especially in Section B)\n\r\n- No calculator or dictionary allowed\n\r\n- Spend about 55 minutes on Section A\n\r\n- Spend about 50 minutes on Section B (35 mins writing + 15 mins planning & checking)', '1. Official Pearson Revision Guide\n\r\n2. Mr Bruff YouTube Channel\n\r\n3. Past Papers and Mark Schemes\n\r\n4. Examiner Reports\n\r\n5. Practice 19th Century Fiction Extracts\n\r\n6. Creative Writing Prompts Collection', 'Reading Section (Q1-Q4):\n\r\n- Use quotations in every answer (except Q1)\n\r\n- For language (Q2), focus on effect on the reader\n\r\n- For structure (Q3), think about beginning-middle-end, contrast, or shifts\n\r\n- In evaluation (Q4), use your opinion, backed up with analysis\n\n\r\nWriting Section:\n\r\n- Plan for 5 minutes: structure your ideas\n\r\n- Use sensory language – what can you see, hear, feel?\n\r\n- Use a range of sentence lengths and punctuation\n\r\n- Use paragraphs clearly – don\'t write in one chunk!\n\r\n- Proofread at the end – 16 SPaG marks matter!', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/English%20Language/2015/specification-and-sample-assessments/9781446914281_GCSE_2015_L12_EngLang.pdf'),
 (5, 1, 'English Language Paper 2: Non-Fiction and Transactional Writing', '2025-06-06 09:00:00', 125, 'Main Hall', 'Edexcel', 'ENG2', 5, 'Paper 2 = 50% of overall English Language GCSE grade. Focus on non-fiction reading and transactional writing.', 'SECTION A - READING (56 marks, ~70 minutes):\n\r\n- 2 unseen non-fiction texts (20th & 21st century)\n\r\n- Q1 (4 marks): Identify 4 facts/ideas\n\r\n- Q2 (6 marks): Language analysis (Text 1)\n\r\n- Q3 (6 marks): Structure analysis (Text 1)\n\r\n- Q4 (15 marks): Evaluation (Text 1)\n\r\n- Q5 (1-2 marks): Key ideas from Text 2\n\r\n- Q6 (15 marks): Compare writer\'s viewpoints\n\r\n- Q7 (9 marks): Synthesis of key ideas\n\n\r\nSkills Tested:\n\r\n- Reading comprehension\n\r\n- Analysing language and structure\n\r\n- Evaluating techniques and effects\n\r\n- Comparing perspectives and viewpoints', 'SECTION B - TRANSACTIONAL WRITING (40 marks, ~55 minutes):\n\r\n- 24 marks: Content & Organisation\n\r\n- 16 marks: Spelling, Punctuation & Grammar (SPaG)\n\n\r\nTask Types:\n\r\n- Article, Letter, Speech, Review, Leaflet, Essay\n\n\r\nSkills Tested:\n\r\n- Adapting tone and structure for audience/purpose\n\r\n- Organising ideas clearly\n\r\n- Persuasive and clear writing techniques\n\r\n- Technical accuracy (SPaG)', 96, 0, 0, 'Black pen (required)\nHighlighter (optional but recommended)\nEraser', '- Answer ALL questions in Section A\n\r\n- Choose ONE task from Section B\n\r\n- SPaG is assessed (especially in Section B)\n\r\n- No calculator or dictionary allowed\n\r\n- Spend about 70 minutes on Section A\n\r\n- Spend about 55 minutes on Section B (plan, write, and proofread)', '1. Pearson Revision Guide\n\r\n2. Mr Bruff YouTube Channel\n\r\n3. Past Papers and Mark Schemes\n\r\n4. Examiner Reports\n\r\n5. Sample Transactional Writing Tasks\n\r\n6. Annotated Non-Fiction Extracts', 'Reading Section (Q1–Q7):\n\r\n- Read both texts carefully and annotate key points\n\r\n- Use quotations and analyse techniques\n\r\n- Use comparative connectives in Q6 (e.g., similarly, however)\n\r\n- Focus on key differences/similarities in Q7\n\n\r\nWriting Section:\n\r\n- Know your format: speech, letter, article, etc.\n\r\n- Use rhetorical techniques (AFOREST)\n\r\n- Structure clearly: intro, main points, conclusion\n\r\n- Proofread your writing – 16 SPaG marks are critical!', 'https://qualifications.pearson.com/content/dam/pdf/GCSE/English%20Language/2015/specification-and-sample-assessments/9781446914281_GCSE_2015_L12_EngLang.pdf');
 
@@ -643,17 +643,6 @@ CREATE TABLE `habits` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `habits`
---
-
-INSERT INTO `habits` (`id`, `category_id`, `point_rule_id`, `name`, `description`, `icon`, `target_time`, `current_points`, `total_completions`, `total_procrastinated`, `total_skips`, `current_streak`, `longest_streak`, `success_rate`, `is_active`, `created_at`, `updated_at`) VALUES
-(11, 9, 2, 'Call home', '', 'fas fa-check-circle', '10:00:00', 0, 1, 0, 0, 1, 0, 100.00, 1, '2025-04-01 23:24:52', '2025-04-07 02:02:20'),
-(13, 12, 2, 'Reading Books', '', 'fas fa-check-circle', '15:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-02 13:49:34', '2025-04-02 15:01:15'),
-(14, 1, 3, 'How?', 'Okay', 'fas fa-check-circle', '05:10:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-07 02:08:55', '2025-04-07 02:08:55'),
-(15, 2, 1, 'I am Test!', '', 'fas fa-check-circle', '05:16:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-07 02:14:29', '2025-04-07 02:14:29'),
-(17, 2, 1, 'Abel Goytom', '', 'fas fa-check-circle', '03:38:00', 5, 1, 0, 0, 1, 1, 100.00, 1, '2025-04-07 02:37:22', '2025-04-07 02:43:26');
-
 -- --------------------------------------------------------
 
 --
@@ -683,7 +672,6 @@ INSERT INTO `habit_categories` (`id`, `name`, `description`, `color`, `icon`, `d
 (6, 'Family', 'Family relationships and responsibilities', '#FF69B4', 'fas fa-home', 6, '2025-04-01 21:34:00'),
 (7, 'Health', 'Physical health and fitness', '#32CD32', 'fas fa-heartbeat', 7, '2025-04-01 21:34:00'),
 (8, 'Sleep', 'Sleep schedule and routine', '#483D8B', 'fas fa-bed', 8, '2025-04-01 21:34:00'),
-(9, 'Social', 'Social connections and relationships', '#FF7F50', 'fas fa-users', 9, '2025-04-01 21:34:00'),
 (10, 'Personal Growth', 'Self-improvement and development', '#9370DB', 'fas fa-brain', 10, '2025-04-01 21:34:00'),
 (12, 'Reading', NULL, '#56a5cd', 'fas fa-book', 11, '2025-04-02 13:48:53');
 
@@ -704,13 +692,6 @@ CREATE TABLE `habit_completions` (
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `habit_completions`
---
-
-INSERT INTO `habit_completions` (`id`, `habit_id`, `completion_date`, `completion_time`, `status`, `reason`, `points_earned`, `notes`, `created_at`) VALUES
-(0, 17, '2025-04-07', '03:43:26', 'completed', NULL, 5, NULL, '2025-04-07 02:43:26');
 
 -- --------------------------------------------------------
 
@@ -757,8 +738,8 @@ CREATE TABLE `habit_progress` (
 --
 
 INSERT INTO `habit_progress` (`id`, `habit_id`, `date`, `status`, `notes`, `created_at`) VALUES
-(0, 11, '2025-04-07', 'completed', NULL, '2025-04-07 02:02:20'),
-(0, 17, '2025-04-07', 'completed', NULL, '2025-04-07 02:40:58');
+(1, 11, '2025-04-07', 'completed', NULL, '2025-04-07 02:02:20'),
+(2, 17, '2025-04-07', 'completed', NULL, '2025-04-07 02:40:58');
 
 -- --------------------------------------------------------
 
@@ -1554,7 +1535,7 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (59, 3, NULL, 'Work on Task Management UI', 'Implement date filtering.', 'one-time', 'high', 180, '2025-04-05', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 03:01:17'),
 (60, 4, NULL, 'Outline Math Paper 1 Strategy', 'Non-calculator approach.', 'one-time', 'medium', 45, '2025-04-05', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 03:22:48'),
 (61, 3, NULL, 'Update Project Documentation', 'Add details about security middleware.', 'one-time', 'low', 60, '2025-04-05', NULL, 'not_done', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 03:15:14'),
-(62, 2, NULL, 'Prepare Presentation Slides', 'For Self-Development group.', 'one-time', 'medium', 90, '2025-04-07', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
+(62, 2, NULL, 'Prepare Presentation Slides', 'For Self-Development group.', 'one-time', 'medium', 90, '2025-04-07', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-07 23:01:03'),
 (63, 4, NULL, 'Complete Math Practice Paper 2', 'Calculator paper.', 'one-time', 'high', 120, '2025-04-10', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (64, 5, NULL, 'Schedule Dentist Appointment', 'Routine check-up.', 'one-time', 'low', 10, '2025-04-12', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-07 03:07:17'),
 (65, 6, NULL, 'Research University Open Days', 'Check dates for preferred unis.', 'one-time', 'medium', 60, '2025-04-15', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
@@ -1565,8 +1546,11 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (70, 3, NULL, 'Oh I see', '', '', 'medium', 0, '2025-04-05', '06:33:00', 'pending', 0.00, 1, '2025-04-05 03:34:00', '2025-04-05 03:34:00'),
 (71, 2, NULL, 'YES ', '', 'recurring', 'high', 0, '2025-04-05', '07:50:00', 'pending', 0.00, 1, '2025-04-05 03:48:12', '2025-04-05 03:48:12'),
 (72, 9, NULL, 'Mukera', '', 'one-time', 'medium', 16, '2025-04-06', '05:33:26', 'completed', 0.00, 1, '2025-04-06 03:18:09', '2025-04-06 03:18:42'),
-(0, 2, NULL, 'TRY', '', 'one-time', 'high', 0, '2025-04-06', '00:00:09', 'pending', 0.00, 1, '2025-04-06 05:22:20', '2025-04-06 05:22:20'),
-(0, 0, NULL, 'TRY', '', 'one-time', 'high', 0, '2025-04-06', NULL, 'pending', 0.00, 1, '2025-04-07 03:08:04', '2025-04-07 03:08:04');
+(0, 2, NULL, 'Final', '', 'one-time', 'high', 10, '2025-04-07', '00:00:16', '', 0.00, 1, '2025-04-07 14:41:59', '2025-04-07 23:04:37'),
+(0, 9, NULL, 'Call Mom', '', 'one-time', 'high', 20, '2025-04-07', '20:40:00', '', 0.00, 1, '2025-04-07 19:33:14', '2025-04-07 23:04:37'),
+(0, 5, NULL, 'Eat Food', '', 'one-time', 'medium', 12, '2025-04-07', '20:45:00', '', 0.00, 1, '2025-04-07 19:33:53', '2025-04-07 23:04:37'),
+(0, 2, NULL, 'Complex ', '', 'one-time', 'medium', 20, '2025-04-07', '21:00:00', '', 0.00, 1, '2025-04-07 19:35:02', '2025-04-07 23:04:37'),
+(0, 3, NULL, 'ABel', '', 'one-time', 'high', 0, '2025-04-07', '00:00:03', '', 0.00, 1, '2025-04-07 23:02:38', '2025-04-07 23:04:37');
 
 -- --------------------------------------------------------
 
@@ -1785,7 +1769,10 @@ CREATE TABLE `topic_progress` (
 --
 
 INSERT INTO `topic_progress` (`id`, `topic_id`, `status`, `total_time_spent`, `confidence_level`, `last_studied`, `completion_date`, `notes`) VALUES
-(84, 186, 'not_started', 0, 0, NULL, NULL, '');
+(84, 186, 'not_started', 0, 0, NULL, NULL, ''),
+(0, 186, 'completed', 0, 5, '2025-04-07 12:55:33', '2025-04-07 12:55:33', ''),
+(0, 186, 'completed', 0, 5, '2025-04-07 12:55:49', '2025-04-07 12:55:49', ''),
+(0, 190, 'completed', 0, 3, '2025-04-07 12:56:27', '2025-04-07 12:56:27', '');
 
 -- --------------------------------------------------------
 
@@ -1885,6 +1872,22 @@ ALTER TABLE `habits`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `habit_completions`
+--
+ALTER TABLE `habit_completions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `habit_id_index` (`habit_id`),
+  ADD KEY `date_index` (`completion_date`);
+
+--
+-- Indexes for table `habit_progress`
+--
+ALTER TABLE `habit_progress`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `habit_id_index` (`habit_id`),
+  ADD KEY `date_index` (`date`);
+
+--
 -- Indexes for table `practice_categories`
 --
 ALTER TABLE `practice_categories`
@@ -1923,6 +1926,18 @@ ALTER TABLE `favorite_practice_items`
 --
 ALTER TABLE `habits`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `habit_completions`
+--
+ALTER TABLE `habit_completions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `habit_progress`
+--
+ALTER TABLE `habit_progress`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `practice_categories`

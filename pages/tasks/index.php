@@ -175,6 +175,12 @@ while ($task = $result->fetch_assoc()) {
                     <a href="?date=<?php echo $nextDate; ?>" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-chevron-right"></i>
                     </a>
+                    <a href="manage_tasks.php" class="btn btn-outline-primary">
+                    <i class="fas fa-tasks"></i>
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                    <i class="fas fa-plus"></i>
+                </button>
                 </div>
             </div>
         </div>
