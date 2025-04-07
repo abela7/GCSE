@@ -15,9 +15,13 @@ class MobileNotifications {
         }
 
         try {
-            // Register service worker
+            // Wait for service worker registration
             this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
             console.log('[Notifications] Service Worker registered:', this.swRegistration);
+
+            // Wait for the service worker to be ready
+            await navigator.serviceWorker.ready;
+            console.log('[Notifications] Service Worker is ready');
             
             // Check permission
             const permission = await this.checkPermission();
@@ -42,6 +46,12 @@ class MobileNotifications {
         try {
             const permission = await Notification.requestPermission();
             console.log('[Notifications] Permission response:', permission);
+            
+            if (permission === 'granted') {
+                // Re-initialize to ensure service worker is ready
+                await this.init();
+            }
+            
             return permission;
         } catch (error) {
             console.error('[Notifications] Permission request failed:', error);
@@ -49,17 +59,27 @@ class MobileNotifications {
         }
     }
 
-    async showNotification(title, options = {}) {
-        if (!this.initialized) {
+    async ensureServiceWorkerReady() {
+        if (!this.initialized || !this.swRegistration) {
             await this.init();
         }
 
-        if (!this.swRegistration) {
-            console.error('[Notifications] Service Worker not registered');
-            return false;
+        // Double check service worker is ready
+        const registration = await navigator.serviceWorker.ready;
+        if (registration !== this.swRegistration) {
+            this.swRegistration = registration;
         }
+        return this.swRegistration;
+    }
 
+    async showNotification(title, options = {}) {
         try {
+            const registration = await this.ensureServiceWorkerReady();
+            if (!registration) {
+                console.error('[Notifications] Service Worker not ready');
+                return false;
+            }
+
             const permission = await this.checkPermission();
             if (permission !== 'granted') {
                 console.log('[Notifications] Permission not granted');
@@ -78,7 +98,9 @@ class MobileNotifications {
             // Merge default options with provided options
             const notificationOptions = { ...defaultOptions, ...options };
 
-            await this.swRegistration.showNotification(title, notificationOptions);
+            // Use the active service worker to show notification
+            await registration.showNotification(title, notificationOptions);
+            console.log('[Notifications] Notification shown successfully');
             return true;
         } catch (error) {
             console.error('[Notifications] Show notification failed:', error);
@@ -88,6 +110,7 @@ class MobileNotifications {
 
     // Test notifications
     async testTaskNotification() {
+        console.log('[Notifications] Testing task notification...');
         return this.showNotification('Task Reminder', {
             body: 'This is a test task notification',
             tag: 'task-reminder',
@@ -109,6 +132,7 @@ class MobileNotifications {
     }
 
     async testExamNotification() {
+        console.log('[Notifications] Testing exam notification...');
         return this.showNotification('Exam Reminder', {
             body: 'This is a test exam notification',
             tag: 'exam-reminder',
@@ -130,6 +154,7 @@ class MobileNotifications {
     }
 
     async testMotivationalNotification() {
+        console.log('[Notifications] Testing motivational notification...');
         return this.showNotification('Daily Motivation', {
             body: 'You can do it! Keep pushing forward! 🌟',
             tag: 'motivation',
