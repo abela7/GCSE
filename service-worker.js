@@ -88,12 +88,20 @@ self.addEventListener('activate', event => {
     log('Activation started', 'info');
     event.waitUntil(
         Promise.all([
-            clients.claim().then(() => {
-                log('Clients claimed successfully', 'success');
-            }),
-            checkScheduledNotifications().then(() => {
-                log('Initial notification check completed', 'success');
-            })
+            clients.claim(),
+            // Initialize periodic sync if available
+            (async () => {
+                try {
+                    if ('periodicSync' in registration) {
+                        await registration.periodicSync.register('check-notifications', {
+                            minInterval: 60000 // Check every minute
+                        });
+                        log('Periodic sync registered', 'success');
+                    }
+                } catch (error) {
+                    log(`Periodic sync registration failed: ${error}`, 'warning');
+                }
+            })()
         ])
         .then(() => {
             log('Activation completed successfully', 'success');
@@ -102,7 +110,7 @@ self.addEventListener('activate', event => {
         .then(clients => {
             clients.forEach(client => {
                 log(`Notifying client: ${client.id}`, 'info');
-                client.postMessage({ type: 'SW_READY' });
+                client.postMessage({ type: 'SW_ACTIVATED' });
             });
         })
         .catch(error => {
@@ -114,13 +122,13 @@ self.addEventListener('activate', event => {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {
-    log(`Notification clicked: ${event.notification.tag}`);
+    log(`Notification clicked: ${event.notification.tag}`, 'info');
     
-    // Close the notification
     event.notification.close();
-
-    // Handle different notification types
+    
     let url = '/';
+    const data = event.notification.data || {};
+    
     switch (event.notification.tag) {
         case 'hourly-reminder':
             url = '/tasks.php';
@@ -132,18 +140,15 @@ self.addEventListener('notificationclick', event => {
             url = '/bible-study.php';
             break;
     }
-
-    // Focus or open the appropriate page
+    
     event.waitUntil(
         clients.matchAll({ type: 'window' })
             .then(clientList => {
-                // Try to focus an existing window
                 for (const client of clientList) {
                     if (client.url.includes(url) && 'focus' in client) {
                         return client.focus();
                     }
                 }
-                // If no existing window, open a new one
                 if (clients.openWindow) {
                     return clients.openWindow(url);
                 }
@@ -151,168 +156,62 @@ self.addEventListener('notificationclick', event => {
     );
 });
 
-// Handle push messages (for future use with push notifications)
+// Handle push messages
 self.addEventListener('push', event => {
-    log('Push message received');
+    log('Push message received', 'info');
     
-    if (!event.data) {
-        log('No data in push message');
-        return;
-    }
-
-    try {
-        const data = event.data.json();
-        log(`Push data: ${JSON.stringify(data)}`);
-
-        event.waitUntil(
-            self.registration.showNotification(data.title, {
-                body: data.body,
-                icon: data.icon || '/assets/images/icon-192x192.png',
-                tag: data.tag,
-                vibrate: [200, 100, 200],
-                data: data
-            })
-        );
-    } catch (error) {
-        log(`Error handling push message: ${error}`);
+    if (event.data) {
+        try {
+            const data = event.data.json();
+            event.waitUntil(
+                self.registration.showNotification(data.title, {
+                    body: data.body,
+                    icon: data.icon || '../assets/images/icon-192x192.png',
+                    tag: data.tag,
+                    vibrate: [200, 100, 200],
+                    requireInteraction: true,
+                    data: data
+                })
+            );
+        } catch (error) {
+            log(`Error handling push message: ${error}`, 'error');
+        }
     }
 });
 
-// Handle periodic sync (for future use with background sync)
+// Handle periodic sync events
 self.addEventListener('periodicsync', event => {
     if (event.tag === 'check-notifications') {
         event.waitUntil(checkScheduledNotifications());
     }
 });
 
-// Check for scheduled notifications
+// Function to check scheduled notifications
 async function checkScheduledNotifications() {
     const now = new Date();
     const hour = now.getHours();
     const minute = now.getMinutes();
-    const second = now.getSeconds();
-
+    
+    log(`Checking scheduled notifications at ${hour}:${minute}`, 'info');
+    
     try {
-        // Get notification states from clients
         const clients = await self.clients.matchAll();
         if (clients.length === 0) {
-            log('No active clients found');
+            log('No active clients found', 'warning');
             return;
         }
-
-        // Calculate next check time to ensure we don't miss notifications
-        const msUntilNextMinute = (60 - second) * 1000;
-        setTimeout(checkScheduledNotifications, msUntilNextMinute);
-
-        // Ask the first client for notification states
-        const client = clients[0];
-        client.postMessage({ type: 'GET_NOTIFICATION_STATES' });
-    } catch (error) {
-        log(`Error checking scheduled notifications: ${error}`);
-        // Retry in 1 minute if there's an error
-        setTimeout(checkScheduledNotifications, 60000);
-    }
-}
-
-// Listen for messages from the page
-self.addEventListener('message', event => {
-    log(`Message received: ${JSON.stringify(event.data)}`);
-
-    if (event.data.type === 'NOTIFICATION_STATES') {
-        handleNotificationStates(event.data.states, event.data.isTest);
-    }
-});
-
-// Handle notification states received from the page
-function handleNotificationStates(states, isTest = false) {
-    if (!states) return;
-
-    const now = new Date();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    log(`Checking notifications at ${hour}:${minute}${isTest ? ' (TEST MODE)' : ''}`);
-
-    // For testing, we ignore the time restrictions
-    if (isTest) {
-        if (states.hourly) {
-            log(`Testing hourly notification`);
-            showScheduledNotification('hourly', hour);
-        }
-        if (states.morning) {
-            log(`Testing morning notification`);
-            showScheduledNotification('morning');
-        }
-        if (states.night) {
-            log(`Testing night notification`);
-            showScheduledNotification('night');
-        }
-        return;
-    }
-
-    // Regular time-based checks
-    if (minute === 0 && hour >= 21 && states.hourly) {
-        log(`Triggering hourly notification at ${hour}:00`);
-        showScheduledNotification('hourly', hour);
-    }
-
-    if (hour === 7 && minute === 0 && states.morning) {
-        log(`Triggering morning notification`);
-        showScheduledNotification('morning');
-    }
-
-    if (hour === 0 && minute === 0 && states.night) {
-        log(`Triggering night notification`);
-        showScheduledNotification('night');
-    }
-}
-
-// Show a scheduled notification
-async function showScheduledNotification(type, hour = null) {
-    log(`Preparing to show ${type} notification${hour ? ` for ${hour}:00` : ''}`, 'info');
-    
-    const notifications = {
-        hourly: {
-            title: "Time Check",
-            body: hour ? `${hour}:00 - Stay focused! Keep working on your tasks.` : "Stay focused on your tasks!",
-            tag: "hourly-reminder",
-            requireInteraction: true
-        },
-        morning: {
-            title: "Good Morning Abela",
-            body: "Make sure you stay productive today, Time is your only Precious Gift!",
-            tag: "morning-motivation",
-            requireInteraction: true
-        },
-        night: {
-            title: "Good Night Reflection",
-            body: "Tomorrow is a new Day! Thank GOD for everything, Do not forget to Study Bible.",
-            tag: "night-reminder",
-            requireInteraction: true
-        }
-    };
-
-    const config = notifications[type];
-    if (!config) {
-        log(`Invalid notification type: ${type}`, 'error');
-        return;
-    }
-
-    try {
-        log(`Showing ${type} notification`, 'info');
-        await self.registration.showNotification(config.title, {
-            body: config.body,
-            icon: '/assets/images/icon-192x192.png',
-            tag: config.tag,
-            vibrate: [200, 100, 200],
-            requireInteraction: true,
-            silent: false,
-            timestamp: Date.now()
+        
+        // Send check request to all clients
+        clients.forEach(client => {
+            client.postMessage({
+                type: 'CHECK_NOTIFICATIONS',
+                time: { hour, minute }
+            });
         });
-        log(`${type} notification shown successfully`, 'success');
+        
+        log('Notification check completed', 'success');
     } catch (error) {
-        log(`Error showing ${type} notification: ${error}`, 'error');
-        throw error;
+        log(`Error checking notifications: ${error}`, 'error');
     }
 }
 

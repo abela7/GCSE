@@ -164,6 +164,104 @@ async function requestNotificationPermission() {
     }
 }
 
+// Calculate next notification time
+function calculateNextNotificationTime(type) {
+    const now = new Date();
+    let next = new Date(now);
+
+    switch (type) {
+        case 'hourly':
+            // If current hour is before 21:00, set to 21:00
+            if (now.getHours() < 21) {
+                next.setHours(21, 0, 0, 0);
+            } else {
+                // If after 21:00, set to next hour
+                next.setHours(next.getHours() + 1);
+                next.setMinutes(0, 0, 0);
+            }
+            break;
+        case 'morning':
+            // Set to 7:00 AM
+            next.setHours(7, 0, 0, 0);
+            // If it's already past 7:00 AM, set to tomorrow
+            if (now >= next) {
+                next.setDate(next.getDate() + 1);
+            }
+            break;
+        case 'night':
+            // Set to midnight (00:00)
+            next.setHours(24, 0, 0, 0);
+            break;
+    }
+    return next;
+}
+
+// Update next notification display
+function updateNextNotificationTime(type) {
+    const nextElement = document.getElementById(`${type}Next`);
+    if (!nextElement) return;
+
+    const next = calculateNextNotificationTime(type);
+    nextElement.textContent = next.toLocaleString();
+}
+
+// Check for scheduled notifications
+function checkScheduledNotifications() {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+
+    debugLog(`Checking scheduled notifications at ${hour}:${minute}`, 'info');
+
+    // Hourly notification (21:00 onwards)
+    if (minute === 0 && hour >= 21 && notificationConfig.hourly.enabled) {
+        debugLog('Triggering hourly notification', 'info');
+        showNotification(
+            notificationConfig.hourly.title,
+            `${hour}:00 - ${notificationConfig.hourly.body}`,
+            notificationConfig.hourly.tag
+        );
+    }
+
+    // Morning notification (7:00)
+    if (hour === 7 && minute === 0 && notificationConfig.morning.enabled) {
+        debugLog('Triggering morning notification', 'info');
+        showNotification(
+            notificationConfig.morning.title,
+            notificationConfig.morning.body,
+            notificationConfig.morning.tag
+        );
+    }
+
+    // Night notification (00:00)
+    if (hour === 0 && minute === 0 && notificationConfig.night.enabled) {
+        debugLog('Triggering night notification', 'info');
+        showNotification(
+            notificationConfig.night.title,
+            notificationConfig.night.body,
+            notificationConfig.night.tag
+        );
+    }
+
+    // Update next notification times
+    for (const type in notificationConfig) {
+        updateNextNotificationTime(type);
+    }
+}
+
+// Start notification scheduler
+function startNotificationScheduler() {
+    debugLog('Starting notification scheduler...', 'info');
+    
+    // Initial check and display
+    checkScheduledNotifications();
+    
+    // Check every minute for notifications
+    setInterval(checkScheduledNotifications, 60000);
+    
+    debugLog('Notification scheduler started successfully', 'success');
+}
+
 // Register service worker
 async function registerServiceWorker() {
     try {
@@ -172,6 +270,10 @@ async function registerServiceWorker() {
             scope: '../'
         });
         debugLog('Service worker registered successfully', 'success');
+        
+        // Start the notification scheduler after successful registration
+        startNotificationScheduler();
+        
         return registration;
     } catch (error) {
         debugLog(`Service worker registration failed: ${error}`, 'error');
@@ -302,6 +404,9 @@ function updateNotificationStatus(type) {
         statusBadge.textContent = isEnabled ? 'Active' : 'Paused';
         toggleButton.textContent = isEnabled ? 'Pause' : 'Resume';
         toggleButton.className = `btn ${isEnabled ? 'btn-warning' : 'btn-success'}`;
+        
+        // Update next notification time when status changes
+        updateNextNotificationTime(type);
     }
 }
 
