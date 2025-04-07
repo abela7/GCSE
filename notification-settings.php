@@ -4,90 +4,33 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include required files
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/auth.php';
-
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
-
 // Set page title
 $page_title = "Notification Settings";
 
-// Initialize variables
-$settings = [
+// Initialize default settings
+$default_settings = [
     'task_reminders' => 1,
     'exam_reminders' => 1,
     'daily_motivation' => 1
 ];
 
-try {
-    // Check if notification_settings table exists
-    $tableExists = $pdo->query("SHOW TABLES LIKE 'notification_settings'")->rowCount() > 0;
-    
-    if (!$tableExists) {
-        // Create the table if it doesn't exist
-        $pdo->exec("CREATE TABLE IF NOT EXISTS notification_settings (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            task_reminders TINYINT(1) DEFAULT 1,
-            exam_reminders TINYINT(1) DEFAULT 1,
-            daily_motivation TINYINT(1) DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            UNIQUE KEY unique_user_settings (user_id)
-        )");
-    }
-
-    // Get current notification settings from database
-    $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
-    $stmt->execute([$_SESSION['user_id']]);
-    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // If no settings exist, create default settings
-    if (!$settings) {
-        $stmt = $pdo->prepare("INSERT INTO notification_settings (user_id, task_reminders, exam_reminders, daily_motivation) VALUES (?, 1, 1, 1)");
-        $stmt->execute([$_SESSION['user_id']]);
-        $settings = [
-            'task_reminders' => 1,
-            'exam_reminders' => 1,
-            'daily_motivation' => 1
-        ];
-    }
-
-    // Handle form submission
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (isset($_POST['update_settings'])) {
-            $task_reminders = isset($_POST['task_reminders']) ? 1 : 0;
-            $exam_reminders = isset($_POST['exam_reminders']) ? 1 : 0;
-            $daily_motivation = isset($_POST['daily_motivation']) ? 1 : 0;
-            
-            $stmt = $pdo->prepare("UPDATE notification_settings SET 
-                task_reminders = ?, 
-                exam_reminders = ?, 
-                daily_motivation = ? 
-                WHERE user_id = ?");
-            $stmt->execute([$task_reminders, $exam_reminders, $daily_motivation, $_SESSION['user_id']]);
-            
-            $success = "Notification settings updated successfully!";
-            
-            // Refresh settings after update
-            $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-    }
-} catch (PDOException $e) {
-    $error = "Database error: " . $e->getMessage();
-} catch (Exception $e) {
-    $error = "Error: " . $e->getMessage();
+// Get current settings from cookie or use defaults
+$settings = [];
+foreach ($default_settings as $key => $value) {
+    $settings[$key] = isset($_COOKIE[$key]) ? $_COOKIE[$key] : $value;
 }
 
-// Include header after setting variables
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
+    foreach ($default_settings as $key => $value) {
+        $new_value = isset($_POST[$key]) ? 1 : 0;
+        setcookie($key, $new_value, time() + (86400 * 30), "/"); // Cookie expires in 30 days
+        $settings[$key] = $new_value;
+    }
+    $success = "Notification settings updated successfully!";
+}
+
+// Include header
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -99,10 +42,6 @@ require_once __DIR__ . '/includes/header.php';
                     <h4 class="mb-0">Notification Settings</h4>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($error)): ?>
-                        <div class="alert alert-danger"><?php echo $error; ?></div>
-                    <?php endif; ?>
-
                     <?php if (isset($success)): ?>
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
