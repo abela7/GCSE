@@ -42,6 +42,10 @@ require_once __DIR__ . '/includes/header.php';
                     <h4 class="mb-0">Notification Settings</h4>
                 </div>
                 <div class="card-body">
+                    <div id="notificationStatus" class="alert alert-info d-none">
+                        Checking notification permission...
+                    </div>
+
                     <?php if (isset($success)): ?>
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
@@ -86,7 +90,13 @@ require_once __DIR__ . '/includes/header.php';
                     <hr>
 
                     <h5 class="mb-3">Test Notifications</h5>
-                    <div class="d-grid gap-2">
+                    <div id="permissionButton" class="mb-3 d-none">
+                        <button class="btn btn-warning w-100" onclick="requestNotificationPermission()">
+                            Enable Notifications
+                        </button>
+                    </div>
+
+                    <div class="d-grid gap-2" id="testButtons">
                         <button class="btn btn-outline-primary" onclick="testTaskNotification()">
                             Test Task Reminder
                         </button>
@@ -104,26 +114,61 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-// Function to request notification permission if not already granted
+// Function to update UI based on notification permission
+function updateNotificationUI(permission) {
+    const statusDiv = document.getElementById('notificationStatus');
+    const permissionButton = document.getElementById('permissionButton');
+    const testButtons = document.getElementById('testButtons');
+
+    statusDiv.classList.remove('d-none');
+    
+    if (permission === 'granted') {
+        statusDiv.className = 'alert alert-success';
+        statusDiv.textContent = 'Notifications are enabled!';
+        permissionButton.classList.add('d-none');
+        testButtons.classList.remove('d-none');
+    } else if (permission === 'denied') {
+        statusDiv.className = 'alert alert-danger';
+        statusDiv.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
+        permissionButton.classList.add('d-none');
+        testButtons.classList.add('d-none');
+    } else {
+        statusDiv.className = 'alert alert-warning';
+        statusDiv.textContent = 'Notifications require permission to work.';
+        permissionButton.classList.remove('d-none');
+        testButtons.classList.add('d-none');
+    }
+}
+
+// Function to request notification permission
 async function requestNotificationPermission() {
     if (!("Notification" in window)) {
-        alert("This browser does not support desktop notification");
+        alert("This browser does not support notifications");
         return false;
     }
 
-    if (Notification.permission === "granted") {
-        return true;
+    try {
+        const permission = await Notification.requestPermission();
+        updateNotificationUI(permission);
+        
+        if (permission === "granted") {
+            await registerServiceWorker();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error requesting notification permission:', error);
+        return false;
     }
-
-    const permission = await Notification.requestPermission();
-    return permission === "granted";
 }
 
 // Function to register service worker
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            const registration = await navigator.serviceWorker.register('/service-worker.js');
+            const registration = await navigator.serviceWorker.register('/service-worker.js', {
+                scope: '/'
+            });
             console.log('ServiceWorker registration successful');
 
             // Register for periodic sync if supported
@@ -140,7 +185,7 @@ async function registerServiceWorker() {
 
             return registration;
         } catch (error) {
-            console.log('ServiceWorker registration failed:', error);
+            console.error('ServiceWorker registration failed:', error);
             return null;
         }
     }
@@ -149,17 +194,15 @@ async function registerServiceWorker() {
 
 // Initialize notifications
 async function initializeNotifications() {
-    const hasPermission = await requestNotificationPermission();
-    if (hasPermission) {
-        const registration = await registerServiceWorker();
-        if (registration) {
-            // Trigger initial sync
-            try {
-                await registration.sync.register('sync-notifications');
-            } catch (error) {
-                console.log('Background sync registration failed:', error);
-            }
+    if ("Notification" in window) {
+        updateNotificationUI(Notification.permission);
+        if (Notification.permission === "granted") {
+            await registerServiceWorker();
         }
+    } else {
+        document.getElementById('notificationStatus').className = 'alert alert-danger';
+        document.getElementById('notificationStatus').textContent = 'Your browser does not support notifications';
+        document.getElementById('testButtons').classList.add('d-none');
     }
 }
 
@@ -168,14 +211,15 @@ initializeNotifications();
 
 // Test Task Notification
 async function testTaskNotification() {
-    if (!await requestNotificationPermission()) return;
-
     try {
         const registration = await navigator.serviceWorker.ready;
-        registration.showNotification("Test Task Reminder", {
+        await registration.showNotification("Test Task Reminder", {
             body: "This is a test task reminder",
             icon: '/assets/images/icon-192x192.png',
-            vibrate: [100, 50, 100],
+            badge: '/assets/images/icon-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: 'task-reminder',
+            renotify: true,
             actions: [
                 {
                     action: 'explore',
@@ -189,20 +233,21 @@ async function testTaskNotification() {
         });
     } catch (error) {
         console.error('Error testing task notification:', error);
-        alert('Error testing task notification. Please check console for details.');
+        alert('Error showing notification. Please check if notifications are enabled.');
     }
 }
 
 // Test Exam Notification
 async function testExamNotification() {
-    if (!await requestNotificationPermission()) return;
-
     try {
         const registration = await navigator.serviceWorker.ready;
-        registration.showNotification("Test Exam Reminder", {
+        await registration.showNotification("Test Exam Reminder", {
             body: "This is a test exam reminder",
             icon: '/assets/images/icon-192x192.png',
-            vibrate: [100, 50, 100],
+            badge: '/assets/images/icon-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: 'exam-reminder',
+            renotify: true,
             actions: [
                 {
                     action: 'explore',
@@ -216,23 +261,24 @@ async function testExamNotification() {
         });
     } catch (error) {
         console.error('Error testing exam notification:', error);
-        alert('Error testing exam notification. Please check console for details.');
+        alert('Error showing notification. Please check if notifications are enabled.');
     }
 }
 
 // Test Motivation Notification
 async function testMotivationNotification() {
-    if (!await requestNotificationPermission()) return;
-
     try {
         const response = await fetch('/api/get_motivational_message.php');
         const data = await response.json();
         
         const registration = await navigator.serviceWorker.ready;
-        registration.showNotification("Test Motivation Message", {
+        await registration.showNotification("Test Motivation Message", {
             body: data.success ? data.message : "Keep going! You're doing great!",
             icon: '/assets/images/icon-192x192.png',
-            vibrate: [100, 50, 100],
+            badge: '/assets/images/icon-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: 'motivation',
+            renotify: true,
             actions: [
                 {
                     action: 'close',
@@ -242,7 +288,7 @@ async function testMotivationNotification() {
         });
     } catch (error) {
         console.error('Error testing motivation notification:', error);
-        alert('Error testing motivation notification. Please check console for details.');
+        alert('Error showing notification. Please check if notifications are enabled.');
     }
 }
 </script>
