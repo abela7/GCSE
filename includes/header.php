@@ -26,18 +26,11 @@ require_once 'db_connect.php';
     
     <!-- PWA Icons -->
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="/assets/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/assets/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="/assets/icons/icon-152x152.png">
-    
-    <!-- Apple Splash Screens -->
-    <link rel="apple-touch-startup-image" href="/assets/icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/assets/icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/assets/icons/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/assets/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/assets/icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="icon" type="image/png" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/assets/favicon/android-chrome-192x192.png">
     
     <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -235,20 +228,8 @@ require_once 'db_connect.php';
         console.log('Notifications.js should be loaded now');
     </script>
 
-    <!-- PWA Registration Script -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    </script>
+    <!-- Load PWA Script -->
+    <script src="/assets/js/pwa.js"></script>
 </head>
 <body>
     

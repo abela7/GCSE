@@ -6,7 +6,7 @@ console.log("PWA script loaded");
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     console.log("Attempting to register service worker...");
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
       })
