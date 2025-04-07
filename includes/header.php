@@ -325,11 +325,19 @@ require_once 'db_connect.php';
             </div>
             <?php endif; ?>
 
-            <!-- Add Install Prompt -->
-            <div id="installPrompt" class="alert alert-info alert-dismissible fade d-none" role="alert">
-                <strong>Install App!</strong> Add this app to your home screen for quick access.
-                <button id="installButton" class="btn btn-outline-primary btn-sm ms-3">Install</button>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <!-- Install Prompt -->
+            <div id="installPrompt" class="alert alert-primary alert-dismissible fade d-none mb-3" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-download me-2"></i>
+                    <div>
+                        <strong>Install Just Do It</strong>
+                        <p class="mb-0">Add this app to your home screen for the best experience!</p>
+                    </div>
+                    <button id="installButton" class="btn btn-primary ms-3">
+                        Install Now
+                    </button>
+                    <button type="button" class="btn-close ms-2" onclick="closeInstallPrompt()" aria-label="Close"></button>
+                </div>
             </div>
         </div>
     </div>

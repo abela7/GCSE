@@ -26,15 +26,13 @@
       "name": "Tasks",
       "short_name": "Tasks",
       "description": "View your tasks",
-      "url": "/pages/tasks.php",
-      "icons": [{ "src": "/assets/favicon/tasks-96x96.png", "sizes": "96x96" }]
+      "url": "/pages/tasks.php"
     },
     {
       "name": "Status",
       "short_name": "Status",
       "description": "Check your progress",
-      "url": "/status.php",
-      "icons": [{ "src": "/assets/favicon/status-96x96.png", "sizes": "96x96" }]
+      "url": "/status.php"
     }
   ]
 }
