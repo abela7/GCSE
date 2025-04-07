@@ -231,6 +231,12 @@ require_once 'db_connect.php';
     <script>
         console.log('Notifications.js should be loaded now');
     </script>
+
+    <!-- Custom CSS -->
+    <link href="/GCSE/assets/css/style.css" rel="stylesheet">
+    
+    <!-- Task Notifications -->
+    <script src="/GCSE/assets/js/task-notifications.js"></script>
 </head>
 <body>
     

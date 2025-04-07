@@ -169,7 +169,7 @@ function stopProductivityReminder() {
 function sendProductivityReminder() {
     console.log('Sending productivity reminder...');
     sendNotification('Productivity Reminder', {
-        body: 'Hey Abela, I hope u are doing something productive!',
+        body: 'Abel, I hope u are doing something productive!',
         requireInteraction: true,
         timestamp: Date.now(),
         tag: 'productivity-reminder-' + Date.now()
