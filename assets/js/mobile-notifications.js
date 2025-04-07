@@ -25,11 +25,7 @@ class MobileNotifications {
         }
 
         try {
-            // Get the absolute path to service worker
-            const swPath = `${this.baseUrl}/service-worker.js`;
-            console.log('[Notifications] Registering SW at:', swPath);
-
-            // Unregister any existing service workers first
+            // First, unregister any existing service workers
             const existingRegs = await navigator.serviceWorker.getRegistrations();
             for (let reg of existingRegs) {
                 console.log('[Notifications] Unregistering existing SW:', reg.scope);
@@ -37,15 +33,38 @@ class MobileNotifications {
             }
 
             // Register new service worker
-            this.swRegistration = await navigator.serviceWorker.register(swPath, {
-                scope: '/'
-            });
-            console.log('[Notifications] SW registered:', this.swRegistration);
+            console.log('[Notifications] Registering new service worker...');
+            this.swRegistration = await navigator.serviceWorker.register('/service-worker.js');
+            console.log('[Notifications] Service Worker registered');
 
             // Wait for the service worker to be ready
-            const readyRegistration = await navigator.serviceWorker.ready;
-            console.log('[Notifications] SW is ready:', readyRegistration);
-            
+            console.log('[Notifications] Waiting for SW to be ready...');
+            await navigator.serviceWorker.ready;
+            console.log('[Notifications] Service Worker is ready');
+
+            // Force activation if needed
+            if (this.swRegistration.active) {
+                console.log('[Notifications] SW is already active');
+            } else if (this.swRegistration.waiting) {
+                console.log('[Notifications] SW is waiting, activating...');
+                this.swRegistration.waiting.postMessage({type: 'SKIP_WAITING'});
+            } else if (this.swRegistration.installing) {
+                console.log('[Notifications] SW is installing, waiting...');
+                this.swRegistration.installing.addEventListener('statechange', (event) => {
+                    if (event.target.state === 'installed') {
+                        console.log('[Notifications] SW installed, activating...');
+                        event.target.postMessage({type: 'SKIP_WAITING'});
+                    }
+                });
+            }
+
+            // Add message listener for reload after activation
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data.type === 'RELOAD_PAGE') {
+                    window.location.reload();
+                }
+            });
+
             // Check permission
             const permission = await this.checkPermission();
             console.log('[Notifications] Current permission:', permission);

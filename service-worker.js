@@ -41,7 +41,7 @@ const getBaseUrl = () => {
 const CACHE_NAME = 'web-app-v1';
 const OFFLINE_URL = '/offline.html';
 
-// Assets to cache - paths will be made absolute during install
+// Assets to cache
 const ASSETS_TO_CACHE = [
     '/',
     '/offline.html',
@@ -63,19 +63,15 @@ const makeAbsoluteUrl = (path) => {
 // Install event - cache assets
 self.addEventListener('install', event => {
     log('Installing...');
-    log('Scope:', self.registration.scope);
-    
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
                 log('Caching app shell');
-                // Make all paths absolute before caching
-                const absoluteUrls = ASSETS_TO_CACHE.map(path => makeAbsoluteUrl(path));
-                log('Caching URLs:', absoluteUrls);
-                return cache.addAll(absoluteUrls);
+                return cache.addAll(ASSETS_TO_CACHE);
             })
             .then(() => {
                 log('Install completed');
+                // Don't wait
                 return self.skipWaiting();
             })
             .catch(error => {
@@ -100,23 +96,39 @@ self.addEventListener('activate', event => {
                         })
                 );
             }),
+            // Claim clients immediately
             self.clients.claim().then(() => {
                 log('Claimed clients');
+                // Notify clients to reload
+                self.clients.matchAll().then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({
+                            type: 'RELOAD_PAGE'
+                        });
+                    });
+                });
             })
         ])
     );
 });
 
+// Message event - handle skip waiting
+self.addEventListener('message', event => {
+    log('Message received:', event.data);
+    if (event.data.type === 'SKIP_WAITING') {
+        log('Skip waiting requested');
+        self.skipWaiting();
+    }
+});
+
 // Fetch event - serve from cache or network
 self.addEventListener('fetch', event => {
-    log('Fetch:', event.request.url);
-    
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
                 .catch(() => {
                     log('Navigation fetch failed, serving offline page');
-                    return caches.match(makeAbsoluteUrl(OFFLINE_URL));
+                    return caches.match(OFFLINE_URL);
                 })
         );
         return;
@@ -135,7 +147,7 @@ self.addEventListener('fetch', event => {
             .catch(() => {
                 if (event.request.mode === 'navigate') {
                     log('Fetch failed, serving offline page');
-                    return caches.match(makeAbsoluteUrl(OFFLINE_URL));
+                    return caches.match(OFFLINE_URL);
                 }
             })
     );
@@ -143,35 +155,30 @@ self.addEventListener('fetch', event => {
 
 // Notification click event
 self.addEventListener('notificationclick', event => {
-    log('Notification click:', event);
-
-    // Close the notification
+    log('Notification click received');
     event.notification.close();
 
-    // Get the notification data and base URL
+    // Get the notification data
     const data = event.notification.data || {};
-    const baseUrl = getBaseUrl();
-    let urlToOpen = baseUrl;
+    let urlToOpen = '/';
 
     // Handle different notification types
     if (data.url) {
-        urlToOpen = new URL(data.url, baseUrl).href;
+        urlToOpen = data.url;
     } else {
         switch (event.notification.tag) {
             case 'task-reminder':
-                urlToOpen = new URL('/pages/tasks/index.php', baseUrl).href;
+                urlToOpen = '/pages/tasks/index.php';
                 break;
             case 'exam-reminder':
-                urlToOpen = new URL('/pages/exam_countdown.php', baseUrl).href;
+                urlToOpen = '/pages/exam_countdown.php';
                 break;
         }
     }
 
-    log('Opening URL:', urlToOpen);
-
     // Handle action buttons
     if (event.action === 'view') {
-        urlToOpen = data.url ? new URL(data.url, baseUrl).href : urlToOpen;
+        urlToOpen = data.url || urlToOpen;
     }
 
     event.waitUntil(
@@ -180,17 +187,13 @@ self.addEventListener('notificationclick', event => {
             includeUncontrolled: true
         })
         .then(function(clientList) {
-            log('Found clients:', clientList.length);
-            
             // If we have a client, focus it
             for (let client of clientList) {
                 if (client.url === urlToOpen && 'focus' in client) {
-                    log('Focusing existing client');
                     return client.focus();
                 }
             }
             // If no client is found, open a new window
-            log('Opening new window');
             return clients.openWindow(urlToOpen);
         })
     );
