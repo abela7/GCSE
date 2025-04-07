@@ -60,56 +60,20 @@ const makeAbsoluteUrl = (path) => {
     return new URL(cleanPath, base).href;
 };
 
-// Install event - cache assets
+// Minimal Service Worker for Notifications
 self.addEventListener('install', event => {
-    log('Installing...');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                log('Caching app shell');
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-            .then(() => {
-                log('Install completed');
-                // Don't wait
-                return self.skipWaiting();
-            })
-            .catch(error => {
-                log('Install failed:', error);
-                throw error;
-            })
-    );
+    console.log('Service Worker installing...');
+    self.skipWaiting();
 });
 
-// Activate event - clean old caches
 self.addEventListener('activate', event => {
-    log('Activating...');
-    event.waitUntil(
-        Promise.all([
-            caches.keys().then(cacheNames => {
-                return Promise.all(
-                    cacheNames
-                        .filter(name => name !== CACHE_NAME)
-                        .map(name => {
-                            log('Deleting old cache:', name);
-                            return caches.delete(name);
-                        })
-                );
-            }),
-            // Claim clients immediately
-            self.clients.claim().then(() => {
-                log('Claimed clients');
-                // Notify clients to reload
-                self.clients.matchAll().then(clients => {
-                    clients.forEach(client => {
-                        client.postMessage({
-                            type: 'RELOAD_PAGE'
-                        });
-                    });
-                });
-            })
-        ])
-    );
+    console.log('Service Worker activating...');
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('notificationclick', event => {
+    console.log('Notification clicked:', event);
+    event.notification.close();
 });
 
 // Message event - handle skip waiting
