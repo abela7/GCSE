@@ -525,7 +525,7 @@ if (empty($habit_streak_data)) {
 }
 
 // Include headeractice data
-include 'includes/header.php';();
+include 'includes/header.php';
 ?> (in_array('practice_items', $existing_tables) && in_array('practice_days', $existing_tables)) {
     // Get recent practice items
 <div class="container-fluid py-4">
@@ -606,7 +606,8 @@ include 'includes/header.php';();
                                 Tasks Completed
                             </div>s,
                             <div class="h5 mb-0 font-weight-bold text-gray-800">ams,
-                                <?php RRENT_DATE)) as days_to_next_exam
+                                <?php
+                                    // Display task completion percentage
                                     $task_completion = $tasks_data['total_tasks'] > 0 
                                         ? round(($tasks_data['completed_tasks'] / $tasks_data['total_tasks']) * 100) 
                                         : 0;
