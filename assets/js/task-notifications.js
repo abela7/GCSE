@@ -51,7 +51,7 @@ function showExamCountdown() {
 function showProductiveDay() {
     if (Notification.permission === "granted") {
         new Notification("Good Morning! 🌟", {
-            body: "Have a productive day ahead! Remember, every small step counts towards your success.",
+            body: "Have a productive day ahead,! Remember, every small step counts towards your success.",
             icon: "/GCSE/assets/favicon/favicon.ico",
             vibrate: [200, 100, 200]
         });
