@@ -1,14 +1,17 @@
 // PWA Installation Script
 
+console.log("PWA script loaded");
+
 // Register service worker if browser supports it
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    console.log("Attempting to register service worker...");
     navigator.serviceWorker.register('/sw.js')
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
       })
       .catch(error => {
-        console.log('ServiceWorker registration failed: ', error);
+        console.error('ServiceWorker registration failed: ', error);
       });
   });
 }
@@ -20,6 +23,7 @@ const installPrompt = document.getElementById('pwa-install-prompt');
 
 // Listen for 'beforeinstallprompt' event
 window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('beforeinstallprompt event fired');
   // Prevent the mini-infobar from appearing on mobile
   e.preventDefault();
   
@@ -28,6 +32,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   
   // Show the install button or prompt
   if (installPrompt) {
+    console.log('Showing install prompt');
     installPrompt.classList.add('show');
   }
   
@@ -41,7 +46,11 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // Function to handle app installation
 function installPWA() {
-  if (!deferredPrompt) return;
+  console.log('Install button clicked');
+  if (!deferredPrompt) {
+    console.log('No deferred prompt available');
+    return;
+  }
   
   // Show the install prompt
   deferredPrompt.prompt();
@@ -77,6 +86,7 @@ window.addEventListener('appinstalled', (evt) => {
 
 // Function to close the install prompt
 function closeInstallPrompt() {
+  console.log('Closing install prompt');
   if (installPrompt) {
     installPrompt.classList.remove('show');
   }
@@ -95,3 +105,8 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
     installButton.style.display = 'none';
   }
 }
+
+console.log("PWA script initialization complete");
+
+// Make closeInstallPrompt function globally accessible
+window.closeInstallPrompt = closeInstallPrompt;

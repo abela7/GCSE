@@ -2,7 +2,7 @@
   "name": "GCSE Study Tracker",
   "short_name": "StudyTracker",
   "description": "Track your GCSE study progress, tasks, habits, and exams",
-  "start_url": "/",
+  "start_url": "index.php",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#cdaf56",
@@ -62,21 +62,14 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View your study dashboard",
-      "url": "/dashboard.php",
+      "url": "dashboard.php",
       "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "Tasks",
       "short_name": "Tasks",
       "description": "Manage your tasks",
-      "url": "/pages/tasks/task_list.php",
-      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Habits",
-      "short_name": "Habits",
-      "description": "Track your habits",
-      "url": "/pages/habits/index.php",
+      "url": "pages/tasks/task_list.php",
       "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ]

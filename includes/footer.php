@@ -27,7 +27,7 @@
         <script src="/assets/js/main.js"></script>
         
         <?php
-        // --- Conditional JS Loading ---
+        // Conditional JS Loading - unchanged
         // Get the directory of the currently running script
         $current_page_directory = basename(dirname($_SERVER['PHP_SELF'])); // Gets the last folder name
 
@@ -72,13 +72,7 @@
         </div>
         <?php endif; ?>
         
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-        
-        <!-- PWA Script -->
+        <!-- PWA Script - This needs to be loaded at the end to ensure DOM is ready -->
         <script src="/assets/js/pwa.js"></script>
-        
-        <!-- Any custom scripts -->
-        <?php if (isset($custom_scripts)) echo $custom_scripts; ?>
     </body>
 </html>
