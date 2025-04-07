@@ -1,6 +1,6 @@
 <?php
-require_once 'includes/header.php';
-require_once 'includes/navbar.php';
+require_once 'includes/config.php';
+require_once 'includes/auth.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -39,8 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$task_reminders, $exam_reminders, $daily_motivation, $_SESSION['user_id']]);
         
         $success = "Notification settings updated successfully!";
+        
+        // Refresh settings after update
+        $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
+
+// Set page title
+$page_title = "Notification Settings";
 ?>
 
 <div class="container mt-4">
@@ -132,20 +140,25 @@ async function requestNotificationPermission() {
 async function testTaskNotification() {
     if (!await requestNotificationPermission()) return;
 
-    const response = await fetch('/api/get_incomplete_tasks.php');
-    const data = await response.json();
-    
-    if (data.success && data.tasks.length > 0) {
-        const task = data.tasks[0];
-        new Notification("Test Task Reminder", {
-            body: `You have an incomplete task: ${task.title}`,
-            icon: '/assets/images/icon-192x192.png'
-        });
-    } else {
-        new Notification("Test Task Reminder", {
-            body: "You have no incomplete tasks",
-            icon: '/assets/images/icon-192x192.png'
-        });
+    try {
+        const response = await fetch('/api/get_incomplete_tasks.php');
+        const data = await response.json();
+        
+        if (data.success && data.tasks.length > 0) {
+            const task = data.tasks[0];
+            new Notification("Test Task Reminder", {
+                body: `You have an incomplete task: ${task.title}`,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        } else {
+            new Notification("Test Task Reminder", {
+                body: "You have no incomplete tasks",
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error testing task notification:', error);
+        alert('Error testing task notification. Please check console for details.');
     }
 }
 
@@ -153,20 +166,25 @@ async function testTaskNotification() {
 async function testExamNotification() {
     if (!await requestNotificationPermission()) return;
 
-    const response = await fetch('/api/get_exam_countdown.php');
-    const data = await response.json();
-    
-    if (data.success && data.exams.length > 0) {
-        const exam = data.exams[0];
-        new Notification("Test Exam Reminder", {
-            body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
-            icon: '/assets/images/icon-192x192.png'
-        });
-    } else {
-        new Notification("Test Exam Reminder", {
-            body: "No upcoming exams found",
-            icon: '/assets/images/icon-192x192.png'
-        });
+    try {
+        const response = await fetch('/api/get_exam_countdown.php');
+        const data = await response.json();
+        
+        if (data.success && data.exams.length > 0) {
+            const exam = data.exams[0];
+            new Notification("Test Exam Reminder", {
+                body: `Upcoming exam: ${exam.subject} in ${exam.days_until} days`,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        } else {
+            new Notification("Test Exam Reminder", {
+                body: "No upcoming exams found",
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error testing exam notification:', error);
+        alert('Error testing exam notification. Please check console for details.');
     }
 }
 
@@ -174,19 +192,24 @@ async function testExamNotification() {
 async function testMotivationNotification() {
     if (!await requestNotificationPermission()) return;
 
-    const response = await fetch('/api/get_motivational_message.php');
-    const data = await response.json();
-    
-    if (data.success) {
-        new Notification("Test Motivation Message", {
-            body: data.message,
-            icon: '/assets/images/icon-192x192.png'
-        });
-    } else {
-        new Notification("Test Motivation Message", {
-            body: "Keep going! You're doing great!",
-            icon: '/assets/images/icon-192x192.png'
-        });
+    try {
+        const response = await fetch('/api/get_motivational_message.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            new Notification("Test Motivation Message", {
+                body: data.message,
+                icon: '/assets/images/icon-192x192.png'
+            });
+        } else {
+            new Notification("Test Motivation Message", {
+                body: "Keep going! You're doing great!",
+                icon: '/assets/images/icon-192x192.png'
+            });
+        }
+    } catch (error) {
+        console.error('Error testing motivation notification:', error);
+        alert('Error testing motivation notification. Please check console for details.');
     }
 }
 </script>
