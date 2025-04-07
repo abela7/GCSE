@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 06, 2025 at 07:46 AM
+-- Generation Time: Apr 07, 2025 at 11:04 AM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -582,6 +582,26 @@ CREATE TABLE `exam_reports` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `favorite_practice_items`
+--
+
+CREATE TABLE `favorite_practice_items` (
+  `id` int(11) NOT NULL,
+  `practice_item_id` int(11) NOT NULL COMMENT 'FK to practice_items table',
+  `favorited_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `favorite_practice_items`
+--
+
+INSERT INTO `favorite_practice_items` (`id`, `practice_item_id`, `favorited_at`) VALUES
+(2, 157, '2025-04-06 08:15:30'),
+(3, 145, '2025-04-06 08:21:15');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `files`
 --
 
@@ -628,8 +648,11 @@ CREATE TABLE `habits` (
 --
 
 INSERT INTO `habits` (`id`, `category_id`, `point_rule_id`, `name`, `description`, `icon`, `target_time`, `current_points`, `total_completions`, `total_procrastinated`, `total_skips`, `current_streak`, `longest_streak`, `success_rate`, `is_active`, `created_at`, `updated_at`) VALUES
-(11, 9, 2, 'Call home', '', 'fas fa-check-circle', '10:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-01 23:24:52', '2025-04-01 23:24:52'),
-(13, 12, 2, 'Reading Books', '', 'fas fa-check-circle', '15:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-02 13:49:34', '2025-04-02 15:01:15');
+(11, 9, 2, 'Call home', '', 'fas fa-check-circle', '10:00:00', 0, 1, 0, 0, 1, 0, 100.00, 1, '2025-04-01 23:24:52', '2025-04-07 02:02:20'),
+(13, 12, 2, 'Reading Books', '', 'fas fa-check-circle', '15:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-02 13:49:34', '2025-04-02 15:01:15'),
+(14, 1, 3, 'How?', 'Okay', 'fas fa-check-circle', '05:10:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-07 02:08:55', '2025-04-07 02:08:55'),
+(15, 2, 1, 'I am Test!', '', 'fas fa-check-circle', '05:16:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-07 02:14:29', '2025-04-07 02:14:29'),
+(17, 2, 1, 'Abel Goytom', '', 'fas fa-check-circle', '03:38:00', 5, 1, 0, 0, 1, 1, 100.00, 1, '2025-04-07 02:37:22', '2025-04-07 02:43:26');
 
 -- --------------------------------------------------------
 
@@ -682,6 +705,13 @@ CREATE TABLE `habit_completions` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `habit_completions`
+--
+
+INSERT INTO `habit_completions` (`id`, `habit_id`, `completion_date`, `completion_time`, `status`, `reason`, `points_earned`, `notes`, `created_at`) VALUES
+(0, 17, '2025-04-07', '03:43:26', 'completed', NULL, 5, NULL, '2025-04-07 02:43:26');
+
 -- --------------------------------------------------------
 
 --
@@ -721,6 +751,14 @@ CREATE TABLE `habit_progress` (
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `habit_progress`
+--
+
+INSERT INTO `habit_progress` (`id`, `habit_id`, `date`, `status`, `notes`, `created_at`) VALUES
+(0, 11, '2025-04-07', 'completed', NULL, '2025-04-07 02:02:20'),
+(0, 17, '2025-04-07', 'completed', NULL, '2025-04-07 02:40:58');
 
 -- --------------------------------------------------------
 
@@ -999,6 +1037,112 @@ INSERT INTO `overall_progress` (`id`, `total_sections`, `total_subsections`, `to
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `practice_categories`
+--
+
+CREATE TABLE `practice_categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `practice_categories`
+--
+
+INSERT INTO `practice_categories` (`id`, `name`, `description`) VALUES
+(1, 'Vocabulary', 'Daily focus words and their meanings/usage.'),
+(2, 'Spelling', 'Commonly misspelled words and memory aids.'),
+(3, 'Figurative Language', 'Techniques like metaphors, similes, idioms etc.'),
+(4, 'Phrasal Verbs', 'Common multi-word verbs and their meanings.');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `practice_days`
+--
+
+CREATE TABLE `practice_days` (
+  `id` int(11) NOT NULL,
+  `practice_date` date NOT NULL,
+  `day_number` int(11) DEFAULT NULL COMMENT 'Sequential day number (1, 2, 3...)',
+  `week_number` int(11) DEFAULT NULL COMMENT 'Week number in the practice period',
+  `notes` text DEFAULT NULL COMMENT 'Optional notes for the entire day'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `practice_days`
+--
+
+INSERT INTO `practice_days` (`id`, `practice_date`, `day_number`, `week_number`, `notes`) VALUES
+(1, '2025-04-04', 1, 1, NULL),
+(2, '2025-04-05', 2, 1, NULL),
+(3, '2025-04-06', 3, 1, NULL),
+(4, '2025-04-07', 4, 1, NULL),
+(5, '2025-04-08', 5, 1, NULL),
+(6, '2025-04-09', 6, 1, NULL),
+(7, '2025-04-10', 7, 1, NULL),
+(8, '2025-04-11', 8, 2, NULL),
+(9, '2025-04-12', 9, 2, NULL),
+(10, '2025-04-13', 10, 2, NULL),
+(11, '2025-04-14', 11, 2, NULL),
+(12, '2025-04-15', 12, 2, NULL),
+(13, '2025-04-16', 13, 2, NULL),
+(14, '2025-04-17', 14, 2, NULL),
+(15, '2025-04-18', 15, 3, NULL),
+(16, '2025-04-19', 16, 3, NULL),
+(17, '2025-04-20', 17, 3, NULL),
+(18, '2025-04-21', 18, 3, NULL),
+(19, '2025-04-22', 19, 3, NULL),
+(20, '2025-04-23', 20, 3, NULL),
+(21, '2025-04-24', 21, 3, NULL),
+(22, '2025-04-25', 22, 4, NULL),
+(23, '2025-04-26', 23, 4, NULL),
+(24, '2025-04-27', 24, 4, NULL),
+(25, '2025-04-28', 25, 4, NULL),
+(26, '2025-04-29', 26, 4, NULL),
+(27, '2025-04-30', 27, 4, NULL),
+(28, '2025-05-01', 28, 4, NULL),
+(29, '2025-05-02', 29, 5, NULL),
+(30, '2025-05-03', 30, 5, NULL),
+(31, '2025-05-04', 31, 5, NULL),
+(32, '2025-05-05', 32, 5, NULL),
+(33, '2025-05-06', 33, 5, NULL),
+(34, '2025-05-07', 34, 5, NULL),
+(35, '2025-05-08', 35, 5, NULL),
+(36, '2025-05-09', 36, 6, NULL),
+(37, '2025-05-10', 37, 6, NULL),
+(38, '2025-05-11', 38, 6, NULL),
+(39, '2025-05-12', 39, 6, NULL),
+(40, '2025-05-13', 40, 6, NULL),
+(41, '2025-05-14', 41, 6, NULL),
+(42, '2025-05-15', 42, 6, NULL),
+(43, '2025-05-16', 43, 7, NULL),
+(44, '2025-05-17', 44, 7, NULL),
+(45, '2025-05-18', 45, 7, NULL),
+(46, '2025-05-19', 46, 7, NULL),
+(47, '2025-05-20', 47, 7, NULL),
+(48, '2025-05-21', 48, 7, NULL),
+(49, '2025-05-22', 49, 7, NULL),
+(50, '2025-05-23', 50, 8, NULL),
+(51, '2025-05-24', 51, 8, NULL),
+(52, '2025-05-25', 52, 8, NULL),
+(53, '2025-05-26', 53, 8, NULL),
+(54, '2025-05-27', 54, 8, NULL),
+(55, '2025-05-28', 55, 8, NULL),
+(56, '2025-05-29', 56, 8, NULL),
+(57, '2025-05-30', 57, 9, NULL),
+(58, '2025-05-31', 58, 9, NULL),
+(59, '2025-06-01', 59, 9, NULL),
+(60, '2025-06-02', 60, 9, NULL),
+(61, '2025-06-03', 61, 9, NULL),
+(62, '2025-06-04', 62, 9, NULL),
+(63, '2025-06-05', 63, 9, NULL),
+(64, '2025-06-06', 64, 10, NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `practice_items`
 --
 
@@ -1017,176 +1161,178 @@ CREATE TABLE `practice_items` (
 --
 
 INSERT INTO `practice_items` (`id`, `practice_day_id`, `category_id`, `item_title`, `item_meaning`, `item_example`, `created_at`) VALUES
-(1, 1, 1, 'Ambiguous', 'Having more than one possible meaning or interpretation', 'The ambiguous ending of the novel left readers debating what really happened to the main character.', '2025-04-06 06:04:44'),
-(2, 1, 1, 'Cynical', 'Believing that people are only motivated by self-interest; distrustful of human sincerity', 'His cynical attitude toward politics meant he never believed campaign promises.', '2025-04-06 06:04:44'),
-(3, 1, 1, 'Eloquent', 'Fluent, persuasive, and expressive in speech or writing', 'Her eloquent speech moved the entire audience to tears.', '2025-04-06 06:04:44'),
-(4, 1, 1, 'Prejudice', 'A preconceived opinion not based on reason or experience', 'The novel explores themes of prejudice and discrimination in 1930s America.', '2025-04-06 06:04:44'),
-(5, 1, 1, 'Vulnerable', 'Exposed to the possibility of being harmed; physically or emotionally susceptible', 'The character\'s vulnerable state after losing his job made him sympathetic to readers.', '2025-04-06 06:04:44'),
-(6, 1, 2, 'Necessary', 'Rule: One C, two Ss', 'It is necessary to revise all key texts before the exam.', '2025-04-06 06:04:44'),
-(7, 1, 2, 'Definitely', 'Rule: It has \"finite\" in the middle', 'I will definitely complete all practice questions before the exam.', '2025-04-06 06:04:44'),
-(8, 1, 2, 'Separate', 'Rule: There\'s \"a rat\" in \"separate\"', 'The author uses paragraph breaks to separate different ideas.', '2025-04-06 06:04:44'),
-(9, 1, 2, 'Occurrence', 'Rule: Double R, double C', 'The occurrence of natural imagery throughout the poem suggests the author\'s love of nature.', '2025-04-06 06:04:44'),
-(10, 1, 2, 'Rhythm', 'Rule: Rhythm Helps Your Two Hips Move', 'The rhythm of the poem creates a sense of urgency.', '2025-04-06 06:04:44'),
-(11, 1, 3, 'Metaphor', 'Direct comparison between two unlike things. Application: Identify and explain how the writer uses metaphors to create specific effects', '\"The classroom was a zoo\"', '2025-04-06 06:04:44'),
-(12, 1, 3, 'Simile', 'Comparison using \"like\" or \"as\". Application: Analyze how similes help create vivid imagery in descriptive writing', '\"Her smile was as bright as the sun\"', '2025-04-06 06:04:44'),
-(13, 1, 3, 'Personification', 'Giving human qualities to non-human things. Application: Explain how personification brings settings or objects to life in texts', '\"The wind whispered through the trees\"', '2025-04-06 06:04:44'),
-(14, 1, 3, 'Hyperbole', 'Extreme exaggeration not meant to be taken literally. Application: Identify how hyperbole is used for emphasis or comic effect', '\"I\'ve told you a million times\"', '2025-04-06 06:04:44'),
-(15, 1, 4, 'Break down', 'To stop functioning; to analyze in detail; to lose emotional control', 'The character broke down in tears after receiving the devastating news.', '2025-04-06 06:04:44'),
-(16, 1, 4, 'Bring up', 'To raise a topic; to raise a child', 'The interviewer brought up the controversial issue that the politician had been avoiding.', '2025-04-06 06:04:44'),
-(17, 1, 4, 'Carry out', 'To complete a task; to perform', 'Scientists carried out experiments to test their hypothesis.', '2025-04-06 06:04:44'),
-(18, 2, 1, 'Contempt', 'The feeling that someone or something is worthless or beneath consideration', 'The villain\'s face showed contempt for anyone who challenged his authority.', '2025-04-06 06:04:44'),
-(19, 2, 1, 'Dilemma', 'A situation requiring a choice between equally undesirable alternatives', 'The moral dilemma faced by the protagonist forms the central conflict of the novel.', '2025-04-06 06:04:44'),
-(20, 2, 1, 'Empathy', 'The ability to understand and share the feelings of another', 'The nurse showed great empathy when dealing with patients and their families.', '2025-04-06 06:04:44'),
-(21, 2, 1, 'Manipulative', 'Characterized by unscrupulous control of a situation or person', 'The manipulative antagonist convinced others to do his dirty work.', '2025-04-06 06:04:44'),
-(22, 2, 1, 'Resilient', 'Able to recover quickly from difficulties; tough', 'Despite facing numerous setbacks, the resilient character never gave up on her dreams.', '2025-04-06 06:04:44'),
-(23, 2, 2, 'Accommodation', 'Rule: Two Cs, two Ms', 'The accommodation described in the Victorian novel reflected the social class of the characters.', '2025-04-06 06:04:44'),
-(24, 2, 2, 'Embarrass', 'Rule: Two Rs, two Ss', 'The character\'s actions would embarrass his family if they were discovered.', '2025-04-06 06:04:44'),
-(25, 2, 2, 'Privilege', 'Rule: No D', 'The author explores how privilege affects different characters\' opportunities.', '2025-04-06 06:04:44'),
-(26, 2, 2, 'Recommend', 'Rule: One C, two Ms', 'The teacher will recommend this book to students who enjoy dystopian fiction.', '2025-04-06 06:04:44'),
-(27, 2, 2, 'Unnecessary', 'Rule: One N, two Ns, one C, two Ss', 'The author uses unnecessary detail to create a sense of realism.', '2025-04-06 06:04:44'),
-(28, 2, 3, 'Oxymoron', 'A figure of speech combining contradictory terms. Application: Identify how oxymorons create dramatic effect or highlight contradictions', '\"Deafening silence\"', '2025-04-06 06:04:44'),
-(29, 2, 3, 'Pathetic fallacy', 'Attributing human emotions to nature/environment. Application: Analyze how weather and environment reflect characters\' emotions', '\"The gloomy clouds reflected his dark mood\"', '2025-04-06 06:04:44'),
-(30, 2, 3, 'Foreshadowing', 'Hints or clues about events that will happen later. Application: Identify how writers use subtle hints', '\"The dark clouds gathering on the horizon warned of trouble ahead\"', '2025-04-06 06:04:44'),
-(31, 2, 3, 'Juxtaposition', 'Placing contrasting elements side by side for effect. Application: Explain how contrasting images or ideas create meaning', '\"The mansion stood next to the slum, highlighting the city\'s inequality\"', '2025-04-06 06:04:44'),
-(32, 2, 4, 'Look into', 'To investigate or examine', 'The detective promised to look into the mysterious disappearance.', '2025-04-06 06:04:44'),
-(33, 2, 4, 'Put off', 'To postpone; to discourage', 'Don\'t put off studying until the night before the exam.', '2025-04-06 06:04:44'),
-(34, 2, 4, 'Turn down', 'To reject; to reduce volume', 'She turned down his invitation to the dance, breaking his heart.', '2025-04-06 06:04:44'),
-(35, 3, 1, 'Apathy', 'Lack of interest, enthusiasm, or concern', 'The character\'s apathy toward school worried his parents and teachers.', '2025-04-06 06:04:44'),
-(36, 3, 1, 'Benevolent', 'Kind, helpful, and generous', 'The benevolent king was loved by all his subjects for his fairness and generosity.', '2025-04-06 06:04:44'),
-(37, 3, 1, 'Desolate', 'Deserted, empty; feeling sad and abandoned', 'After the war, the once-bustling city was left desolate and in ruins.', '2025-04-06 06:04:44'),
-(38, 3, 1, 'Inevitable', 'Certain to happen; unavoidable', 'The conflict between the two characters made their confrontation inevitable.', '2025-04-06 06:04:44'),
-(39, 3, 1, 'Profound', 'Very great or intense; showing deep insight', 'The novel\'s profound message about human nature has resonated with readers for generations.', '2025-04-06 06:04:44'),
-(40, 3, 2, 'Conscience', 'Rule: \"con\" + \"science\"', 'His conscience wouldn\'t let him ignore the suffering of others.', '2025-04-06 06:04:44'),
-(41, 3, 2, 'Disappear', 'Rule: \"dis\" + \"appear\"', 'The mysterious character would appear and disappear throughout the narrative.', '2025-04-06 06:04:44'),
-(42, 3, 2, 'Environment', 'Rule: \"environ\" + \"ment\"', 'The author describes the environment in great detail to create atmosphere.', '2025-04-06 06:04:44'),
-(43, 3, 2, 'Immediately', 'Rule: All the vowels: i-e-i-a-e-y', 'She immediately regretted her harsh words.', '2025-04-06 06:04:44'),
-(44, 3, 2, 'Possession', 'Rule: Double S in the middle', 'His most valued possession was a book given to him by his grandfather.', '2025-04-06 06:04:44'),
-(45, 3, 3, 'Irony', 'When the opposite of what is expected occurs. Application: Identify different types (situational, dramatic, verbal)', '\"The fire station burned down\"', '2025-04-06 06:04:44'),
-(46, 3, 3, 'Symbolism', 'Using objects, characters, or colors to represent abstract ideas. Application: Analyze how symbols develop themes', '\"The white dove symbolized peace\"', '2025-04-06 06:04:44'),
-(47, 3, 3, 'Alliteration', 'Repetition of the same consonant sound at the beginning of nearby words. Application: Explain how it creates rhythm or emphasis', '\"She sells seashells by the seashore\"', '2025-04-06 06:04:44'),
-(48, 3, 3, 'Onomatopoeia', 'Words that phonetically imitate the sound they describe. Application: Identify how sound words create sensory experiences', '\"The buzz of the bees filled the garden\"', '2025-04-06 06:04:44'),
-(49, 3, 4, 'Give up', 'To surrender; to stop trying', 'Despite the challenges, the protagonist refused to give up on her dream.', '2025-04-06 06:04:44'),
-(50, 3, 4, 'Point out', 'To draw attention to something; to show', 'The teacher pointed out several grammatical errors in the essay.', '2025-04-06 06:04:44'),
-(51, 3, 4, 'Stand for', 'To represent; to tolerate', 'The flag stands for freedom and unity.', '2025-04-06 06:04:44'),
-(52, 4, 1, 'Ambivalent', 'Having mixed or contradictory feelings about someone or something', 'She felt ambivalent about moving to a new city—excited for new opportunities but sad to leave friends behind.', '2025-04-06 06:04:44'),
-(53, 4, 1, 'Enigmatic', 'Mysterious and difficult to understand', 'The enigmatic smile of the Mona Lisa has fascinated viewers for centuries.', '2025-04-06 06:04:44'),
-(54, 4, 1, 'Harrowing', 'Extremely distressing or disturbing', 'The novel provides a harrowing account of life during wartime.', '2025-04-06 06:04:44'),
-(55, 4, 1, 'Meticulous', 'Showing great attention to detail; very careful and precise', 'The detective\'s meticulous investigation eventually revealed the truth.', '2025-04-06 06:04:44'),
-(56, 4, 1, 'Vindictive', 'Having or showing a desire to harm someone who has harmed you', 'The vindictive character plotted revenge against those who had wronged him.', '2025-04-06 06:04:44'),
-(57, 4, 2, 'Achieve', 'Rule: \"i before e\" exception', 'Through hard work, she was able to achieve her goals.', '2025-04-06 06:04:44'),
-(58, 4, 2, 'Beginning', 'Rule: Double N when adding -ing to \"begin\"', 'The beginning of the novel introduces all the main characters.', '2025-04-06 06:04:44'),
-(59, 4, 2, 'Committed', 'Rule: Double T when adding -ed to \"commit\"', 'He was committed to finding the truth, no matter the cost.', '2025-04-06 06:04:44'),
-(60, 4, 2, 'Referred', 'Rule: Double R when adding -ed to \"refer\"', 'The author referred to historical events throughout the novel.', '2025-04-06 06:04:44'),
-(61, 4, 2, 'Tomorrow', 'Rule: One M, two Rs', '\"I\'ll deal with this problem tomorrow,\" she thought, putting off the inevitable.', '2025-04-06 06:04:44'),
-(62, 4, 3, 'Assonance', 'Repetition of vowel sounds in nearby words. Application: Identify how it creates rhythm and mood', '\"The rain in Spain stays mainly in the plain\"', '2025-04-06 06:04:44'),
-(63, 4, 3, 'Euphemism', 'A mild or indirect word/phrase substituted for one considered harsh. Application: Analyze how they reveal attitudes', '\"Passed away\" instead of \"died\"', '2025-04-06 06:04:44'),
-(64, 4, 3, 'Motif', 'A recurring element that has symbolic significance. Application: Identify recurring motifs and explain contribution', 'The repeated appearance of ravens to suggest doom', '2025-04-06 06:04:44'),
-(65, 4, 3, 'Paradox', 'A statement that appears contradictory but contains truth. Application: Explain how paradoxes create depth', '\"The more you learn, the less you know\"', '2025-04-06 06:04:44'),
-(66, 4, 4, 'Come across', 'To find by chance; to give a certain impression', 'While cleaning the attic, she came across her grandmother\'s old diary.', '2025-04-06 06:04:44'),
-(67, 4, 4, 'Fall apart', 'To break into pieces; to lose emotional control', 'After the tragedy, his life began to fall apart.', '2025-04-06 06:04:44'),
-(68, 4, 4, 'Make up', 'To invent; to reconcile after an argument', 'The child made up an elaborate story to explain the broken vase.', '2025-04-06 06:04:44'),
-(69, 5, 1, 'Candid', 'Truthful and straightforward; frank', 'In her candid autobiography, the actress revealed the struggles behind her success.', '2025-04-06 06:04:44'),
-(70, 5, 1, 'Despondent', 'Feeling hopeless and dejected', 'After failing the exam, he became despondent about his future prospects.', '2025-04-06 06:04:44'),
-(71, 5, 1, 'Fervent', 'Having or showing great passion or intensity of spirit', 'The fervent speech inspired the crowd to take action.', '2025-04-06 06:04:44'),
-(72, 5, 1, 'Impartial', 'Treating all rivals or disputants equally; fair and unbiased', 'The judge remained impartial despite personal opinions about the case.', '2025-04-06 06:04:44'),
-(73, 5, 1, 'Tenacious', 'Tending to keep a firm hold of something; persistent', 'Her tenacious pursuit of justice finally led to the truth being revealed.', '2025-04-06 06:04:44'),
-(74, 5, 2, 'Argument', 'Rule: No E after the U', 'The heated argument between the two characters revealed their conflicting values.', '2025-04-06 06:04:44'),
-(75, 5, 2, 'Believe', 'Rule: \"i before e except after c\"', 'The readers believe in the hero\'s ultimate triumph.', '2025-04-06 06:04:44'),
-(76, 5, 2, 'Government', 'Rule: \"govern\" + \"ment\"', 'The novel criticizes the government\'s response to the crisis.', '2025-04-06 06:04:44'),
-(77, 5, 2, 'Relevant', 'Rule: All Es except second-to-last', 'The teacher asked students to find relevant quotes to support their analysis.', '2025-04-06 06:04:44'),
-(78, 5, 2, 'Surprise', 'Rule: Single consonants (no doubles)', 'The surprise ending left readers questioning everything they thought they knew.', '2025-04-06 06:04:44'),
-(79, 5, 3, 'Anaphora', 'Repetition of a word or phrase at beginning of clauses. Application: Identify how repetition creates emphasis', '\"I have a dream that... I have a dream that...\"', '2025-04-06 06:04:44'),
-(80, 5, 3, 'Dramatic irony', 'When the audience knows something characters don\'t. Application: Analyze how it creates tension/comedy', 'Audience knows killer is hiding', '2025-04-06 06:04:44'),
-(81, 5, 3, 'Extended metaphor', 'Metaphor developed at length through a work. Application: Explain how they develop themes', 'Life described as a journey throughout a poem', '2025-04-06 06:04:44'),
-(82, 5, 3, 'Understatement', 'Presenting something as less significant than it is. Application: Identify how it creates humor/emphasis', 'Saying \"It\'s a bit warm\" during a heatwave', '2025-04-06 06:04:44'),
-(83, 5, 4, 'Back up', 'To support; to create a copy of data', 'His friends backed up his version of events when questioned.', '2025-04-06 06:04:44'),
-(84, 5, 4, 'Set up', 'To establish; to arrange; to frame someone', 'They set up a meeting to resolve the conflict.', '2025-04-06 06:04:44'),
-(85, 5, 4, 'Work out', 'To exercise; to solve; to end successfully', 'Despite the challenges, everything worked out in the end.', '2025-04-06 06:04:44'),
-(86, 6, 1, 'Arbitrary', 'Based on random choice or personal whim', 'The arbitrary rules of the dystopian society made no sense to the protagonist.', '2025-04-06 06:04:44'),
-(87, 6, 1, 'Connotation', 'An idea or feeling invoked by a word beyond its literal meaning', 'The word \"home\" has positive connotations of comfort and belonging.', '2025-04-06 06:04:44'),
-(88, 6, 1, 'Ephemeral', 'Lasting for a very short time', 'The ephemeral beauty of the cherry blossoms symbolized the fleeting nature of life.', '2025-04-06 06:04:44'),
-(89, 6, 1, 'Implicit', 'Implied though not directly expressed; inherent', 'The implicit message of the poem is that love conquers all obstacles.', '2025-04-06 06:04:44'),
-(90, 6, 1, 'Nuance', 'A subtle difference in meaning, expression, or sound', 'The actor\'s performance captured all the nuances of the complex character.', '2025-04-06 06:04:44'),
-(91, 6, 2, 'Apparent', 'Rule: \"appar\" + \"ent\"', 'It became apparent that the narrator was not telling the whole truth.', '2025-04-06 06:04:44'),
-(92, 6, 2, 'Desperate', 'Rule: \"desper\" + \"ate\"', 'The desperate character was willing to do anything to survive.', '2025-04-06 06:04:44'),
-(93, 6, 2, 'Existence', 'Rule: \"exist\" + \"ence\"', 'The novel questions the meaning of human existence.', '2025-04-06 06:04:44'),
-(94, 6, 2, 'Parallel', 'Rule: Double L in the middle', 'The author draws a parallel between the two historical events.', '2025-04-06 06:04:44'),
-(95, 6, 2, 'Weird', 'Rule: \"i before e except after c\" exception', 'The weird atmosphere of the house created a sense of unease.', '2025-04-06 06:04:44'),
-(96, 6, 3, 'Allegory', 'Story with hidden meaning (moral/political). Application: Identify meanings/significance', 'Animal Farm allegory for Russian Revolution', '2025-04-06 06:04:44'),
-(97, 6, 3, 'Enjambment', 'Continuation of sentence beyond line end in poetry. Application: Analyze effect (emphasis/flow)', '\"...late and soon, / Getting and spending...\"', '2025-04-06 06:04:44'),
-(98, 6, 3, 'Caesura', 'Pause/break mid-line in poetry. Application: Explain rhythm/emphasis', '\"To be, or not to be || that is the question\"', '2025-04-06 06:04:44'),
-(99, 6, 3, 'Bathos', 'Anticlimax, often humorous. Application: Identify humor/undermining effect', '\"Mighty king... terrified of spiders\"', '2025-04-06 06:04:44'),
-(100, 6, 4, 'Break out', 'To escape; to begin suddenly', 'War broke out between the two nations after years of tension.', '2025-04-06 06:04:44'),
-(101, 6, 4, 'Go through', 'To experience; to examine; to use up', 'She went through a difficult period after losing her job.', '2025-04-06 06:04:44'),
-(102, 6, 4, 'Take after', 'To resemble, especially a family member', 'The young boy takes after his father in both appearance and temperament.', '2025-04-06 06:04:44'),
-(103, 7, 1, 'Catalyst', 'A person or thing that precipitates change', 'Her arrival was the catalyst that set the entire plot in motion.', '2025-04-06 06:04:44'),
-(104, 7, 1, 'Dichotomy', 'A division or contrast between two things presented as opposites', 'The novel explores the dichotomy between good and evil in human nature.', '2025-04-06 06:04:44'),
-(105, 7, 1, 'Facade', 'A deceptive outward appearance', 'Behind his cheerful facade, the character was deeply troubled.', '2025-04-06 06:04:44'),
-(106, 7, 1, 'Intrinsic', 'Belonging naturally; essential', 'The poem explores the intrinsic value of human connection.', '2025-04-06 06:04:44'),
-(107, 7, 1, 'Poignant', 'Evoking a keen sense of sadness or regret', 'The poignant ending left many readers in tears.', '2025-04-06 06:04:44'),
-(108, 7, 2, 'Changeable', 'Rule: Keep the E when adding -able', 'The changeable weather reflected the character\'s unstable emotions.', '2025-04-06 06:04:44'),
-(109, 7, 2, 'Conscious', 'Rule: \"con\" + \"sci\" + \"ous\"', 'He was conscious of the effect his words had on others.', '2025-04-06 06:04:44'),
-(110, 7, 2, 'Exaggerate', 'Rule: Double G', 'The narrator tends to exaggerate for dramatic effect.', '2025-04-06 06:04:44'),
-(111, 7, 2, 'Noticeable', 'Rule: Keep the E when adding -able', 'There was a noticeable change in her behavior after the incident.', '2025-04-06 06:04:44'),
-(112, 7, 2, 'Occasionally', 'Rule: Double C, double L', 'He occasionally broke the fourth wall to address the reader directly.', '2025-04-06 06:04:44'),
-(113, 7, 3, 'Antithesis', 'Contrasting ideas in balanced structure. Application: Analyze emphasis/themes', '\"To err is human; to forgive, divine\"', '2025-04-06 06:04:44'),
-(114, 7, 3, 'Synecdoche', 'Using a part to represent the whole. Application: Identify effects/emphasis', '\"All hands on deck\"', '2025-04-06 06:04:44'),
-(115, 7, 3, 'Metonymy', 'Using associated thing to represent itself. Application: Distinguish figurative types', '\"The crown\" for monarchy', '2025-04-06 06:04:44'),
-(116, 7, 3, 'Litotes', 'Understatement via negative expression. Application: Identify emphasis/tone', '\"Not bad\" meaning good', '2025-04-06 06:04:44'),
-(117, 7, 4, 'Call off', 'To cancel', 'They called off the wedding after discovering a terrible secret.', '2025-04-06 06:04:44'),
-(118, 7, 4, 'Look up to', 'To admire or respect', 'The younger character looked up to her brave older sister.', '2025-04-06 06:04:44'),
-(119, 7, 4, 'Run into', 'To meet by chance; to encounter a problem', 'She ran into her old friend at the market after many years apart.', '2025-04-06 06:04:44'),
-(120, 8, 1, 'Altruistic', 'Showing selfless concern for the well-being of others', 'Her altruistic nature led her to dedicate her life to helping others.', '2025-04-06 06:04:44'),
-(121, 8, 1, 'Cacophony', 'A harsh, discordant mixture of sounds', 'The cacophony of the battlefield overwhelmed the young soldier.', '2025-04-06 06:04:44'),
-(122, 8, 1, 'Ephemeral', 'Lasting for a very short time (repeated, okay for practice)', 'Fame proved ephemeral for the one-hit wonder.', '2025-04-06 06:04:44'),
-(123, 8, 1, 'Juxtapose', 'To place close together for contrasting effect', 'The author juxtaposes scenes of extreme wealth and poverty to highlight social inequality.', '2025-04-06 06:04:44'),
-(124, 8, 1, 'Sycophant', 'A person who acts obsequiously toward someone to gain advantage', 'The king was surrounded by sycophants who praised his every decision.', '2025-04-06 06:04:44'),
-(125, 8, 2, 'Acceptable', 'Rule: \"accept\" + \"able\"', 'His behavior was not acceptable in polite society.', '2025-04-06 06:04:44'),
-(126, 8, 2, 'Colleague', 'Rule: \"collea\" + \"gue\"', 'She discussed the matter with her colleague before making a decision.', '2025-04-06 06:04:44'),
-(127, 8, 2, 'Liaison', 'Rule: Two Is', 'He acted as a liaison between the two opposing groups.', '2025-04-06 06:04:44'),
-(128, 8, 2, 'Questionnaire', 'Rule: Double N', 'The researcher distributed a questionnaire to gather data.', '2025-04-06 06:04:44'),
-(129, 8, 2, 'Threshold', 'Rule: Single H in middle', 'Crossing the threshold of the ancient building, she felt a sense of awe.', '2025-04-06 06:04:44'),
-(130, 8, 3, 'Chiasmus', 'Second part balanced/reversed against first. Application: Identify emphasis/phrasing', '\"Ask not what your country...\"', '2025-04-06 06:04:44'),
-(131, 8, 3, 'Consonance', 'Repetition of consonant sounds within/end words. Application: Analyze rhythm/mood', '\"Pitter patter\"', '2025-04-06 06:04:44'),
-(132, 8, 3, 'Hubris', 'Excessive pride leading to downfall. Application: Identify tragic flaw', 'Character believed he could outsmart everyone', '2025-04-06 06:04:44'),
-(133, 8, 3, 'Pathos', 'Quality evoking pity or sadness. Application: Analyze how writers create emotion', 'The pathos of the child\'s situation', '2025-04-06 06:04:44'),
-(134, 8, 4, 'Bring about', 'To cause to happen', 'The revolution brought about significant social changes.', '2025-04-06 06:04:44'),
-(135, 8, 4, 'Hold back', 'To restrain; to withhold', 'She held back tears as she said goodbye.', '2025-04-06 06:04:44'),
-(136, 8, 4, 'Pass away', 'To die (euphemism)', 'His grandfather passed away peacefully in his sleep.', '2025-04-06 06:04:44'),
-(137, 9, 1, 'Acerbic', 'Sharp and forthright in expression or tone', 'The critic\'s acerbic review devastated the young author.', '2025-04-06 06:04:44'),
-(138, 9, 1, 'Brevity', 'Concise and exact use of words', 'The power of the speech lay in its brevity and directness.', '2025-04-06 06:04:44'),
-(139, 9, 1, 'Duplicity', 'Deceitfulness; double-dealing', 'The villain\'s duplicity was revealed in the final chapter.', '2025-04-06 06:04:44'),
-(140, 9, 1, 'Egregious', 'Outstandingly bad; shocking', 'The character\'s egregious behavior alienated all his friends.', '2025-04-06 06:04:44'),
-(141, 9, 1, 'Pernicious', 'Having a harmful effect, subtly', 'The novel explores the pernicious effects of prejudice on society.', '2025-04-06 06:04:44'),
-(142, 9, 2, 'Bureaucracy', 'Rule: \"bureau\" + \"cracy\"', 'The character became trapped in governmental bureaucracy.', '2025-04-06 06:04:44'),
-(143, 9, 2, 'Consensus', 'Rule: \"con\" + \"sensus\"', 'The group reached a consensus after hours of debate.', '2025-04-06 06:04:44'),
-(144, 9, 2, 'Harass', 'Rule: Single R, double S', 'The protagonist was harassed by the antagonist throughout the story.', '2025-04-06 06:04:44'),
-(145, 9, 2, 'Mischievous', 'Rule: Three syllables', 'The mischievous child was always playing pranks.', '2025-04-06 06:04:44'),
-(146, 9, 2, 'Pronunciation', 'Rule: Drops \"o\" from pronounce', 'The character\'s unusual pronunciation revealed her foreign origins.', '2025-04-06 06:04:44'),
-(147, 9, 3, 'Catharsis', 'Release strong emotions via art. Application: Explain emotional release', 'Tragic ending provides catharsis', '2025-04-06 06:04:44'),
-(148, 9, 3, 'Hamartia', 'Fatal flaw leading to hero downfall. Application: Identify flaws/consequences', 'His hamartia was uncontrollable anger', '2025-04-06 06:04:44'),
-(149, 9, 3, 'Soliloquy', 'Character speaks thoughts aloud in play. Application: Analyze inner thoughts/motives', 'Hamlet\'s \"To be or not to be\"', '2025-04-06 06:04:44'),
-(150, 9, 3, 'Verisimilitude', 'Appearance of being true/real. Application: Explain how authors create realism', 'Novel\'s verisimilitude makes world believable', '2025-04-06 06:04:44'),
-(151, 9, 4, 'Carry on', 'To continue; to behave', 'Despite the tragedy, they carried on with their daily lives.', '2025-04-06 06:04:44'),
-(152, 9, 4, 'Figure out', 'To understand or solve', 'The detective struggled to figure out the killer\'s motive.', '2025-04-06 06:04:44'),
-(153, 9, 4, 'Take on', 'To accept challenge/responsibility', 'She took on the role of leader after the previous one resigned.', '2025-04-06 06:04:44'),
-(154, 10, 1, 'Ameliorate', 'To make something better; improve', 'The new policies were designed to ameliorate the living conditions of the poor.', '2025-04-06 06:04:44'),
-(155, 10, 1, 'Capricious', 'Given to sudden changes of mood or behavior', 'The capricious weather mirrored the protagonist\'s unpredictable emotions.', '2025-04-06 06:04:44'),
-(156, 10, 1, 'Disparate', 'Essentially different in kind', 'The novel brings together disparate characters from all walks of life.', '2025-04-06 06:04:44'),
-(157, 10, 1, 'Inextricable', 'Unable to be separated or escaped from', 'Their fates became inextricably linked after that fateful meeting.', '2025-04-06 06:04:44'),
-(158, 10, 1, 'Ubiquitous', 'Present, appearing, or found everywhere', 'References to nature are ubiquitous throughout the poet\'s work.', '2025-04-06 06:04:44'),
-(159, 10, 2, 'Accommodate', 'Rule: Two Cs, two Ms', 'The hotel could accommodate all the wedding guests.', '2025-04-06 06:04:44'),
-(160, 10, 2, 'Embarrass', 'Rule: Two Rs, two Ss', 'The public revelation would embarrass the entire family.', '2025-04-06 06:04:44'),
-(161, 10, 2, 'Millennium', 'Rule: Double N, double L', 'The novel is set at the turn of the millennium.', '2025-04-06 06:04:44'),
-(162, 10, 2, 'Occurrence', 'Rule: Double C, double R', 'The supernatural occurrence changed the character\'s perspective.', '2025-04-06 06:04:44'),
-(163, 10, 2, 'Supersede', 'Rule: \"super\" + \"sede\"', 'The new edition supersedes all previous versions of the text.', '2025-04-06 06:04:44'),
-(164, 10, 3, 'Anagnorisis', 'Moment of critical discovery/recognition. Application: Identify revelation moments', 'Realizes friend\'s betrayal', '2025-04-06 06:04:44'),
-(165, 10, 3, 'Deus ex machina', 'Unexpected event solves problem. Application: Evaluate plot resolutions', 'Sudden inheritance solves all problems', '2025-04-06 06:04:44'),
-(166, 10, 3, 'In medias res', 'Beginning narrative in middle action. Application: Analyze structure effect', 'Novel begins with protagonist fleeing', '2025-04-06 06:04:44'),
-(167, 10, 3, 'Peripeteia', 'Sudden reversal fortune/circumstance. Application: Identify turning points/impact', 'Character loses everything valued', '2025-04-06 06:04:44'),
-(168, 10, 4, 'Come up with', 'To produce or suggest an idea', 'The team came up with a brilliant solution to the problem.', '2025-04-06 06:04:44'),
-(169, 10, 4, 'Put up with', 'To tolerate', 'She could no longer put up with his disrespectful behavior.', '2025-04-06 06:04:44'),
-(170, 10, 4, 'Turn out', 'To prove to be; to result', 'Despite initial doubts, the plan turned out to be successful.', '2025-04-06 06:04:44');
+(1, 1, 1, 'Ambiguous', 'Having more than one possible meaning or interpretation', 'The ambiguous ending of the novel left readers debating what really happened to the main character.', '2025-04-06 07:10:48'),
+(2, 1, 1, 'Cynical', 'Believing that people are only motivated by self-interest; distrustful of human sincerity', 'His cynical attitude toward politics meant he never believed campaign promises.', '2025-04-06 07:10:48'),
+(3, 1, 1, 'Eloquent', 'Fluent, persuasive, and expressive in speech or writing', 'Her eloquent speech moved the entire audience to tears.', '2025-04-06 07:10:48'),
+(4, 1, 1, 'Prejudice', 'A preconceived opinion not based on reason or experience', 'The novel explores themes of prejudice and discrimination in 1930s America.', '2025-04-06 07:10:48'),
+(5, 1, 1, 'Vulnerable', 'Exposed to the possibility of being harmed; physically or emotionally susceptible', 'The character\'s vulnerable state after losing his job made him sympathetic to readers.', '2025-04-06 07:10:48'),
+(6, 1, 2, 'Necessary', 'Rule: One C, two Ss', 'It is necessary to revise all key texts before the exam.', '2025-04-06 07:10:48'),
+(7, 1, 2, 'Definitely', 'Rule: It has \"finite\" in the middle', 'I will definitely complete all practice questions before the exam.', '2025-04-06 07:10:48'),
+(8, 1, 2, 'Separate', 'Rule: There\'s \"a rat\" in \"separate\"', 'The author uses paragraph breaks to separate different ideas.', '2025-04-06 07:10:48'),
+(9, 1, 2, 'Occurrence', 'Rule: Double R, double C', 'The occurrence of natural imagery throughout the poem suggests the author\'s love of nature.', '2025-04-06 07:10:48'),
+(10, 1, 2, 'Rhythm', 'Rule: Rhythm Helps Your Two Hips Move', 'The rhythm of the poem creates a sense of urgency.', '2025-04-06 07:10:48'),
+(11, 1, 3, 'Metaphor', 'Direct comparison between two unlike things. Application: Identify and explain how the writer uses metaphors to create specific effects', '\"The classroom was a zoo\"', '2025-04-06 07:10:48'),
+(12, 1, 3, 'Simile', 'Comparison using \"like\" or \"as\". Application: Analyze how similes help create vivid imagery in descriptive writing', '\"Her smile was as bright as the sun\"', '2025-04-06 07:10:48'),
+(13, 1, 3, 'Personification', 'Giving human qualities to non-human things. Application: Explain how personification brings settings or objects to life in texts', '\"The wind whispered through the trees\"', '2025-04-06 07:10:48'),
+(14, 1, 3, 'Hyperbole', 'Extreme exaggeration not meant to be taken literally. Application: Identify how hyperbole is used for emphasis or comic effect', '\"I\'ve told you a million times\"', '2025-04-06 07:10:48'),
+(15, 1, 4, 'Break down', 'To stop functioning; to analyze in detail; to lose emotional control', 'The character broke down in tears after receiving the devastating news.', '2025-04-06 07:10:48'),
+(16, 1, 4, 'Bring up', 'To raise a topic; to raise a child', 'The interviewer brought up the controversial issue that the politician had been avoiding.', '2025-04-06 07:10:48'),
+(17, 1, 4, 'Carry out', 'To complete a task; to perform', 'Scientists carried out experiments to test their hypothesis.', '2025-04-06 07:10:48'),
+(18, 2, 1, 'Contempt', 'The feeling that someone or something is worthless or beneath consideration', 'The villain\'s face showed contempt for anyone who challenged his authority.', '2025-04-06 07:10:48'),
+(19, 2, 1, 'Dilemma', 'A situation requiring a choice between equally undesirable alternatives', 'The moral dilemma faced by the protagonist forms the central conflict of the novel.', '2025-04-06 07:10:48'),
+(20, 2, 1, 'Empathy', 'The ability to understand and share the feelings of another', 'The nurse showed great empathy when dealing with patients and their families.', '2025-04-06 07:10:48'),
+(21, 2, 1, 'Manipulative', 'Characterized by unscrupulous control of a situation or person', 'The manipulative antagonist convinced others to do his dirty work.', '2025-04-06 07:10:48'),
+(22, 2, 1, 'Resilient', 'Able to recover quickly from difficulties; tough', 'Despite facing numerous setbacks, the resilient character never gave up on her dreams.', '2025-04-06 07:10:48'),
+(23, 2, 2, 'Accommodation', 'Rule: Two Cs, two Ms', 'The accommodation described in the Victorian novel reflected the social class of the characters.', '2025-04-06 07:10:48'),
+(24, 2, 2, 'Embarrass', 'Rule: Two Rs, two Ss', 'The character\'s actions would embarrass his family if they were discovered.', '2025-04-06 07:10:48'),
+(25, 2, 2, 'Privilege', 'Rule: No D', 'The author explores how privilege affects different characters\' opportunities.', '2025-04-06 07:10:48'),
+(26, 2, 2, 'Recommend', 'Rule: One C, two Ms', 'The teacher will recommend this book to students who enjoy dystopian fiction.', '2025-04-06 07:10:48'),
+(27, 2, 2, 'Unnecessary', 'Rule: One N, two Ns, one C, two Ss', 'The author uses unnecessary detail to create a sense of realism.', '2025-04-06 07:10:48'),
+(28, 2, 3, 'Oxymoron', 'Combining contradictory terms. Application: Identify dramatic effect/contradictions', '\"Deafening silence\"', '2025-04-06 07:10:48'),
+(29, 2, 3, 'Pathetic fallacy', 'Attributing human emotions to nature. Application: Analyze how weather/environment reflect emotions', '\"The gloomy clouds reflected his dark mood\"', '2025-04-06 07:10:48'),
+(30, 2, 3, 'Foreshadowing', 'Hints or clues about later events. Application: Identify subtle hints', '\"The dark clouds gathering... warned of trouble\"', '2025-04-06 07:10:48'),
+(31, 2, 3, 'Juxtaposition', 'Placing contrasting elements side by side. Application: Explain how contrast creates meaning', '\"Mansion stood next to the slum\"', '2025-04-06 07:10:48'),
+(32, 2, 4, 'Look into', 'To investigate or examine', 'The detective promised to look into the mysterious disappearance.', '2025-04-06 07:10:48'),
+(33, 2, 4, 'Put off', 'To postpone; to discourage', 'Don\'t put off studying until the night before the exam.', '2025-04-06 07:10:48'),
+(34, 2, 4, 'Turn down', 'To reject; to reduce volume', 'She turned down his invitation to the dance, breaking his heart.', '2025-04-06 07:10:48'),
+(35, 3, 1, 'Apathy', 'Lack of interest, enthusiasm, or concern', 'The character\'s apathy toward school worried his parents.', '2025-04-06 07:10:48'),
+(36, 3, 1, 'Benevolent', 'Kind, helpful, and generous', 'The benevolent king was loved by all his subjects.', '2025-04-06 07:10:48'),
+(37, 3, 1, 'Desolate', 'Deserted, empty; feeling sad and abandoned', 'After the war, the city was left desolate.', '2025-04-06 07:10:48'),
+(38, 3, 1, 'Inevitable', 'Certain to happen; unavoidable', 'Their confrontation was inevitable.', '2025-04-06 07:10:48'),
+(39, 3, 1, 'Profound', 'Very great or intense; showing deep insight', 'The novel\'s profound message resonated with readers.', '2025-04-06 07:10:48'),
+(40, 3, 2, 'Conscience', 'Rule: \"con\" + \"science\"', 'His conscience wouldn\'t let him ignore the suffering.', '2025-04-06 07:10:48'),
+(41, 3, 2, 'Disappear', 'Rule: \"dis\" + \"appear\"', 'The mysterious character would disappear.', '2025-04-06 07:10:48'),
+(42, 3, 2, 'Environment', 'Rule: \"environ\" + \"ment\"', 'The author describes the environment.', '2025-04-06 07:10:48'),
+(43, 3, 2, 'Immediately', 'Rule: i-e-i-a-e-y', 'She immediately regretted her words.', '2025-04-06 07:10:48'),
+(44, 3, 2, 'Possession', 'Rule: Double S mid', 'His most valued possession was a book.', '2025-04-06 07:10:48'),
+(45, 3, 3, 'Irony', 'Opposite of expected occurs. Application: Identify types', 'Fire station burned down', '2025-04-06 07:10:48'),
+(46, 3, 3, 'Symbolism', 'Objects/etc represent ideas. Application: Analyze theme dev', 'Dove symbolized peace', '2025-04-06 07:10:48'),
+(47, 3, 3, 'Alliteration', 'Repetition initial consonant. Application: Explain effect', '\"She sells seashells\"', '2025-04-06 07:10:48'),
+(48, 3, 3, 'Onomatopoeia', 'Words imitate sound. Application: Identify sensory effect', '\"Buzz of the bees\"', '2025-04-06 07:10:48'),
+(49, 3, 4, 'Give up', 'Surrender; stop trying', 'She refused to give up.', '2025-04-06 07:10:48'),
+(50, 3, 4, 'Point out', 'Draw attention; show', 'Teacher pointed out errors.', '2025-04-06 07:10:48'),
+(51, 3, 4, 'Stand for', 'Represent; tolerate', 'Flag stands for freedom.', '2025-04-06 07:10:48'),
+(52, 4, 1, 'Ambivalent', 'Having mixed feelings', 'She felt ambivalent about moving.', '2025-04-06 07:10:48'),
+(53, 4, 1, 'Enigmatic', 'Mysterious', 'Mona Lisa\'s enigmatic smile.', '2025-04-06 07:10:48'),
+(54, 4, 1, 'Harrowing', 'Extremely distressing', 'Harrowing wartime account.', '2025-04-06 07:10:48'),
+(55, 4, 1, 'Meticulous', 'Attention to detail; precise', 'Meticulous investigation found truth.', '2025-04-06 07:10:48'),
+(56, 4, 1, 'Vindictive', 'Desire to harm', 'Vindictive character plotted revenge.', '2025-04-06 07:10:48'),
+(57, 4, 2, 'Achieve', 'Rule: i before e exception', 'Able to achieve goals.', '2025-04-06 07:10:48'),
+(58, 4, 2, 'Beginning', 'Rule: Double N for -ing', 'Beginning introduces characters.', '2025-04-06 07:10:48'),
+(59, 4, 2, 'Committed', 'Rule: Double T for -ed', 'Committed to finding truth.', '2025-04-06 07:10:48'),
+(60, 4, 2, 'Referred', 'Rule: Double R for -ed', 'Author referred to events.', '2025-04-06 07:10:48'),
+(61, 4, 2, 'Tomorrow', 'Rule: One M, two Rs', '\"Deal with this tomorrow\"', '2025-04-06 07:10:48'),
+(62, 4, 3, 'Assonance', 'Repetition vowel sounds. App: ID rhythm/mood', '\"Rain in Spain stays...\"', '2025-04-06 07:10:48'),
+(63, 4, 3, 'Euphemism', 'Mild substitute phrase. App: Analyze attitudes', '\"Passed away\"', '2025-04-06 07:10:48'),
+(64, 4, 3, 'Motif', 'Recurring symbolic element. App: ID contribution', 'Ravens suggest doom', '2025-04-06 07:10:48'),
+(65, 4, 3, 'Paradox', 'Contradictory statement w/truth. App: Explain depth', '\"More learn, less know\"', '2025-04-06 07:10:48'),
+(66, 4, 4, 'Come across', 'Find by chance; impression', 'Came across diary.', '2025-04-06 07:10:48'),
+(67, 4, 4, 'Fall apart', 'Break pieces; lose control', 'His life fall apart.', '2025-04-06 07:10:48'),
+(68, 4, 4, 'Make up', 'Invent; reconcile', 'Child made up story.', '2025-04-06 07:10:48'),
+(69, 5, 1, 'Candid', 'Truthful, straightforward', 'Candid autobiography revealed struggles.', '2025-04-06 07:10:48'),
+(70, 5, 1, 'Despondent', 'Feeling hopeless, dejected', 'Became despondent after failing.', '2025-04-06 07:10:48'),
+(71, 5, 1, 'Fervent', 'Great passion or intensity', 'Fervent speech inspired action.', '2025-04-06 07:10:48'),
+(72, 5, 1, 'Impartial', 'Treating equally; unbiased', 'Judge remained impartial.', '2025-04-06 07:10:48'),
+(73, 5, 1, 'Tenacious', 'Persistent; firm hold', 'Tenacious pursuit revealed truth.', '2025-04-06 07:10:48'),
+(74, 5, 2, 'Argument', 'Rule: No E after U', 'Argument revealed values.', '2025-04-06 07:10:48'),
+(75, 5, 2, 'Believe', 'Rule: i before e exc. c', 'Readers believe in triumph.', '2025-04-06 07:10:48'),
+(76, 5, 2, 'Government', 'Rule: govern + ment', 'Novel criticizes government.', '2025-04-06 07:10:48'),
+(77, 5, 2, 'Relevant', 'Rule: All Es exc 2nd last', 'Find relevant quotes.', '2025-04-06 07:10:48'),
+(78, 5, 2, 'Surprise', 'Rule: Single consonants', 'Surprise ending questioned.', '2025-04-06 07:10:48'),
+(79, 5, 3, 'Anaphora', 'Repeat start word/phrase. App: ID emphasis', '\"I have a dream...\"', '2025-04-06 07:10:48'),
+(80, 5, 3, 'Dramatic irony', 'Audience knows more. App: Analyze tension', 'Killer hiding', '2025-04-06 07:10:48'),
+(81, 5, 3, 'Extended metaphor', 'Metaphor developed length. App: Explain themes', 'Life as journey', '2025-04-06 07:10:48'),
+(82, 5, 3, 'Understatement', 'Present less significant. App: ID humor', '\"Bit warm\"', '2025-04-06 07:10:48'),
+(83, 5, 4, 'Back up', 'Support; copy data', 'Friends backed up story.', '2025-04-06 07:10:48'),
+(84, 5, 4, 'Set up', 'Establish; arrange; frame', 'Set up meeting.', '2025-04-06 07:10:48'),
+(85, 5, 4, 'Work out', 'Exercise; solve; end ok', 'Everything worked out.', '2025-04-06 07:10:48'),
+(86, 6, 1, 'Arbitrary', 'Based on random choice', 'Arbitrary rules made no sense.', '2025-04-06 07:10:48'),
+(87, 6, 1, 'Connotation', 'Invoked idea/feeling', '\"Home\" positive connotations.', '2025-04-06 07:10:48'),
+(88, 6, 1, 'Ephemeral', 'Lasting short time', 'Ephemeral beauty.', '2025-04-06 07:10:48'),
+(89, 6, 1, 'Implicit', 'Implied not expressed', 'Implicit message love conquers.', '2025-04-06 07:10:48'),
+(90, 6, 1, 'Nuance', 'Subtle difference', 'Actor captured nuances.', '2025-04-06 07:10:48'),
+(91, 6, 2, 'Apparent', 'Rule: appar + ent', 'Apparent narrator not truthful.', '2025-04-06 07:10:48'),
+(92, 6, 2, 'Desperate', 'Rule: desper + ate', 'Desperate character.', '2025-04-06 07:10:48'),
+(93, 6, 2, 'Existence', 'Rule: exist + ence', 'Questions human existence.', '2025-04-06 07:10:48'),
+(94, 6, 2, 'Parallel', 'Rule: Double L mid', 'Author draws parallel.', '2025-04-06 07:10:48'),
+(95, 6, 2, 'Weird', 'Rule: i before e exc c exc', 'Weird atmosphere unease.', '2025-04-06 07:10:48'),
+(96, 6, 3, 'Allegory', 'Hidden meaning. App: ID meaning', 'Animal Farm', '2025-04-06 07:10:48'),
+(97, 6, 3, 'Enjambment', 'Continue sentence beyond line. App: Analyze', 'Poetry example', '2025-04-06 07:10:48'),
+(98, 6, 3, 'Caesura', 'Pause mid-line poetry. App: Explain', '\"To be, || or not...\"', '2025-04-06 07:10:48'),
+(99, 6, 3, 'Bathos', 'Anticlimax. App: ID humor', 'King afraid spiders', '2025-04-06 07:10:48'),
+(100, 6, 4, 'Break out', 'Escape; begin suddenly', 'War broke out.', '2025-04-06 07:10:48'),
+(101, 6, 4, 'Go through', 'Experience; examine', 'Went through difficult time.', '2025-04-06 07:10:48'),
+(102, 6, 4, 'Take after', 'Resemble family', 'Boy takes after father.', '2025-04-06 07:10:48'),
+(103, 7, 1, 'Catalyst', 'Precipitates change', 'Her arrival was catalyst.', '2025-04-06 07:10:48'),
+(104, 7, 1, 'Dichotomy', 'Contrast between opposites', 'Dichotomy good/evil.', '2025-04-06 07:10:48'),
+(105, 7, 1, 'Facade', 'Deceptive outward appearance', 'Behind cheerful facade.', '2025-04-06 07:10:48'),
+(106, 7, 1, 'Intrinsic', 'Belonging naturally', 'Intrinsic value connection.', '2025-04-06 07:10:48'),
+(107, 7, 1, 'Poignant', 'Evoking sadness/regret', 'Poignant ending.', '2025-04-06 07:10:48'),
+(108, 7, 2, 'Changeable', 'Rule: Keep E', 'Changeable weather.', '2025-04-06 07:10:48'),
+(109, 7, 2, 'Conscious', 'Rule: con+sci+ous', 'Conscious of effect.', '2025-04-06 07:10:48'),
+(110, 7, 2, 'Exaggerate', 'Rule: Double G', 'Narrator exaggerate effect.', '2025-04-06 07:10:48'),
+(111, 7, 2, 'Noticeable', 'Rule: Keep E', 'Noticeable change behavior.', '2025-04-06 07:10:48'),
+(112, 7, 2, 'Occasionally', 'Rule: 2C, 2L', 'Occasionally broke wall.', '2025-04-06 07:10:48'),
+(113, 7, 3, 'Antithesis', 'Contrasting ideas, balanced. App: Analyze', '\"Err is human...\"', '2025-04-06 07:10:48'),
+(114, 7, 3, 'Synecdoche', 'Part represents whole. App: ID', '\"All hands...\"', '2025-04-06 07:10:48'),
+(115, 7, 3, 'Metonymy', 'Associated thing represents. App: Distinguish', '\"Crown\"', '2025-04-06 07:10:48'),
+(116, 7, 3, 'Litotes', 'Understate via negative. App: ID', '\"Not bad\"', '2025-04-06 07:10:48'),
+(117, 7, 4, 'Call off', 'Cancel', 'Called off wedding.', '2025-04-06 07:10:48'),
+(118, 7, 4, 'Look up to', 'Admire/respect', 'Looked up to sister.', '2025-04-06 07:10:48'),
+(119, 7, 4, 'Run into', 'Meet by chance', 'Ran into friend.', '2025-04-06 07:10:48'),
+(120, 8, 1, 'Altruistic', 'Selfless concern', 'Altruistic nature helped others.', '2025-04-06 07:10:48'),
+(121, 8, 1, 'Cacophony', 'Harsh sounds', 'Cacophony of battlefield.', '2025-04-06 07:10:48'),
+(122, 8, 1, 'Ephemeral', 'Lasting short time', 'Fame proved ephemeral.', '2025-04-06 07:10:48'),
+(123, 8, 1, 'Juxtapose', 'Place close for contrast', 'Juxtaposes wealth/poverty.', '2025-04-06 07:10:48'),
+(124, 8, 1, 'Sycophant', 'Acts obsequiously', 'King surrounded by sycophants.', '2025-04-06 07:10:48'),
+(125, 8, 2, 'Acceptable', 'Rule: accept+able', 'Behavior not acceptable.', '2025-04-06 07:10:48'),
+(126, 8, 2, 'Colleague', 'Rule: collea+gue', 'Discussed with colleague.', '2025-04-06 07:10:48'),
+(127, 8, 2, 'Liaison', 'Rule: Two Is', 'Acted as liaison.', '2025-04-06 07:10:48'),
+(128, 8, 2, 'Questionnaire', 'Rule: Double N', 'Distributed questionnaire.', '2025-04-06 07:10:48'),
+(129, 8, 2, 'Threshold', 'Rule: Single H mid', 'Crossing threshold.', '2025-04-06 07:10:48'),
+(130, 8, 3, 'Chiasmus', 'Reversed balanced parts. App: ID', '\"Ask not what...\"', '2025-04-06 07:10:48'),
+(131, 8, 3, 'Consonance', 'Repeat consonant sounds. App: Analyze', '\"Pitter patter\"', '2025-04-06 07:10:48'),
+(132, 8, 3, 'Hubris', 'Excessive pride/downfall. App: ID', 'Hubris led downfall', '2025-04-06 07:10:48'),
+(133, 8, 3, 'Pathos', 'Evokes pity/sadness. App: Analyze', 'Pathos of situation', '2025-04-06 07:10:48'),
+(134, 8, 4, 'Bring about', 'Cause happen', 'Brought about changes.', '2025-04-06 07:10:48'),
+(135, 8, 4, 'Hold back', 'Restrain; withhold', 'Held back tears.', '2025-04-06 07:10:48'),
+(136, 8, 4, 'Pass away', 'Die (euphemism)', 'Grandfather passed away.', '2025-04-06 07:10:48'),
+(137, 9, 1, 'Acerbic', 'Sharp and forthright', 'Acerbic review devastated.', '2025-04-06 07:10:48'),
+(138, 9, 1, 'Brevity', 'Concise use words', 'Power in brevity.', '2025-04-06 07:10:48'),
+(139, 9, 1, 'Duplicity', 'Deceitfulness', 'Villain\'s duplicity revealed.', '2025-04-06 07:10:48'),
+(140, 9, 1, 'Egregious', 'Outstandingly bad', 'Egregious behavior alienated.', '2025-04-06 07:10:48'),
+(141, 9, 1, 'Pernicious', 'Harmful effect, subtle', 'Pernicious effects prejudice.', '2025-04-06 07:10:48'),
+(142, 9, 2, 'Bureaucracy', 'Rule: bureau+cracy', 'Trapped in bureaucracy.', '2025-04-06 07:10:48'),
+(143, 9, 2, 'Consensus', 'Rule: con+sensus', 'Reached consensus.', '2025-04-06 07:10:48'),
+(144, 9, 2, 'Harass', 'Rule: 1R, 2S', 'Protagonist harassed.', '2025-04-06 07:10:48'),
+(145, 9, 2, 'Mischievous', 'Rule: 3 syllables', 'Mischievous child.', '2025-04-06 07:10:48'),
+(146, 9, 2, 'Pronunciation', 'Rule: Drops O', 'Unusual pronunciation.', '2025-04-06 07:10:48'),
+(147, 9, 3, 'Catharsis', 'Release emotion via art. App: Explain', 'Tragic ending catharsis', '2025-04-06 07:10:48'),
+(148, 9, 3, 'Hamartia', 'Fatal flaw. App: ID', 'Hamartia was anger', '2025-04-06 07:10:48'),
+(149, 9, 3, 'Soliloquy', 'Speak thoughts aloud. App: Analyze', 'Hamlet\'s soliloquy', '2025-04-06 07:10:48'),
+(150, 9, 3, 'Verisimilitude', 'Appearance real. App: Explain realism', 'Novel\'s verisimilitude', '2025-04-06 07:10:48'),
+(151, 9, 4, 'Carry on', 'Continue; behave', 'Carried on lives.', '2025-04-06 07:10:48'),
+(152, 9, 4, 'Figure out', 'Understand/solve', 'Figure out motive.', '2025-04-06 07:10:48'),
+(153, 9, 4, 'Take on', 'Accept challenge', 'Took on leader role.', '2025-04-06 07:10:48'),
+(154, 10, 1, 'Ameliorate', 'Make better; improve', 'Policies ameliorate conditions.', '2025-04-06 07:10:48'),
+(155, 10, 1, 'Capricious', 'Sudden changes mood', 'Capricious weather.', '2025-04-06 07:10:48'),
+(156, 10, 1, 'Disparate', 'Essentially different', 'Brings disparate characters.', '2025-04-06 07:10:48'),
+(157, 10, 1, 'Inextricable', 'Unable separate/escape', 'Fates inextricably linked.', '2025-04-06 07:10:48'),
+(158, 10, 1, 'Ubiquitous', 'Present everywhere', 'Nature refs ubiquitous.', '2025-04-06 07:10:48'),
+(159, 10, 2, 'Accommodate', 'Rule: 2C, 2M', 'Hotel accommodate guests.', '2025-04-06 07:10:48'),
+(160, 10, 2, 'Embarrass', 'Rule: 2R, 2S', 'Revelation embarrass family.', '2025-04-06 07:10:48'),
+(161, 10, 2, 'Millennium', 'Rule: 2N, 2L', 'Turn of millennium.', '2025-04-06 07:10:48'),
+(162, 10, 2, 'Occurrence', 'Rule: 2C, 2R', 'Supernatural occurrence.', '2025-04-06 07:10:48'),
+(163, 10, 2, 'Supersede', 'Rule: super+sede', 'New edition supersedes old.', '2025-04-06 07:10:48'),
+(164, 10, 3, 'Anagnorisis', 'Critical discovery. App: ID moments', 'Realizes betrayal', '2025-04-06 07:10:48'),
+(165, 10, 3, 'Deus ex machina', 'Unexpected solve problem. App: Eval resolutions', 'Sudden inheritance', '2025-04-06 07:10:48'),
+(166, 10, 3, 'In medias res', 'Begin narrative mid action. App: Analyze', 'Begins fleeing', '2025-04-06 07:10:48'),
+(167, 10, 3, 'Peripeteia', 'Sudden reversal fortune. App: ID turning points', 'Loses everything valued', '2025-04-06 07:10:48'),
+(168, 10, 4, 'Come up with', 'Produce/suggest idea', 'Came up with solution.', '2025-04-06 07:10:48'),
+(169, 10, 4, 'Put up with', 'Tolerate', 'Could not put up with behavior.', '2025-04-06 07:10:48'),
+(170, 10, 4, 'Turn out', 'Prove to be; result', 'Plan turned out successful.', '2025-04-06 07:10:48'),
+(172, 3, 2, 'Frustrated', 'Upset', 'I understand your frustration ', '2025-04-06 08:49:18'),
+(173, 4, 3, 'Not my cup of tea ', 'Not my type', 'Coding is not my cup of tea!', '2025-04-07 01:58:10');
 
 -- --------------------------------------------------------
 
@@ -1397,8 +1543,8 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(51, 1, NULL, 'Go church ', 'Kidase', '', 'high', 120, '2025-04-05', '10:00:00', 'pending', 0.00, 1, '2025-04-05 01:35:37', '2025-04-05 02:57:07'),
-(52, 4, NULL, 'Review Chapter 1 Math Notes', 'Focus on algebra section.', 'one-time', 'high', 60, '2025-03-29', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
+(51, 1, NULL, 'Go church ', 'Kidase', '', 'high', 120, '2025-04-05', '10:00:00', 'completed', 0.00, 1, '2025-04-05 01:35:37', '2025-04-07 02:07:05'),
+(52, 4, NULL, 'Review Chapter 1 Math Notes', 'Focus on algebra section.', 'one-time', 'high', 60, '2025-03-29', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-07 03:08:29'),
 (53, 5, NULL, 'Plan Weekly Meals', 'Include healthy options.', 'one-time', 'medium', 30, '2025-03-31', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (54, 6, NULL, 'Submit Access Assignment Draft', 'Unit 10 draft - AI/ML.', 'one-time', 'high', 120, '2025-04-02', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (55, 3, NULL, 'Call Utility Company', 'Query recent bill amount.', 'one-time', 'low', 15, '2025-04-03', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
@@ -1410,7 +1556,7 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (61, 3, NULL, 'Update Project Documentation', 'Add details about security middleware.', 'one-time', 'low', 60, '2025-04-05', NULL, 'not_done', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 03:15:14'),
 (62, 2, NULL, 'Prepare Presentation Slides', 'For Self-Development group.', 'one-time', 'medium', 90, '2025-04-07', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (63, 4, NULL, 'Complete Math Practice Paper 2', 'Calculator paper.', 'one-time', 'high', 120, '2025-04-10', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
-(64, 5, NULL, 'Schedule Dentist Appointment', 'Routine check-up.', 'one-time', 'low', 10, '2025-04-12', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
+(64, 5, NULL, 'Schedule Dentist Appointment', 'Routine check-up.', 'one-time', 'low', 10, '2025-04-12', NULL, 'completed', 0.00, 1, '2025-04-05 02:28:45', '2025-04-07 03:07:17'),
 (65, 6, NULL, 'Research University Open Days', 'Check dates for preferred unis.', 'one-time', 'medium', 60, '2025-04-15', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (66, 1, NULL, 'Meditate for 15 minutes', 'Evening mindfulness session.', 'one-time', 'medium', 15, '2025-04-06', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
 (67, 6, NULL, 'Abel', 'wow', 'one-time', 'high', 10, '2025-04-05', '06:32:02', 'completed', 0.00, 1, '2025-04-05 02:52:52', '2025-04-06 01:45:49'),
@@ -1419,7 +1565,8 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (70, 3, NULL, 'Oh I see', '', '', 'medium', 0, '2025-04-05', '06:33:00', 'pending', 0.00, 1, '2025-04-05 03:34:00', '2025-04-05 03:34:00'),
 (71, 2, NULL, 'YES ', '', 'recurring', 'high', 0, '2025-04-05', '07:50:00', 'pending', 0.00, 1, '2025-04-05 03:48:12', '2025-04-05 03:48:12'),
 (72, 9, NULL, 'Mukera', '', 'one-time', 'medium', 16, '2025-04-06', '05:33:26', 'completed', 0.00, 1, '2025-04-06 03:18:09', '2025-04-06 03:18:42'),
-(0, 2, NULL, 'TRY', '', 'one-time', 'high', 0, '2025-04-06', '00:00:09', 'pending', 0.00, 1, '2025-04-06 05:22:20', '2025-04-06 05:22:20');
+(0, 2, NULL, 'TRY', '', 'one-time', 'high', 0, '2025-04-06', '00:00:09', 'pending', 0.00, 1, '2025-04-06 05:22:20', '2025-04-06 05:22:20'),
+(0, 0, NULL, 'TRY', '', 'one-time', 'high', 0, '2025-04-06', NULL, 'pending', 0.00, 1, '2025-04-07 03:08:04', '2025-04-07 03:08:04');
 
 -- --------------------------------------------------------
 
@@ -1725,6 +1872,35 @@ INSERT INTO `units` (`id`, `unit_code`, `unit_name`, `description`, `credits`, `
 --
 
 --
+-- Indexes for table `favorite_practice_items`
+--
+ALTER TABLE `favorite_practice_items`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_favorite_item` (`practice_item_id`);
+
+--
+-- Indexes for table `habits`
+--
+ALTER TABLE `habits`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `practice_categories`
+--
+ALTER TABLE `practice_categories`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `practice_days`
+--
+ALTER TABLE `practice_days`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `practice_date` (`practice_date`),
+  ADD KEY `day_number` (`day_number`),
+  ADD KEY `week_number` (`week_number`);
+
+--
 -- Indexes for table `practice_items`
 --
 ALTER TABLE `practice_items`
@@ -1737,10 +1913,51 @@ ALTER TABLE `practice_items`
 --
 
 --
+-- AUTO_INCREMENT for table `favorite_practice_items`
+--
+ALTER TABLE `favorite_practice_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `habits`
+--
+ALTER TABLE `habits`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `practice_categories`
+--
+ALTER TABLE `practice_categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `practice_days`
+--
+ALTER TABLE `practice_days`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+
+--
 -- AUTO_INCREMENT for table `practice_items`
 --
 ALTER TABLE `practice_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=174;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `favorite_practice_items`
+--
+ALTER TABLE `favorite_practice_items`
+  ADD CONSTRAINT `fk_fav_item_id` FOREIGN KEY (`practice_item_id`) REFERENCES `practice_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `practice_items`
+--
+ALTER TABLE `practice_items`
+  ADD CONSTRAINT `fk_pi_category_id` FOREIGN KEY (`category_id`) REFERENCES `practice_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_pi_practice_day_id` FOREIGN KEY (`practice_day_id`) REFERENCES `practice_days` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

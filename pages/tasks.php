@@ -300,22 +300,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     // Update UI
                     const row = this.closest('tr');
-                    const statusCell = row.querySelector('td:nth-child(6) .badge');
-                    const mobileStatusCell = row.querySelector('.d-md-none .badge:last-child');
+                    const statusBadges = row.querySelectorAll('.badge');
+                    const statusBadge = statusBadges[statusBadges.length - 1]; // Get the last badge (status badge)
                     
                     if (status === 'completed') {
                         row.classList.add('completed-task');
-                        statusCell.className = 'badge bg-success';
-                        statusCell.textContent = 'Completed';
-                        mobileStatusCell.className = 'badge bg-success';
-                        mobileStatusCell.textContent = 'Completed';
+                        statusBadge.className = 'badge bg-success';
+                        statusBadge.textContent = 'Completed';
                     } else {
                         row.classList.remove('completed-task');
-                        statusCell.className = 'badge bg-secondary';
-                        statusCell.textContent = 'Pending';
-                        mobileStatusCell.className = 'badge bg-secondary';
-                        mobileStatusCell.textContent = 'Pending';
+                        statusBadge.className = 'badge bg-secondary';
+                        statusBadge.textContent = 'Pending';
                     }
+                    
+                    // Update data attribute for filtering
+                    row.dataset.status = status;
                     
                     showAlert('Task status updated successfully!', 'success');
                 } else {
