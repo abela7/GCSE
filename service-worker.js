@@ -28,10 +28,10 @@ function debugResponse(prefix, response) {
     });
 }
 
-const CACHE_NAME = 'just-do-it-v7';
+const CACHE_NAME = 'just-do-it-v8';
 const ASSETS_TO_CACHE = [
     '.',
-    'index.php',
+    'pages/dashboard.php',
     'manifest.json',
     'offline.html',
     'assets/js/pwa.js',
@@ -76,9 +76,6 @@ self.addEventListener('install', (event) => {
                 console.log('[DEBUG] All assets cached successfully');
                 return self.skipWaiting();
             })
-            .catch((error) => {
-                console.error('[DEBUG] Cache addAll error:', error);
-            })
     );
 });
 
@@ -108,37 +105,33 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+// Handle root URL redirect
+function handleRootRequest(request) {
+    // If it's the root URL, redirect to dashboard
+    const url = new URL(request.url);
+    if (url.pathname === '/' || url.pathname === '/index.php') {
+        return Response.redirect(`${url.origin}/pages/dashboard.php`, 302);
+    }
+    return null;
+}
+
 // Fetch Event
 self.addEventListener('fetch', (event) => {
-    console.log('[DEBUG] Fetch event for:', event.request.url);
-    debugRequest('Fetch Event Request', event.request);
-
-    // Special handling for root/index requests
-    const url = new URL(event.request.url);
-    console.log('[DEBUG] Parsed URL:', {
-        pathname: url.pathname,
-        origin: url.origin,
-        href: url.href
-    });
-
-    // Skip non-GET requests
-    if (event.request.method !== 'GET') {
-        console.log('[DEBUG] Skipping non-GET request');
+    // Check for root URL redirect
+    const redirectResponse = handleRootRequest(event.request);
+    if (redirectResponse) {
+        event.respondWith(redirectResponse);
         return;
     }
 
     // Handle navigation requests (HTML pages)
     if (event.request.mode === 'navigate') {
-        console.log('[DEBUG] Handling navigation request');
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    console.log('[DEBUG] Navigation fetch successful');
-                    debugResponse('Navigation Response', response);
                     return response;
                 })
                 .catch(error => {
-                    console.error('[DEBUG] Navigation fetch failed:', error);
                     return caches.match('offline.html');
                 })
         );
@@ -150,34 +143,24 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request)
             .then(cachedResponse => {
                 if (cachedResponse) {
-                    console.log('[DEBUG] Found in cache:', event.request.url);
-                    debugResponse('Cached Response', cachedResponse);
                     return cachedResponse;
                 }
 
-                console.log('[DEBUG] Not found in cache, fetching:', event.request.url);
                 return fetch(event.request)
                     .then(response => {
-                        debugResponse('Network Response', response);
-                        
-                        // Check if we received a valid response
                         if (!response || response.status !== 200) {
-                            console.log('[DEBUG] Invalid response:', response?.status);
                             return response;
                         }
 
-                        // Clone the response before caching
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME)
                             .then(cache => {
-                                console.log('[DEBUG] Caching new response for:', event.request.url);
                                 cache.put(event.request, responseToCache);
                             });
 
                         return response;
                     })
                     .catch(error => {
-                        console.error('[DEBUG] Fetch failed:', error);
                         if (event.request.mode === 'navigate') {
                             return caches.match('offline.html');
                         }
