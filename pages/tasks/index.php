@@ -177,14 +177,6 @@ while ($task = $result->fetch_assoc()) {
                     </a>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <a href="manage_tasks.php" class="btn btn-outline-primary">
-                    <i class="fas fa-tasks"></i>
-                </a>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
         </div>
     </div>
 
