@@ -62,17 +62,41 @@ const makeAbsoluteUrl = (path) => {
 
 // Minimal Service Worker for Notifications
 self.addEventListener('install', event => {
-    console.log('Service Worker installing...');
-    self.skipWaiting();
+    log('Installing...');
+    event.waitUntil(
+        Promise.resolve()
+            .then(() => {
+                log('Installation complete');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                log('Installation failed:', error);
+                throw error;
+            })
+    );
 });
 
 self.addEventListener('activate', event => {
-    console.log('Service Worker activating...');
-    event.waitUntil(self.clients.claim());
+    log('Activating...');
+    event.waitUntil(
+        Promise.resolve()
+            .then(() => {
+                log('Activation complete');
+                return self.clients.claim();
+            })
+            .catch(error => {
+                log('Activation failed:', error);
+                throw error;
+            })
+    );
 });
 
 self.addEventListener('notificationclick', event => {
-    console.log('Notification clicked:', event);
+    log('Notification clicked:', {
+        tag: event.notification.tag,
+        action: event.action,
+        data: event.notification.data
+    });
     
     // Close the notification
     event.notification.close();
@@ -90,9 +114,12 @@ self.addEventListener('notificationclick', event => {
                 case 'pending-tasks':
                     url = '/pages/tasks/index.php';
                     break;
-                // Add more cases as needed
+                default:
+                    log('Unknown notification tag:', event.notification.tag);
             }
         }
+        
+        log('Opening URL:', url);
         
         // Open or focus the window
         event.waitUntil(
@@ -101,14 +128,23 @@ self.addEventListener('notificationclick', event => {
                 includeUncontrolled: true
             })
             .then(function(clientList) {
+                log('Found clients:', clientList.length);
+                
                 // If we have a matching window, focus it
                 for (let client of clientList) {
                     if (client.url === url && 'focus' in client) {
+                        log('Focusing existing window');
                         return client.focus();
                     }
                 }
+                
                 // If no matching window, open a new one
+                log('Opening new window');
                 return clients.openWindow(url);
+            })
+            .catch(error => {
+                log('Error handling notification click:', error);
+                throw error;
             })
         );
     }

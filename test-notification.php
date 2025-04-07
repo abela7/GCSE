@@ -27,6 +27,7 @@ $page_title = "Test Notification";
             margin-top: 20px;
             padding: 10px;
             border-radius: 4px;
+            white-space: pre-wrap;
         }
         .success {
             background-color: #dff0d8;
@@ -38,40 +39,71 @@ $page_title = "Test Notification";
             color: #a94442;
             border: 1px solid #ebccd1;
         }
+        #debug {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <h1>Test Notifications</h1>
     <button onclick="testNotification()">Show Pending Tasks Notification</button>
     <div id="result"></div>
+    <div id="debug"></div>
 
     <script>
-        function showResult(message, isError = false) {
+        function showResult(message, isError = false, details = null) {
             const resultDiv = document.getElementById('result');
             resultDiv.textContent = message;
             resultDiv.className = isError ? 'error' : 'success';
+            
+            const debugDiv = document.getElementById('debug');
+            if (details) {
+                debugDiv.textContent = 'Debug Info:\n' + JSON.stringify(details, null, 2);
+            } else {
+                debugDiv.textContent = '';
+            }
         }
 
         async function testNotification() {
             try {
+                showResult('Checking notification permission...');
+                
+                // Check if notifications are supported
+                if (!('Notification' in window)) {
+                    throw new Error('Notifications are not supported in this browser');
+                }
+
                 // Request notification permission if needed
                 if (Notification.permission !== "granted") {
+                    showResult('Requesting notification permission...');
                     const permission = await Notification.requestPermission();
                     if (permission !== "granted") {
                         throw new Error("Notification permission denied");
                     }
                 }
 
-                // Register service worker if needed
+                showResult('Checking service worker...');
+                
+                // Check if service workers are supported
                 if (!('serviceWorker' in navigator)) {
                     throw new Error("Service Worker not supported");
                 }
 
+                // Register service worker
+                showResult('Registering service worker...');
                 const registration = await navigator.serviceWorker.register('/service-worker.js');
+                await navigator.serviceWorker.ready;
                 
                 // Fetch pending tasks
+                showResult('Fetching pending tasks...');
                 const response = await fetch('/api/get_pending_tasks.php');
                 const data = await response.json();
+                
+                showResult('Processing response...', false, data);
 
                 if (!data.success) {
                     throw new Error(data.message || "Failed to fetch tasks");
@@ -98,18 +130,49 @@ $page_title = "Test Notification";
                             action: 'view',
                             title: 'View Tasks'
                         }
-                    ]
+                    ],
+                    requireInteraction: true,
+                    renotify: true
                 };
 
                 // Show notification
+                showResult('Showing notification...');
                 await registration.showNotification('Task Due Today', options);
-                showResult(`Notification sent for task: ${nextTask.title}`);
+                showResult(`Notification sent for task: ${nextTask.title}`, false, {
+                    notificationOptions: options,
+                    serviceWorkerState: registration.active ? 'active' : 'inactive'
+                });
 
             } catch (error) {
                 console.error('Error:', error);
-                showResult(error.message, true);
+                showResult(error.message, true, {
+                    errorName: error.name,
+                    errorStack: error.stack,
+                    notificationPermission: Notification.permission,
+                    serviceWorkerSupported: 'serviceWorker' in navigator
+                });
             }
         }
+
+        // Check initial state
+        window.addEventListener('load', async () => {
+            try {
+                const initialState = {
+                    notificationPermission: Notification.permission,
+                    serviceWorkerSupported: 'serviceWorker' in navigator,
+                };
+                
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    initialState.serviceWorkerRegistered = !!registration;
+                    initialState.serviceWorkerState = registration?.active ? 'active' : 'inactive';
+                }
+                
+                showResult('Ready to test notifications', false, initialState);
+            } catch (error) {
+                console.error('Error checking initial state:', error);
+            }
+        });
     </script>
 </body>
 </html> 
