@@ -1,6 +1,23 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/auth.php';
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Set page title
+$page_title = "Notification Settings";
+
+// Include header first to ensure proper styling
+require_once __DIR__ . '/includes/header.php';
+
+// Initialize variables
+$error = null;
+$success = null;
+$settings = [
+    'task_reminders' => 1,
+    'exam_reminders' => 1,
+    'daily_motivation' => 1
+];
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -8,47 +25,79 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Get current notification settings from database
-$stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$settings = $stmt->fetch(PDO::FETCH_ASSOC);
-
-// If no settings exist, create default settings
-if (!$settings) {
-    $stmt = $pdo->prepare("INSERT INTO notification_settings (user_id, task_reminders, exam_reminders, daily_motivation) VALUES (?, 1, 1, 1)");
-    $stmt->execute([$_SESSION['user_id']]);
-    $settings = [
-        'task_reminders' => 1,
-        'exam_reminders' => 1,
-        'daily_motivation' => 1
-    ];
-}
-
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update_settings'])) {
-        $task_reminders = isset($_POST['task_reminders']) ? 1 : 0;
-        $exam_reminders = isset($_POST['exam_reminders']) ? 1 : 0;
-        $daily_motivation = isset($_POST['daily_motivation']) ? 1 : 0;
+try {
+    // Include database connection
+    require_once __DIR__ . '/includes/db_connect.php';
+    
+    // Check if notification_settings table exists
+    $tableExists = $pdo->query("SHOW TABLES LIKE 'notification_settings'")->rowCount() > 0;
+    
+    if (!$tableExists) {
+        // Create the table if it doesn't exist
+        $sql = "CREATE TABLE IF NOT EXISTS notification_settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            task_reminders TINYINT(1) DEFAULT 1,
+            exam_reminders TINYINT(1) DEFAULT 1,
+            daily_motivation TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )";
         
-        $stmt = $pdo->prepare("UPDATE notification_settings SET 
-            task_reminders = ?, 
-            exam_reminders = ?, 
-            daily_motivation = ? 
-            WHERE user_id = ?");
-        $stmt->execute([$task_reminders, $exam_reminders, $daily_motivation, $_SESSION['user_id']]);
+        $pdo->exec($sql);
         
-        $success = "Notification settings updated successfully!";
-        
-        // Refresh settings after update
-        $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
-        $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Add foreign key constraint separately to avoid errors
+        try {
+            $pdo->exec("ALTER TABLE notification_settings ADD FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE");
+            $pdo->exec("ALTER TABLE notification_settings ADD UNIQUE KEY unique_user_settings (user_id)");
+        } catch (PDOException $e) {
+            // Ignore error if constraint already exists
+        }
     }
-}
 
-// Set page title
-$page_title = "Notification Settings";
+    // Get current notification settings from database
+    $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // If no settings exist, create default settings
+    if (!$settings) {
+        $stmt = $pdo->prepare("INSERT INTO notification_settings (user_id, task_reminders, exam_reminders, daily_motivation) VALUES (?, 1, 1, 1)");
+        $stmt->execute([$_SESSION['user_id']]);
+        $settings = [
+            'task_reminders' => 1,
+            'exam_reminders' => 1,
+            'daily_motivation' => 1
+        ];
+    }
+
+    // Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['update_settings'])) {
+            $task_reminders = isset($_POST['task_reminders']) ? 1 : 0;
+            $exam_reminders = isset($_POST['exam_reminders']) ? 1 : 0;
+            $daily_motivation = isset($_POST['daily_motivation']) ? 1 : 0;
+            
+            $stmt = $pdo->prepare("UPDATE notification_settings SET 
+                task_reminders = ?, 
+                exam_reminders = ?, 
+                daily_motivation = ? 
+                WHERE user_id = ?");
+            $stmt->execute([$task_reminders, $exam_reminders, $daily_motivation, $_SESSION['user_id']]);
+            
+            $success = "Notification settings updated successfully!";
+            
+            // Refresh settings after update
+            $stmt = $pdo->prepare("SELECT * FROM notification_settings WHERE user_id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+} catch (PDOException $e) {
+    $error = "Database error: " . $e->getMessage();
+} catch (Exception $e) {
+    $error = "Error: " . $e->getMessage();
+}
 ?>
 
 <div class="container mt-4">
@@ -59,6 +108,14 @@ $page_title = "Notification Settings";
                     <h4 class="mb-0">Notification Settings</h4>
                 </div>
                 <div class="card-body">
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger">
+                            <h5>Error Details:</h5>
+                            <p><?php echo $error; ?></p>
+                            <p>Please check your database connection and table structure.</p>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (isset($success)): ?>
                         <div class="alert alert-success"><?php echo $success; ?></div>
                     <?php endif; ?>
@@ -214,4 +271,4 @@ async function testMotivationNotification() {
 }
 </script>
 
-<?php require_once 'includes/footer.php'; ?> 
+<?php require_once __DIR__ . '/includes/footer.php'; ?> 
