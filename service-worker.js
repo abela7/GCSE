@@ -62,92 +62,18 @@ const makeAbsoluteUrl = (path) => {
 
 // Minimal Service Worker for Notifications
 self.addEventListener('install', event => {
-    log('Installing...');
-    event.waitUntil(
-        Promise.resolve()
-            .then(() => {
-                log('Installation complete');
-                return self.skipWaiting();
-            })
-            .catch(error => {
-                log('Installation failed:', error);
-                throw error;
-            })
-    );
+    console.log('Service Worker installing...');
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-    log('Activating...');
-    event.waitUntil(
-        Promise.resolve()
-            .then(() => {
-                log('Activation complete');
-                return self.clients.claim();
-            })
-            .catch(error => {
-                log('Activation failed:', error);
-                throw error;
-            })
-    );
+    console.log('Service Worker activating...');
+    event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('notificationclick', event => {
-    log('Notification clicked:', {
-        tag: event.notification.tag,
-        action: event.action,
-        data: event.notification.data
-    });
-    
-    // Close the notification
+    console.log('Notification clicked:', event);
     event.notification.close();
-    
-    // Handle actions
-    let url = '/';
-    
-    if (event.action === 'view' || !event.action) {
-        // Get URL from notification data
-        if (event.notification.data && event.notification.data.url) {
-            url = event.notification.data.url;
-        } else {
-            // Default URLs based on notification tag
-            switch (event.notification.tag) {
-                case 'pending-tasks':
-                    url = '/pages/tasks/index.php';
-                    break;
-                default:
-                    log('Unknown notification tag:', event.notification.tag);
-            }
-        }
-        
-        log('Opening URL:', url);
-        
-        // Open or focus the window
-        event.waitUntil(
-            clients.matchAll({
-                type: 'window',
-                includeUncontrolled: true
-            })
-            .then(function(clientList) {
-                log('Found clients:', clientList.length);
-                
-                // If we have a matching window, focus it
-                for (let client of clientList) {
-                    if (client.url === url && 'focus' in client) {
-                        log('Focusing existing window');
-                        return client.focus();
-                    }
-                }
-                
-                // If no matching window, open a new one
-                log('Opening new window');
-                return clients.openWindow(url);
-            })
-            .catch(error => {
-                log('Error handling notification click:', error);
-                throw error;
-            })
-        );
-    }
 });
 
 // Message event - handle skip waiting
