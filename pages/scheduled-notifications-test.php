@@ -21,10 +21,10 @@ require_once __DIR__ . '/../includes/header.php';
                             <h5 class="mb-0">Main Controls</h5>
                         </div>
                         <div class="card-body">
-                            <button class="btn btn-primary" onclick="requestPermission()">Enable Notifications!</button>
+                            <button class="btn btn-primary" onclick="requestNotificationPermission()">Enable Notifications!</button>
                             <button class="btn btn-warning" onclick="testAllNotifications()">Test All Notifications</button>
-                            <button class="btn btn-danger" onclick="pauseAllNotifications()">Pause All</button>
-                            <button class="btn btn-success" onclick="resumeAllNotifications()">Resume All</button>
+                            <button class="btn btn-danger" onclick="pauseAll()">Pause All</button>
+                            <button class="btn btn-success" onclick="resumeAll()">Resume All</button>
                         </div>
                     </div>
 
@@ -89,25 +89,25 @@ require_once __DIR__ . '/../includes/header.php';
 
 <script>
 // Notification configurations
-let notifications = {
+const notificationConfig = {
     hourly: {
         title: "Time Check",
         body: "Make sure you are on track, keep doing all your tasks!",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "hourly-reminder",
         enabled: true
     },
     morning: {
         title: "Good Morning Abela",
         body: "Make sure you stay productive today, Time is your only Precious Gift!",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "morning-motivation",
         enabled: true
     },
     night: {
         title: "Good Night Reflection",
         body: "Tomorrow is a new Day! Thank GOD for everything, Do not forget to Study Bible.",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "night-reminder",
         enabled: true
     }
@@ -130,45 +130,37 @@ function debugLog(message, type = 'info') {
     debugConsole.appendChild(logEntry);
     debugConsole.scrollTop = debugConsole.scrollHeight;
     
-    // Also log to browser console
     console.log(`[DEBUG] ${message}`);
 }
 
+// Clear debug console
 function clearDebugConsole() {
-    document.getElementById('debugConsole').innerHTML = '';
-    debugLog('Debug console cleared', 'info');
-}
-
-// Initialize notification system
-async function initializeNotifications() {
-    debugLog('Initializing notifications...', 'info');
-    updatePermissionStatus();
-    
-    if (Notification.permission === 'granted') {
-        debugLog('Notification permission already granted', 'success');
-        await registerServiceWorker();
-        updateAllStatuses();
-        startNotificationScheduler();
-    } else {
-        debugLog('Notification permission not granted', 'warning');
+    const debugConsole = document.getElementById('debugConsole');
+    if (debugConsole) {
+        debugConsole.innerHTML = '';
+        debugLog('Debug console cleared', 'info');
     }
 }
 
-// Update permission status display
-function updatePermissionStatus() {
-    const status = document.getElementById('permissionStatus');
-    switch (Notification.permission) {
-        case 'granted':
-            status.className = 'alert alert-success';
-            status.textContent = 'Notifications are enabled!';
-            break;
-        case 'denied':
-            status.className = 'alert alert-danger';
-            status.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-            break;
-        default:
-            status.className = 'alert alert-warning';
-            status.textContent = 'Notifications require permission.';
+// Request notification permission
+async function requestNotificationPermission() {
+    try {
+        debugLog('Requesting notification permission...', 'info');
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            debugLog('Notification permission granted', 'success');
+            await registerServiceWorker();
+            showWelcomeNotification();
+        } else {
+            debugLog(`Notification permission ${permission}`, 'warning');
+            alert('Please allow notifications to use this feature.');
+        }
+        
+        updatePermissionStatus();
+    } catch (error) {
+        debugLog(`Error requesting permission: ${error}`, 'error');
+        alert('Error requesting notification permission: ' + error.message);
     }
 }
 
@@ -176,52 +168,53 @@ function updatePermissionStatus() {
 async function registerServiceWorker() {
     try {
         debugLog('Registering service worker...', 'info');
-        const registration = await navigator.serviceWorker.register('/service-worker.js', {
-            scope: '/'
+        const registration = await navigator.serviceWorker.register('../service-worker.js', {
+            scope: '../'
         });
-        debugLog('ServiceWorker registered successfully', 'success');
+        debugLog('Service worker registered successfully', 'success');
         return registration;
     } catch (error) {
-        debugLog(`ServiceWorker registration failed: ${error}`, 'error');
+        debugLog(`Service worker registration failed: ${error}`, 'error');
         throw error;
     }
 }
 
-// Request notification permission
-async function requestPermission() {
-    try {
-        debugLog('Requesting notification permission...', 'info');
-        const permission = await Notification.requestPermission();
-        updatePermissionStatus();
-        
-        if (permission === 'granted') {
-            debugLog('Notification permission granted', 'success');
-            await initializeNotifications();
-            showNotification('Welcome', 'Notifications have been enabled!');
-        } else {
-            debugLog(`Notification permission ${permission}`, 'warning');
+// Show welcome notification
+async function showWelcomeNotification() {
+    if (Notification.permission === 'granted') {
+        try {
+            await showNotification('Welcome!', 'Notifications have been enabled successfully.');
+            debugLog('Welcome notification sent', 'success');
+        } catch (error) {
+            debugLog(`Error showing welcome notification: ${error}`, 'error');
         }
-    } catch (error) {
-        debugLog(`Error requesting permission: ${error}`, 'error');
-        alert('Error requesting notification permission: ' + error.message);
     }
 }
 
 // Show a notification
-async function showNotification(title, body, tag = 'test') {
-    if (Notification.permission !== 'granted') return;
+async function showNotification(title, message, tag = 'test') {
+    if (Notification.permission !== 'granted') {
+        debugLog('Cannot show notification - permission not granted', 'warning');
+        return;
+    }
 
-    const registration = await navigator.serviceWorker.ready;
-    await registration.showNotification(title, {
-        body: body,
-        icon: '/assets/images/icon-192x192.png',
-        tag: tag,
-        vibrate: [200, 100, 200],
-        requireInteraction: true
-    });
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+            body: message,
+            icon: '../assets/images/icon-192x192.png',
+            tag: tag,
+            vibrate: [200, 100, 200],
+            requireInteraction: true
+        });
+        debugLog(`Notification shown: ${title}`, 'success');
+    } catch (error) {
+        debugLog(`Error showing notification: ${error}`, 'error');
+        throw error;
+    }
 }
 
-// Test actual notification
+// Test a specific notification
 async function testActualNotification(type) {
     if (Notification.permission !== 'granted') {
         debugLog('Cannot test notification - permission not granted', 'warning');
@@ -230,28 +223,16 @@ async function testActualNotification(type) {
     }
 
     try {
-        debugLog(`Testing ${type} notification...`, 'info');
-        const registration = await navigator.serviceWorker.ready;
-        
-        if (!registration.active) {
-            debugLog('Service worker not active', 'error');
-            alert('Service worker not ready. Please wait a moment and try again.');
-            return;
+        const config = notificationConfig[type];
+        if (!config) {
+            throw new Error(`Invalid notification type: ${type}`);
         }
 
-        registration.active.postMessage({
-            type: 'NOTIFICATION_STATES',
-            states: {
-                hourly: type === 'hourly',
-                morning: type === 'morning',
-                night: type === 'night'
-            },
-            isTest: true
-        });
-        debugLog(`Test message sent to service worker for ${type}`, 'success');
+        await showNotification(config.title, config.body, config.tag);
+        debugLog(`Test notification sent for ${type}`, 'success');
     } catch (error) {
-        debugLog(`Error testing notification: ${error}`, 'error');
-        alert('Error testing notification: ' + error.message);
+        debugLog(`Error testing ${type} notification: ${error}`, 'error');
+        alert(`Error testing ${type} notification: ${error.message}`);
     }
 }
 
@@ -263,17 +244,22 @@ async function testAllNotifications() {
         return;
     }
 
-    for (const type in notifications) {
-        if (notifications[type].enabled) {
-            await testActualNotification(type);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between notifications
+    try {
+        for (const type in notificationConfig) {
+            if (notificationConfig[type].enabled) {
+                await testActualNotification(type);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
         }
+        debugLog('All test notifications sent', 'success');
+    } catch (error) {
+        debugLog(`Error testing notifications: ${error}`, 'error');
     }
 }
 
 // Toggle notification state
 function toggleNotification(type) {
-    const config = notifications[type];
+    const config = notificationConfig[type];
     if (!config) {
         debugLog(`Invalid notification type: ${type}`, 'error');
         return;
@@ -281,175 +267,97 @@ function toggleNotification(type) {
 
     config.enabled = !config.enabled;
     debugLog(`${type} notifications ${config.enabled ? 'enabled' : 'disabled'}`, 'info');
-    updateStatus(type);
+    updateNotificationStatus(type);
     saveNotificationStates();
 }
 
-// Update status display for a notification type
-function updateStatus(type) {
-    const config = notifications[type];
-    if (!config) return;
+// Pause all notifications
+function pauseAll() {
+    for (const type in notificationConfig) {
+        notificationConfig[type].enabled = false;
+        updateNotificationStatus(type);
+    }
+    saveNotificationStates();
+    debugLog('All notifications paused', 'info');
+}
 
-    const statusElement = document.getElementById(`${type}Status`);
+// Resume all notifications
+function resumeAll() {
+    for (const type in notificationConfig) {
+        notificationConfig[type].enabled = true;
+        updateNotificationStatus(type);
+    }
+    saveNotificationStates();
+    debugLog('All notifications resumed', 'info');
+}
+
+// Update notification status display
+function updateNotificationStatus(type) {
+    const statusBadge = document.getElementById(`${type}Status`);
     const toggleButton = document.getElementById(`${type}Toggle`);
-    const nextElement = document.getElementById(`${type}Next`);
-
-    if (config.enabled) {
-        statusElement.className = 'badge bg-success status-badge';
-        statusElement.textContent = 'Active';
-        toggleButton.textContent = 'Pause';
-        toggleButton.className = 'btn btn-warning';
-        updateNextNotificationTime(type);
-    } else {
-        statusElement.className = 'badge bg-warning status-badge';
-        statusElement.textContent = 'Paused';
-        toggleButton.textContent = 'Resume';
-        toggleButton.className = 'btn btn-success';
-        nextElement.textContent = 'Paused';
+    
+    if (statusBadge && toggleButton) {
+        const isEnabled = notificationConfig[type].enabled;
+        statusBadge.className = `badge ${isEnabled ? 'bg-success' : 'bg-warning'} status-badge`;
+        statusBadge.textContent = isEnabled ? 'Active' : 'Paused';
+        toggleButton.textContent = isEnabled ? 'Pause' : 'Resume';
+        toggleButton.className = `btn ${isEnabled ? 'btn-warning' : 'btn-success'}`;
     }
 }
 
-// Update all notification statuses
-function updateAllStatuses() {
-    for (const type in notifications) {
-        updateStatus(type);
+// Update permission status display
+function updatePermissionStatus() {
+    const statusElement = document.getElementById('permissionStatus');
+    if (!statusElement) return;
+
+    switch (Notification.permission) {
+        case 'granted':
+            statusElement.className = 'alert alert-success';
+            statusElement.textContent = 'Notifications are enabled!';
+            break;
+        case 'denied':
+            statusElement.className = 'alert alert-danger';
+            statusElement.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
+            break;
+        default:
+            statusElement.className = 'alert alert-warning';
+            statusElement.textContent = 'Notifications require permission.';
     }
 }
 
-// Calculate and display next notification time
-function updateNextNotificationTime(type) {
-    const nextElement = document.getElementById(`${type}Next`);
-    const now = new Date();
-    let next;
-
-    switch (type) {
-        case 'hourly':
-            next = new Date(now);
-            if (now.getHours() < 21) {
-                next.setHours(21, 0, 0, 0);
-            } else {
-                next.setHours(next.getHours() + 1);
-                next.setMinutes(0, 0, 0);
-            }
-            break;
-        case 'morning':
-            next = new Date(now);
-            next.setHours(7, 0, 0, 0);
-            if (now >= next) {
-                next.setDate(next.getDate() + 1);
-            }
-            break;
-        case 'night':
-            next = new Date(now);
-            next.setHours(24, 0, 0, 0);
-            break;
-    }
-
-    nextElement.textContent = next.toLocaleString();
-}
-
-// Save notification states to localStorage
+// Save notification states
 function saveNotificationStates() {
     const states = {};
-    for (const type in notifications) {
-        states[type] = notifications[type].enabled;
+    for (const type in notificationConfig) {
+        states[type] = notificationConfig[type].enabled;
     }
     localStorage.setItem('notificationStates', JSON.stringify(states));
+    debugLog('Notification states saved', 'info');
 }
 
-// Load notification states from localStorage
+// Load notification states
 function loadNotificationStates() {
     try {
         const states = JSON.parse(localStorage.getItem('notificationStates'));
         if (states) {
             for (const type in states) {
-                if (notifications[type]) {
-                    notifications[type].enabled = states[type];
+                if (notificationConfig[type]) {
+                    notificationConfig[type].enabled = states[type];
+                    updateNotificationStatus(type);
                 }
             }
+            debugLog('Notification states loaded', 'success');
         }
     } catch (error) {
-        console.error('Error loading notification states:', error);
-    }
-}
-
-// Pause all notifications
-function pauseAllNotifications() {
-    for (const type in notifications) {
-        notifications[type].enabled = false;
-    }
-    updateAllStatuses();
-    saveNotificationStates();
-}
-
-// Resume all notifications
-function resumeAllNotifications() {
-    for (const type in notifications) {
-        notifications[type].enabled = true;
-    }
-    updateAllStatuses();
-    saveNotificationStates();
-}
-
-// Start the notification scheduler
-function startNotificationScheduler() {
-    // Update next notification times every minute
-    setInterval(() => {
-        for (const type in notifications) {
-            if (notifications[type].enabled) {
-                updateNextNotificationTime(type);
-            }
-        }
-    }, 60000);
-
-    // Check for notifications every minute
-    setInterval(checkScheduledNotifications, 60000);
-}
-
-// Check if any notifications should be shown
-function checkScheduledNotifications() {
-    const now = new Date();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    debugLog(`Checking scheduled notifications at ${hour}:${minute}`, 'info');
-
-    // Hourly notification (21:00 onwards)
-    if (minute === 0 && hour >= 21 && notifications.hourly.enabled) {
-        debugLog('Triggering hourly notification', 'info');
-        showNotification(
-            notifications.hourly.title,
-            `${hour}:00 - ${notifications.hourly.body}`,
-            notifications.hourly.tag
-        );
-    }
-
-    // Morning notification (7:00)
-    if (hour === 7 && minute === 0 && notifications.morning.enabled) {
-        debugLog('Triggering morning notification', 'info');
-        showNotification(
-            notifications.morning.title,
-            notifications.morning.body,
-            notifications.morning.tag
-        );
-    }
-
-    // Night notification (00:00)
-    if (hour === 0 && minute === 0 && notifications.night.enabled) {
-        debugLog('Triggering night notification', 'info');
-        showNotification(
-            notifications.night.title,
-            notifications.night.body,
-            notifications.night.tag
-        );
+        debugLog(`Error loading notification states: ${error}`, 'error');
     }
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    debugLog('Page loaded, initializing notification system...', 'info');
+    debugLog('Page loaded, initializing...', 'info');
     loadNotificationStates();
-    initializeNotifications();
+    updatePermissionStatus();
 });
 </script>
 
