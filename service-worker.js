@@ -28,25 +28,26 @@ function debugResponse(prefix, response) {
     });
 }
 
-const CACHE_NAME = 'do-it-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'do-it-v2';
+const BASE_PATH = '/GCSE';  // Add base path
+const OFFLINE_URL = BASE_PATH + '/offline.html';
 
-// Assets to cache
+// Assets to cache with correct base path
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.php',
-    '/offline.html',
-    '/assets/css/style.css',
-    '/assets/js/task-notifications.js',
-    '/manifest.json',
-    '/assets/images/icon-72x72.png',
-    '/assets/images/icon-96x96.png',
-    '/assets/images/icon-128x128.png',
-    '/assets/images/icon-144x144.png',
-    '/assets/images/icon-152x152.png',
-    '/assets/images/icon-192x192.png',
-    '/assets/images/icon-384x384.png',
-    '/assets/images/icon-512x512.png'
+    BASE_PATH + '/',
+    BASE_PATH + '/index.php',
+    BASE_PATH + '/offline.html',
+    BASE_PATH + '/assets/css/style.css',
+    BASE_PATH + '/assets/js/task-notifications.js',
+    BASE_PATH + '/manifest.json',
+    BASE_PATH + '/assets/images/icon-72x72.png',
+    BASE_PATH + '/assets/images/icon-96x96.png',
+    BASE_PATH + '/assets/images/icon-128x128.png',
+    BASE_PATH + '/assets/images/icon-144x144.png',
+    BASE_PATH + '/assets/images/icon-152x152.png',
+    BASE_PATH + '/assets/images/icon-192x192.png',
+    BASE_PATH + '/assets/images/icon-384x384.png',
+    BASE_PATH + '/assets/images/icon-512x512.png'
 ];
 
 // Install event - cache assets
@@ -61,6 +62,9 @@ self.addEventListener('install', event => {
             .then(() => {
                 console.log('[Service Worker] Install completed');
                 return self.skipWaiting();
+            })
+            .catch(error => {
+                console.error('[Service Worker] Install failed:', error);
             })
     );
 });
@@ -206,19 +210,20 @@ self.addEventListener('periodicsync', event => {
     }
 });
 
-// Function to sync notifications
+// Function to sync notifications with better error handling
 async function syncNotifications() {
     console.log('[Service Worker] Syncing notifications...');
     try {
         // Check task reminders
-        const taskResponse = await fetch('/api/get_incomplete_tasks.php');
+        const taskResponse = await fetch(BASE_PATH + '/api/get_incomplete_tasks.php');
+        if (!taskResponse.ok) throw new Error('Task API request failed');
         const taskData = await taskResponse.json();
         if (taskData.success && taskData.tasks.length > 0) {
             await self.registration.showNotification('Task Reminder', {
                 body: `You have ${taskData.tasks.length} incomplete tasks`,
-                icon: '/assets/images/icon-192x192.png',
-                badge: '/assets/images/icon-96x96.png',
-                vibrate: [200, 100, 200],
+                icon: BASE_PATH + '/assets/images/icon-192x192.png',
+                badge: BASE_PATH + '/assets/images/icon-96x96.png',
+                vibrate: [200, 100, 200, 100, 200],
                 tag: 'task-reminder',
                 renotify: true,
                 actions: [
@@ -230,19 +235,23 @@ async function syncNotifications() {
                         action: 'close',
                         title: 'Close'
                     }
-                ]
+                ],
+                data: {
+                    url: BASE_PATH + '/pages/tasks/index.php'
+                }
             });
         }
 
-        // Check exam reminders
-        const examResponse = await fetch('/api/get_exam_countdown.php');
+        // Check exam reminders with better error handling
+        const examResponse = await fetch(BASE_PATH + '/api/get_exam_countdown.php');
+        if (!examResponse.ok) throw new Error('Exam API request failed');
         const examData = await examResponse.json();
         if (examData.success && examData.exams.length > 0) {
             await self.registration.showNotification('Exam Reminder', {
                 body: `You have upcoming exams`,
-                icon: '/assets/images/icon-192x192.png',
-                badge: '/assets/images/icon-96x96.png',
-                vibrate: [200, 100, 200],
+                icon: BASE_PATH + '/assets/images/icon-192x192.png',
+                badge: BASE_PATH + '/assets/images/icon-96x96.png',
+                vibrate: [200, 100, 200, 100, 200],
                 tag: 'exam-reminder',
                 renotify: true,
                 actions: [
@@ -254,19 +263,23 @@ async function syncNotifications() {
                         action: 'close',
                         title: 'Close'
                     }
-                ]
+                ],
+                data: {
+                    url: BASE_PATH + '/pages/exam_countdown.php'
+                }
             });
         }
 
-        // Send motivation
-        const motivationResponse = await fetch('/api/get_motivational_message.php');
+        // Send motivation with better error handling
+        const motivationResponse = await fetch(BASE_PATH + '/api/get_motivational_message.php');
+        if (!motivationResponse.ok) throw new Error('Motivation API request failed');
         const motivationData = await motivationResponse.json();
         if (motivationData.success) {
             await self.registration.showNotification('Daily Motivation', {
                 body: motivationData.message,
-                icon: '/assets/images/icon-192x192.png',
-                badge: '/assets/images/icon-96x96.png',
-                vibrate: [200, 100, 200],
+                icon: BASE_PATH + '/assets/images/icon-192x192.png',
+                badge: BASE_PATH + '/assets/images/icon-96x96.png',
+                vibrate: [200, 100, 200, 100, 200],
                 tag: 'motivation',
                 renotify: true,
                 actions: [
@@ -279,6 +292,19 @@ async function syncNotifications() {
         }
     } catch (error) {
         console.error('[Service Worker] Error syncing notifications:', error);
+        // Try to show an error notification
+        try {
+            await self.registration.showNotification('Sync Error', {
+                body: 'Unable to sync notifications. Please check your connection.',
+                icon: BASE_PATH + '/assets/images/icon-192x192.png',
+                badge: BASE_PATH + '/assets/images/icon-96x96.png',
+                vibrate: [200, 100, 200],
+                tag: 'sync-error',
+                renotify: false
+            });
+        } catch (e) {
+            console.error('[Service Worker] Error showing error notification:', e);
+        }
     }
 }
 
