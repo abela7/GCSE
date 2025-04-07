@@ -152,7 +152,8 @@ function startProductivityReminder() {
     sendProductivityReminder();
     
     console.log('Setting up interval for notifications...');
-    const intervalId = setInterval(sendProductivityReminder, 60000);
+    const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const intervalId = setInterval(sendProductivityReminder, thirtyMinutes);
     window.productivityReminderId = intervalId;
 }
 
