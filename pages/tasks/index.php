@@ -162,48 +162,51 @@ while ($task = $result->fetch_assoc()) {
 
 <div class="container-fluid">
     <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="d-flex gap-2 align-items-center">
-                <h1 class="h3 mb-0">
-                    <i class="fas <?php echo $icon; ?> me-2"></i>
-                    <?php echo $greeting; ?>
-                </h1>
-                <div class="date-navigation d-flex align-items-center gap-2">
-                    <a href="?date=<?php echo $prevDate; ?>" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                    <span class="date-display">
-                        <?php echo $dateObj->format('l, F j, Y'); ?>
-                    </span>
-                    <a href="?date=<?php echo $nextDate; ?>" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="manage_tasks.php" class="btn btn-outline-primary">
-                    <i class="fas fa-tasks"></i>
-                </a>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Task Management Icons -->
+            <div class="task-controls d-flex gap-3">
+                <button class="icon-button" onclick="window.location.href='manage_tasks.php'">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="icon-button" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Greeting Section -->
-    <div class="greeting-section">
-        <div class="greeting-container">
-            <div class="greeting-left">
-                <div class="greeting-icon">
-                    <i class="fas <?php echo $icon; ?>"></i>
+    <!-- Enhanced Greeting Section -->
+    <div class="greeting-section mb-4">
+        <div class="greeting-container bg-white rounded-4 p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="greeting-content">
+                    <h1 class="greeting-title mb-4">
+                        <i class="fas <?php echo $icon; ?> me-2"></i>
+                        <?php echo $greeting; ?>
+                    </h1>
+                    
+                    <!-- Enhanced Date Navigation -->
+                    <div class="date-navigation">
+                        <div class="date-nav-container bg-light rounded-3 p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <a href="?date=<?php echo $prevDate; ?>" class="nav-arrow">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                                <h2 class="date-display mb-0">
+                                    <?php echo $dateObj->format('l, j F Y'); ?>
+                                </h2>
+                                <a href="?date=<?php echo $nextDate; ?>" class="nav-arrow">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <span class="greeting-text"><?php echo $greeting; ?> • <?php echo date('l, j F Y'); ?></span>
-            </div>
-            <div class="greeting-actions">
-                <a href="manage_tasks.php" class="action-btn settings-btn">
+                
+                <!-- Settings Icon -->
+                <button class="icon-button settings-button">
                     <i class="fas fa-cog"></i>
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -1035,6 +1038,110 @@ while ($task = $result->fetch_assoc()) {
     .page-header .d-flex {
         flex-direction: column;
         align-items: flex-start !important;
+    }
+}
+
+/* Add these styles to your CSS */
+.icon-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f8f9fa;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #495057;
+}
+
+.icon-button:hover {
+    background: #e9ecef;
+    color: #212529;
+    transform: translateY(-1px);
+}
+
+.icon-button i {
+    font-size: 1.2rem;
+}
+
+.settings-button {
+    background: #fff5e6;
+    color: #fd7e14;
+}
+
+.settings-button:hover {
+    background: #ffe5cc;
+    color: #fd7e14;
+}
+
+.greeting-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.greeting-container {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f1f3f5;
+}
+
+.greeting-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.date-navigation {
+    width: 100%;
+}
+
+.date-nav-container {
+    border: 1px solid #e9ecef;
+}
+
+.nav-arrow {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.nav-arrow:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.date-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+@media (max-width: 576px) {
+    .greeting-title {
+        font-size: 1.5rem;
+    }
+    
+    .date-display {
+        font-size: 1rem;
+    }
+    
+    .icon-button {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .greeting-container {
+        padding: 1rem !important;
+    }
+    
+    .date-nav-container {
+        padding: 0.75rem !important;
     }
 }
 </style>
