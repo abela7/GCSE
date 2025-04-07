@@ -23,6 +23,10 @@ $upcoming_exams = [];
 $daily_words = [];
 
 try {
+    if (!isset($_SESSION['user_id'])) {
+        throw new Exception("User not logged in");
+    }
+    
     $user_id = $_SESSION['user_id'];
 
     // Fetch today's tasks with full details
@@ -60,6 +64,7 @@ try {
     
 } catch (Exception $e) {
     error_log("Error in dashboard.php: " . $e->getMessage());
+    // You might want to show a user-friendly error message here
 }
 
 $page_title = "Dashboard";
@@ -214,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.complete-task').forEach(button => {
         button.addEventListener('click', function() {
             const taskId = this.dataset.taskId;
-            fetch('/functions/ajax/complete_task.php', {
+            fetch('/GCSE/functions/ajax/complete_task.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -243,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.mark-practiced').forEach(button => {
         button.addEventListener('click', function() {
             const wordId = this.dataset.wordId;
-            fetch('/functions/ajax/mark_word_practiced.php', {
+            fetch('/GCSE/functions/ajax/mark_word_practiced.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
