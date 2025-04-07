@@ -997,14 +997,15 @@ while ($task = $result->fetch_assoc()) {
 /* Add this to the existing style section */
 .date-navigation {
     background: white;
-    padding: 0.75rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    gap: 1rem;
 }
 
 .date-display {
@@ -1013,11 +1014,12 @@ while ($task = $result->fetch_assoc()) {
     text-align: center;
     flex: 1;
     font-size: 1.1rem;
+    order: 2;
 }
 
 .date-navigation .btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -1026,6 +1028,15 @@ while ($task = $result->fetch_assoc()) {
     border: none;
     color: #6c757d;
     transition: all 0.2s ease;
+    border-radius: 12px;
+}
+
+.date-navigation .btn:first-child {
+    order: 1;
+}
+
+.date-navigation .btn:last-child {
+    order: 3;
 }
 
 .date-navigation .btn:hover {
@@ -1036,18 +1047,18 @@ while ($task = $result->fetch_assoc()) {
 
 @media (max-width: 576px) {
     .date-navigation {
-        padding: 0.625rem;
+        padding: 0.875rem;
         margin: 0.5rem 0;
+        gap: 0.5rem;
     }
     
     .date-display {
-        font-size: 0.9rem;
-        padding: 0 0.5rem;
+        font-size: 1rem;
     }
     
     .date-navigation .btn {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
     }
     
     .page-header .d-flex {
