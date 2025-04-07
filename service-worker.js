@@ -38,18 +38,18 @@ const getBaseUrl = () => {
     return self.registration.scope;
 };
 
-const CACHE_NAME = 'web-app-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'gcse-app-v1';
+const OFFLINE_URL = '/GCSE/offline.html';
 
 // Assets to cache
 const ASSETS_TO_CACHE = [
-    '/',
-    '/offline.html',
-    '/assets/css/style.css',
-    '/assets/js/mobile-notifications.js',
-    '/manifest.json',
-    '/assets/images/icon-192x192.png',
-    '/assets/images/icon-96x96.png'
+    '/GCSE/',
+    '/GCSE/offline.html',
+    '/GCSE/assets/css/style.css',
+    '/GCSE/assets/js/mobile-notifications.js',
+    '/GCSE/manifest.json',
+    '/GCSE/assets/images/icon-192x192.png',
+    '/GCSE/assets/images/icon-96x96.png'
 ];
 
 // Make a URL absolute using the service worker scope
@@ -93,16 +93,16 @@ self.addEventListener('notificationclick', event => {
     event.notification.close();
 
     // Handle different notification types
-    let url = '/';
+    let url = '/GCSE/';
     switch (event.notification.tag) {
         case 'hourly-reminder':
-            url = '/tasks.php';
+            url = '/GCSE/tasks.php';
             break;
         case 'morning-motivation':
-            url = '/dashboard.php';
+            url = '/GCSE/dashboard.php';
             break;
         case 'night-reminder':
-            url = '/bible-study.php';
+            url = '/GCSE/bible-study.php';
             break;
     }
 
@@ -112,7 +112,7 @@ self.addEventListener('notificationclick', event => {
             .then(clientList => {
                 // Try to focus an existing window
                 for (const client of clientList) {
-                    if (client.url === url && 'focus' in client) {
+                    if (client.url.includes(url) && 'focus' in client) {
                         return client.focus();
                     }
                 }

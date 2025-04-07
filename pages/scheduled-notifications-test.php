@@ -133,7 +133,9 @@ function updatePermissionStatus() {
 // Register service worker
 async function registerServiceWorker() {
     try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        const registration = await navigator.serviceWorker.register('/GCSE/service-worker.js', {
+            scope: '/GCSE/'
+        });
         console.log('ServiceWorker registered:', registration);
         return registration;
     } catch (error) {
