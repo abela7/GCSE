@@ -403,23 +403,31 @@ require_once __DIR__ . '/../includes/header.php';
 }
 
 /* Toast Notifications */
-.custom-toast {
+.feedback-message {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 1rem;
-    background: white;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.75rem 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     z-index: 1000;
-    transform: translateY(100%);
-    opacity: 0;
-    transition: all 0.3s;
+    transition: bottom 0.3s ease-in-out;
+    font-size: 0.9rem;
+    border-left: 4px solid #cdaf56;
 }
 
-.custom-toast.show {
-    transform: translateY(0);
-    opacity: 1;
+.feedback-message.show {
+    bottom: 20px;
+}
+
+.feedback-message.success {
+    border-color: #28a745;
+}
+
+.feedback-message.error {
+    border-color: #dc3545;
 }
 </style>
 
@@ -832,41 +840,32 @@ document.addEventListener('DOMContentLoaded', function() {
         element.innerHTML = html;
     }
 
-    // Enhanced Toast Notifications
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `custom-toast ${type}`;
-        toast.innerHTML = `
+    // Subtle Feedback Message
+    function showFeedback(message, type = 'success') {
+        // Remove any existing feedback messages
+        const existingMessages = document.querySelectorAll('.feedback-message');
+        existingMessages.forEach(msg => msg.remove());
+
+        // Create new feedback message
+        const feedback = document.createElement('div');
+        feedback.className = `feedback-message ${type}`;
+        feedback.innerHTML = `
             <div class="d-flex align-items-center">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'} me-2"></i>
                 <span>${message}</span>
             </div>
         `;
-        document.body.appendChild(toast);
-        
+        document.body.appendChild(feedback);
+
+        // Show the message
+        setTimeout(() => feedback.classList.add('show'), 100);
+
+        // Hide and remove the message
         setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+            feedback.classList.remove('show');
+            setTimeout(() => feedback.remove(), 300);
+        }, 2000);
     }
-
-    // Intersection Observer for Animations
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.stat-card, .task-item, .habit-item, .exam-item').forEach(el => {
-        observer.observe(el);
-    });
 
     // Enhanced Task and Habit Completion
     function handleCompletion(endpoint, id, type) {
@@ -883,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 button.innerHTML = '<i class="fas fa-check"></i>';
-                showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} completed successfully!`);
+                showFeedback(`${type.charAt(0).toUpperCase() + type.slice(1)} completed`);
                 setTimeout(() => location.reload(), 1000);
             } else {
                 throw new Error(data.message || 'Something went wrong');
@@ -892,7 +891,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             button.disabled = false;
             button.innerHTML = '<i class="fas fa-check"></i>';
-            showToast(error.message, 'error');
+            showFeedback(error.message, 'error');
         });
     }
 
@@ -918,11 +917,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const icon = this.querySelector('i');
             icon.style.transform = 'scale(1.2)';
             
-            setTimeout(() => {
-                icon.style.transform = 'scale(1)';
-            }, 200);
+            const itemId = this.dataset.itemId;
             
-            // ... rest of the favorite toggle logic ...
+            fetch('EnglishPractice/toggle_favorite.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `item_id=${itemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                    showFeedback(data.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+                }
+                icon.style.transform = 'scale(1)';
+            })
+            .catch(error => {
+                showFeedback('Could not update favorite status', 'error');
+                icon.style.transform = 'scale(1)';
+            });
         });
     });
 });

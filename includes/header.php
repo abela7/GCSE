@@ -14,41 +14,14 @@ require_once 'db_connect.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#cdaf56">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Do It!">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Favicon/Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-    <link rel="shortcut icon" href="/favicon/favicon.ico">
-    
-    <!-- Mobile-friendly CSS -->
-    <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-        
-        body {
-            -webkit-text-size-adjust: 100%;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        button, a {
-            touch-action: manipulation;
-        }
-    </style>
-    
     <title>GCSE Tracker<?php echo isset($page_title) ? ' - ' . $page_title : ''; ?></title>
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon/site.webmanifest">
+    <link rel="shortcut icon" href="/assets/favicon/favicon.ico">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -233,48 +206,6 @@ require_once 'db_connect.php';
                 width: 100%;
             }
         }
-
-        /* Install Banner Styles */
-        .install-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        .btn-install {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .btn-install:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
     
     <!-- HTMX Settings -->
@@ -297,40 +228,6 @@ require_once 'db_connect.php';
     <script>
         console.log('Notifications.js should be loaded now');
     </script>
-
-    <script>
-        // Request notification permission
-        if ('Notification' in window) {
-            Notification.requestPermission().then(function(permission) {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                }
-            });
-        }
-
-        // Service Worker Registration with notification support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('ServiceWorker registration successful');
-                    
-                    // Request notification permission after SW registration
-                    if ('Notification' in window) {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            console.log('Notification permission granted');
-                        }
-                    }
-                } catch (err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                }
-            });
-        }
-    </script>
-
-    <!-- PWA Install Script -->
-    <script src="/assets/js/install.js"></script>
 </head>
 <body>
     <div class="wrapper">
