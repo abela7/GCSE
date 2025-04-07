@@ -316,7 +316,7 @@ if (in_array('assignments', $existing_tables)) {
             topic as section,
             COUNT(*) as total_topics,
             SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) as completed_topics,
-            ROUND((SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) / COUNT(*)) * 100) as progress
+            ROUND(SUM(CASE WHEN progress = 100 THEN 1 ELSE 0 END) * 100 / COUNT(*)) as progress
         FROM assignments
         GROUP BY subject, topic
         ORDER BY subject, topic
@@ -352,16 +352,16 @@ if (empty($section_data)) {
     );
 }
 
-// Get habit streak data
+// Get habit streak data - Fixed query to accurately count completions
 $habit_streak_data = array();
-if (in_array('habits', $existing_tables) && in_array('habit_tracking', $existing_tables)) {
+if (in_array('habits', $existing_tables) && in_array('habit_completions', $existing_tables)) {
     $streak_query = "
         SELECT 
             h.id,
             h.name,
-            COUNT(ht.id) as completion_count
+            COUNT(hc.id) as completion_count
         FROM habits h
-        LEFT JOIN habit_tracking ht ON h.id = ht.habit_id AND ht.status = 'completed'
+        LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.status = 'completed'
         WHERE h.is_active = 1
         GROUP BY h.id, h.name
         ORDER BY completion_count DESC
@@ -383,7 +383,65 @@ if (in_array('habits', $existing_tables) && in_array('habit_tracking', $existing
     }
 }
 
-// If no habit streak data, use temporary data
+// If no habit streak data, try alternative table
+if (empty($habit_streak_data) && in_array('habits', $existing_tables) && in_array('habit_progress', $existing_tables)) {
+    $streak_query_alt = "
+        SELECT 
+            h.id,
+            h.name,
+            COUNT(hp.id) as completion_count
+        FROM habits h
+        LEFT JOIN habit_progress hp ON h.id = hp.habit_id AND hp.status = 'completed'
+        WHERE h.is_active = 1
+        GROUP BY h.id, h.name
+        ORDER BY completion_count DESC
+        LIMIT 3
+    ";
+    
+    try {
+        $streak_result_alt = $conn->query($streak_query_alt);
+        if ($streak_result_alt && $streak_result_alt->num_rows > 0) {
+            while ($habit = $streak_result_alt->fetch_assoc()) {
+                $habit_streak_data[] = array(
+                    'name' => $habit['name'],
+                    'completion_count' => (int)$habit['completion_count']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching alternative habit streak data: " . $e->getMessage());
+    }
+}
+
+// If still no habit streak data, use the habits table total_completions field
+if (empty($habit_streak_data) && in_array('habits', $existing_tables)) {
+    $streak_query_backup = "
+        SELECT 
+            id,
+            name,
+            total_completions as completion_count
+        FROM habits
+        WHERE is_active = 1
+        ORDER BY total_completions DESC
+        LIMIT 3
+    ";
+    
+    try {
+        $streak_result_backup = $conn->query($streak_query_backup);
+        if ($streak_result_backup && $streak_result_backup->num_rows > 0) {
+            while ($habit = $streak_result_backup->fetch_assoc()) {
+                $habit_streak_data[] = array(
+                    'name' => $habit['name'],
+                    'completion_count' => (int)$habit['completion_count']
+                );
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching backup habit streak data: " . $e->getMessage());
+    }
+}
+
+// If still no habit streak data, use temporary data
 if (empty($habit_streak_data)) {
     $habit_streak_data = array(
         array('name' => 'Math Practice', 'completion_count' => 15),
