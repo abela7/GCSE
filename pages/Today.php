@@ -30,29 +30,22 @@ $next_assignment_query = "
 $next_assignment = $conn->query($next_assignment_query)->fetch_assoc();
 
 // Get today's tasks
-$tasks_query = "
-    SELECT t.*, tc.name as category_name, tc.color as category_color
-    FROM tasks t 
-    LEFT JOIN task_categories tc ON t.category_id = tc.id
-    WHERE DATE(t.due_date) = CURRENT_DATE
-    AND t.status != 'completed'
-    ORDER BY t.priority DESC, t.due_time ASC
-";
+$tasks_query = "SELECT t.*, tc.name as category_name, tc.color as category_color 
+                FROM tasks t 
+                LEFT JOIN task_categories tc ON t.category_id = tc.id 
+                WHERE DATE(t.due_date) = CURRENT_DATE AND t.status != 'Completed' 
+                ORDER BY t.due_date ASC";
 $tasks_result = $conn->query($tasks_query);
-$tasks = $tasks_result->fetch_all(MYSQLI_ASSOC);
 
 // Get today's habits
-$habits_query = "
-    SELECT h.*, hc.name as category_name, hc.color as category_color,
-           hp.status as today_status
-    FROM habits h
-    LEFT JOIN habit_categories hc ON h.category_id = hc.id
-    LEFT JOIN habit_progress hp ON h.id = hp.habit_id AND hp.date = CURRENT_DATE
-    WHERE h.is_active = 1
-    ORDER BY h.target_time ASC
-";
+$habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color,
+                (SELECT status FROM habit_progress WHERE habit_id = h.id AND date = CURRENT_DATE) as today_status
+                FROM habits h
+                LEFT JOIN habit_categories hc ON h.category_id = hc.id
+                WHERE h.is_active = 1 AND 
+                (SELECT status FROM habit_progress WHERE habit_id = h.id AND date = CURRENT_DATE) != 'Completed'
+                ORDER BY h.name ASC";
 $habits_result = $conn->query($habits_query);
-$habits = $habits_result->fetch_all(MYSQLI_ASSOC);
 
 // Fetch today's English practice items
 $english_query = "
@@ -108,77 +101,70 @@ require_once '../includes/header.php';
 
                 <!-- Today's Habits -->
                 <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Today's Habits</span>
+                        <a href="habits.php" class="btn btn-sm btn-accent">
+                            <i class="bi bi-plus"></i> Add Habit
+                        </a>
+                    </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">Today's Habits</h5>
-                            <a href="habits.php" class="btn btn-sm btn-primary">Manage Habits</a>
-                        </div>
-                        <?php if (empty($habits)): ?>
-                            <p class="text-muted mb-0">No habits set for today</p>
-                        <?php else: ?>
-                            <div class="habits-list">
-                                <?php foreach ($habits as $habit): ?>
-                                    <div class="habit-item d-flex align-items-center p-2 border-bottom">
-                                        <div class="form-check">
+                        <?php if ($habits_result->num_rows > 0): ?>
+                            <div class="list-group">
+                                <?php while ($habit = $habits_result->fetch_assoc()): ?>
+                                    <a href="habits.php?id=<?php echo $habit['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                        <div>
                                             <input type="checkbox" class="form-check-input habit-checkbox" 
-                                                   data-habit-id="<?php echo $habit['id']; ?>"
-                                                   <?php echo $habit['today_status'] === 'completed' ? 'checked' : ''; ?>>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1"><?php echo htmlspecialchars($habit['name']); ?></h6>
-                                            <div class="d-flex align-items-center">
+                                                   data-habit-id="<?php echo $habit['id']; ?>">
+                                            <span class="ms-2"><?php echo htmlspecialchars($habit['name']); ?></span>
+                                            <?php if ($habit['category_name']): ?>
                                                 <span class="badge" style="background-color: <?php echo $habit['category_color']; ?>">
                                                     <?php echo htmlspecialchars($habit['category_name']); ?>
                                                 </span>
-                                                <?php if ($habit['target_time']): ?>
-                                                    <span class="ms-2 text-muted small">
-                                                        <i class="far fa-clock"></i> 
-                                                        <?php echo date('g:i A', strtotime($habit['target_time'])); ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
+                                            <?php endif; ?>
                                         </div>
-                                    </div>
-                                <?php endforeach; ?>
+                                        <small class="text-muted">
+                                            Target: <?php echo $habit['target_time']; ?> minutes
+                                        </small>
+                                    </a>
+                                <?php endwhile; ?>
                             </div>
+                        <?php else: ?>
+                            <p class="text-muted">No habits set for today</p>
                         <?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Today's Tasks -->
                 <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Today's Tasks</span>
+                        <a href="tasks.php" class="btn btn-sm btn-accent">
+                            <i class="bi bi-plus"></i> Add Task
+                        </a>
+                    </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">Today's Tasks</h5>
-                            <a href="tasks.php" class="btn btn-sm btn-primary">Add Task</a>
-                        </div>
-                        <?php if (empty($tasks)): ?>
-                            <p class="text-muted mb-0">No pending tasks for today</p>
-                        <?php else: ?>
-                            <div class="task-list">
-                                <?php foreach ($tasks as $task): ?>
-                                    <div class="task-item d-flex align-items-center p-2 border-bottom">
-                                        <div class="form-check">
+                        <?php if ($tasks_result->num_rows > 0): ?>
+                            <div class="list-group">
+                                <?php while ($task = $tasks_result->fetch_assoc()): ?>
+                                    <a href="tasks.php?id=<?php echo $task['id']; ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                        <div>
                                             <input type="checkbox" class="form-check-input task-checkbox" 
                                                    data-task-id="<?php echo $task['id']; ?>">
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h6>
-                                            <div class="d-flex align-items-center">
+                                            <span class="ms-2"><?php echo htmlspecialchars($task['title']); ?></span>
+                                            <?php if ($task['category_name']): ?>
                                                 <span class="badge" style="background-color: <?php echo $task['category_color']; ?>">
                                                     <?php echo htmlspecialchars($task['category_name']); ?>
                                                 </span>
-                                                <?php if ($task['due_time']): ?>
-                                                    <span class="ms-2 text-muted small">
-                                                        <i class="far fa-clock"></i> 
-                                                        <?php echo date('g:i A', strtotime($task['due_time'])); ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
+                                            <?php endif; ?>
                                         </div>
-                                    </div>
-                                <?php endforeach; ?>
+                                        <small class="text-muted">
+                                            <?php echo date('g:i A', strtotime($task['due_date'])); ?>
+                                        </small>
+                                    </a>
+                                <?php endwhile; ?>
                             </div>
+                        <?php else: ?>
+                            <p class="text-muted">No tasks for today</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -338,63 +324,55 @@ require_once '../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Task completion handling
+    // Task completion handler
     document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function(e) {
+            e.preventDefault(); // Prevent default checkbox behavior
+            e.stopPropagation(); // Stop event from bubbling to the link
             const taskId = this.dataset.taskId;
-            const taskItem = this.closest('.task-item');
+            const status = this.checked ? 'Completed' : 'Pending';
             
-            if (this.checked) {
-                fetch('update_task_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `task_id=${taskId}&status=completed`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        taskItem.style.opacity = '0.5';
-                        setTimeout(() => {
-                            taskItem.remove();
-                            checkAllCompleted('.task-list', 'tasks');
-                        }, 500);
-                    } else {
-                        this.checked = false;
-                    }
-                });
-            }
+            fetch('update_task_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `task_id=${taskId}&status=${status}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the task item from the list
+                    this.closest('.list-group-item').remove();
+                    checkAllDone();
+                }
+            });
         });
     });
 
-    // Habit completion handling
+    // Habit completion handler
     document.querySelectorAll('.habit-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function(e) {
+            e.preventDefault(); // Prevent default checkbox behavior
+            e.stopPropagation(); // Stop event from bubbling to the link
             const habitId = this.dataset.habitId;
-            const habitItem = this.closest('.habit-item');
+            const status = this.checked ? 'Completed' : 'Pending';
             
-            if (this.checked) {
-                fetch('update_habit_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `habit_id=${habitId}&status=completed`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        habitItem.style.opacity = '0.5';
-                        setTimeout(() => {
-                            habitItem.remove();
-                            checkAllCompleted('.habits-list', 'habits');
-                        }, 500);
-                    } else {
-                        this.checked = false;
-                    }
-                });
-            }
+            fetch('update_habit_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `habit_id=${habitId}&status=${status}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the habit item from the list
+                    this.closest('.list-group-item').remove();
+                    checkAllDone();
+                }
+            });
         });
     });
 
@@ -422,10 +400,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Function to check if all items are completed
-    function checkAllCompleted(containerSelector, type) {
-        const container = document.querySelector(containerSelector);
-        if (container && container.children.length === 0) {
-            showCompletionMessage(`All ${type} completed for today!`);
+    function checkAllDone() {
+        const tasks = document.querySelectorAll('.task-checkbox');
+        const habits = document.querySelectorAll('.habit-checkbox');
+        
+        if (tasks.length === 0 && habits.length === 0) {
+            showCompletionMessage('All tasks and habits completed for today!');
         }
     }
 
