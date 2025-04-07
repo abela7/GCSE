@@ -237,6 +237,9 @@ require_once 'db_connect.php';
     
     <!-- Task Notifications -->
     <script src="/assets/js/task-notifications.js"></script>
+
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 </head>
 <body>
     

@@ -292,57 +292,40 @@ function handleRootRequest(request) {
     return null;
 }
 
-// Fetch Event
-self.addEventListener('fetch', (event) => {
-    // Check for root URL redirect
-    const redirectResponse = handleRootRequest(event.request);
-    if (redirectResponse) {
-        event.respondWith(redirectResponse);
-        return;
+// Add to notification-settings.php
+async function checkServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        console.log('Current SW:', registration);
+        if (registration) {
+            console.log('SW State:', registration.active ? 'active' : 'inactive');
+            console.log('SW Scope:', registration.scope);
+        }
+    }
+}
+
+async function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        console.error("Browser doesn't support notifications");
+        updateNotificationUI('unsupported');
+        return false;
     }
 
-    // Handle navigation requests (HTML pages)
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    return response;
-                })
-                .catch(error => {
-                    return caches.match('offline.html');
-                })
-        );
-        return;
+    try {
+        const permission = await Notification.requestPermission();
+        updateNotificationUI(permission);
+        
+        if (permission === "granted") {
+            const registration = await registerServiceWorker();
+            if (!registration) {
+                throw new Error('Failed to register service worker');
+            }
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Notification permission error:', error);
+        updateNotificationUI('error');
+        return false;
     }
-
-    // Handle all other requests
-    event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-
-                return fetch(event.request)
-                    .then(response => {
-                        if (!response || response.status !== 200) {
-                            return response;
-                        }
-
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
-
-                        return response;
-                    })
-                    .catch(error => {
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('offline.html');
-                        }
-                        throw error;
-                    });
-            })
-    );
-}); 
+} 
