@@ -2,6 +2,9 @@
 // GCSE/pages/tasks/manage_tasks.php
 // Complete Code - Updated - No Null Coalescing Operator (??)
 
+// Set timezone to London
+date_default_timezone_set('Europe/London');
+
 // --- Core Includes & Setup ---
 session_start();
 require_once __DIR__ . '/../../config/db_connect.php';
