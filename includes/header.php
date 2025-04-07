@@ -236,23 +236,7 @@ require_once 'db_connect.php';
     </script>
 </head>
 <body>
-    <!-- PWA Install Prompt -->
-    <div id="pwa-install-prompt" class="pwa-install-prompt">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <h5 class="mb-1">Install GCSE Study Tracker</h5>
-                <p class="mb-0 text-muted">Add to your home screen for easy access</p>
-            </div>
-            <div>
-                <button id="installApp" class="btn btn-install me-2">
-                    <i class="fas fa-download me-2"></i>Install
-                </button>
-                <button onclick="closeInstallPrompt()" class="btn btn-light">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+    
 
     <div class="wrapper">
         <!-- Top Navigation Bar -->
