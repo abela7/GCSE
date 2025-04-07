@@ -45,34 +45,5 @@
         <?php if (isset($page_scripts)): ?>
             <?php echo $page_scripts; ?>
         <?php endif; ?>
-        
-        <!-- Mobile Navigation for PWA -->
-        <?php if (!isset($hide_mobile_nav)): ?>
-        <div class="mobile-nav d-md-none">
-            <a href="/dashboard.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'dashboard.php') ? 'active' : ''; ?>">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="/pages/tasks/task_list.php" class="<?php echo (dirname($_SERVER['PHP_SELF']) == '/pages/tasks') ? 'active' : ''; ?>">
-                <i class="fas fa-tasks"></i>
-                <span>Tasks</span>
-            </a>
-            <a href="/Status.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'Status.php') ? 'active' : ''; ?>">
-                <i class="fas fa-chart-line"></i>
-                <span>Status</span>
-            </a>
-            <a href="/pages/habits/index.php" class="<?php echo (dirname($_SERVER['PHP_SELF']) == '/pages/habits') ? 'active' : ''; ?>">
-                <i class="fas fa-calendar-check"></i>
-                <span>Habits</span>
-            </a>
-            <a href="/pages/subjects/index.php" class="<?php echo (dirname($_SERVER['PHP_SELF']) == '/pages/subjects') ? 'active' : ''; ?>">
-                <i class="fas fa-book"></i>
-                <span>Subjects</span>
-            </a>
-        </div>
-        <?php endif; ?>
-        
-        <!-- PWA Script - This needs to be loaded at the end to ensure DOM is ready -->
-        <script src="/assets/js/pwa.js"></script>
     </body>
 </html>
