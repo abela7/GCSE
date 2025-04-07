@@ -163,36 +163,30 @@ while ($task = $result->fetch_assoc()) {
 <div class="container-fluid">
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center mb-3">
-
-            <!-- Greeting h1 Removed -->
-
-            <!-- Updated & Restyled Date Navigation -->
-            <div class="date-navigation d-flex align-items-center gap-2" style="background-color: #f8f9fa; border-radius: 0.375rem; padding: 0.4rem 0.6rem;">
-                <a href="?date=<?php echo $prevDate; ?>" title="Previous Day" style="text-decoration: none; color: #6c757d; line-height: 1; padding: 0.2rem 0.4rem; display: inline-block;">
-                    <i class="fas fa-chevron-left fa-sm"></i> <!-- fa-sm makes icon slightly smaller if needed -->
-                </a>
-                <span class="date-display" style="font-weight: 500; font-size: 0.95rem; color: #343a40; white-space: nowrap; margin: 0 0.3rem;"> <!-- nowrap prevents wrapping -->
-                    <?php echo $dateObj->format('l, F j, Y'); ?>
-                </span>
-                <a href="?date=<?php echo $nextDate; ?>" title="Next Day" style="text-decoration: none; color: #6c757d; line-height: 1; padding: 0.2rem 0.4rem; display: inline-block;">
-                    <i class="fas fa-chevron-right fa-sm"></i> <!-- fa-sm makes icon slightly smaller if needed -->
-                </a>
+            <div class="d-flex">
+                
+                <div class="date-navigation d-flex align-items-center gap-2">
+                    <a href="?date=<?php echo $prevDate; ?>" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    <span class="date-display">
+                        <?php echo $dateObj->format('l, F j, Y'); ?>
+                    </span>
+                    <a href="?date=<?php echo $nextDate; ?>" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
             </div>
-
-            <!-- Action Buttons (Unchanged) -->
             <div class="d-flex gap-2">
-                <a href="manage_tasks.php" class="btn btn-outline-primary" title="Manage Tasks">
+                <a href="manage_tasks.php" class="btn btn-outline-primary">
                     <i class="fas fa-tasks"></i>
                 </a>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Add New Task">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
-
         </div>
     </div>
-</div>
-
 
     <!-- Greeting Section -->
     <div class="greeting-section">
