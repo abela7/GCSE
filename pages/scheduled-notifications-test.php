@@ -81,21 +81,21 @@ const notifications = {
     hourly: {
         title: "Time Check",
         body: "Make sure you are on track, keep doing all your tasks!",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "hourly-reminder",
         enabled: true
     },
     morning: {
         title: "Good Morning Abela",
         body: "Make sure you stay productive today, Time is your only Precious Gift!",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "morning-motivation",
         enabled: true
     },
     night: {
         title: "Good Night Reflection",
         body: "Tomorrow is a new Day! Thank GOD for everything, Do not forget to Study Bible.",
-        icon: "/assets/images/icon-192x192.png",
+        icon: "../assets/images/icon-192x192.png",
         tag: "night-reminder",
         enabled: true
     }
@@ -133,8 +133,9 @@ function updatePermissionStatus() {
 // Register service worker
 async function registerServiceWorker() {
     try {
-        const registration = await navigator.serviceWorker.register('/GCSE/service-worker.js', {
-            scope: '/GCSE/'
+        // Use relative path for service worker
+        const registration = await navigator.serviceWorker.register('../service-worker.js', {
+            scope: '../'
         });
         console.log('ServiceWorker registered:', registration);
         return registration;
@@ -167,7 +168,7 @@ async function showNotification(title, body, tag = 'test') {
     const registration = await navigator.serviceWorker.ready;
     await registration.showNotification(title, {
         body: body,
-        icon: '/assets/images/icon-192x192.png',
+        icon: '../assets/images/icon-192x192.png',
         tag: tag,
         vibrate: [200, 100, 200],
         requireInteraction: true

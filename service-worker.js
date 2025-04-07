@@ -39,17 +39,17 @@ const getBaseUrl = () => {
 };
 
 const CACHE_NAME = 'gcse-app-v1';
-const OFFLINE_URL = '/GCSE/offline.html';
+const OFFLINE_URL = 'offline.html';
 
 // Assets to cache
 const ASSETS_TO_CACHE = [
-    '/GCSE/',
-    '/GCSE/offline.html',
-    '/GCSE/assets/css/style.css',
-    '/GCSE/assets/js/mobile-notifications.js',
-    '/GCSE/manifest.json',
-    '/GCSE/assets/images/icon-192x192.png',
-    '/GCSE/assets/images/icon-96x96.png'
+    './',
+    'offline.html',
+    'assets/css/style.css',
+    'assets/js/mobile-notifications.js',
+    'manifest.json',
+    'assets/images/icon-192x192.png',
+    'assets/images/icon-96x96.png'
 ];
 
 // Make a URL absolute using the service worker scope
@@ -93,16 +93,16 @@ self.addEventListener('notificationclick', event => {
     event.notification.close();
 
     // Handle different notification types
-    let url = '/GCSE/';
+    let url = './';
     switch (event.notification.tag) {
         case 'hourly-reminder':
-            url = '/GCSE/tasks.php';
+            url = 'tasks.php';
             break;
         case 'morning-motivation':
-            url = '/GCSE/dashboard.php';
+            url = 'dashboard.php';
             break;
         case 'night-reminder':
-            url = '/GCSE/bible-study.php';
+            url = 'bible-study.php';
             break;
     }
 
@@ -269,7 +269,7 @@ async function showScheduledNotification(type, hour = null) {
     try {
         await self.registration.showNotification(config.title, {
             body: config.body,
-            icon: '/assets/images/icon-192x192.png',
+            icon: 'assets/images/icon-192x192.png',
             tag: config.tag,
             vibrate: [200, 100, 200],
             requireInteraction: true,
