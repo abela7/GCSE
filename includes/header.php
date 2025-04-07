@@ -14,15 +14,15 @@ require_once 'db_connect.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title><?php echo isset($page_title) ? $page_title . ' - Just Do It' : 'Just Do It'; ?></title>
+    <title><?php echo isset($page_title) ? $page_title . ' - Web-App' : 'Web-App'; ?></title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#cdaf56">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Just Do It">
-    <meta name="application-name" content="Just Do It">
-    <meta name="description" content="Track your GCSE study progress and stay motivated">
+    <meta name="apple-mobile-web-app-title" content="Web-App">
+    <meta name="application-name" content="Web-App">
+    <meta name="description" content="Track your progress and stay motivated">
     <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA Icons -->

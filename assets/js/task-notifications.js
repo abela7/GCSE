@@ -1,6 +1,6 @@
 // Function to check for incomplete tasks and show notifications
 function checkIncompleteTasks() {
-    fetch('/GCSE/api/get_incomplete_tasks.php')
+    fetch('/Web-App/api/get_incomplete_tasks.php')
         .then(response => response.json())
         .then(data => {
             if (data.tasks && data.tasks.length > 0) {
@@ -13,9 +13,9 @@ function checkIncompleteTasks() {
 
                 // Show notification
                 if (Notification.permission === "granted") {
-                    new Notification("Incomplete Tasks", {
+                    new Notification("Web-App Tasks", {
                         body: notificationText,
-                        icon: "/GCSE/assets/favicon/favicon.ico",
+                        icon: "/Web-App/assets/favicon/favicon.ico",
                         vibrate: [200, 100, 200]
                     });
                 }
@@ -26,7 +26,7 @@ function checkIncompleteTasks() {
 
 // Function to show exam countdown notification
 function showExamCountdown() {
-    fetch('/GCSE/api/get_exam_countdown.php')
+    fetch('/Web-App/api/get_exam_countdown.php')
         .then(response => response.json())
         .then(data => {
             if (data.exams && data.exams.length > 0) {
@@ -36,9 +36,9 @@ function showExamCountdown() {
                 });
 
                 if (Notification.permission === "granted") {
-                    new Notification("Exam Countdown", {
+                    new Notification("Web-App Exams", {
                         body: notificationText,
-                        icon: "/GCSE/assets/favicon/favicon.ico",
+                        icon: "/Web-App/assets/favicon/favicon.ico",
                         vibrate: [200, 100, 200]
                     });
                 }
@@ -50,9 +50,9 @@ function showExamCountdown() {
 // Function to show productive day message
 function showProductiveDay() {
     if (Notification.permission === "granted") {
-        new Notification("Good Morning! 🌟", {
-            body: "Have a productive day ahead,! Remember, every small step counts towards your success.",
-            icon: "/GCSE/assets/favicon/favicon.ico",
+        new Notification("Web-App", {
+            body: "Have a productive day ahead! Remember, every small step counts towards your success.",
+            icon: "/Web-App/assets/favicon/favicon.ico",
             vibrate: [200, 100, 200]
         });
     }

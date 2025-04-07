@@ -1,7 +1,7 @@
 {
-  "name": "Just Do It",
-  "short_name": "Do It",
-  "description": "GCSE Study Tracker - Track your progress and stay motivated",
+  "name": "Web-App",
+  "short_name": "Web-App",
+  "description": "Track your progress and stay motivated",
   "start_url": "/pages/dashboard.php",
   "scope": "/",
   "display": "standalone",
