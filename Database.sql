@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 08, 2025 at 07:32 PM
+-- Generation Time: Apr 09, 2025 at 12:20 AM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -1010,11 +1010,50 @@ CREATE TABLE `mood_entries` (
   `date` datetime NOT NULL DEFAULT current_timestamp(),
   `mood_level` tinyint(1) NOT NULL COMMENT 'Scale of 1-5 (1=very low, 5=very high)',
   `notes` text DEFAULT NULL,
-  `associated_subject_id` int(11) DEFAULT NULL COMMENT 'Optional link to subject',
-  `associated_topic_id` int(11) DEFAULT NULL COMMENT 'Optional link to topic',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `mood_entries`
+--
+
+INSERT INTO `mood_entries` (`id`, `date`, `mood_level`, `notes`, `created_at`, `updated_at`) VALUES
+(2, '2025-04-08 20:10:00', 1, 'I don\'t now what to do man!', '2025-04-08 20:11:12', '2025-04-08 21:40:45'),
+(3, '2025-04-08 21:13:49', 1, 'Oh crap', '2025-04-08 21:13:49', '2025-04-08 21:13:49'),
+(4, '2025-05-23 00:00:00', 5, 'AMAZING!', '2025-04-08 21:48:39', '2025-04-08 21:48:39'),
+(5, '2025-04-02 00:13:34', 5, 'Amazing morning! Completed workout and meditation.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(6, '2025-04-02 00:13:34', 2, 'Received disappointing news at work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(7, '2025-04-02 00:13:34', 1, 'Massive project setback, feeling overwhelmed.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(8, '2025-04-02 00:13:34', 4, 'Evening chat with family lifted spirits significantly.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(9, '2025-04-03 00:13:34', 2, 'Woke up with terrible headache.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(10, '2025-04-03 00:13:34', 1, 'Had to cancel important meeting due to health.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(11, '2025-04-03 00:13:34', 3, 'Medicine started working, feeling better.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(12, '2025-04-03 00:13:34', 5, 'Evening meditation session was transformative!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(13, '2025-04-04 00:13:34', 4, 'Productive morning, cleared inbox.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(14, '2025-04-04 00:13:34', 1, 'Major argument with team member.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(15, '2025-04-04 00:13:34', 2, 'Still stressed about work conflict.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(16, '2025-04-04 00:13:34', 5, 'Resolution reached! Great teamwork.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(17, '2025-04-05 00:13:34', 3, 'Standard morning routine.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(18, '2025-04-05 00:13:34', 5, 'Surprise lunch with old friends!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(19, '2025-04-05 00:13:34', 5, 'Got promoted! Incredible news!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(20, '2025-04-05 00:13:34', 4, 'Celebration dinner with family.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(21, '2025-04-06 00:13:34', 1, 'Insomnia hit hard, barely slept.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(22, '2025-04-06 00:13:34', 2, 'Struggling to focus at work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(23, '2025-04-06 00:13:34', 4, 'Afternoon nap helped recover.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(24, '2025-04-06 00:13:34', 5, 'Evening exercise session was amazing!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(25, '2025-04-07 00:13:34', 2, 'Technology issues derailing work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(26, '2025-04-07 00:13:34', 1, 'Lost important file, panic mode.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(27, '2025-04-07 00:13:34', 3, 'IT helped recover everything.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(28, '2025-04-07 00:13:34', 5, 'Found even better solution!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(29, '2025-04-08 00:13:34', 4, 'Morning meditation and exercise.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(30, '2025-04-08 00:13:34', 2, 'Difficult client meeting.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(31, '2025-04-08 00:13:34', 1, 'Project deadline stress mounting.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(32, '2025-04-08 00:13:34', 5, 'Successfully submitted project!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(33, '2025-04-09 00:00:00', 3, 'Regular start to the day.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(34, '2025-04-09 00:00:00', 5, 'Breakthrough in morning meeting!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(35, '2025-04-09 00:00:00', 2, 'Post-lunch energy crash.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(36, '2025-04-09 00:00:00', 4, 'Productive afternoon session.', '2025-04-08 23:13:34', '2025-04-08 23:13:34');
 
 -- --------------------------------------------------------
 
@@ -1041,6 +1080,43 @@ CREATE TABLE `mood_entry_tags` (
   `tag_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+
+--
+-- Dumping data for table `mood_entry_tags`
+--
+
+INSERT INTO `mood_entry_tags` (`id`, `mood_entry_id`, `tag_id`, `created_at`) VALUES
+(4, 3, 4, '2025-04-08 21:13:49'),
+(6, 2, 4, '2025-04-08 21:40:45'),
+(7, 4, 4, '2025-04-08 21:48:39'),
+(8, 5, 7, '2025-04-08 23:19:53'),
+(9, 5, 10, '2025-04-08 23:19:53'),
+(10, 5, 5, '2025-04-08 23:19:53'),
+(11, 6, 5, '2025-04-08 23:19:53'),
+(12, 7, 5, '2025-04-08 23:19:53'),
+(13, 8, 2, '2025-04-08 23:19:53'),
+(14, 9, 1, '2025-04-08 23:19:53'),
+(15, 10, 1, '2025-04-08 23:19:53'),
+(16, 10, 5, '2025-04-08 23:19:53'),
+(17, 11, 1, '2025-04-08 23:19:53'),
+(18, 11, 5, '2025-04-08 23:19:53'),
+(19, 12, 10, '2025-04-08 23:19:53'),
+(20, 13, 11, '2025-04-08 23:19:53'),
+(21, 15, 5, '2025-04-08 23:19:53'),
+(22, 16, 5, '2025-04-08 23:19:53'),
+(23, 18, 8, '2025-04-08 23:19:53'),
+(24, 20, 2, '2025-04-08 23:19:53'),
+(25, 21, 9, '2025-04-08 23:19:53'),
+(26, 22, 5, '2025-04-08 23:19:53'),
+(27, 24, 7, '2025-04-08 23:19:53'),
+(28, 25, 5, '2025-04-08 23:19:53'),
+(29, 29, 7, '2025-04-08 23:19:53'),
+(30, 29, 10, '2025-04-08 23:19:53'),
+(31, 30, 5, '2025-04-08 23:19:53'),
+(32, 31, 5, '2025-04-08 23:19:53'),
+(33, 32, 5, '2025-04-08 23:19:53'),
+(34, 34, 5, '2025-04-08 23:19:53'),
+(35, 36, 11, '2025-04-08 23:19:53');
 
 -- --------------------------------------------------------
 
@@ -1093,11 +1169,17 @@ CREATE TABLE `mood_tags` (
 --
 
 INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
-(1, 'Health', 'Personal', '#28a745', '2025-04-08 18:26:18'),
+(1, 'Health', 'Personal', '#6f42c1', '2025-04-08 18:26:18'),
 (2, 'Family', 'Personal', '#17a2b8', '2025-04-08 18:26:18'),
-(3, 'Relationship', 'Personal', '#e83e8c', '2025-04-08 18:26:18'),
+(3, 'Relationship', 'Personal', '#dc3545', '2025-04-08 18:26:18'),
 (4, 'School', 'Academic', '#007bff', '2025-04-08 18:26:18'),
-(5, 'Work', 'Professional', '#fd7e14', '2025-04-08 18:26:18');
+(5, 'Work', 'Professional', '#fd7e14', '2025-04-08 18:26:18'),
+(6, 'Spiritual Life', 'Spiritual', '#28a745', '2025-04-08 22:17:12'),
+(7, 'Exercise', NULL, '#2196F3', '2025-04-08 23:13:34'),
+(8, 'Social', NULL, '#9C27B0', '2025-04-08 23:13:34'),
+(9, 'Sleep', NULL, '#795548', '2025-04-08 23:13:34'),
+(10, 'Meditation', NULL, '#FF9800', '2025-04-08 23:13:34'),
+(11, 'Productivity', NULL, '#009688', '2025-04-08 23:13:34');
 
 -- --------------------------------------------------------
 
@@ -1530,7 +1612,8 @@ INSERT INTO `sessions` (`id`, `subject_id`, `date`, `duration`, `notes`) VALUES
 (1, 1, '2025-03-15', 60, 'Worked on Shakespeare quotes'),
 (2, 1, '2025-03-18', 45, 'Practiced creative writing'),
 (3, 2, '2025-03-16', 90, 'Solved quadratic equations'),
-(4, 2, '2025-03-20', 75, 'Reviewed trigonometry');
+(4, 2, '2025-03-20', 75, 'Reviewed trigonometry'),
+(0, 1, '2025-04-08', 10, 'Studied maths Algebra');
 
 -- --------------------------------------------------------
 
@@ -1975,9 +2058,7 @@ ALTER TABLE `habit_progress`
 --
 ALTER TABLE `mood_entries`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `mood_date_idx` (`date`),
-  ADD KEY `mood_subject_idx` (`associated_subject_id`),
-  ADD KEY `mood_topic_idx` (`associated_topic_id`);
+  ADD KEY `mood_date_idx` (`date`);
 
 --
 -- Indexes for table `mood_entry_factors`
@@ -2072,7 +2153,7 @@ ALTER TABLE `habit_progress`
 -- AUTO_INCREMENT for table `mood_entries`
 --
 ALTER TABLE `mood_entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `mood_entry_factors`
@@ -2084,7 +2165,7 @@ ALTER TABLE `mood_entry_factors`
 -- AUTO_INCREMENT for table `mood_entry_tags`
 --
 ALTER TABLE `mood_entry_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `mood_factors`
@@ -2096,7 +2177,7 @@ ALTER TABLE `mood_factors`
 -- AUTO_INCREMENT for table `mood_tags`
 --
 ALTER TABLE `mood_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `practice_categories`
