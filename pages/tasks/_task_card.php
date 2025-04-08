@@ -35,7 +35,7 @@ $b = hexdec(substr($category_color_rgb, 5, 2));
 $icon_bg_color = "rgba($r, $g, $b, 0.1)"; // 10% opacity
 
 ?>
-<div class="card task-card-habit-style mb-3 shadow-sm <?php echo $status_card_class; ?>">
+<div class="card task-card-habit-style mb-3 shadow-sm <?php echo $status_card_class; ?>" id="task-card-<?php echo $task['id']; ?>">
     <div class="card-body p-3">
         <!-- Top Section: Icon and Text -->
         <div class="d-flex align-items-center mb-3">
@@ -72,42 +72,119 @@ $icon_bg_color = "rgba($r, $g, $b, 0.1)"; // 10% opacity
             <?php else: ?>
                 <!-- Show Action Buttons -->
                 <div class="d-flex gap-2">
-                    <!-- Done Form -->
-                    <form method="post" action="manage_tasks.php" class="flex-fill">
-                        <input type="hidden" name="action" value="update_status">
-                        <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
-                        <input type="hidden" name="status" value="completed">
-                        <input type="hidden" name="current_view_date" value="<?php echo htmlspecialchars($formatted_selected_date); ?>">
-                        <?php if (!empty($task['instance_id'])): ?><input type="hidden" name="due_date" value="<?php echo htmlspecialchars($task['due_date']); ?>"><?php endif; ?>
-                        <button type="submit" class="btn btn-success w-100 action-btn" title="Mark as Done" <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </form>
-                    <!-- Snooze Form -->
-                    <form method="post" action="manage_tasks.php" class="flex-fill">
-                        <input type="hidden" name="action" value="snooze_task">
-                        <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
-                        <input type="hidden" name="current_view_date" value="<?php echo htmlspecialchars($formatted_selected_date); ?>">
-                        <?php if (!empty($task['instance_id'])): // Pass instance date ONLY if it's an instance ?>
-                        <input type="hidden" name="due_date" value="<?php echo htmlspecialchars($task['due_date']); ?>">
-                        <?php endif; ?>
-                        <button type="submit" class="btn btn-warning w-100 action-btn" title="Snooze (<?php echo DEFAULT_SNOOZE_MINUTES; ?> min)" <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
-                            <i class="fas fa-clock"></i>
-                        </button>
-                    </form>
-                    <!-- Not Done Form -->
-                    <form method="post" action="manage_tasks.php" class="flex-fill">
-                        <input type="hidden" name="action" value="update_status">
-                        <input type="hidden" name="task_id" value="<?php echo $task['id']; ?>">
-                        <input type="hidden" name="status" value="not_done">
-                        <input type="hidden" name="current_view_date" value="<?php echo htmlspecialchars($formatted_selected_date); ?>">
-                         <?php if (!empty($task['instance_id'])): ?><input type="hidden" name="due_date" value="<?php echo htmlspecialchars($task['due_date']); ?>"><?php endif; ?>
-                        <button type="submit" class="btn btn-danger w-100 action-btn" title="Mark as Not Done" <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
+                    <!-- Done Button -->
+                    <button type="button" class="btn btn-success w-100 action-btn" 
+                            onclick="handleTaskAction(<?php echo $task['id']; ?>, 'done')" 
+                            title="Mark as Done" 
+                            <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <!-- Snooze Button -->
+                    <button type="button" class="btn btn-warning w-100 action-btn" 
+                            onclick="showSnoozeOptions(<?php echo $task['id']; ?>)" 
+                            title="Snooze" 
+                            <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
+                        <i class="fas fa-clock"></i>
+                    </button>
+                    <!-- Not Done Button -->
+                    <button type="button" class="btn btn-danger w-100 action-btn" 
+                            onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')" 
+                            title="Mark as Not Done" 
+                            <?php echo $disabled_tooltip; echo $disabled_actions ? 'disabled' : ''; ?>>
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
+<script>
+function handleTaskAction(taskId, action) {
+    // Log the initial call
+    console.log('handleTaskAction called with:', { taskId, action });
+
+    const taskCard = document.getElementById('task-card-' + taskId);
+    if (!taskCard) {
+        console.error('Task card not found:', taskId);
+        return;
+    }
+
+    // Disable the card while processing
+    taskCard.style.opacity = '0.7';
+    taskCard.style.pointerEvents = 'none';
+
+    // Map action to status - ensure we use the correct enum values from database
+    let status;
+    switch(action) {
+        case 'done':
+            status = 'completed';
+            break;
+        case 'not_done':
+            status = 'not_done';
+            break;
+        case 'snooze':
+            status = 'snoozed';
+            break;
+        default:
+            console.warn('Unexpected action:', action);
+            status = action;
+    }
+
+    // Log the action and status for debugging
+    console.log('Status mapping:', { 
+        originalAction: action, 
+        mappedStatus: status 
+    });
+
+    // Prepare the form data
+    const formData = new FormData();
+    formData.append('action', 'update_task_status');
+    formData.append('task_id', taskId);
+    formData.append('status', status);
+
+    // Log the exact form data being sent
+    const formDataObj = {};
+    formData.forEach((value, key) => {
+        formDataObj[key] = value;
+    });
+    console.log('Form data being sent:', formDataObj);
+
+    // Send the request
+    fetch('task_actions.php', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Server response:', data); // Debug log
+        if (data.success) {
+            // Fade out and remove the task card
+            taskCard.style.transition = 'all 0.3s ease';
+            taskCard.style.opacity = '0';
+            taskCard.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        } else {
+            // Show error and reset the card
+            console.error('Server error:', data.message);
+            alert('Error: ' + data.message);
+            taskCard.style.opacity = '1';
+            taskCard.style.pointerEvents = 'auto';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the task.');
+        taskCard.style.opacity = '1';
+        taskCard.style.pointerEvents = 'auto';
+    });
+}
+</script>

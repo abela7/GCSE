@@ -5,9 +5,6 @@ date_default_timezone_set('Europe/London');
 require_once '../../includes/header.php';
 require_once '../../includes/db_connect.php';
 
-// Debug: Output current date
-error_log("Current Date: " . date('Y-m-d'));
-
 // Handle POST actions for tasks
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
@@ -130,63 +127,38 @@ $dateObj = new DateTime($selectedDate);
 $prevDate = (clone $dateObj)->modify('-1 day')->format('Y-m-d');
 $nextDate = (clone $dateObj)->modify('+1 day')->format('Y-m-d');
 
-// Get all tasks regardless of date to see what's available
+// Get tasks for the selected date
 $query = "SELECT 
-            t.*, 
-            c.name as category_name, 
-            c.icon as category_icon, 
-            c.color as category_color
+            t.id, t.title, t.description, t.due_date, t.due_time, t.task_type, t.priority,
+            c.name as category_name, c.icon as category_icon, c.color as category_color,
+            COALESCE(ti.status, t.status) as status
           FROM tasks t
           JOIN task_categories c ON t.category_id = c.id
+          LEFT JOIN task_instances ti ON t.id = ti.task_id 
+              AND ti.due_date = ?
+              AND ti.status IN ('pending', 'snoozed')
           WHERE t.is_active = 1
-          ORDER BY t.due_date ASC, t.due_time ASC";
+          AND (
+              (t.task_type = 'one-time' AND t.status = 'pending' AND t.due_date = ?)
+              OR 
+              (t.task_type = 'recurring' AND ti.id IS NOT NULL)
+          )
+          ORDER BY t.due_time ASC";
 
-$result = $conn->query($query);
+$stmt = $conn->prepare($query);
+$stmt->bind_param('ss', $selectedDate, $selectedDate);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Debug information
-echo '<div class="container mt-4">';
-echo '<h3>Debug Information</h3>';
-echo '<p>Current Date: ' . date('Y-m-d') . '</p>';
-echo '<p>Total Tasks Found: ' . $result->num_rows . '</p>';
-
-if ($result->num_rows > 0) {
-    echo '<table class="table table-striped">';
-    echo '<thead><tr><th>ID</th><th>Title</th><th>Due Date</th><th>Due Time</th><th>Status</th><th>Type</th></tr></thead>';
-    echo '<tbody>';
-    while ($task = $result->fetch_assoc()) {
-        echo '<tr>';
-        echo '<td>' . htmlspecialchars($task['id']) . '</td>';
-        echo '<td>' . htmlspecialchars($task['title']) . '</td>';
-        echo '<td>' . htmlspecialchars($task['due_date']) . '</td>';
-        echo '<td>' . htmlspecialchars($task['due_time']) . '</td>';
-        echo '<td>' . htmlspecialchars($task['status']) . '</td>';
-        echo '<td>' . htmlspecialchars($task['task_type']) . '</td>';
-        echo '</tr>';
-    }
-    echo '</tbody></table>';
-} else {
-    echo '<p>No tasks found in the database.</p>';
-}
-echo '</div>';
-
-// Reset result pointer
-$result->data_seek(0);
-
-// Original task processing
 $morning_tasks = [];
 $evening_tasks = [];
 
 while ($task = $result->fetch_assoc()) {
-    if (!empty($task['due_time'])) {
-        $task_hour = date('H', strtotime($task['due_time']));
-        if ($task_hour < 12) {
-            $morning_tasks[] = $task;
-        } else {
-            $evening_tasks[] = $task;
-        }
-    } else {
-        // If no time specified, put in morning tasks
+    $task_hour = date('H', strtotime($task['due_time']));
+    if ($task_hour < 12) {
         $morning_tasks[] = $task;
+    } else {
+        $evening_tasks[] = $task;
     }
 }
 ?>
