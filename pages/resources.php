@@ -526,11 +526,12 @@ function getYoutubeId($url) {
         // Handle section change
         sectionSelect.addEventListener('change', async function() {
             const sectionId = this.value;
+            const subjectId = subjectSelect.value;
             resetSelects('subsection');
             
             if (sectionId) {
                 try {
-                    const response = await fetch(`/api/subsections/get_subsections.php?section_id=${sectionId}`);
+                    const response = await fetch(`/api/subsections/get_subsections.php?section_id=${sectionId}&subject_id=${subjectId}`);
                     const data = await response.json();
                     
                     if (data.success) {
@@ -547,11 +548,12 @@ function getYoutubeId($url) {
         // Handle subsection change
         subsectionSelect.addEventListener('change', async function() {
             const subsectionId = this.value;
+            const subjectId = subjectSelect.value;
             resetSelects('topic');
             
             if (subsectionId) {
                 try {
-                    const response = await fetch(`/api/topics/get_topics.php?subsection_id=${subsectionId}`);
+                    const response = await fetch(`/api/topics/get_topics.php?subsection_id=${subsectionId}&subject_id=${subjectId}`);
                     const data = await response.json();
                     
                     if (data.success) {
