@@ -30,45 +30,47 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     --accent-color-dark: #b09339;
 }
 
-/* Updated Card Styles */
+/* Card Styles */
 .dashboard-card {
     border: none;
-    border-radius: 16px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     height: 100%;
-    background: #fff;
-    overflow: hidden;
 }
 .dashboard-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
-}
-.dashboard-card .card-body {
-    padding: 1.5rem;
-}
-.card-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1.25rem;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
-/* Updated Calendar Styles */
+/* Mood Emoji Styles */
+.mood-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.mood-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50rem;
+    font-weight: 500;
+    color: #fff;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Calendar Styles */
 .calendar-container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 1.25rem;
-    padding: 0.5rem;
-    border-radius: 12px;
-    background: #f8f9fa;
+    gap: 5px;
+    margin-bottom: 1rem;
 }
 .calendar-header {
     text-align: center;
     font-weight: 600;
     padding: 8px 5px;
-    color: #495057;
-    font-size: 0.85rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
 }
 .calendar-day {
     aspect-ratio: 1;
@@ -76,17 +78,17 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     flex-direction: column;
     align-items: center;
     padding: 5px;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     background-color: #fff;
-    border: 1px solid #e9ecef;
+    border: 1px solid #dee2e6;
 }
 .calendar-day:hover {
-    background-color: #fff;
+    background-color: #f8f9fa;
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 .calendar-day.empty {
     background-color: transparent;
@@ -99,255 +101,138 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 }
 .calendar-day.has-entries {
     background-color: var(--accent-color-light);
-    border: none;
+    border-color: var(--accent-color);
 }
 .calendar-day.today {
     border: 2px solid var(--accent-color);
-    background-color: #fff;
+    font-weight: bold;
 }
 .day-number {
     position: absolute;
-    top: 4px;
-    right: 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    top: 2px;
+    right: 5px;
+    font-size: 0.9rem;
     color: #495057;
 }
 .entry-indicator {
     font-size: 1.2rem;
-    margin-top: 16px;
+    margin-top: 15px;
 }
 .entry-count {
     position: absolute;
-    bottom: 3px;
+    bottom: 2px;
     right: 5px;
-    font-size: 0.65rem;
-    color: #495057;
-    background: rgba(255,255,255,0.9);
-    padding: 1px 4px;
-    border-radius: 8px;
+    font-size: 0.7rem;
+    color: #666;
 }
 
-/* Updated Quick Entry Styles */
+/* Quick Entry Styles */
 .quick-entry-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
 }
 .emoji-selector {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    padding: 0.5rem;
-    background: #f8f9fa;
-    border-radius: 12px;
+    margin-bottom: 1rem;
 }
 .emoji-option {
     font-size: 2rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease;
     opacity: 0.5;
     text-align: center;
-    padding: 8px;
-    border-radius: 10px;
 }
 .emoji-option:hover {
-    transform: scale(1.15);
+    transform: scale(1.2);
     opacity: 1;
-    background: #fff;
 }
 .emoji-option.selected {
-    transform: scale(1.15);
+    transform: scale(1.2);
     opacity: 1;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* Updated Tag Styles */
+/* Tag Styles */
 .tag-selector {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 0.5rem 0;
-    padding: 0.5rem;
-    background: #f8f9fa;
-    border-radius: 12px;
-    width: 100%;
+    margin: 1rem 0;
 }
 .tag-option {
     padding: 0.4rem 0.8rem;
-    border-radius: 20px;
+    border-radius: 50rem;
     cursor: pointer;
     transition: all 0.2s ease;
     color: #fff;
     font-weight: 500;
-    font-size: 0.9rem;
-    opacity: 0.85;
+    opacity: 0.7;
 }
 .tag-option:hover {
     opacity: 1;
     transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .tag-option.selected {
     opacity: 1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* Updated Button Styles */
-.btn {
-    border-radius: 10px;
-    padding: 0.6rem 1.2rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-.btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.875rem;
-}
+/* Button Styles */
 .btn-accent {
     background-color: var(--accent-color);
-    border: none;
+    border-color: var(--accent-color);
     color: #fff;
 }
 .btn-accent:hover {
     background-color: var(--accent-color-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    border-color: var(--accent-color-dark);
+    color: #fff;
 }
 .btn-outline-accent {
     color: var(--accent-color);
-    border: 2px solid var(--accent-color);
-    background: transparent;
+    border-color: var(--accent-color);
 }
 .btn-outline-accent:hover {
     background-color: var(--accent-color);
     color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-/* Form Controls */
-.form-control {
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-    padding: 0.8rem;
-    transition: all 0.2s ease;
-}
-.form-control:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 0.2rem rgba(205, 175, 86, 0.25);
-}
-textarea.form-control {
-    min-height: 100px;
-    resize: vertical;
 }
 
 /* Mobile Optimizations */
 @media (max-width: 767.98px) {
-    .dashboard-card {
-        margin-bottom: 1rem;
+    .mood-emoji {
+        font-size: 1.8rem;
     }
-    .dashboard-card .card-body {
-        padding: 1rem;
-    }
-    .calendar-container {
-        gap: 4px;
-        padding: 0.25rem;
+    .emoji-option {
+        font-size: 1.8rem;
     }
     .calendar-header {
-        padding: 4px 2px;
-        font-size: 0.75rem;
+        padding: 5px 2px;
+        font-size: 0.8rem;
     }
     .calendar-day {
-        border-radius: 10px;
         padding: 3px;
     }
     .day-number {
-        font-size: 0.75rem;
-        top: 3px;
-        right: 4px;
+        font-size: 0.8rem;
+        right: 3px;
     }
     .entry-indicator {
         font-size: 1rem;
         margin-top: 12px;
     }
-    .entry-count {
-        font-size: 0.6rem;
-        padding: 1px 3px;
-    }
-    .emoji-selector {
-        padding: 0.25rem;
-    }
-    .emoji-option {
-        font-size: 1.75rem;
-        padding: 6px;
-    }
-    .tag-selector {
-        padding: 0.25rem;
-    }
-    .tag-option {
-        padding: 0.35rem 0.7rem;
-        font-size: 0.85rem;
+    .dashboard-card {
+        margin-bottom: 1rem;
     }
     .btn {
         padding: 0.5rem 1rem;
-        font-size: 0.95rem;
-    }
-    .form-control {
-        padding: 0.6rem;
         font-size: 1rem;
     }
-    .card-title {
-        font-size: 1rem;
-        margin-bottom: 1rem;
-    }
-    .container-fluid {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-}
-
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .dashboard-card {
-        background: #2d2d2d;
-    }
-    .calendar-container {
-        background: #1f1f1f;
-    }
-    .calendar-day {
-        background: #2d2d2d;
-        border-color: #3d3d3d;
-    }
-    .calendar-day.has-entries {
-        background-color: rgba(205, 175, 86, 0.2);
-    }
-    .calendar-header {
-        color: #e0e0e0;
-    }
-    .day-number {
-        color: #e0e0e0;
-    }
-    .entry-count {
-        background: rgba(45, 45, 45, 0.9);
-        color: #e0e0e0;
-    }
-    .emoji-selector, .tag-selector {
-        background: #1f1f1f;
-    }
-    .emoji-option:hover, .emoji-option.selected {
-        background: #2d2d2d;
-    }
     .form-control {
-        background: #2d2d2d;
-        border-color: #3d3d3d;
-        color: #e0e0e0;
-    }
-    .form-control:focus {
-        background: #2d2d2d;
-        color: #e0e0e0;
+        font-size: 1rem;
+        padding: 0.75rem;
+        height: auto;
     }
 }
 </style>
@@ -506,10 +391,10 @@ textarea.form-control {
                     <div class="text-center mt-3">
                         <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
                     </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
+            
         <!-- Mood Stats -->
         <div class="col-lg-4 col-md-12 mb-4">
             <div class="dashboard-card">
@@ -669,9 +554,9 @@ textarea.form-control {
                             </a>
                         </div>
                     <?php endif; ?>
-                </div>
-            </div>
-        </div>
+                        </div>
+                    </div>
+                    </div>
                 </div>
             </div>
             
@@ -844,10 +729,10 @@ function viewDayEntries(date) {
         <div class="text-center py-3">
             <div class="spinner-border text-accent" role="status">
                 <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
+                        </div>
+                    </div>
+                `;
+                
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('dayEntriesModal'));
     modal.show();

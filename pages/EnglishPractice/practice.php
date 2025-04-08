@@ -206,36 +206,36 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <!-- Filters -->
     <div class="filters-container">
-        <form action="practice.php" method="GET" class="row g-3">
-            <div class="col-md-4">
-                <select name="category" class="form-select">
-                    <option value="">All Categories</option>
-                    <?php foreach ($categories as $cat): ?>
-                        <option value="<?php echo $cat['id']; ?>" <?php echo $category_id == $cat['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($cat['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <select name="date_filter" class="form-select">
-                    <option value="all" <?php echo $date_filter == 'all' ? 'selected' : ''; ?>>All Time</option>
-                    <option value="today" <?php echo $date_filter == 'today' ? 'selected' : ''; ?>>Today</option>
-                    <option value="week" <?php echo $date_filter == 'week' ? 'selected' : ''; ?>>This Week</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="favoritesFilter" name="favorites" value="1" <?php echo $favorites_only ? 'checked' : ''; ?>>
+            <form action="practice.php" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo $category_id == $cat['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select name="date_filter" class="form-select">
+                        <option value="all" <?php echo $date_filter == 'all' ? 'selected' : ''; ?>>All Time</option>
+                        <option value="today" <?php echo $date_filter == 'today' ? 'selected' : ''; ?>>Today</option>
+                        <option value="week" <?php echo $date_filter == 'week' ? 'selected' : ''; ?>>This Week</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" id="favoritesFilter" name="favorites" value="1" <?php echo $favorites_only ? 'checked' : ''; ?>>
                     <label class="form-check-label" for="favoritesFilter">Favorites</label>
                 </div>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-filter me-1"></i> Filter
-                </button>
-            </div>
-        </form>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                </div>
+            </form>
     </div>
 
     <?php if (empty($practice_items)): ?>
@@ -255,7 +255,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <!-- Progress -->
         <div class="progress-container">
             <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: <?php echo (1/$total_items)*100; ?>%"></div>
+            <div class="progress-bar" role="progressbar" style="width: <?php echo (1/$total_items)*100; ?>%"></div>
             </div>
         </div>
 

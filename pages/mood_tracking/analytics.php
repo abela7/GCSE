@@ -284,7 +284,7 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                         </h5>
                     <div class="chart-container">
                             <canvas id="moodOverTimeChart"></canvas>
-                        </div>
+                </div>
             </div>
         </div>
     </div>

@@ -379,7 +379,7 @@ function getYoutubeId($url) {
                                          onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
                                 </a>
                         <?php endif; ?>
-                        </div>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -414,7 +414,7 @@ function getYoutubeId($url) {
         object-fit: cover;
         cursor: pointer;
         transition: transform 0.2s;
-    }
+}
 
 .topic-info {
         padding: 0.5rem;
