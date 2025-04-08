@@ -14,7 +14,7 @@ class EmailTemplate {
                 background: #ffffff;
             }
             .header {
-                background: #4a90e2;
+                background: rgb(168, 142, 64);
                 color: white;
                 padding: 20px;
                 text-align: center;

@@ -3,14 +3,13 @@ require_once __DIR__ . '/email_template.php';
 
 class MorningBriefing extends EmailTemplate {
     public function generateEmail($data) {
-        $title = "Goooood Morning Abela 😇 Your Daily Briefing for " . date('l, F j');
+        $title = "Be ready for the amazing day! Here are your tasks for today🤗";
         
         // Generate tasks section
         $tasksContent = '';
         if (!empty($data['tasks'])) {
             $tasksContent .= '
             <div class="section">
-                <h2 class="section-title">Be ready for the amazing day! Here are your tasks for today 🤗</h2>
                 <ul class="task-list">';
             
             foreach ($data['tasks'] as $task) {
@@ -82,7 +81,8 @@ class MorningBriefing extends EmailTemplate {
         '.$habitsContent.'
         '.$overdueContent.'
         <div class="section">
-            <a href="https://abel.abuneteklehaymanot.org/dashboard.php" class="btn">View Full Schedule</a>
+            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php" class="btn">View Full Tasks Schedule</a>
+            <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php" class="btn">View Habits</a>
         </div>
         <div class="highlight">
             <strong>Quote of the Day:</strong><br>

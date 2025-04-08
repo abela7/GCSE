@@ -95,7 +95,7 @@ try {
     
     // Content
     $mail->isHTML(true);
-    $mail->Subject = "Good Morning! Your Daily Briefing for " . date('l, F j');
+    $mail->Subject = "Goooood Morning Abela😇 Your Daily Briefing for " . date('l, F j');
     $mail->Body = $emailContent;
     $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
     
