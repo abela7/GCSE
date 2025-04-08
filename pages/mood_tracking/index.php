@@ -64,10 +64,13 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     overflow-x: auto;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
+    gap: 4px;
     background-color: #dee2e6;
-    padding: 2px;
+    padding: 4px;
     border-radius: 8px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .calendar-header {
@@ -87,11 +90,11 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 5px;
+    padding: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    min-height: 60px;
+    min-height: 80px;
 }
 
 .calendar-day:hover {
@@ -126,16 +129,16 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
 .day-number {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    font-size: 0.9rem;
+    top: 8px;
+    right: 8px;
+    font-size: 1rem;
     font-weight: 500;
     color: #495057;
 }
 
 .entry-indicator {
-    font-size: 1.4rem;
-    margin-top: 5px;
+    font-size: 1.8rem;
+    margin-top: 8px;
 }
 
 .entry-count {
@@ -266,25 +269,25 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
         font-size: 1.8rem;
     }
     .calendar-container {
-        gap: 1px;
-        padding: 1px;
+        gap: 2px;
+        padding: 2px;
     }
     .calendar-header {
         padding: 8px 2px;
         font-size: 0.75rem;
     }
     .calendar-day {
-        min-height: 50px;
-        padding: 3px;
+        min-height: 60px;
+        padding: 4px;
     }
     .day-number {
-        font-size: 0.8rem;
-        top: 3px;
-        right: 3px;
+        font-size: 0.9rem;
+        top: 4px;
+        right: 4px;
     }
     .entry-indicator {
-        font-size: 1.2rem;
-        margin-top: 8px;
+        font-size: 1.4rem;
+        margin-top: 6px;
     }
     .entry-count {
         font-size: 0.65rem;
@@ -314,11 +317,11 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 /* Small Mobile Screens */
 @media (max-width: 375px) {
     .calendar-day {
-        min-height: 45px;
+        min-height: 50px;
     }
     .entry-indicator {
-        font-size: 1rem;
-        margin-top: 10px;
+        font-size: 1.2rem;
+        margin-top: 4px;
     }
     .day-number {
         font-size: 0.75rem;
@@ -363,7 +366,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
     <div class="row">
         <!-- Quick Entry -->
-        <div class="col-lg-4 col-md-6 mb-4">
+        <div class="col-md-6 col-lg-4 mb-4">
             <div class="dashboard-card">
                 <div class="card-body">
                     <h5 class="card-title mb-3" style="color: var(--accent-color);">
@@ -401,8 +404,83 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             </div>
         </div>
         
-        <!-- Monthly Calendar -->
-        <div class="col-lg-4 col-md-6 mb-4">
+        <!-- Mood Stats -->
+        <div class="col-md-6 col-lg-8 mb-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-chart-line me-2"></i>Mood Insights
+                    </h5>
+                    
+                    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $avg_mood = isset($stats['average_mood']) ? $stats['average_mood'] : 0;
+                                    if ($avg_mood >= 4.5) echo '😄';
+                                    else if ($avg_mood >= 3.5) echo '🙂';
+                                    else if ($avg_mood >= 2.5) echo '😐';
+                                    else if ($avg_mood >= 1.5) echo '😕';
+                                    else echo '😢';
+                                    ?>
+                                </div>
+                                <div class="small text-muted">Average Mood</div>
+                                <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
+                                </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">📊</div>
+                                <div class="small text-muted">Entries</div>
+                                <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
+                                </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $most_common_mood = isset($stats['most_common_mood']) ? $stats['most_common_mood'] : 3;
+                                    if ($most_common_mood == 5) echo '😄';
+                                    else if ($most_common_mood == 4) echo '🙂';
+                                    else if ($most_common_mood == 3) echo '😐';
+                                    else if ($most_common_mood == 2) echo '😕';
+                                    else echo '😢';
+                                    ?>
+                                </div>
+                                <div class="small text-muted">Most Common</div>
+                                <div class="fw-bold">Level <?php echo $most_common_mood; ?></div>
+                            </div>
+                        </div>
+                        
+                        <?php if (!empty($stats['top_tags'])): ?>
+                            <h6 class="mt-4 mb-2">Top Tags</h6>
+                            <div>
+                                <?php foreach ($stats['top_tags'] as $tag): ?>
+                                    <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                        <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
+                                </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="text-center mt-4">
+                            <a href="analytics.php" class="btn btn-sm btn-outline-accent">View Detailed Analytics</a>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-bar fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-3">No mood data available yet</p>
+                            <p class="small text-muted">Start tracking your mood to see insights</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Row -->
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="calendar-card">
                 <div class="calendar-card-header">
                     <div class="month-navigation">
@@ -504,81 +582,9 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                 </div>
             </div>
         </div>
-        
-        <!-- Mood Stats -->
-        <div class="col-lg-4 col-md-12 mb-4">
-            <div class="dashboard-card">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
-                        <i class="fas fa-chart-line me-2"></i>Mood Insights
-                    </h5>
-                    
-                    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
-                        <div class="row text-center mb-3">
-                            <div class="col-4">
-                                <div class="mood-emoji">
-                                    <?php
-                                    $avg_mood = isset($stats['average_mood']) ? $stats['average_mood'] : 0;
-                                    if ($avg_mood >= 4.5) echo '😄';
-                                    else if ($avg_mood >= 3.5) echo '🙂';
-                                    else if ($avg_mood >= 2.5) echo '😐';
-                                    else if ($avg_mood >= 1.5) echo '😕';
-                                    else echo '😢';
-                                    ?>
-                                </div>
-                                <div class="small text-muted">Average Mood</div>
-                                <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
-                                </div>
-                            <div class="col-4">
-                                <div class="mood-emoji">📊</div>
-                                <div class="small text-muted">Entries</div>
-                                <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
-                                </div>
-                            <div class="col-4">
-                                <div class="mood-emoji">
-                                    <?php
-                                    $most_common_mood = isset($stats['most_common_mood']) ? $stats['most_common_mood'] : 3;
-                                    if ($most_common_mood == 5) echo '😄';
-                                    else if ($most_common_mood == 4) echo '🙂';
-                                    else if ($most_common_mood == 3) echo '😐';
-                                    else if ($most_common_mood == 2) echo '😕';
-                                    else echo '😢';
-                                    ?>
-                                </div>
-                                <div class="small text-muted">Most Common</div>
-                                <div class="fw-bold">Level <?php echo $most_common_mood; ?></div>
-                            </div>
-                        </div>
-                        
-                        <?php if (!empty($stats['top_tags'])): ?>
-                            <h6 class="mt-4 mb-2">Top Tags</h6>
-                            <div>
-                                <?php foreach ($stats['top_tags'] as $tag): ?>
-                                    <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                        <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
-                                </span>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <div class="text-center mt-4">
-                            <a href="analytics.php" class="btn btn-sm btn-outline-accent">View Detailed Analytics</a>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <div class="mb-3">
-                                <i class="fas fa-chart-bar fa-3x text-muted"></i>
-                            </div>
-                            <p class="text-muted mb-3">No mood data available yet</p>
-                            <p class="small text-muted">Start tracking your mood to see insights</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                </div>
-            </div>
-        </div>
-        
-    <!-- Recent Entries -->
+    </div>
+
+    <!-- Recent Entries Row -->
     <div class="row">
         <div class="col-12">
             <div class="dashboard-card">
