@@ -588,13 +588,13 @@ while ($task = $result->fetch_assoc()) {
 /* Task Actions */
 .task-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
 }
 
 .action-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
@@ -602,12 +602,14 @@ while ($task = $result->fetch_assoc()) {
     transition: all 0.2s ease;
     cursor: pointer;
     background: transparent;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    min-width: 48px;
 }
 
 .action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .done-btn {
@@ -868,15 +870,16 @@ while ($task = $result->fetch_assoc()) {
         margin-top: 0.75rem;
         padding-top: 0.75rem;
         border-top: 1px solid #f1f3f5;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
     .action-btn {
-        width: 38px;
-        height: 38px;
-        min-width: 38px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
         border-radius: 8px;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        padding: 0.4rem;
     }
 }
 
