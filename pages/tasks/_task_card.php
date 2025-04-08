@@ -108,8 +108,18 @@ function handleTaskAction(taskId, action) {
     taskCard.style.opacity = '0.7';
     taskCard.style.pointerEvents = 'none';
 
-    // Map action to status
-    const status = action === 'done' ? 'completed' : action === 'not_done' ? 'not_done' : action;
+    // Map action to status - ensure we use the correct enum values from database
+    let status;
+    switch(action) {
+        case 'done':
+            status = 'completed';
+            break;
+        case 'not_done':
+            status = 'not_done';
+            break;
+        default:
+            status = action;
+    }
 
     // Log the action for debugging
     console.log('Updating task:', taskId, 'with status:', status);
