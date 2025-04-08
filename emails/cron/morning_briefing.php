@@ -48,27 +48,36 @@ try {
         }
     }
     
-    // Fetch today's tasks
-    $taskQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color, t.description 
-                 FROM tasks t 
-                 LEFT JOIN task_categories tc ON t.category_id = tc.id 
-                 WHERE DATE(t.due_date) = ? 
-                 AND t.status = 'pending' 
-                 ORDER BY t.due_time ASC, t.priority DESC";
-    $stmt = $conn->prepare($taskQuery);
-    $stmt->bind_param('s', $today);
-    $stmt->execute();
-    $tasksResult = $stmt->get_result();
-    $tasks = $tasksResult->fetch_all(MYSQLI_ASSOC);
+    // Get tasks for today
+    $query = "SELECT t.id, t.title, t.description, t.due_date, t.due_time, t.priority, t.status,
+                     c.name as category_name, c.icon as category_icon, c.color as category_color
+              FROM tasks t
+              JOIN task_categories c ON t.category_id = c.id
+              WHERE t.is_active = 1
+              AND t.status = 'pending'
+              AND t.due_date = CURRENT_DATE
+              ORDER BY t.due_time ASC";
+
+    $result = $conn->query($query);
+    $tasks = [];
+    while ($row = $result->fetch_assoc()) {
+        $tasks[] = $row;
+    }
     
-    // Fetch today's habits
-    $habitQuery = "SELECT h.*, hc.name as category_name, hc.color as category_color, h.description 
-                  FROM habits h 
-                  LEFT JOIN habit_categories hc ON h.category_id = hc.id 
-                  WHERE h.is_active = 1 
-                  ORDER BY h.target_time ASC";
-    $habitsResult = $conn->query($habitQuery);
-    $habits = $habitsResult->fetch_all(MYSQLI_ASSOC);
+    // Get habits for today
+    $query = "SELECT h.id, h.name, h.description, h.icon, h.target_time,
+                     c.name as category_name, c.icon as category_icon, c.color as category_color
+              FROM habits h
+              JOIN habit_categories c ON h.category_id = c.id
+              WHERE h.is_active = 1
+              AND h.target_time IS NOT NULL
+              ORDER BY h.target_time ASC";
+
+    $result = $conn->query($query);
+    $habits = [];
+    while ($row = $result->fetch_assoc()) {
+        $habits[] = $row;
+    }
     
     // Fetch overdue tasks
     $overdueQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color, t.description 
@@ -85,21 +94,10 @@ try {
     
     // Prepare email data
     $emailData = [
-        'tasks' => array_map(function($task) {
-            return [
-                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
-                'description' => $task['description'] ?: 'No description provided',
-                'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
-                'priority' => $task['priority'] ?? 'medium'
-            ];
-        }, $tasks),
-        'habits' => array_map(function($habit) {
-            return [
-                'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
-                'description' => $habit['description'] ?: 'No description provided',
-                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
-            ];
-        }, $habits),
+        'tasks' => $tasks,
+        'habits' => $habits,
+        'date' => date('l, F j, Y'),
+        'greeting' => getGreeting(),
         'overdue' => array_map(function($task) {
             return [
                 'title' => $task['title'] . ' (' . $task['category_name'] . ')',
