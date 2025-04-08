@@ -34,30 +34,45 @@ try {
     $mail->SMTPSecure = SMTP_SECURE;
     $mail->Port = SMTP_PORT;
     
-    // Enable debugging if needed
-    // $mail->SMTPDebug = 2;
+    // Add custom headers to reduce spam score
+    $mail->XMailer = 'GCSE Study App Mailer';
+    $mail->addCustomHeader('X-Application', 'GCSE Study App');
+    $mail->addCustomHeader('X-Domain-ID', 'abel.abuneteklehaymanot.org');
     
     // Recipients
-    $mail->setFrom(EMAIL_FROM_ADDRESS, 'Amha-Silassie <'.EMAIL_FROM_ADDRESS.'>');
-    $mail->addReplyTo(EMAIL_REPLY_TO, 'Amha-Silassie');
-    $mail->addAddress(SMTP_USERNAME, 'Amha-Silassie'); // Sending to yourself for testing
+    $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
+    $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
+    $mail->addAddress('abelgoytom77@gmail.com', 'Abel Goytom'); // Sending to your Gmail
     
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'Test Email from Amha-Silassie';
+    $mail->Subject = 'Important: GCSE Study App Test Email';
     $mail->Body = '
-        <h1>Email Test Successful!</h1>
-        <p>This is a test email from Amha-Silassie.</p>
-        <p>If you are receiving this email, your email configuration is working correctly!</p>
-        <p>Time sent: ' . date('Y-m-d H:i:s') . '</p>
-        <p>Domain: abel.abuneteklehaymanot.org</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">GCSE Study App Email Configuration Test</h2>
+            <p>Dear Abel,</p>
+            <p>This is a test email from the GCSE Study App system to verify email functionality.</p>
+            <p>Details:</p>
+            <ul>
+                <li>Sent from: '.EMAIL_FROM_NAME.'</li>
+                <li>Time: '.date('Y-m-d H:i:s').'</li>
+                <li>Domain: abel.abuneteklehaymanot.org</li>
+            </ul>
+            <p>If you received this email, the email configuration is working correctly.</p>
+            <hr>
+            <p style="font-size: 12px; color: #666;">
+                This is an automated message from the GCSE Study App system.<br>
+                Please do not reply to this email.
+            </p>
+        </div>
     ';
+    $mail->AltBody = 'This is a test email from the GCSE Study App system. If you received this email, the configuration is working correctly.';
     
     // Send the email
     $mail->send();
     echo '<div class="alert alert-success">
             <h4 class="alert-heading">Success!</h4>
-            <p>Test email sent successfully! Please check your inbox at ' . SMTP_USERNAME . '</p>
+            <p>Test email sent successfully! Please check your inbox at abelgoytom77@gmail.com</p>
             <hr>
             <p class="mb-0">If you don\'t see the email, please check your spam folder.</p>
           </div>';
