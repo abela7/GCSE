@@ -78,16 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $status = $_POST['status'];
                     
                     // Map incoming status if needed
-                    switch ($status) {
-                        case 'done':
-                            $status = 'completed';
-                            break;
-                        case 'not done':
-                            $status = 'not_done';
-                            break;
-                        case 'not-done':
-                            $status = 'not_done';
-                            break;
+                    if ($status === 'done') {
+                        $status = 'completed';
+                    } elseif (in_array($status, ['cancel', 'not done', 'not-done'])) {
+                        $status = 'not_done';
                     }
                     
                     // Debug logging
