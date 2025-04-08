@@ -7,6 +7,7 @@ $subject_filter = isset($_GET['subject']) ? intval($_GET['subject']) : 0;
 $section_filter = isset($_GET['section']) ? intval($_GET['section']) : 0;
 $subsection_filter = isset($_GET['subsection']) ? intval($_GET['subsection']) : 0;
 $topic_filter = isset($_GET['topic']) ? intval($_GET['topic']) : 0;
+$type_filter = isset($_GET['type']) ? $_GET['type'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Get all subjects
@@ -127,6 +128,12 @@ if ($topic_filter) {
     $types .= 'i';
 }
 
+if ($type_filter) {
+    $query .= " AND resource_type = ?";
+    $params[] = $type_filter;
+    $types .= 's';
+}
+
 if ($search) {
     $query .= " AND (title LIKE ? OR topic_name LIKE ? OR section_name LIKE ? OR subsection_name LIKE ?)";
     $search_param = "%$search%";
@@ -240,8 +247,22 @@ function getYoutubeId($url) {
                         </select>
                     </div>
 
+                    <!-- Resource Type Filter -->
+                    <div class="col-md-3">
+                        <label class="form-label">Resource Type</label>
+                        <select name="type" class="form-select" id="typeSelect">
+                            <option value="">All Types</option>
+                            <option value="youtube" <?php echo $type_filter === 'youtube' ? 'selected' : ''; ?>>
+                                <i class="fab fa-youtube"></i> YouTube Videos
+                            </option>
+                            <option value="image" <?php echo $type_filter === 'image' ? 'selected' : ''; ?>>
+                                <i class="far fa-image"></i> Images
+                            </option>
+                        </select>
+                    </div>
+
                     <!-- Search -->
-                    <div class="col-md-12">
+                    <div class="col-md-9">
                         <label class="form-label">Search</label>
                         <div class="input-group">
                             <input type="text" name="search" class="form-control" 
@@ -264,7 +285,7 @@ function getYoutubeId($url) {
                             </a>
 
                             <!-- Active Filters Display -->
-                            <?php if ($subject_filter || $section_filter || $subsection_filter || $topic_filter || $search): ?>
+                            <?php if ($subject_filter || $section_filter || $subsection_filter || $topic_filter || $type_filter || $search): ?>
                                 <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
                                     <span class="text-muted">Active filters:</span>
                                     <?php if ($subject_filter): ?>
@@ -285,6 +306,11 @@ function getYoutubeId($url) {
                                     <?php if ($current_topic): ?>
                                         <span class="badge bg-primary">
                                             Topic: <?php echo htmlspecialchars($current_topic['name']); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($type_filter): ?>
+                                        <span class="badge bg-primary">
+                                            Type: <?php echo $type_filter === 'youtube' ? 'YouTube Videos' : 'Images'; ?>
                                         </span>
                                     <?php endif; ?>
                                     <?php if ($search): ?>
@@ -450,6 +476,7 @@ function getYoutubeId($url) {
         const sectionSelect = document.getElementById('sectionSelect');
         const subsectionSelect = document.getElementById('subsectionSelect');
         const topicSelect = document.getElementById('topicSelect');
+        const typeSelect = document.getElementById('typeSelect');
         const filterForm = document.getElementById('filterForm');
         const searchInput = document.querySelector('input[name="search"]');
 
@@ -536,6 +563,11 @@ function getYoutubeId($url) {
                     showError('Failed to load topics');
                 }
             }
+        });
+
+        // Handle type change
+        typeSelect.addEventListener('change', function() {
+            filterForm.submit();
         });
 
         // Handle search input with debounce
