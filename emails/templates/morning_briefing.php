@@ -3,7 +3,7 @@ require_once __DIR__ . '/email_template.php';
 
 class MorningBriefing extends EmailTemplate {
     public function generateEmail($data) {
-        $title = "Be ready for the amazing day! Here are your tasks for today🤗";
+        $title = "Be ready for the amazing day! Here are your tasks for today😇";
         
         // Generate tasks section
         $tasksContent = '';
@@ -81,12 +81,15 @@ class MorningBriefing extends EmailTemplate {
         '.$habitsContent.'
         '.$overdueContent.'
         <div class="section">
-            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php" class="btn">View Full Tasks Schedule</a>
-            <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php" class="btn">View Habits</a>
+            <div class="btn-container">
+                <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php" class="btn">View Full Tasks Schedule</a>
+                <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php" class="btn">View Habits</a>
+            </div>
         </div>
         <div class="highlight">
-            <strong>Quote of the Day:</strong><br>
-            "The future depends on what you do today." - Mahatma Gandhi
+            <strong>ኃይል በሚሰጠኝ በክርስቶስ ሁሉን እችላለሁ!</strong>
+            </br> ፈልጵስዩስ 4:13<br>
+            "The future depends on what you do today!"
         </div>';
         
         return $this->getBaseTemplate($title, $content);

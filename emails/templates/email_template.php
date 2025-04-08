@@ -59,11 +59,31 @@ class EmailTemplate {
             .btn {
                 display: inline-block;
                 padding: 10px 20px;
-                background: #4a90e2;
-                color: white;
+                background: rgb(168, 142, 64);
+                color: #000;
                 text-decoration: none;
                 border-radius: 5px;
-                margin: 10px 0;
+                margin: 10px 5px;
+                font-weight: 600;
+                min-width: 200px;
+                text-align: center;
+            }
+            .btn-container {
+                display: flex;
+                flex-wrap: nowrap;
+                justify-content: center;
+                gap: 10px;
+                margin: 20px 0;
+            }
+            @media (max-width: 600px) {
+                .btn-container {
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                }
+                .btn {
+                    flex: 1;
+                    margin: 5px;
+                }
             }
             .section {
                 margin: 20px 0;
