@@ -16,8 +16,21 @@ if (!$section_id) {
 }
 
 try {
-    // First determine if this is a math or english section
-    $is_english = $conn->query("SELECT 1 FROM eng_sections WHERE id = $section_id")->num_rows > 0;
+    // First determine which subject this section belongs to
+    $eng_check = $conn->prepare("SELECT 1 FROM eng_sections WHERE id = ?");
+    $eng_check->bind_param('i', $section_id);
+    $eng_check->execute();
+    $is_english = $eng_check->get_result()->num_rows > 0;
+    
+    $math_check = $conn->prepare("SELECT 1 FROM math_sections WHERE id = ?");
+    $math_check->bind_param('i', $section_id);
+    $math_check->execute();
+    $is_math = $math_check->get_result()->num_rows > 0;
+    
+    if (!$is_english && !$is_math) {
+        throw new Exception("Invalid section ID");
+    }
+    
     $table = $is_english ? 'eng_subsections' : 'math_subsections';
     
     // Prepare and execute the query
