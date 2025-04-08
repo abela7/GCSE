@@ -135,7 +135,7 @@ $query = "SELECT
           FROM tasks t
           JOIN task_categories c ON t.category_id = c.id
           WHERE t.is_active = 1
-          AND t.status = 'pending'
+          AND t.status IN ('pending', 'snoozed', 'in_progress')
           AND t.due_date = ?
           ORDER BY t.due_time ASC";
 
@@ -247,8 +247,8 @@ while ($task = $result->fetch_assoc()) {
                         </button>
                         <button type="button" 
                                 class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
-                                title="Cancel Task">
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
+                                title="Mark as Not Done">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -303,8 +303,8 @@ while ($task = $result->fetch_assoc()) {
                         </button>
                         <button type="button" 
                                 class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
-                                title="Cancel Task">
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
+                                title="Mark as Not Done">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -1064,61 +1064,51 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleTaskAction(taskId, action) {
     if (action === 'snooze') {
         showSnoozeOptions(taskId);
-    } else {
-        let confirmMessage = '';
-        switch (action) {
-            case 'done':
-                confirmMessage = 'Mark this task as completed?';
-                break;
-            case 'cancel':
-                confirmMessage = 'Cancel this task?';
-                break;
-        }
+        return;
+    }
+
+    let confirmMessage = action === 'done' ? 'Mark this task as completed?' : 'Mark this task as not done?';
+    
+    if (confirm(confirmMessage)) {
+        // Show loading state
+        const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
+        taskCard.style.opacity = '0.7';
+        taskCard.style.pointerEvents = 'none';
         
-        if (confirm(confirmMessage)) {
-            // Show loading state
-            const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
-            taskCard.style.opacity = '0.7';
-            taskCard.style.pointerEvents = 'none';
-            
-            // Send request to update task status
-            fetch('task_actions.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=update_task_status&task_id=${taskId}&status=${action}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Fade out and remove the task card
-                    taskCard.style.transition = 'all 0.3s ease';
-                    taskCard.style.opacity = '0';
-                    taskCard.style.transform = 'translateX(20px)';
-                    setTimeout(() => {
-                        if (action === 'snooze') {
-                            // For snooze, reload the page to show updated time
-                            window.location.reload();
-                        } else {
-                            // For done/cancel, remove the task
-                            taskCard.remove();
-                        }
-                    }, 300);
-                } else {
-                    // Show error and reset the card
-                    alert('Error: ' + data.message);
-                    taskCard.style.opacity = '1';
-                    taskCard.style.pointerEvents = 'auto';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating the task.');
+        // Map action to status
+        const status = action === 'done' ? 'completed' : 'not_done';
+        
+        // Send request to update task status
+        fetch('task_actions.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=update_task_status&task_id=${taskId}&status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Fade out and remove the task card
+                taskCard.style.transition = 'all 0.3s ease';
+                taskCard.style.opacity = '0';
+                taskCard.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+            } else {
+                // Show error and reset the card
+                alert('Error: ' + data.message);
                 taskCard.style.opacity = '1';
                 taskCard.style.pointerEvents = 'auto';
-            });
-        }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the task.');
+            taskCard.style.opacity = '1';
+            taskCard.style.pointerEvents = 'auto';
+        });
     }
 }
 
