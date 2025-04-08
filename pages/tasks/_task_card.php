@@ -101,8 +101,14 @@ $icon_bg_color = "rgba($r, $g, $b, 0.1)"; // 10% opacity
 
 <script>
 function handleTaskAction(taskId, action) {
+    // Log the initial call
+    console.log('handleTaskAction called with:', { taskId, action });
+
     const taskCard = document.getElementById('task-card-' + taskId);
-    if (!taskCard) return;
+    if (!taskCard) {
+        console.error('Task card not found:', taskId);
+        return;
+    }
 
     // Disable the card while processing
     taskCard.style.opacity = '0.7';
@@ -121,11 +127,15 @@ function handleTaskAction(taskId, action) {
             status = 'snoozed';
             break;
         default:
+            console.warn('Unexpected action:', action);
             status = action;
     }
 
     // Log the action and status for debugging
-    console.log('Action:', action, 'Mapped to status:', status);
+    console.log('Status mapping:', { 
+        originalAction: action, 
+        mappedStatus: status 
+    });
 
     // Prepare the form data
     const formData = new FormData();
@@ -133,12 +143,12 @@ function handleTaskAction(taskId, action) {
     formData.append('task_id', taskId);
     formData.append('status', status);
 
-    // Log the form data for debugging
-    console.log('Form data being sent:', {
-        action: 'update_task_status',
-        task_id: taskId,
-        status: status
+    // Log the exact form data being sent
+    const formDataObj = {};
+    formData.forEach((value, key) => {
+        formDataObj[key] = value;
     });
+    console.log('Form data being sent:', formDataObj);
 
     // Send the request
     fetch('task_actions.php', {
