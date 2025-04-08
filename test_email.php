@@ -38,9 +38,9 @@ try {
     // $mail->SMTPDebug = 2;
     
     // Recipients
-    $mail->setFrom(EMAIL_FROM_ADDRESS, 'Amha-Silassie');
+    $mail->setFrom(EMAIL_FROM_ADDRESS, 'Amha-Silassie <'.EMAIL_FROM_ADDRESS.'>');
     $mail->addReplyTo(EMAIL_REPLY_TO, 'Amha-Silassie');
-    $mail->addAddress('admin@abel.abuneteklehaymanot.org', 'Admin'); // Changed to admin email
+    $mail->addAddress(SMTP_USERNAME, 'Amha-Silassie'); // Sending to yourself for testing
     
     // Content
     $mail->isHTML(true);
@@ -57,9 +57,9 @@ try {
     $mail->send();
     echo '<div class="alert alert-success">
             <h4 class="alert-heading">Success!</h4>
-            <p>Test email sent successfully! Please check admin@abel.abuneteklehaymanot.org</p>
+            <p>Test email sent successfully! Please check your inbox at ' . SMTP_USERNAME . '</p>
             <hr>
-            <p class="mb-0">After setting up email forwarding in cPanel, the email will be forwarded to your Gmail.</p>
+            <p class="mb-0">If you don\'t see the email, please check your spam folder.</p>
           </div>';
     
 } catch (Exception $e) {

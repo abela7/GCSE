@@ -2,19 +2,19 @@
 // Email Configuration Settings
 
 // SMTP Configuration
-define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_PORT', 587);
-define('SMTP_SECURE', 'tls');
+define('SMTP_HOST', 'abel.abuneteklehaymanot.org');
+define('SMTP_PORT', 465);
+define('SMTP_SECURE', 'ssl');
 define('SMTP_AUTH', true);
 
-// Your Gmail credentials
-define('SMTP_USERNAME', 'abelgoytom77@gmail.com'); // Add your Gmail address here
-define('SMTP_PASSWORD', 'wmfm sgyn ucuz mlbu'); // Add your App Password here
+// Your Domain Email credentials
+define('SMTP_USERNAME', 'admin@abel.abuneteklehaymanot.org');
+define('SMTP_PASSWORD', '2727@2121Abel'); // Add your email password here
 
 // Email Settings
 define('EMAIL_FROM_NAME', 'Amha-Silassie');
-define('EMAIL_FROM_ADDRESS', 'abelgoytom77@gmail.com'); // Add your Gmail address here
-define('EMAIL_REPLY_TO', 'abelgoytom77@gmail.com'); // Add your Gmail address here
+define('EMAIL_FROM_ADDRESS', 'admin@abel.abuneteklehaymanot.org');
+define('EMAIL_REPLY_TO', 'admin@abel.abuneteklehaymanot.org');
 
 // Notification Settings
 define('ENABLE_EMAIL_NOTIFICATIONS', true);
