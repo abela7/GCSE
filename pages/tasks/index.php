@@ -588,47 +588,57 @@ while ($task = $result->fetch_assoc()) {
 /* Task Actions */
 .task-actions {
     display: flex;
-    gap: 8px;
+    gap: 0.75rem;
 }
 
 .action-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
     cursor: pointer;
+    background: transparent;
+    font-size: 1.1rem;
 }
 
 .action-btn:hover {
     transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .done-btn {
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.done-btn:hover {
     background-color: rgba(40, 167, 69, 0.1);
     color: #28a745;
 }
 
-.done-btn:hover {
-    background-color: #28a745;
-    color: white;
+.snooze-btn {
+    display: none;
+    color: #ffc107;
+    border-color: rgba(255, 193, 7, 0.3);
 }
 
-.snooze-btn {
-    display: none; /* Hidden by default */
+.snooze-btn:hover {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
 }
 
 .cancel-btn {
-    background-color: rgba(220, 53, 69, 0.1);
     color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.3);
 }
 
 .cancel-btn:hover {
-    background-color: #dc3545;
-    color: white;
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
 }
 
 .task-card {
@@ -858,15 +868,15 @@ while ($task = $result->fetch_assoc()) {
         margin-top: 0.75rem;
         padding-top: 0.75rem;
         border-top: 1px solid #f1f3f5;
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
 
     .action-btn {
-        width: 48px;
-        height: 36px;
-        min-width: 48px;
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
         border-radius: 8px;
-        font-size: 0.875rem;
+        font-size: 1rem;
     }
 }
 
