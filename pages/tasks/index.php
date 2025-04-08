@@ -874,12 +874,38 @@ while ($task = $result->fetch_assoc()) {
     }
 
     .action-btn {
-        width: 44px;
+        width: 84px;
         height: 44px;
-        min-width: 44px;
+        min-width: 84px;
         border-radius: 8px;
         font-size: 1.1rem;
         padding: 0.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn i {
+        font-size: 1.1rem;
+    }
+
+    .action-btn::after {
+        content: attr(title);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .done-btn::after {
+        content: "Done";
+    }
+
+    .snooze-btn::after {
+        content: "Snooze";
+    }
+
+    .cancel-btn::after {
+        content: "Cancel";
     }
 }
 
