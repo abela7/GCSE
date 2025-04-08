@@ -246,9 +246,13 @@ while ($task = $result->fetch_assoc()) {
                         $isSnoozeEnabled = $dueDateTime <= $now;
                         ?>
                         <button type="button" 
-                                class="action-btn snooze-btn <?php echo !$isSnoozeEnabled ? 'disabled' : ''; ?>" 
-                                onclick="<?php echo $isSnoozeEnabled ? 'handleTaskAction(' . $task['id'] . ', \'snooze\')' : 'showFutureTaskMessage(' . $task['id'] . ')'; ?>"
-                                title="<?php echo $isSnoozeEnabled ? 'Snooze Task' : 'Task is scheduled for future'; ?>">
+                                class="action-btn snooze-btn" 
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'snooze')"
+                                title="Snooze Task"
+                                style="display: <?php echo $isSnoozeEnabled ? 'flex' : 'none'; ?>"
+                                data-task-id="<?php echo $task['id']; ?>"
+                                data-due-time="<?php echo $task['due_time']; ?>"
+                                data-due-date="<?php echo $task['due_date']; ?>">
                             <i class="fas fa-clock"></i>
                         </button>
                         <button type="button" 
@@ -302,9 +306,13 @@ while ($task = $result->fetch_assoc()) {
                         $isSnoozeEnabled = $dueDateTime <= $now;
                         ?>
                         <button type="button" 
-                                class="action-btn snooze-btn <?php echo !$isSnoozeEnabled ? 'disabled' : ''; ?>" 
-                                onclick="<?php echo $isSnoozeEnabled ? 'handleTaskAction(' . $task['id'] . ', \'snooze\')' : 'showFutureTaskMessage(' . $task['id'] . ')'; ?>"
-                                title="<?php echo $isSnoozeEnabled ? 'Snooze Task' : 'Task is scheduled for future'; ?>">
+                                class="action-btn snooze-btn" 
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'snooze')"
+                                title="Snooze Task"
+                                style="display: <?php echo $isSnoozeEnabled ? 'flex' : 'none'; ?>"
+                                data-task-id="<?php echo $task['id']; ?>"
+                                data-due-time="<?php echo $task['due_time']; ?>"
+                                data-due-date="<?php echo $task['due_date']; ?>">
                             <i class="fas fa-clock"></i>
                         </button>
                         <button type="button" 
@@ -610,13 +618,7 @@ while ($task = $result->fetch_assoc()) {
 }
 
 .snooze-btn {
-    background-color: rgba(255, 193, 7, 0.1);
-    color: #ffc107;
-}
-
-.snooze-btn:hover {
-    background-color: #ffc107;
-    color: #2d3436;
+    display: none; /* Hidden by default */
 }
 
 .cancel-btn {
@@ -870,8 +872,14 @@ while ($task = $result->fetch_assoc()) {
 
 /* Animation Keyframes */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .card {
@@ -1321,6 +1329,31 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
     });
+});
+
+// Add this new function to check and show snooze buttons
+function checkAndShowSnoozeButtons() {
+    const now = new Date();
+    document.querySelectorAll('.snooze-btn').forEach(button => {
+        const taskDueDate = button.dataset.dueDate;
+        const taskDueTime = button.dataset.dueTime;
+        const dueDateTime = new Date(taskDueDate + ' ' + taskDueTime);
+        
+        if (dueDateTime <= now) {
+            button.style.display = 'flex';
+            // Add a subtle animation when showing the button
+            button.style.animation = 'fadeIn 0.3s ease-out';
+        }
+    });
+}
+
+// Check every minute for tasks that need snooze button shown
+setInterval(checkAndShowSnoozeButtons, 60000);
+
+// Also check when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkAndShowSnoozeButtons();
+    // ... rest of the existing DOMContentLoaded code ...
 });
 </script>
 
