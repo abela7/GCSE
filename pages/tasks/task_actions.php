@@ -77,9 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $taskId = (int)$_POST['task_id'];
                     $status = $_POST['status'];
                     
+                    // Map incoming status if needed
+                    if ($status === 'done') {
+                        $status = 'completed';
+                    }
+                    
                     // Debug logging
-                    error_log("Received status update request - Task ID: $taskId, Status: " . print_r($status, true));
-                    error_log("POST data: " . print_r($_POST, true));
+                    error_log("Received status update request - Task ID: $taskId, Original Status: " . $_POST['status'] . ", Mapped Status: $status");
                     
                     // Validate status value
                     $validStatuses = ['pending', 'in_progress', 'completed', 'not_done', 'snoozed'];
