@@ -248,8 +248,8 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <script>
 // Favorite button functionality
-document.querySelectorAll('.toggle-favorite').forEach(btn => {
-    btn.addEventListener('click', function(e) {
+document.querySelectorAll('.toggle-favorite').forEach(button => {
+    button.addEventListener('click', function(e) {
         e.preventDefault();
         const itemId = this.dataset.itemId;
         const icon = this.querySelector('i');
@@ -258,6 +258,7 @@ document.querySelectorAll('.toggle-favorite').forEach(btn => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: `item_id=${itemId}`
         })
@@ -266,18 +267,19 @@ document.querySelectorAll('.toggle-favorite').forEach(btn => {
             if (data.success) {
                 icon.classList.toggle('far');
                 icon.classList.toggle('fas');
+                console.log(data.message);
             }
         })
         .catch(error => console.error('Error:', error));
     });
 });
 
-// Auto-expand current day's accordion if no specific day is expanded
+// Auto-expand current day's accordion on page load
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    const currentDayAccordion = document.getElementById(`collapse${today}`);
-    if (currentDayAccordion && !document.querySelector('.accordion-collapse.show')) {
-        currentDayAccordion.classList.add('show');
+    const todayAccordion = document.getElementById(`collapse${today}`);
+    if (todayAccordion) {
+        todayAccordion.classList.add('show');
     }
 });
 </script>
