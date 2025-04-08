@@ -50,28 +50,25 @@ try {
     $emailData = [
         'tasks' => array_map(function($task) {
             return [
-                'title' => $task['title'],
-                'description' => $task['description'] ?? '',
+                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'description' => $task['description'] ?: 'No description provided',
                 'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
-                'priority' => $task['priority'] ?? 'medium',
-                'category_name' => $task['category_name'] ?? 'Uncategorized'
+                'priority' => $task['priority'] ?? 'medium'
             ];
         }, $tasks),
         'habits' => array_map(function($habit) {
             return [
-                'title' => $habit['name'],
-                'description' => $habit['description'] ?? '',
-                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set',
-                'category_name' => $habit['category_name'] ?? 'Uncategorized'
+                'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
+                'description' => $habit['description'] ?: 'No description provided',
+                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
             ];
         }, $habits),
         'overdue' => array_map(function($task) {
             return [
-                'title' => $task['title'],
-                'description' => $task['description'] ?? '',
+                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'description' => $task['description'] ?: 'No description provided',
                 'due_time' => date('M j, Y', strtotime($task['due_date'])) . 
-                             ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : ''),
-                'category_name' => $task['category_name'] ?? 'Uncategorized'
+                             ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '')
             ];
         }, $overdue)
     ];
