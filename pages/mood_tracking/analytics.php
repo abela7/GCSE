@@ -19,10 +19,26 @@ $stats = getMoodStatistics($start_date, $end_date, $tag_ids);
 // Get all tags for filtering
 $all_tags = getMoodTags();
 
-// Get mood data for charts
-$mood_by_day = getMoodByDay($start_date, $end_date, $tag_ids);
+// Get filtered mood data for charts
+$mood_over_time = getMoodByDay($start_date, $end_date, $tag_ids);
 $mood_by_time = getMoodByTimeOfDay($start_date, $end_date, $tag_ids);
 $mood_by_tag = getMoodByTag($start_date, $end_date);
+
+// Prepare data for Mood Over Time Chart
+$dates = array_column($mood_over_time, 'date');
+$avg_moods = array_column($mood_over_time, 'avg_mood');
+$entry_counts = array_column($mood_over_time, 'entry_count');
+
+// Prepare data for Mood by Time of Day Chart
+$times = array_column($mood_by_time, 'time_of_day');
+$time_avg_moods = array_column($mood_by_time, 'avg_mood');
+$time_entry_counts = array_column($mood_by_time, 'entry_count');
+
+// Prepare data for Mood by Tag Chart
+$tag_names = array_column($mood_by_tag, 'tag_name');
+$tag_colors = array_column($mood_by_tag, 'color');
+$tag_avg_moods = array_column($mood_by_tag, 'avg_mood');
+$tag_entry_counts = array_column($mood_by_tag, 'entry_count');
 ?>
 
 <style>
@@ -451,32 +467,17 @@ function initCharts() {
     
     // Mood Over Time Chart
     const moodOverTimeCtx = document.getElementById('moodOverTimeChart').getContext('2d');
-    const moodOverTimeData = <?php 
-        $chart_data = [];
-        foreach ($mood_by_day as $entry) {
-            $chart_data[] = [
-                'x' => $entry['date'],
-                'y' => $entry['avg_mood'],
-                'entries' => $entry['entry_count']
-            ];
-        }
-        echo json_encode($chart_data);
-    ?>;
-    
     new Chart(moodOverTimeCtx, {
         type: 'line',
         data: {
+            labels: <?php echo json_encode($dates); ?>,
             datasets: [{
                 label: 'Average Mood',
-                data: moodOverTimeData,
-                backgroundColor: chartColors.accentLight,
-                borderColor: chartColors.accent,
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                pointBackgroundColor: chartColors.accent,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                data: <?php echo json_encode($avg_moods); ?>,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                tension: 0.4,
+                fill: true
             }]
         },
         options: {
@@ -489,46 +490,26 @@ function initCharts() {
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return value + '/5';
+                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
                         }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Mood Level'
                     }
                 },
                 x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day',
-                        displayFormats: {
-                            day: 'MMM D'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date'
+                    grid: {
+                        display: false
                     }
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
                 tooltip: {
                     callbacks: {
-                        title: function(context) {
-                            return new Date(context[0].raw.x).toLocaleDateString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            });
-                        },
                         label: function(context) {
+                            const dataIndex = context.dataIndex;
+                            const avgMood = context.raw;
+                            const entryCount = <?php echo json_encode($entry_counts); ?>[dataIndex];
                             return [
-                                'Average Mood: ' + context.raw.y.toFixed(1) + '/5',
-                                'Total Entries: ' + context.raw.entries
+                                `Average Mood: ${avgMood.toFixed(1)}`,
+                                `Entries: ${entryCount}`
                             ];
                         }
                     }
@@ -584,31 +565,15 @@ function initCharts() {
     
     // Mood by Time of Day Chart
     const moodByTimeCtx = document.getElementById('moodByTimeChart').getContext('2d');
-    const timeData = <?php 
-        $time_data = [];
-        foreach ($mood_by_time as $time) {
-            $time_data[] = [
-                'time' => $time['time_of_day'],
-                'avg_mood' => $time['avg_mood'],
-                'entries' => $time['entry_count']
-            ];
-        }
-        echo json_encode($time_data);
-    ?>;
-    
     new Chart(moodByTimeCtx, {
         type: 'bar',
         data: {
-            labels: timeData.map(t => t.time),
+            labels: <?php echo json_encode($times); ?>,
             datasets: [{
                 label: 'Average Mood',
-                data: timeData.map(t => t.avg_mood),
-                backgroundColor: [
-                    chartColors.yellow,
-                    chartColors.orange,
-                    chartColors.blue,
-                    chartColors.gray
-                ],
+                data: <?php echo json_encode($time_avg_moods); ?>,
+                backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                borderColor: '#4CAF50',
                 borderWidth: 1
             }]
         },
@@ -622,26 +587,21 @@ function initCharts() {
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return value + '/5';
+                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
                         }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Average Mood Level'
                     }
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const timeInfo = timeData[context.dataIndex];
+                            const dataIndex = context.dataIndex;
+                            const avgMood = context.raw;
+                            const entryCount = <?php echo json_encode($time_entry_counts); ?>[dataIndex];
                             return [
-                                'Average Mood: ' + timeInfo.avg_mood.toFixed(1) + '/5',
-                                'Total Entries: ' + timeInfo.entries
+                                `Average Mood: ${avgMood.toFixed(1)}`,
+                                `Entries: ${entryCount}`
                             ];
                         }
                     }
@@ -653,50 +613,43 @@ function initCharts() {
     <?php if (!empty($mood_by_tag)): ?>
     // Mood by Tag Chart
     const moodByTagCtx = document.getElementById('moodByTagChart').getContext('2d');
-    const tagData = <?php echo json_encode($mood_by_tag); ?>;
-    
     new Chart(moodByTagCtx, {
         type: 'bar',
         data: {
-            labels: tagData.map(t => t.tag_name),
+            labels: <?php echo json_encode($tag_names); ?>,
             datasets: [{
                 label: 'Average Mood',
-                data: tagData.map(t => t.avg_mood),
-                backgroundColor: tagData.map(t => t.color),
+                data: <?php echo json_encode($tag_avg_moods); ?>,
+                backgroundColor: <?php echo json_encode($tag_colors); ?>,
+                borderColor: <?php echo json_encode($tag_colors); ?>,
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y',
             scales: {
-                x: {
+                y: {
                     beginAtZero: true,
                     max: 5,
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return value + '/5';
+                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
                         }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Average Mood Level'
                     }
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const tagInfo = tagData[context.dataIndex];
+                            const dataIndex = context.dataIndex;
+                            const avgMood = context.raw;
+                            const entryCount = <?php echo json_encode($tag_entry_counts); ?>[dataIndex];
                             return [
-                                'Average Mood: ' + tagInfo.avg_mood.toFixed(1) + '/5',
-                                'Total Entries: ' + tagInfo.entry_count
+                                `Average Mood: ${avgMood.toFixed(1)}`,
+                                `Entries: ${entryCount}`
                             ];
                         }
                     }
