@@ -131,19 +131,42 @@ $nextDate = (clone $dateObj)->modify('+1 day')->format('Y-m-d');
 $query = "SELECT 
             t.id, t.title, t.description, t.due_date, t.due_time, t.task_type, t.priority,
             c.name as category_name, c.icon as category_icon, c.color as category_color,
-            COALESCE(ti.status, t.status) as status
+            COALESCE(ti.status, t.status) as status,
+            COALESCE(ti.due_time, t.due_time) as effective_due_time
           FROM tasks t
           JOIN task_categories c ON t.category_id = c.id
           LEFT JOIN task_instances ti ON t.id = ti.task_id 
               AND ti.due_date = ?
-              AND ti.status IN ('pending', 'snoozed')
           WHERE t.is_active = 1
           AND (
-              (t.task_type = 'one-time' AND t.status = 'pending' AND t.due_date = ?)
+              -- One-time tasks that are pending and due on the selected date
+              (t.task_type = 'one-time' 
+               AND t.status IN ('pending', 'snoozed', 'in_progress')
+               AND t.due_date = ?)
               OR 
-              (t.task_type = 'recurring' AND ti.id IS NOT NULL)
+              -- Recurring tasks that either:
+              -- 1. Have an instance for the selected date
+              -- 2. Are scheduled for this date but don't have an instance yet
+              (t.task_type = 'recurring' AND (
+                  ti.id IS NOT NULL 
+                  OR (
+                      ti.id IS NULL 
+                      AND EXISTS (
+                          SELECT 1 FROM task_recurrence_rules tr 
+                          WHERE tr.task_id = t.id 
+                          AND tr.is_active = 1
+                      )
+                  )
+              ))
           )
-          ORDER BY t.due_time ASC";
+          AND (
+              -- For tasks with instances, check instance status
+              (ti.id IS NOT NULL AND ti.status IN ('pending', 'snoozed', 'in_progress'))
+              OR
+              -- For tasks without instances, check task status
+              (ti.id IS NULL AND t.status IN ('pending', 'snoozed', 'in_progress'))
+          )
+          ORDER BY COALESCE(ti.due_time, t.due_time) ASC";
 
 $stmt = $conn->prepare($query);
 $stmt->bind_param('ss', $selectedDate, $selectedDate);
@@ -154,7 +177,8 @@ $morning_tasks = [];
 $evening_tasks = [];
 
 while ($task = $result->fetch_assoc()) {
-    $task_hour = date('H', strtotime($task['due_time']));
+    $due_time = $task['effective_due_time'] ?? $task['due_time'];
+    $task_hour = date('H', strtotime($due_time));
     if ($task_hour < 12) {
         $morning_tasks[] = $task;
     } else {
