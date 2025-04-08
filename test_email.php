@@ -1,9 +1,25 @@
 <?php
-require_once 'vendor/autoload.php';
-require_once 'config/email_config.php';
+// Include necessary files
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/config/email_config.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
+// Add basic styling
+echo '<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Test - GCSE Study App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Email Test - GCSE Study App</h1>';
 
 try {
     // Create a new PHPMailer instance
@@ -18,6 +34,9 @@ try {
     $mail->SMTPSecure = SMTP_SECURE;
     $mail->Port = SMTP_PORT;
     
+    // Enable debugging if needed
+    // $mail->SMTPDebug = 2;
+    
     // Recipients
     $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
     $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
@@ -31,13 +50,27 @@ try {
         <p>This is a test email from your GCSE Study App.</p>
         <p>If you are receiving this email, your email configuration is working correctly!</p>
         <p>Time sent: ' . date('Y-m-d H:i:s') . '</p>
+        <p>Domain: abel.abuneteklehaymanot.org</p>
     ';
     
     // Send the email
     $mail->send();
-    echo '<div class="alert alert-success">Test email sent successfully! Please check your inbox.</div>';
+    echo '<div class="alert alert-success">
+            <h4 class="alert-heading">Success!</h4>
+            <p>Test email sent successfully! Please check your inbox at ' . SMTP_USERNAME . '</p>
+            <hr>
+            <p class="mb-0">If you don\'t see the email, please check your spam folder.</p>
+          </div>';
     
 } catch (Exception $e) {
-    echo '<div class="alert alert-danger">Email could not be sent. Error: ' . $mail->ErrorInfo . '</div>';
+    echo '<div class="alert alert-danger">
+            <h4 class="alert-heading">Error!</h4>
+            <p>Email could not be sent. Error details:</p>
+            <pre>' . $mail->ErrorInfo . '</pre>
+          </div>';
 }
+
+echo '</div>
+</body>
+</html>';
 ?> 
