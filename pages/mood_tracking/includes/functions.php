@@ -1,6 +1,6 @@
 <?php
 // Include database connection
-require_once __DIR__ . '/../../config/db_connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db_connect.php';
 
 /**
  * Create a new mood entry
