@@ -124,10 +124,11 @@ if ($subject_filter) {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Topic</label>
-                    <select name="topic" class="form-select" id="topicSelect" <?php echo !$subject_filter ? 'disabled' : ''; ?>>
+                    <select name="topic" class="form-select" id="topicSelect">
                         <option value="">All Topics</option>
                         <?php foreach ($topics as $topic): ?>
                             <option value="<?php echo $topic['id']; ?>" 
+                                    data-subsection="<?php echo htmlspecialchars($topic['subsection_name']); ?>"
                                     <?php echo $topic_filter == $topic['id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($topic['subsection_name'] . ' - ' . $topic['name']); ?>
                             </option>
@@ -136,13 +137,44 @@ if ($subject_filter) {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" 
-                           value="<?php echo htmlspecialchars($search); ?>" 
-                           placeholder="Search resources...">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" 
+                               value="<?php echo htmlspecialchars($search); ?>" 
+                               placeholder="Search resources...">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="/pages/resources.php" class="btn btn-outline-secondary">Clear Filters</a>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="/pages/resources.php" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                        <?php if ($subject_filter || $topic_filter || $search): ?>
+                            <div class="ms-auto d-flex align-items-center">
+                                <span class="text-muted me-2">Active filters:</span>
+                                <?php if ($subject_filter): ?>
+                                    <span class="badge bg-primary me-2">
+                                        Subject: <?php echo htmlspecialchars(array_values(array_filter($subjects, fn($s) => $s['id'] == $subject_filter))[0]['name']); ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($topic_filter): ?>
+                                    <span class="badge bg-primary me-2">
+                                        Topic: <?php echo htmlspecialchars(array_values(array_filter($topics, fn($t) => $t['id'] == $topic_filter))[0]['name']); ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($search): ?>
+                                    <span class="badge bg-primary">
+                                        Search: <?php echo htmlspecialchars($search); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </form>
         </div>
@@ -298,10 +330,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const subjectSelect = document.getElementById('subjectSelect');
     const topicSelect = document.getElementById('topicSelect');
     const filterForm = document.getElementById('filterForm');
+    const searchInput = document.querySelector('input[name="search"]');
 
+    // Initialize topic select state
+    updateTopicSelectState();
+
+    // Handle subject change
     subjectSelect.addEventListener('change', async function() {
         const subjectId = this.value;
-        topicSelect.disabled = !subjectId;
+        updateTopicSelectState();
         
         if (subjectId) {
             try {
@@ -309,18 +346,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    topicSelect.innerHTML = '<option value="">All Topics</option>' +
-                        data.topics.map(topic => 
-                            `<option value="${topic.id}">${topic.subsection_name} - ${topic.name}</option>`
-                        ).join('');
+                    topicSelect.innerHTML = '<option value="">All Topics</option>';
+                    
+                    // Group topics by subsection
+                    const groupedTopics = {};
+                    data.topics.forEach(topic => {
+                        if (!groupedTopics[topic.subsection_name]) {
+                            groupedTopics[topic.subsection_name] = [];
+                        }
+                        groupedTopics[topic.subsection_name].push(topic);
+                    });
+
+                    // Create option groups for each subsection
+                    Object.entries(groupedTopics).forEach(([subsection, topics]) => {
+                        const group = document.createElement('optgroup');
+                        group.label = subsection;
+                        
+                        topics.forEach(topic => {
+                            const option = document.createElement('option');
+                            option.value = topic.id;
+                            option.textContent = topic.name;
+                            group.appendChild(option);
+                        });
+                        
+                        topicSelect.appendChild(group);
+                    });
+
+                    // Enable topic select
+                    topicSelect.disabled = false;
                 }
             } catch (error) {
                 console.error('Error fetching topics:', error);
+                showError('Failed to load topics. Please try again.');
             }
         } else {
-            topicSelect.innerHTML = '<option value="">All Topics</option>';
+            resetTopicSelect();
         }
     });
+
+    // Handle search input
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            filterForm.submit();
+        }, 500);
+    });
+
+    // Functions to manage topic select state
+    function updateTopicSelectState() {
+        const hasSubject = subjectSelect.value !== '';
+        topicSelect.disabled = !hasSubject;
+        if (!hasSubject) {
+            resetTopicSelect();
+        }
+    }
+
+    function resetTopicSelect() {
+        topicSelect.innerHTML = '<option value="">All Topics</option>';
+        topicSelect.disabled = true;
+    }
+
+    // Error handling
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+        errorDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        filterForm.insertAdjacentElement('afterend', errorDiv);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 5000);
+    }
 });
 
 function getYoutubeId(url) {
