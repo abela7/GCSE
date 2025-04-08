@@ -5,6 +5,9 @@ require_once __DIR__ . '/includes/functions.php';
 // Set page title
 $page_title = "Mood Tracker Settings";
 
+// Include header
+require_once __DIR__ . '/../../includes/header.php';
+
 // Include database connection and functions
 require_once '../../../config/db_connect.php';
 
@@ -66,9 +69,6 @@ $all_tags = getMoodTags();
 
 // Get tag categories
 $tag_categories = getMoodTagCategories();
-
-// Include header
-include '../../../includes/header.php';
 ?>
 
 <style>

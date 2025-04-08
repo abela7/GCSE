@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 $page_title = "Mood History";
 
 // Include header
-include '../../includes/header.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 // Get filter parameters
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-30 days'));
@@ -457,5 +457,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-include '../../includes/footer.php';
+include __DIR__ . '/../../includes/footer.php';
 ?>

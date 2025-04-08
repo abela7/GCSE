@@ -8,9 +8,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/config/db_connect.php';
  * @param int $mood_level Mood level (1-5)
  * @param string $notes Optional notes about the mood
  * @param array $tag_ids Array of tag IDs
+ * @param string $date_time Optional date and time (Y-m-d H:i:s format)
  * @return int|bool The ID of the inserted mood entry or false on failure
  */
-function createMoodEntry($mood_level, $notes = null, $tag_ids = []) {
+function createMoodEntry($mood_level, $notes = null, $tag_ids = [], $date_time = null) {
     global $conn;
     
     try {
@@ -18,10 +19,13 @@ function createMoodEntry($mood_level, $notes = null, $tag_ids = []) {
         $conn->begin_transaction();
         
         // Insert mood entry
-        $stmt = $conn->prepare("INSERT INTO mood_entries (mood_level, notes) 
-                             VALUES (?, ?)");
+        $stmt = $conn->prepare("INSERT INTO mood_entries (mood_level, notes, date) 
+                             VALUES (?, ?, ?)");
         
-        $stmt->bind_param("is", $mood_level, $notes);
+        // Use current date/time if none provided
+        $date_time = $date_time ?: date('Y-m-d H:i:s');
+        
+        $stmt->bind_param("iss", $mood_level, $notes, $date_time);
         $stmt->execute();
         
         $mood_entry_id = $conn->insert_id;

@@ -1,4 +1,10 @@
 <?php
+// Include required files
+require_once __DIR__ . '/../includes/functions.php';
+
+// Set header to return JSON
+header('Content-Type: application/json');
+
 // Include database connection
 require_once '../../../config/db_connect.php';
 
@@ -35,12 +41,10 @@ if (isset($_GET['subject_id'])) {
     }
     
     // Return topics as JSON
-    header('Content-Type: application/json');
     echo json_encode($topics);
     exit;
 }
 
 // Return error if no subject_id provided
-header('Content-Type: application/json');
 echo json_encode([]);
 exit;

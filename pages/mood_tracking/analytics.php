@@ -5,6 +5,9 @@ require_once __DIR__ . '/includes/functions.php';
 // Set page title
 $page_title = "Mood Analytics";
 
+// Include header
+require_once __DIR__ . '/../../includes/header.php';
+
 // Include database connection and functions
 require_once '../../../config/db_connect.php';
 
@@ -29,9 +32,6 @@ $subjects_result = $conn->query($subjects_query);
 
 // Get all tags for filter
 $all_tags = getMoodTags();
-
-// Include header
-include '../../../includes/header.php';
 ?>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">

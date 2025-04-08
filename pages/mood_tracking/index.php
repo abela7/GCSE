@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 $page_title = "Mood Tracker";
 
 // Include header
-include '../../includes/header.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 // Get current date and time
 $current_date = date('Y-m-d');
@@ -754,5 +754,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-include '../../includes/footer.php';
+include __DIR__ . '/../../includes/footer.php';
 ?>

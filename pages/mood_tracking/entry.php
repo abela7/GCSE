@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 $page_title = "Mood Entry";
 
 // Include header
-include '../../includes/header.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 // Initialize variables
 $entry_id = isset($_GET['id']) ? intval($_GET['id']) : 0;

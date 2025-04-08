@@ -1,4 +1,7 @@
 <?php
+// Include required files
+require_once __DIR__ . '/../includes/functions.php';
+
 // Include database connection
 require_once '../../../config/db_connect.php';
 
@@ -43,7 +46,7 @@ if ($result && $result->num_rows > 0) {
     }
 }
 
-// Return entries as JSON
+// Set header to return JSON
 header('Content-Type: application/json');
 echo json_encode($entries);
 exit;
