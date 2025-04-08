@@ -700,14 +700,14 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                                         <?php if (!empty($entry['tags'])): ?>
                                                             <?php foreach ($entry['tags'] as $tag): ?>
                                                                 <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                                                </span>
-                                                            <?php endforeach; ?>
+                                    <?php echo htmlspecialchars($tag['name']); ?>
+                                </span>
+                                <?php endforeach; ?>
                                                         <?php endif; ?>
-                                                    </div>
-                                                </div>
+                            </div>
+                        </div>
                                             </div>
-                                        </button>
+                            </button>
                                     </h2>
                                     <div id="entry-collapse-<?php echo $entry['id']; ?>" 
                                          class="accordion-collapse collapse" 
@@ -717,7 +717,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                             <?php if (!empty($entry['notes'])): ?>
                                                 <div class="entry-notes mb-3">
                                                     <?php echo nl2br(htmlspecialchars($entry['notes'])); ?>
-                                                </div>
+                        </div>
                                             <?php else: ?>
                                                 <div class="text-muted mb-3">No notes added</div>
                                             <?php endif; ?>
@@ -728,33 +728,33 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteEntry(<?php echo $entry['id']; ?>)">
                                                     <i class="fas fa-trash me-1"></i>Delete Entry
                                                 </button>
-                                            </div>
-                                        </div>
+                </div>
+            </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
-                        
+        </div>
+        
                         <div class="text-center mt-4">
                             <a href="history.php" class="btn btn-outline-accent">View All Entries</a>
-                        </div>
+                </div>
                     <?php else: ?>
                         <div class="text-center py-4">
-                            <div class="mb-3">
+                    <div class="mb-3">
                                 <i class="fas fa-book fa-3x text-muted"></i>
-                            </div>
+                                </div>
                             <p class="text-muted mb-3">No mood entries yet</p>
                             <a href="entry.php" class="btn btn-accent">
                                 <i class="fas fa-plus me-1"></i>Create Your First Entry
                             </a>
-                        </div>
+                            </div>
                     <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+                        </div>
+                    </div>
+                        </div>
+                        </div>
+                    </div>
+                    
 <!-- Delete Entry Modal -->
 <div class="modal fade" id="deleteEntryModal" tabindex="-1" aria-labelledby="deleteEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -762,19 +762,19 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             <div class="modal-header">
                 <h5 class="modal-title" id="deleteEntryModalLabel" style="color: #dc3545;">Delete Entry</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+                            </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete this mood entry?</p>
                 <p class="text-danger"><strong>Warning:</strong> This action cannot be undone.</p>
-            </div>
+                        </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirm_delete">Delete Entry</button>
+                    </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
+            
 <!-- Day Entries Modal -->
 <div class="modal fade" id="dayEntriesModal" tabindex="-1" aria-labelledby="dayEntriesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -782,7 +782,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             <div class="modal-header">
                 <h5 class="modal-title" id="dayEntriesModalLabel" style="color: var(--accent-color);">Mood Entries for <span id="day_date"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+                </div>
             <div class="modal-body">
                 <div id="day_entries_container">
                     <div class="text-center py-3">
@@ -790,8 +790,8 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
+                    </div>
                 </div>
-            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <a href="#" class="btn btn-accent" id="add_entry_for_day">
@@ -829,23 +829,23 @@ function toggleTag(element) {
     const tagId = parseInt(element.dataset.id);
     
     if (element.classList.contains('selected')) {
-        // Remove tag from selection
+                // Remove tag from selection
         element.classList.remove('selected');
         selectedTags = selectedTags.filter(id => id !== tagId);
-    } else {
-        // Add tag to selection
+            } else {
+                // Add tag to selection
         element.classList.add('selected');
-        selectedTags.push(tagId);
-    }
+                selectedTags.push(tagId);
+            }
 }
 
 // Function to save quick entry
 function saveQuickEntry() {
     if (!selectedMood) {
         alert('Please select a mood level');
-        return;
-    }
-    
+            return;
+        }
+        
     const notes = document.getElementById('quick_notes').value;
     const tags = selectedTags.join(',');
     
@@ -864,7 +864,7 @@ function saveQuickEntry() {
             try {
                 const response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                    // Reset form
+                // Reset form
                     document.querySelectorAll('.emoji-option').forEach(option => {
                         option.classList.remove('selected');
                     });
@@ -879,8 +879,8 @@ function saveQuickEntry() {
                     alert('Mood entry saved successfully!');
                     
                     // Reload page to show updated data
-                    window.location.reload();
-                } else {
+                window.location.reload();
+            } else {
                     alert('Error: ' + (response.message || 'Failed to save mood entry'));
                 }
             } catch (e) {
@@ -924,10 +924,10 @@ function viewDayEntries(date) {
         <div class="text-center py-3">
             <div class="spinner-border text-accent" role="status">
                 <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
+                        </div>
+                    </div>
+                `;
+                
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('dayEntriesModal'));
     modal.show();
@@ -950,7 +950,7 @@ function viewDayEntries(date) {
         document.getElementById('day_entries_container').innerHTML = `
             <div class="alert alert-danger">
                 Network error occurred. Please check your connection.
-            </div>
+                    </div>
         `;
     };
     xhr.send();

@@ -451,13 +451,24 @@ function initCharts() {
     
     // Mood Over Time Chart
     const moodOverTimeCtx = document.getElementById('moodOverTimeChart').getContext('2d');
+    const moodOverTimeData = <?php 
+        $chart_data = [];
+        foreach ($mood_by_day as $entry) {
+            $chart_data[] = [
+                'x' => $entry['date'],
+                'y' => $entry['avg_mood'],
+                'entries' => $entry['entry_count']
+            ];
+        }
+        echo json_encode($chart_data);
+    ?>;
+    
     new Chart(moodOverTimeCtx, {
         type: 'line',
         data: {
-            labels: <?php echo json_encode(array_keys($mood_by_day)); ?>,
             datasets: [{
                 label: 'Average Mood',
-                data: <?php echo json_encode(array_values($mood_by_day)); ?>,
+                data: moodOverTimeData,
                 backgroundColor: chartColors.accentLight,
                 borderColor: chartColors.accent,
                 borderWidth: 2,
@@ -476,7 +487,10 @@ function initCharts() {
                     beginAtZero: true,
                     max: 5,
                     ticks: {
-                        stepSize: 1
+                        stepSize: 1,
+                        callback: function(value) {
+                            return value + '/5';
+                        }
                     },
                     title: {
                         display: true,
@@ -484,6 +498,13 @@ function initCharts() {
                     }
                 },
                 x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM D'
+                        }
+                    },
                     title: {
                         display: true,
                         text: 'Date'
@@ -496,8 +517,19 @@ function initCharts() {
                 },
                 tooltip: {
                     callbacks: {
+                        title: function(context) {
+                            return new Date(context[0].raw.x).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        },
                         label: function(context) {
-                            return 'Mood: ' + context.raw + '/5';
+                            return [
+                                'Average Mood: ' + context.raw.y.toFixed(1) + '/5',
+                                'Total Entries: ' + context.raw.entries
+                            ];
                         }
                     }
                 }
@@ -507,18 +539,15 @@ function initCharts() {
     
     // Mood Distribution Chart
     const moodDistributionCtx = document.getElementById('moodDistributionChart').getContext('2d');
+    const moodCounts = <?php echo json_encode($stats['mood_counts']); ?>;
+    const totalEntries = Object.values(moodCounts).reduce((a, b) => a + b, 0);
+    
     new Chart(moodDistributionCtx, {
         type: 'doughnut',
         data: {
             labels: ['Very Bad (1)', 'Bad (2)', 'Neutral (3)', 'Good (4)', 'Very Good (5)'],
             datasets: [{
-                data: [
-                    <?php echo isset($stats['mood_counts'][1]) ? $stats['mood_counts'][1] : 0; ?>,
-                    <?php echo isset($stats['mood_counts'][2]) ? $stats['mood_counts'][2] : 0; ?>,
-                    <?php echo isset($stats['mood_counts'][3]) ? $stats['mood_counts'][3] : 0; ?>,
-                    <?php echo isset($stats['mood_counts'][4]) ? $stats['mood_counts'][4] : 0; ?>,
-                    <?php echo isset($stats['mood_counts'][5]) ? $stats['mood_counts'][5] : 0; ?>
-                ],
+                data: Object.values(moodCounts),
                 backgroundColor: [
                     chartColors.red,
                     chartColors.orange,
@@ -534,16 +563,18 @@ function initCharts() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return label + ': ' + value + ' entries (' + percentage + '%)';
+                            const value = context.raw;
+                            const percentage = ((value / totalEntries) * 100).toFixed(1);
+                            return context.label + ': ' + value + ' entries (' + percentage + '%)';
                         }
                     }
                 }
@@ -553,18 +584,25 @@ function initCharts() {
     
     // Mood by Time of Day Chart
     const moodByTimeCtx = document.getElementById('moodByTimeChart').getContext('2d');
+    const timeData = <?php 
+        $time_data = [];
+        foreach ($mood_by_time as $time) {
+            $time_data[] = [
+                'time' => $time['time_of_day'],
+                'avg_mood' => $time['avg_mood'],
+                'entries' => $time['entry_count']
+            ];
+        }
+        echo json_encode($time_data);
+    ?>;
+    
     new Chart(moodByTimeCtx, {
         type: 'bar',
         data: {
-            labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
+            labels: timeData.map(t => t.time),
             datasets: [{
                 label: 'Average Mood',
-                data: [
-                    <?php echo isset($mood_by_time['morning']) ? $mood_by_time['morning'] : 0; ?>,
-                    <?php echo isset($mood_by_time['afternoon']) ? $mood_by_time['afternoon'] : 0; ?>,
-                    <?php echo isset($mood_by_time['evening']) ? $mood_by_time['evening'] : 0; ?>,
-                    <?php echo isset($mood_by_time['night']) ? $mood_by_time['night'] : 0; ?>
-                ],
+                data: timeData.map(t => t.avg_mood),
                 backgroundColor: [
                     chartColors.yellow,
                     chartColors.orange,
@@ -582,7 +620,10 @@ function initCharts() {
                     beginAtZero: true,
                     max: 5,
                     ticks: {
-                        stepSize: 1
+                        stepSize: 1,
+                        callback: function(value) {
+                            return value + '/5';
+                        }
                     },
                     title: {
                         display: true,
@@ -597,7 +638,11 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Average Mood: ' + context.raw.toFixed(1) + '/5';
+                            const timeInfo = timeData[context.dataIndex];
+                            return [
+                                'Average Mood: ' + timeInfo.avg_mood.toFixed(1) + '/5',
+                                'Total Entries: ' + timeInfo.entries
+                            ];
                         }
                     }
                 }
@@ -608,14 +653,16 @@ function initCharts() {
     <?php if (!empty($mood_by_tag)): ?>
     // Mood by Tag Chart
     const moodByTagCtx = document.getElementById('moodByTagChart').getContext('2d');
+    const tagData = <?php echo json_encode($mood_by_tag); ?>;
+    
     new Chart(moodByTagCtx, {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode(array_column($mood_by_tag, 'name')); ?>,
+            labels: tagData.map(t => t.tag_name),
             datasets: [{
                 label: 'Average Mood',
-                data: <?php echo json_encode(array_column($mood_by_tag, 'avg_mood')); ?>,
-                backgroundColor: <?php echo json_encode(array_column($mood_by_tag, 'color')); ?>,
+                data: tagData.map(t => t.avg_mood),
+                backgroundColor: tagData.map(t => t.color),
                 borderWidth: 1
             }]
         },
@@ -628,7 +675,10 @@ function initCharts() {
                     beginAtZero: true,
                     max: 5,
                     ticks: {
-                        stepSize: 1
+                        stepSize: 1,
+                        callback: function(value) {
+                            return value + '/5';
+                        }
                     },
                     title: {
                         display: true,
@@ -643,7 +693,11 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Average Mood: ' + context.raw.toFixed(1) + '/5';
+                            const tagInfo = tagData[context.dataIndex];
+                            return [
+                                'Average Mood: ' + tagInfo.avg_mood.toFixed(1) + '/5',
+                                'Total Entries: ' + tagInfo.entry_count
+                            ];
                         }
                     }
                 }
