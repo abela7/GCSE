@@ -237,6 +237,30 @@ require_once 'db_connect.php';
     
     <!-- Mobile Notifications -->
     <script src="/assets/js/mobile-notifications.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    
+    <!-- TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/hheg1rfe0lrc09roq9hgmj6wy45e6b1r2mbjjdl5ovxtnfkf/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            if (document.querySelector('.rich-editor')) {
+                tinymce.init({
+                    selector: '.rich-editor',
+                    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                    height: 300,
+                    menubar: false,
+                    statusbar: false,
+                    branding: false,
+                    promotion: false
+                });
+            }
+        });
+    </script>
 </head>
 <body>
     

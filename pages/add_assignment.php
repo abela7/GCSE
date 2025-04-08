@@ -249,31 +249,7 @@ if (!$units_result) {
     </form>
 </div>
 
-<!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/hheg1rfe0lrc09roq9hgmj6wy45e6b1r2mbjjdl5ovxtnfkf/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
-    // Initialize TinyMCE
-    tinymce.init({
-        selector: '.rich-editor',
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-        height: 300,
-        menubar: false,
-        statusbar: false,
-        branding: false,
-        promotion: false,
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
-        setup: function(editor) {
-            editor.on('change', function() {
-                editor.save();
-            });
-        },
-        // Domain verification settings
-        document_base_url: window.location.origin,
-        content_security_policy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' *.tinymce.com *.tiny.cloud",
-        referrer_policy: 'origin'
-    });
-
     // Function to add new criteria
     function addCriteria() {
         const container = document.getElementById('criteriaContainer');
