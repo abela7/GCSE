@@ -12,10 +12,12 @@ try {
     $today = date('Y-m-d');
     
     // Fetch today's tasks
-    $taskQuery = "SELECT * FROM tasks 
-                 WHERE DATE(due_date) = ? 
-                 AND is_completed = 0 
-                 ORDER BY due_time ASC";
+    $taskQuery = "SELECT t.*, s.subject_name 
+                 FROM tasks t 
+                 LEFT JOIN subjects s ON t.subject_id = s.id 
+                 WHERE DATE(t.due_date) = ? 
+                 AND t.status = 'pending' 
+                 ORDER BY t.due_date ASC, t.priority DESC";
     $stmt = $conn->prepare($taskQuery);
     $stmt->bind_param('s', $today);
     $stmt->execute();
@@ -23,17 +25,21 @@ try {
     $tasks = $tasksResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch today's habits
-    $habitQuery = "SELECT * FROM habits 
-                  WHERE is_active = 1 
-                  ORDER BY scheduled_time ASC";
+    $habitQuery = "SELECT h.*, s.subject_name 
+                  FROM habits h 
+                  LEFT JOIN subjects s ON h.subject_id = s.id 
+                  WHERE h.status = 'active' 
+                  ORDER BY h.time ASC";
     $habitsResult = $conn->query($habitQuery);
     $habits = $habitsResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch overdue tasks
-    $overdueQuery = "SELECT * FROM tasks 
-                    WHERE due_date < ? 
-                    AND is_completed = 0 
-                    ORDER BY due_date ASC";
+    $overdueQuery = "SELECT t.*, s.subject_name 
+                    FROM tasks t 
+                    LEFT JOIN subjects s ON t.subject_id = s.id 
+                    WHERE t.due_date < ? 
+                    AND t.status = 'pending' 
+                    ORDER BY t.due_date ASC";
     $stmt = $conn->prepare($overdueQuery);
     $stmt->bind_param('s', $today);
     $stmt->execute();
@@ -42,9 +48,25 @@ try {
     
     // Prepare email data
     $emailData = [
-        'tasks' => $tasks,
-        'habits' => $habits,
-        'overdue' => $overdue
+        'tasks' => array_map(function($task) {
+            return [
+                'title' => $task['title'] . ' (' . $task['subject_name'] . ')',
+                'due_time' => date('h:i A', strtotime($task['due_date'])),
+                'priority' => $task['priority'] ?? 'medium'
+            ];
+        }, $tasks),
+        'habits' => array_map(function($habit) {
+            return [
+                'title' => $habit['title'] . ' (' . $habit['subject_name'] . ')',
+                'time' => date('h:i A', strtotime($habit['time']))
+            ];
+        }, $habits),
+        'overdue' => array_map(function($task) {
+            return [
+                'title' => $task['title'] . ' (' . $task['subject_name'] . ')',
+                'due_time' => date('M j, Y h:i A', strtotime($task['due_date']))
+            ];
+        }, $overdue)
     ];
     
     // Generate email content
@@ -82,8 +104,7 @@ try {
 } catch (Exception $e) {
     // Log error
     error_log("Error sending morning briefing: " . $e->getMessage());
-    
-    // Retry logic could be added here
+    throw $e; // Re-throw to see the error in browser during testing
 }
 
 // Close database connection
