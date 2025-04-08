@@ -7,9 +7,46 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Define lock file path
+$lockFile = __DIR__ . '/morning_briefing.lock';
+
+// Function to check if script is already running
+function isScriptRunning($lockFile) {
+    if (file_exists($lockFile)) {
+        $lockTime = filemtime($lockFile);
+        // If lock file is older than 5 minutes, consider it stale
+        if (time() - $lockTime > 300) {
+            unlink($lockFile);
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+// Create lock file
+if (isScriptRunning($lockFile)) {
+    error_log("Morning briefing script is already running. Exiting.");
+    exit(0);
+}
+
+// Create lock file
+touch($lockFile);
+
 try {
     // Get today's date
     $today = date('Y-m-d');
+    
+    // Check if email was already sent today
+    $lastSentFile = __DIR__ . '/last_sent.txt';
+    if (file_exists($lastSentFile)) {
+        $lastSentDate = trim(file_get_contents($lastSentFile));
+        if ($lastSentDate === $today) {
+            error_log("Morning briefing already sent today. Exiting.");
+            unlink($lockFile);
+            exit(0);
+        }
+    }
     
     // Fetch today's tasks
     $taskQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color, t.description 
@@ -102,6 +139,9 @@ try {
     // Send the email
     $mail->send();
     
+    // Update last sent date
+    file_put_contents($lastSentFile, $today);
+    
     // Log success
     error_log("Morning briefing sent successfully at " . date('Y-m-d H:i:s'));
     
@@ -109,6 +149,11 @@ try {
     // Log error
     error_log("Error sending morning briefing: " . $e->getMessage());
     throw $e; // Re-throw to see the error in browser during testing
+} finally {
+    // Always remove lock file
+    if (file_exists($lockFile)) {
+        unlink($lockFile);
+    }
 }
 
 // Close database connection
