@@ -12,12 +12,12 @@ try {
     $today = date('Y-m-d');
     
     // Fetch today's tasks
-    $taskQuery = "SELECT t.*, s.subject_name 
+    $taskQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color 
                  FROM tasks t 
-                 LEFT JOIN subjects s ON t.subject_id = s.id 
+                 LEFT JOIN task_categories tc ON t.category_id = tc.id 
                  WHERE DATE(t.due_date) = ? 
                  AND t.status = 'pending' 
-                 ORDER BY t.due_date ASC, t.priority DESC";
+                 ORDER BY t.due_time ASC, t.priority DESC";
     $stmt = $conn->prepare($taskQuery);
     $stmt->bind_param('s', $today);
     $stmt->execute();
@@ -25,18 +25,18 @@ try {
     $tasks = $tasksResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch today's habits
-    $habitQuery = "SELECT h.*, s.subject_name 
+    $habitQuery = "SELECT h.*, hc.name as category_name, hc.color as category_color 
                   FROM habits h 
-                  LEFT JOIN subjects s ON h.subject_id = s.id 
-                  WHERE h.status = 'active' 
-                  ORDER BY h.time ASC";
+                  LEFT JOIN habit_categories hc ON h.category_id = hc.id 
+                  WHERE h.is_active = 1 
+                  ORDER BY h.target_time ASC";
     $habitsResult = $conn->query($habitQuery);
     $habits = $habitsResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch overdue tasks
-    $overdueQuery = "SELECT t.*, s.subject_name 
+    $overdueQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color 
                     FROM tasks t 
-                    LEFT JOIN subjects s ON t.subject_id = s.id 
+                    LEFT JOIN task_categories tc ON t.category_id = tc.id 
                     WHERE t.due_date < ? 
                     AND t.status = 'pending' 
                     ORDER BY t.due_date ASC";
@@ -50,21 +50,22 @@ try {
     $emailData = [
         'tasks' => array_map(function($task) {
             return [
-                'title' => $task['title'] . ' (' . $task['subject_name'] . ')',
-                'due_time' => date('h:i A', strtotime($task['due_date'])),
+                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
                 'priority' => $task['priority'] ?? 'medium'
             ];
         }, $tasks),
         'habits' => array_map(function($habit) {
             return [
-                'title' => $habit['title'] . ' (' . $habit['subject_name'] . ')',
-                'time' => date('h:i A', strtotime($habit['time']))
+                'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
+                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
             ];
         }, $habits),
         'overdue' => array_map(function($task) {
             return [
-                'title' => $task['title'] . ' (' . $task['subject_name'] . ')',
-                'due_time' => date('M j, Y h:i A', strtotime($task['due_date']))
+                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'due_time' => date('M j, Y', strtotime($task['due_date'])) . 
+                             ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '')
             ];
         }, $overdue)
     ];
