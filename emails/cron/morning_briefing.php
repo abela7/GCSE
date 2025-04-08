@@ -65,28 +65,34 @@ try {
     // Prepare email data
     $emailData = [
         'tasks' => array_map(function($task) {
+            $formattedTime = $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set';
             return [
                 'title' => $task['title'] . ' (' . $task['category_name'] . ')',
                 'description' => $task['description'] ?: 'No description provided',
-                'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
+                'due_time' => $formattedTime,
+                'time' => $formattedTime,
                 'priority' => $task['priority'] ?? 'medium'
             ];
         }, $tasks),
         'habits' => array_map(function($habit) {
+            $formattedTime = $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set';
             return [
                 'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
                 'description' => $habit['description'] ?: 'No description provided',
-                'due_time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
+                'due_time' => $formattedTime,
+                'time' => $formattedTime
             ];
         }, $habits),
         'date' => date('l, F j, Y'),
         'greeting' => getGreeting(),
         'overdue' => array_map(function($task) {
+            $formattedTime = date('M j, Y', strtotime($task['due_date'])) . 
+                           ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '');
             return [
                 'title' => $task['title'] . ' (' . $task['category_name'] . ')',
                 'description' => $task['description'] ?: 'No description provided',
-                'due_time' => date('M j, Y', strtotime($task['due_date'])) . 
-                         ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '')
+                'due_time' => $formattedTime,
+                'time' => $formattedTime
             ];
         }, $overdue)
     ];
