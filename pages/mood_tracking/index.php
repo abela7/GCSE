@@ -30,47 +30,45 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     --accent-color-dark: #b09339;
 }
 
-/* Card Styles */
+/* Updated Card Styles */
 .dashboard-card {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     height: 100%;
+    background: #fff;
+    overflow: hidden;
 }
 .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+}
+.dashboard-card .card-body {
+    padding: 1.5rem;
+}
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
 }
 
-/* Mood Emoji Styles */
-.mood-emoji {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
-.mood-badge {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: 50rem;
-    font-weight: 500;
-    color: #fff;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-/* Calendar Styles */
+/* Updated Calendar Styles */
 .calendar-container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 1rem;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    background: #f8f9fa;
 }
 .calendar-header {
     text-align: center;
     font-weight: 600;
     padding: 8px 5px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
+    color: #495057;
+    font-size: 0.85rem;
 }
 .calendar-day {
     aspect-ratio: 1;
@@ -78,17 +76,17 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     flex-direction: column;
     align-items: center;
     padding: 5px;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     background-color: #fff;
-    border: 1px solid #dee2e6;
+    border: 1px solid #e9ecef;
 }
 .calendar-day:hover {
-    background-color: #f8f9fa;
+    background-color: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
 }
 .calendar-day.empty {
     background-color: transparent;
@@ -101,138 +99,255 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 }
 .calendar-day.has-entries {
     background-color: var(--accent-color-light);
-    border-color: var(--accent-color);
+    border: none;
 }
 .calendar-day.today {
     border: 2px solid var(--accent-color);
-    font-weight: bold;
+    background-color: #fff;
 }
 .day-number {
     position: absolute;
-    top: 2px;
-    right: 5px;
-    font-size: 0.9rem;
+    top: 4px;
+    right: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: #495057;
 }
 .entry-indicator {
     font-size: 1.2rem;
-    margin-top: 15px;
+    margin-top: 16px;
 }
 .entry-count {
     position: absolute;
-    bottom: 2px;
+    bottom: 3px;
     right: 5px;
-    font-size: 0.7rem;
-    color: #666;
+    font-size: 0.65rem;
+    color: #495057;
+    background: rgba(255,255,255,0.9);
+    padding: 1px 4px;
+    border-radius: 8px;
 }
 
-/* Quick Entry Styles */
+/* Updated Quick Entry Styles */
 .quick-entry-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
 }
 .emoji-selector {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
 }
 .emoji-option {
     font-size: 2rem;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
     opacity: 0.5;
     text-align: center;
+    padding: 8px;
+    border-radius: 10px;
 }
 .emoji-option:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
     opacity: 1;
+    background: #fff;
 }
 .emoji-option.selected {
-    transform: scale(1.2);
+    transform: scale(1.15);
     opacity: 1;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* Tag Styles */
+/* Updated Tag Styles */
 .tag-selector {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 1rem 0;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    width: 100%;
 }
 .tag-option {
     padding: 0.4rem 0.8rem;
-    border-radius: 50rem;
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
     color: #fff;
     font-weight: 500;
-    opacity: 0.7;
+    font-size: 0.9rem;
+    opacity: 0.85;
 }
 .tag-option:hover {
     opacity: 1;
     transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .tag-option.selected {
     opacity: 1;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-/* Button Styles */
+/* Updated Button Styles */
+.btn {
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
 .btn-accent {
     background-color: var(--accent-color);
-    border-color: var(--accent-color);
+    border: none;
     color: #fff;
 }
 .btn-accent:hover {
     background-color: var(--accent-color-dark);
-    border-color: var(--accent-color-dark);
-    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .btn-outline-accent {
     color: var(--accent-color);
-    border-color: var(--accent-color);
+    border: 2px solid var(--accent-color);
+    background: transparent;
 }
 .btn-outline-accent:hover {
     background-color: var(--accent-color);
     color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Form Controls */
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    padding: 0.8rem;
+    transition: all 0.2s ease;
+}
+.form-control:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(205, 175, 86, 0.25);
+}
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
 }
 
 /* Mobile Optimizations */
 @media (max-width: 767.98px) {
-    .mood-emoji {
-        font-size: 1.8rem;
+    .dashboard-card {
+        margin-bottom: 1rem;
     }
-    .emoji-option {
-        font-size: 1.8rem;
+    .dashboard-card .card-body {
+        padding: 1rem;
+    }
+    .calendar-container {
+        gap: 4px;
+        padding: 0.25rem;
     }
     .calendar-header {
-        padding: 5px 2px;
-        font-size: 0.8rem;
+        padding: 4px 2px;
+        font-size: 0.75rem;
     }
     .calendar-day {
+        border-radius: 10px;
         padding: 3px;
     }
     .day-number {
-        font-size: 0.8rem;
-        right: 3px;
+        font-size: 0.75rem;
+        top: 3px;
+        right: 4px;
     }
     .entry-indicator {
         font-size: 1rem;
         margin-top: 12px;
     }
-    .dashboard-card {
-        margin-bottom: 1rem;
+    .entry-count {
+        font-size: 0.6rem;
+        padding: 1px 3px;
+    }
+    .emoji-selector {
+        padding: 0.25rem;
+    }
+    .emoji-option {
+        font-size: 1.75rem;
+        padding: 6px;
+    }
+    .tag-selector {
+        padding: 0.25rem;
+    }
+    .tag-option {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
     }
     .btn {
         padding: 0.5rem 1rem;
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
     .form-control {
+        padding: 0.6rem;
         font-size: 1rem;
-        padding: 0.75rem;
-        height: auto;
+    }
+    .card-title {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .dashboard-card {
+        background: #2d2d2d;
+    }
+    .calendar-container {
+        background: #1f1f1f;
+    }
+    .calendar-day {
+        background: #2d2d2d;
+        border-color: #3d3d3d;
+    }
+    .calendar-day.has-entries {
+        background-color: rgba(205, 175, 86, 0.2);
+    }
+    .calendar-header {
+        color: #e0e0e0;
+    }
+    .day-number {
+        color: #e0e0e0;
+    }
+    .entry-count {
+        background: rgba(45, 45, 45, 0.9);
+        color: #e0e0e0;
+    }
+    .emoji-selector, .tag-selector {
+        background: #1f1f1f;
+    }
+    .emoji-option:hover, .emoji-option.selected {
+        background: #2d2d2d;
+    }
+    .form-control {
+        background: #2d2d2d;
+        border-color: #3d3d3d;
+        color: #e0e0e0;
+    }
+    .form-control:focus {
+        background: #2d2d2d;
+        color: #e0e0e0;
     }
 }
 </style>
