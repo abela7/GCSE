@@ -56,7 +56,6 @@ $query = "WITH resource_data AS (
         tr.youtube_url,
         tr.image_path,
         tr.is_deleted,
-        tr.created_at,
         t.name as topic_name,
         sub.id as subsection_id,
         sub.name as subsection_name,
@@ -83,7 +82,6 @@ $query = "WITH resource_data AS (
         tr.youtube_url,
         tr.image_path,
         tr.is_deleted,
-        tr.created_at,
         t.name as topic_name,
         sub.id as subsection_id,
         sub.name as subsection_name,
@@ -159,6 +157,14 @@ if ($subsection_filter && !empty($subsections)) {
 }
 if ($topic_filter && !empty($topics)) {
     $current_topic = array_values(array_filter($topics, fn($t) => $t['id'] == $topic_filter))[0] ?? null;
+}
+
+// Add the getYoutubeId function that was missing
+function getYoutubeId($url) {
+    $regExp = '/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/';
+    $match = [];
+    preg_match($regExp, $url, $match);
+    return (isset($match[2]) && strlen($match[2]) === 11) ? $match[2] : null;
 }
 ?>
 
