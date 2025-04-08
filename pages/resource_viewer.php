@@ -215,39 +215,51 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             e.preventDefault();
             
             const formData = new FormData(this);
-            
-            // Validate YouTube URL if resource type is youtube
-            if (formData.get('resource_type') === 'youtube') {
-                const youtubeUrl = formData.get('youtube_url');
-                if (!youtubeUrl) {
-                    alert('Please enter a YouTube URL');
-                    return;
-                }
-                
-                // Simple validation for YouTube URL format
-                const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
-                if (!youtubeRegex.test(youtubeUrl)) {
-                    alert('Please enter a valid YouTube URL');
-                    return;
-                }
-            }
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
             
             try {
-                const response = await fetch('/GCSE/api/topics/add_resource.php', {
+                // Validate YouTube URL if resource type is youtube
+                if (formData.get('resource_type') === 'youtube') {
+                    const youtubeUrl = formData.get('youtube_url');
+                    if (!youtubeUrl) {
+                        throw new Error('Please enter a YouTube URL');
+                    }
+                    
+                    // Simple validation for YouTube URL format
+                    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+                    if (!youtubeRegex.test(youtubeUrl)) {
+                        throw new Error('Please enter a valid YouTube URL');
+                    }
+                } else if (formData.get('resource_type') === 'image') {
+                    const imageFile = formData.get('image');
+                    if (!imageFile || imageFile.size === 0) {
+                        throw new Error('Please select an image file');
+                    }
+                }
+                
+                const response = await fetch('/api/topics/add_resource.php', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const result = await response.json();
                 
                 if (result.success) {
-                    location.reload();
+                    window.location.reload();
                 } else {
-                    alert(result.message || 'Error adding resource');
+                    throw new Error(result.message || 'Error adding resource');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error adding resource');
+                alert(error.message || 'Error adding resource');
+            } finally {
+                submitButton.disabled = false;
             }
         });
 
