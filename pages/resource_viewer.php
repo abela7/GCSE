@@ -40,8 +40,6 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
     <style>
         .resource-grid {
             display: grid;
@@ -87,28 +85,48 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             right: 20px;
             z-index: 1000;
         }
-        .resource-image-link {
-            display: block;
-            position: relative;
-            overflow: hidden;
+        .modal-image {
+            max-width: 100%;
+            height: auto;
         }
-        .resource-image-link::after {
-            content: '\f00e';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+        .modal-fullscreen .modal-content {
+            height: 100%;
+            border: 0;
+            border-radius: 0;
+        }
+        .modal-fullscreen .modal-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            background: #000;
+        }
+        .modal-fullscreen img {
+            max-height: 100vh;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .image-navigation {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            z-index: 1060;
+            pointer-events: none;
+        }
+        .image-navigation button {
+            pointer-events: auto;
             position: absolute;
-            right: 10px;
-            top: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            padding: 1rem;
             border-radius: 50%;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.2s;
         }
-        .resource-image-link:hover::after {
-            opacity: 1;
+        .image-navigation .prev-image {
+            left: 20px;
+        }
+        .image-navigation .next-image {
+            right: 20px;
         }
     </style>
 </head>
@@ -150,31 +168,20 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                         </div>
                     <?php else: ?>
                         <?php 
-                            // Ensure image path is absolute and correct
                             $imagePath = $resource['image_path'];
-                            // Remove /GCSE/ if it exists at the start
-                            $imagePath = preg_replace('/^\/GCSE\//', '/', $imagePath);
-                            // Remove any double slashes
-                            $imagePath = preg_replace('/\/+/', '/', $imagePath);
-                            // Ensure path starts with /
                             if (!str_starts_with($imagePath, '/')) {
                                 $imagePath = '/' . $imagePath;
                             }
-                            // If path contains /uploads/, ensure it's properly formatted
-                            if (strpos($imagePath, '/uploads/') !== false) {
-                                $imagePath = preg_replace('/.*?(\/uploads\/.*)/', '$1', $imagePath);
-                            }
                         ?>
-                        <a href="<?php echo htmlspecialchars($imagePath); ?>" 
-                           class="resource-image-link"
-                           data-fancybox="gallery"
-                           data-caption="<?php echo htmlspecialchars($resource['title']); ?>"
-                           data-type="image">
+                        <div class="image-container" 
+                             data-image="<?php echo htmlspecialchars($imagePath); ?>"
+                             data-title="<?php echo htmlspecialchars($resource['title']); ?>">
                             <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
                                  class="resource-thumbnail"
+                                 onclick="openImageModal(this)"
                                  onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
-                        </a>
+                        </div>
                     <?php endif; ?>
                     <div class="resource-info">
                         <h5><?php echo htmlspecialchars($resource['title']); ?></h5>
@@ -237,13 +244,34 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 
+    <!-- Image View Modal -->
+    <div class="modal fade modal-fullscreen" id="imageViewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered m-0">
+            <div class="modal-content bg-dark">
+                <div class="modal-header border-0 text-white">
+                    <h5 class="modal-title" id="imageTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img src="" id="modalImage" class="modal-image" alt="">
+                </div>
+                <div class="image-navigation">
+                    <button class="prev-image" onclick="navigateImage(-1)">
+                        <i class="fas fa-chevron-left fa-2x"></i>
+                    </button>
+                    <button class="next-image" onclick="navigateImage(1)">
+                        <i class="fas fa-chevron-right fa-2x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <a href="/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary back-button">
         <i class="fas fa-arrow-left"></i> Back to Topic
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <script>
         document.getElementById('resourceType').addEventListener('change', function() {
             const youtubeInput = document.getElementById('youtubeInput');
@@ -339,46 +367,63 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         });
 
-        // Initialize Fancybox with updated options
-        Fancybox.bind("[data-fancybox]", {
-            // Custom options
-            Toolbar: {
-                display: [
-                    { id: "prev", position: "center" },
-                    { id: "counter", position: "center" },
-                    { id: "next", position: "center" },
-                    "zoom",
-                    "slideshow",
-                    "fullscreen",
-                    "download",
-                    "close",
-                ],
-            },
-            Carousel: {
-                transition: "slide",
-            },
-            Images: {
-                zoom: true,
-            },
-            // Add error handling for images
-            Image: {
-                error: function(fancybox, error, instance) {
-                    const $image = instance.$image;
-                    if ($image) {
-                        $image.attr("src", "/assets/images/image-not-found.png");
-                    }
+        // Image viewing functionality
+        let currentImageIndex = 0;
+        const images = Array.from(document.querySelectorAll('.image-container'));
+        const imageModal = new bootstrap.Modal(document.getElementById('imageViewModal'));
+
+        function openImageModal(imgElement) {
+            const container = imgElement.closest('.image-container');
+            currentImageIndex = images.indexOf(container);
+            updateModalImage();
+            imageModal.show();
+        }
+
+        function updateModalImage() {
+            const container = images[currentImageIndex];
+            const modalImg = document.getElementById('modalImage');
+            const titleElement = document.getElementById('imageTitle');
+            
+            modalImg.src = container.dataset.image;
+            titleElement.textContent = container.dataset.title;
+        }
+
+        function navigateImage(direction) {
+            currentImageIndex = (currentImageIndex + direction + images.length) % images.length;
+            updateModalImage();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('imageViewModal').classList.contains('show')) return;
+            
+            if (e.key === 'ArrowLeft') {
+                navigateImage(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateImage(1);
+            } else if (e.key === 'Escape') {
+                imageModal.hide();
+            }
+        });
+
+        // Touch swipe handling
+        let touchStartX = 0;
+        const modalElement = document.getElementById('imageViewModal');
+
+        modalElement.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        modalElement.addEventListener('touchend', function(e) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (diff > 0) {
+                    navigateImage(1); // Swipe left, next image
+                } else {
+                    navigateImage(-1); // Swipe right, previous image
                 }
-            },
-            // Ensure proper loading of images
-            preload: true,
-            // Add click protection
-            click: "next",
-            // Mobile-specific options
-            mobile: {
-                clickContent: "close",
-                clickSlide: "close",
-                dblclickContent: "zoom",
-                touch: true
             }
         });
     </script>
