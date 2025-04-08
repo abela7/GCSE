@@ -63,42 +63,67 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
+    margin-bottom: 1rem;
 }
 .calendar-header {
     text-align: center;
     font-weight: 600;
-    padding: 5px;
+    padding: 8px 5px;
     background-color: #f8f9fa;
+    border-radius: 4px;
 }
 .calendar-day {
     aspect-ratio: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    padding: 5px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
 }
 .calendar-day:hover {
     background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.calendar-day.empty {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+}
+.calendar-day.empty:hover {
+    transform: none;
+    box-shadow: none;
 }
 .calendar-day.has-entries {
     background-color: var(--accent-color-light);
-    color: #333;
+    border-color: var(--accent-color);
 }
 .calendar-day.today {
     border: 2px solid var(--accent-color);
     font-weight: bold;
 }
 .day-number {
-    font-size: 1rem;
-    font-weight: 500;
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    font-size: 0.9rem;
+    color: #495057;
 }
 .entry-indicator {
+    font-size: 1.2rem;
+    margin-top: 15px;
+}
+.entry-count {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
     font-size: 0.7rem;
-    margin-top: 2px;
+    color: #666;
 }
 
 /* Quick Entry Styles */
@@ -182,14 +207,20 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     .emoji-option {
         font-size: 1.8rem;
     }
+    .calendar-header {
+        padding: 5px 2px;
+        font-size: 0.8rem;
+    }
     .calendar-day {
-        min-height: 40px;
+        padding: 3px;
     }
     .day-number {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        right: 3px;
     }
     .entry-indicator {
-        font-size: 0.6rem;
+        font-size: 1rem;
+        margin-top: 12px;
     }
     .dashboard-card {
         margin-bottom: 1rem;
@@ -270,31 +301,47 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="card-title mb-0" style="color: var(--accent-color);">
-                            <i class="fas fa-calendar-alt me-2"></i><?php echo date('F Y'); ?>
+                            <?php
+                            // Get selected month and year from URL parameters or use current date
+                            $selected_month = isset($_GET['month']) ? $_GET['month'] : date('m');
+                            $selected_year = isset($_GET['year']) ? $_GET['year'] : date('Y');
+                            $current_date = "$selected_year-$selected_month-01";
+                            ?>
+                            <i class="fas fa-calendar-alt me-2"></i><?php echo date('F Y', strtotime($current_date)); ?>
                         </h5>
                         <div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)">
+                            <?php
+                            // Calculate previous and next month/year
+                            $prev_date = date('Y-m', strtotime('-1 month', strtotime($current_date)));
+                            $next_date = date('Y-m', strtotime('+1 month', strtotime($current_date)));
+                            list($prev_year, $prev_month) = explode('-', $prev_date);
+                            list($next_year, $next_month) = explode('-', $next_date);
+                            ?>
+                            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">
+                            </a>
+                            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-chevron-right"></i>
-                            </button>
+                            </a>
                         </div>
                     </div>
                     
                     <div class="calendar-container" id="mood_calendar">
-                        <!-- Calendar headers (Sun-Sat) -->
                         <?php
+                        // Calendar headers (Sun-Sat)
                         $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                         foreach ($days as $day) {
                             echo '<div class="calendar-header">' . $day . '</div>';
                         }
                         
                         // Get first day of month and total days
-                        $first_day_of_month = date('w', strtotime($current_month . '-01'));
-                        $total_days = date('t', strtotime($current_month . '-01'));
+                        $first_day_of_month = date('w', strtotime($current_date));
+                        $total_days = date('t', strtotime($current_date));
                         $today = date('j');
                         $current_month_year = date('Y-m');
+                        
+                        // Get entries for the selected month
+                        $month_entries = getMoodEntriesByDay("$selected_year-$selected_month");
                         
                         // Add empty cells for days before the 1st
                         for ($i = 0; $i < $first_day_of_month; $i++) {
@@ -303,7 +350,8 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                         
                         // Add days of the month
                         for ($day = 1; $day <= $total_days; $day++) {
-                            $is_today = ($day == $today && $current_month_year == date('Y-m'));
+                            $date = sprintf('%s-%02d', "$selected_year-$selected_month", $day);
+                            $is_today = ($day == date('j') && "$selected_year-$selected_month" == date('Y-m'));
                             $has_entries = isset($month_entries[$day]);
                             $avg_mood = $has_entries ? $month_entries[$day]['avg_mood'] : 0;
                             $entry_count = $has_entries ? $month_entries[$day]['entry_count'] : 0;
@@ -312,7 +360,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             if ($is_today) $class .= ' today';
                             if ($has_entries) $class .= ' has-entries';
                             
-                            echo '<div class="' . $class . '" onclick="viewDayEntries(\'' . $current_month . '-' . sprintf('%02d', $day) . '\')">';
+                            echo '<div class="' . $class . '" onclick="viewDayEntries(\'' . $date . '\')">';
                             echo '<span class="day-number">' . $day . '</span>';
                             if ($has_entries) {
                                 $emoji = '';
@@ -323,6 +371,9 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                 else $emoji = '😢';
                                 
                                 echo '<span class="entry-indicator">' . $emoji . '</span>';
+                                if ($entry_count > 1) {
+                                    echo '<span class="entry-count">(' . $entry_count . ')</span>';
+                                }
                             }
                             echo '</div>';
                         }
@@ -340,10 +391,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                     <div class="text-center mt-3">
                         <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
                     </div>
-                    </div>
                 </div>
             </div>
-            
+        </div>
+        
         <!-- Mood Stats -->
         <div class="col-lg-4 col-md-12 mb-4">
             <div class="dashboard-card">
@@ -658,60 +709,6 @@ function saveQuickEntry() {
         saveButton.innerHTML = originalText;
     };
     xhr.send('mood_level=' + selectedMood + '&notes=' + encodeURIComponent(notes) + '&tags=' + tags);
-}
-
-// Function to change month
-function changeMonth(direction) {
-    // Get current month and year from PHP-generated title
-    const titleElement = document.querySelector('.card-title');
-    const currentMonth = <?php echo date('n') - 1; ?>; // JavaScript months are 0-based
-    const currentYear = <?php echo date('Y'); ?>;
-    
-    // Create date object for the first day of current month
-    const date = new Date(currentYear, currentMonth, 1);
-    
-    // Add or subtract months
-    date.setMonth(date.getMonth() + direction);
-    
-    // Format the date for the AJAX request (YYYY-MM)
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const newMonth = `${year}-${month}`;
-    
-    // Update calendar title
-    titleElement.innerHTML = `<i class="fas fa-calendar-alt me-2"></i>${date.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`;
-    
-    // Show loading state
-    document.getElementById('mood_calendar').innerHTML = `
-        <div class="text-center py-5" style="grid-column: span 7;">
-            <div class="spinner-border text-accent" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
-    // Load new month data via AJAX
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'ajax/get_month_entries.php?month=' + newMonth, true);
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            document.getElementById('mood_calendar').innerHTML = xhr.responseText;
-        } else {
-            document.getElementById('mood_calendar').innerHTML = `
-                <div class="alert alert-danger" style="grid-column: span 7;">
-                    Error loading calendar. Please try again.
-                </div>
-            `;
-        }
-    };
-    xhr.onerror = function() {
-        document.getElementById('mood_calendar').innerHTML = `
-            <div class="alert alert-danger" style="grid-column: span 7;">
-                Network error occurred. Please check your connection.
-            </div>
-        `;
-    };
-    xhr.send();
 }
 
 // Function to view day entries
