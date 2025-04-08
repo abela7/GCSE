@@ -1,147 +1,135 @@
 <?php
-// Set page title
-$page_title = "Add/Edit Mood Entry";
-
 // Include database connection and functions
-require_once '../../../config/db_connect.php';
 require_once '../includes/functions.php';
 
-// Initialize variables
-$entry_id = isset($_GET['id']) ? intval($_GET['id']) : null;
-$entry = null;
-$is_edit_mode = false;
-
-// If in edit mode, get the entry data
-if ($entry_id) {
-    $entry = getMoodEntry($entry_id);
-    $is_edit_mode = ($entry !== false);
-}
-
-// Process form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $mood_level = isset($_POST['mood_level']) ? intval($_POST['mood_level']) : null;
-    $notes = isset($_POST['notes']) ? trim($_POST['notes']) : null;
-    $subject_id = !empty($_POST['subject_id']) ? intval($_POST['subject_id']) : null;
-    $topic_id = !empty($_POST['topic_id']) ? intval($_POST['topic_id']) : null;
-    $tag_ids = isset($_POST['tags']) ? $_POST['tags'] : [];
-    
-    if ($mood_level >= 1 && $mood_level <= 5) {
-        if ($is_edit_mode) {
-            // Update existing entry
-            $result = updateMoodEntry($entry_id, $mood_level, $notes, $subject_id, $topic_id, $tag_ids);
-            if ($result) {
-                $success_message = "Mood entry updated successfully!";
-                // Refresh entry data
-                $entry = getMoodEntry($entry_id);
-            } else {
-                $error_message = "Failed to update mood entry. Please try again.";
-            }
-        } else {
-            // Create new entry
-            $result = createMoodEntry($mood_level, $notes, $subject_id, $topic_id, $tag_ids);
-            if ($result) {
-                $success_message = "Mood entry added successfully!";
-                // Redirect to history page
-                header("Location: history.php");
-                exit;
-            } else {
-                $error_message = "Failed to add mood entry. Please try again.";
-            }
-        }
-    } else {
-        $error_message = "Invalid mood level. Please select a value between 1 and 5.";
-    }
-}
-
-// Get subjects for form
-$subjects_query = "SELECT * FROM subjects ORDER BY name";
-$subjects_result = $conn->query($subjects_query);
-
-// Get all tags for form
-$all_tags = getMoodTags();
-$tag_categories = getMoodTagCategories();
+// Set page title
+$page_title = "Mood Entry";
 
 // Include header
-include '../../../includes/header.php';
+include '../../includes/header.php';
+
+// Initialize variables
+$entry_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$entry = null;
+$is_edit = false;
+
+// If entry ID is provided, get entry data
+if ($entry_id > 0) {
+    $entry = getMoodEntry($entry_id);
+    $is_edit = ($entry !== false);
+}
+
+// Get mood tags
+$mood_tags = getMoodTags();
 ?>
 
 <style>
-/* General Styles */
-.mood-card {
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    margin-bottom: 1rem;
+:root {
+    --accent-color: #cdaf56;
+    --accent-color-light: #dbc77a;
+    --accent-color-dark: #b99b3e;
 }
-.mood-card:hover {
+
+.mood-emoji {
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    opacity: 0.5;
+    margin: 0 5px;
+}
+
+.mood-emoji:hover, .mood-emoji.selected {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+.tag-badge {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    padding: 8px 12px;
+}
+
+.tag-badge:hover, .tag-badge.selected {
     transform: translateY(-2px);
 }
 
-/* Mood Level Indicators */
-.mood-level {
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-align: center;
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
-    border-radius: 50%;
-    margin-right: 1rem;
-}
-.mood-level-1 { background-color: #ff6b6b; color: white; }
-.mood-level-2 { background-color: #ffa06b; color: white; }
-.mood-level-3 { background-color: #ffd56b; color: black; }
-.mood-level-4 { background-color: #c2e06b; color: black; }
-.mood-level-5 { background-color: #6be07b; color: white; }
-.mood-emoji { font-size: 2rem; }
-
-/* Mood Selection */
-.mood-option {
-    text-align: center;
-    margin-bottom: 1rem;
-}
-.mood-option label {
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-}
-.mood-option label:hover {
-    background-color: #f8f9fa;
-}
-.mood-option input:checked + label {
-    transform: scale(1.1);
-    background-color: #f0f0f0;
+.btn-accent {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
 }
 
-/* Tag Selection */
-.tag-option {
-    margin-bottom: 0.5rem;
-}
-.tag-badge {
-    display: inline-block;
-    padding: 0.4rem 0.6rem;
-    border-radius: 50rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-.tag-checkbox {
-    display: none;
-}
-.tag-checkbox:checked + .tag-badge {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #007bff;
+.btn-accent:hover {
+    background-color: var(--accent-color-dark);
+    border-color: var(--accent-color-dark);
+    color: white;
 }
 
-/* Mobile Optimizations */
+.btn-outline-accent {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-outline-accent:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Mobile Responsiveness Improvements */
 @media (max-width: 767.98px) {
-    .mood-level {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        font-size: 1.25rem;
-    }
     .mood-emoji {
+        font-size: 2rem;
+        margin: 0 2px;
+    }
+    
+    .tag-badge {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    h1.h3 {
         font-size: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 576px) {
+    .mood-emoji {
+        font-size: 2.2rem;
+        padding: 10px;
+        margin: 0;
+    }
+    
+    .mood-emoji-container {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .tag-badge {
+        padding: 8px 12px;
+        margin-bottom: 10px;
+    }
+    
+    .form-control, .form-select {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+        padding: 12px;
+        height: auto;
+    }
+    
+    .btn {
+        padding: 12px 16px;
     }
 }
 </style>
@@ -149,309 +137,232 @@ include '../../../includes/header.php';
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h3 mb-0">
-                <i class="fas fa-smile me-2"></i>
-                <?php echo $is_edit_mode ? 'Edit Mood Entry' : 'Add Mood Entry'; ?>
-            </h1>
-            <p class="text-muted">
-                <?php echo $is_edit_mode ? 'Update your mood entry details' : 'Record how you\'re feeling right now'; ?>
-            </p>
+            <h1 class="h3 mb-3"><?php echo $is_edit ? 'Edit Mood Entry' : 'New Mood Entry'; ?></h1>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="index.php" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        <div class="col-md-4 text-md-end">
+            <a href="index.php" class="btn btn-outline-accent">
+                <i class="fas fa-arrow-left me-2"></i>Back to Tracker
             </a>
         </div>
     </div>
 
-    <?php if (isset($success_message)): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?php echo $success_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (isset($error_message)): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?php echo $error_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
-
-    <div class="card">
-        <div class="card-body">
-            <form method="POST" id="moodEntryForm">
-                <!-- Mood Level Selection -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold">How are you feeling?</label>
-                    <div class="row justify-content-center">
-                        <?php for ($i = 1; $i <= 5; $i++): 
-                            $emoji = '';
-                            $mood_text = '';
-                            switch ($i) {
-                                case 1: 
-                                    $emoji = '😢'; 
-                                    $mood_text = 'Very Low';
-                                    break;
-                                case 2: 
-                                    $emoji = '😕'; 
-                                    $mood_text = 'Low';
-                                    break;
-                                case 3: 
-                                    $emoji = '😐'; 
-                                    $mood_text = 'Neutral';
-                                    break;
-                                case 4: 
-                                    $emoji = '🙂'; 
-                                    $mood_text = 'Good';
-                                    break;
-                                case 5: 
-                                    $emoji = '😄'; 
-                                    $mood_text = 'Excellent';
-                                    break;
-                            }
-                            $is_checked = ($is_edit_mode && $entry['mood_level'] == $i) || (!$is_edit_mode && $i === 3);
-                        ?>
-                            <div class="col-4 col-md-2 mood-option">
-                                <input class="form-check-input visually-hidden" type="radio" name="mood_level" 
-                                       id="mood<?php echo $i; ?>" value="<?php echo $i; ?>" 
-                                       <?php echo $is_checked ? 'checked' : ''; ?>>
-                                <label class="form-check-label d-block" for="mood<?php echo $i; ?>">
-                                    <div class="mood-emoji mb-2"><?php echo $emoji; ?></div>
-                                    <div class="mood-level mood-level-<?php echo $i; ?>" style="margin: 0 auto;"><?php echo $i; ?></div>
-                                    <div class="mt-2 small"><?php echo $mood_text; ?></div>
-                                </label>
-                            </div>
-                        <?php endfor; ?>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <!-- Subject and Topic -->
-                    <div class="col-md-6 mb-3">
-                        <label for="subject_id" class="form-label fw-bold">Subject (Optional)</label>
-                        <select class="form-select" id="subject_id" name="subject_id">
-                            <option value="">Select Subject</option>
-                            <?php 
-                            // Reset the result pointer
-                            $subjects_result->data_seek(0);
-                            while ($subject = $subjects_result->fetch_assoc()): 
-                                $is_selected = $is_edit_mode && $entry['associated_subject_id'] == $subject['id'];
-                            ?>
-                                <option value="<?php echo $subject['id']; ?>" <?php echo $is_selected ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($subject['name']); ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="topic_id" class="form-label fw-bold">Topic (Optional)</label>
-                        <select class="form-select" id="topic_id" name="topic_id" <?php echo empty($entry['associated_subject_id']) ? 'disabled' : ''; ?>>
-                            <option value="">Select Topic</option>
-                            <?php if ($is_edit_mode && !empty($entry['associated_subject_id']) && !empty($entry['associated_topic_id'])): ?>
-                                <option value="<?php echo $entry['associated_topic_id']; ?>" selected>
-                                    <?php echo htmlspecialchars($entry['topic_name']); ?>
-                                </option>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Tags -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Tags</label>
-                    <div class="mb-2">
-                        <small class="text-muted">Select tags that relate to your current mood</small>
-                    </div>
-                    
-                    <?php if (!empty($tag_categories)): ?>
-                        <ul class="nav nav-tabs mb-3" id="tagTabs" role="tablist">
-                            <?php foreach ($tag_categories as $index => $category): ?>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" 
-                                            id="<?php echo strtolower(str_replace(' ', '-', $category)); ?>-tab" 
-                                            data-bs-toggle="tab" 
-                                            data-bs-target="#<?php echo strtolower(str_replace(' ', '-', $category)); ?>" 
-                                            type="button" role="tab" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>">
-                                        <?php echo htmlspecialchars($category); ?>
-                                    </button>
-                                </li>
-                            <?php endforeach; ?>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other" type="button" role="tab" aria-selected="false">
-                                    Other
-                                </button>
-                            </li>
-                        </ul>
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form id="mood-entry-form">
+                        <?php if ($is_edit): ?>
+                        <input type="hidden" name="entry_id" value="<?php echo $entry_id; ?>">
+                        <?php endif; ?>
                         
-                        <div class="tab-content" id="tagTabContent">
-                            <?php foreach ($tag_categories as $index => $category): ?>
-                                <div class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" 
-                                     id="<?php echo strtolower(str_replace(' ', '-', $category)); ?>" 
-                                     role="tabpanel">
-                                    <div class="row">
-                                        <?php 
-                                        $category_tags = array_filter($all_tags, function($tag) use ($category) {
-                                            return $tag['category'] === $category;
-                                        });
-                                        
-                                        foreach ($category_tags as $tag): 
-                                            $is_checked = $is_edit_mode && !empty($entry['tags']) && 
-                                                         array_filter($entry['tags'], function($t) use ($tag) {
-                                                             return $t['id'] == $tag['id'];
-                                                         });
-                                        ?>
-                                            <div class="col-6 col-md-3 tag-option">
-                                                <input type="checkbox" class="tag-checkbox" name="tags[]" 
-                                                       id="tag<?php echo $tag['id']; ?>" value="<?php echo $tag['id']; ?>"
-                                                       <?php echo !empty($is_checked) ? 'checked' : ''; ?>>
-                                                <label for="tag<?php echo $tag['id']; ?>" class="tag-badge" style="background-color: <?php echo $tag['color']; ?>; cursor: pointer;">
-                                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                                </label>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
+                        <div class="mb-4">
+                            <label class="form-label">How are you feeling?</label>
+                            <div class="d-flex justify-content-between mood-emoji-container">
+                                <div class="text-center">
+                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 1) ? 'selected' : ''; ?>" data-level="1">😢</div>
+                                    <div>Very Low</div>
                                 </div>
-                            <?php endforeach; ?>
-                            
-                            <div class="tab-pane fade" id="other" role="tabpanel">
-                                <div class="row">
-                                    <?php 
-                                    $other_tags = array_filter($all_tags, function($tag) {
-                                        return $tag['category'] === null;
-                                    });
-                                    
-                                    foreach ($other_tags as $tag): 
-                                        $is_checked = $is_edit_mode && !empty($entry['tags']) && 
-                                                     array_filter($entry['tags'], function($t) use ($tag) {
-                                                         return $t['id'] == $tag['id'];
-                                                     });
-                                    ?>
-                                        <div class="col-6 col-md-3 tag-option">
-                                            <input type="checkbox" class="tag-checkbox" name="tags[]" 
-                                                   id="tag<?php echo $tag['id']; ?>" value="<?php echo $tag['id']; ?>"
-                                                   <?php echo !empty($is_checked) ? 'checked' : ''; ?>>
-                                            <label for="tag<?php echo $tag['id']; ?>" class="tag-badge" style="background-color: <?php echo $tag['color']; ?>; cursor: pointer;">
-                                                <?php echo htmlspecialchars($tag['name']); ?>
-                                            </label>
-                                        </div>
-                                    <?php endforeach; ?>
-                                    
-                                    <div class="col-12 mt-3">
-                                        <a href="settings.php" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-plus me-1"></i>Add Custom Tags
-                                        </a>
-                                    </div>
+                                <div class="text-center">
+                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 2) ? 'selected' : ''; ?>" data-level="2">😕</div>
+                                    <div>Low</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 3) ? 'selected' : ''; ?>" data-level="3">😐</div>
+                                    <div>Neutral</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 4) ? 'selected' : ''; ?>" data-level="4">🙂</div>
+                                    <div>Good</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 5) ? 'selected' : ''; ?>" data-level="5">😄</div>
+                                    <div>Excellent</div>
                                 </div>
                             </div>
+                            <input type="hidden" id="mood-level" name="mood_level" value="<?php echo $is_edit ? $entry['mood_level'] : ''; ?>" required>
                         </div>
-                    <?php else: ?>
-                        <div class="row">
-                            <?php foreach ($all_tags as $tag): 
-                                $is_checked = $is_edit_mode && !empty($entry['tags']) && 
-                                             array_filter($entry['tags'], function($t) use ($tag) {
-                                                 return $t['id'] == $tag['id'];
-                                             });
-                            ?>
-                                <div class="col-6 col-md-3 tag-option">
-                                    <input type="checkbox" class="tag-checkbox" name="tags[]" 
-                                           id="tag<?php echo $tag['id']; ?>" value="<?php echo $tag['id']; ?>"
-                                           <?php echo !empty($is_checked) ? 'checked' : ''; ?>>
-                                    <label for="tag<?php echo $tag['id']; ?>" class="tag-badge" style="background-color: <?php echo $tag['color']; ?>; cursor: pointer;">
-                                        <?php echo htmlspecialchars($tag['name']); ?>
-                                    </label>
-                                </div>
-                            <?php endforeach; ?>
+                        
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">Notes (optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="What's on your mind?"><?php echo $is_edit ? htmlspecialchars($entry['notes']) : ''; ?></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Tags</label>
+                            <div class="tag-container d-flex flex-wrap">
+                                <?php 
+                                $selected_tag_ids = [];
+                                if ($is_edit && isset($entry['tags'])) {
+                                    foreach ($entry['tags'] as $tag) {
+                                        $selected_tag_ids[] = $tag['id'];
+                                    }
+                                }
+                                
+                                foreach ($mood_tags as $tag): 
+                                    $is_selected = in_array($tag['id'], $selected_tag_ids);
+                                ?>
+                                <span class="badge tag-badge <?php echo $is_selected ? 'selected' : ''; ?>" 
+                                      style="background-color: <?php echo htmlspecialchars($tag['color']); ?>"
+                                      data-tag-id="<?php echo $tag['id']; ?>">
+                                    <?php echo htmlspecialchars($tag['name']); ?>
+                                </span>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" id="selected-tags" name="tags" value="<?php echo implode(',', $selected_tag_ids); ?>">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="date-time" class="form-label">Date and Time</label>
+                            <input type="datetime-local" class="form-control" id="date-time" name="date_time" 
+                                   value="<?php echo $is_edit ? date('Y-m-d\TH:i', strtotime($entry['date'])) : date('Y-m-d\TH:i'); ?>">
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <?php if ($is_edit): ?>
+                            <button type="button" id="delete-btn" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </button>
+                            <?php else: ?>
+                            <div></div>
+                            <?php endif; ?>
                             
-                            <div class="col-12 mt-3">
-                                <a href="settings.php" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-plus me-1"></i>Add Custom Tags
-                                </a>
+                            <div>
+                                <button type="button" id="cancel-btn" class="btn btn-outline-secondary me-2">Cancel</button>
+                                <button type="submit" class="btn btn-accent">
+                                    <i class="fas fa-save me-2"></i><?php echo $is_edit ? 'Update' : 'Save'; ?>
+                                </button>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    </form>
                 </div>
-                
-                <!-- Notes -->
-                <div class="mb-4">
-                    <label for="notes" class="form-label fw-bold">Notes (Optional)</label>
-                    <textarea class="form-control" id="notes" name="notes" rows="4" 
-                              placeholder="Add any thoughts or details about how you're feeling..."><?php echo $is_edit_mode ? htmlspecialchars($entry['notes']) : ''; ?></textarea>
-                </div>
-                
-                <div class="d-flex justify-content-between">
-                    <a href="<?php echo $is_edit_mode ? 'history.php' : 'index.php'; ?>" class="btn btn-outline-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">
-                        <?php echo $is_edit_mode ? 'Update Mood Entry' : 'Save Mood Entry'; ?>
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Style the mood selection on click
-    const moodOptions = document.querySelectorAll('.mood-option input');
-    moodOptions.forEach(option => {
-        option.addEventListener('change', function() {
-            document.querySelectorAll('.mood-option label').forEach(label => {
-                label.style.transform = 'scale(1)';
-                label.style.backgroundColor = '';
-            });
+    // Mood emoji selection
+    const moodEmojis = document.querySelectorAll('.mood-emoji');
+    const moodLevelInput = document.getElementById('mood-level');
+    
+    moodEmojis.forEach(emoji => {
+        emoji.addEventListener('click', function() {
+            // Remove selected class from all emojis
+            moodEmojis.forEach(e => e.classList.remove('selected'));
             
-            if (this.checked) {
-                this.parentElement.querySelector('label').style.transform = 'scale(1.1)';
-                this.parentElement.querySelector('label').style.backgroundColor = '#f0f0f0';
-            }
+            // Add selected class to clicked emoji
+            this.classList.add('selected');
+            
+            // Set mood level value
+            moodLevelInput.value = this.dataset.level;
         });
     });
     
-    // Trigger change event on the default selected mood
-    document.querySelector('.mood-option input:checked').dispatchEvent(new Event('change'));
+    // Tag selection
+    const tagBadges = document.querySelectorAll('.tag-badge');
+    const selectedTagsInput = document.getElementById('selected-tags');
+    let selectedTags = selectedTagsInput.value ? selectedTagsInput.value.split(',') : [];
     
-    // Handle subject change to load topics
-    const subjectSelect = document.getElementById('subject_id');
-    const topicSelect = document.getElementById('topic_id');
-    
-    subjectSelect.addEventListener('change', function() {
-        const subjectId = this.value;
-        
-        if (subjectId) {
-            topicSelect.disabled = true;
-            topicSelect.innerHTML = '<option value="">Loading topics...</option>';
+    tagBadges.forEach(badge => {
+        badge.addEventListener('click', function() {
+            const tagId = this.dataset.tagId;
             
-            fetch(`../ajax/get_topics.php?subject_id=${subjectId}`)
-                .then(response => response.json())
-                .then(data => {
-                    topicSelect.innerHTML = '<option value="">Select Topic</option>';
-                    
-                    data.forEach(topic => {
-                        const option = document.createElement('option');
-                        option.value = topic.id;
-                        option.textContent = topic.name;
-                        topicSelect.appendChild(option);
-                    });
-                    
-                    topicSelect.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Error fetching topics:', error);
-                    topicSelect.innerHTML = '<option value="">Error loading topics</option>';
-                    topicSelect.disabled = true;
-                });
-        } else {
-            topicSelect.innerHTML = '<option value="">Select Topic</option>';
-            topicSelect.disabled = true;
-        }
+            if (this.classList.contains('selected')) {
+                // Remove tag from selection
+                this.classList.remove('selected');
+                const index = selectedTags.indexOf(tagId);
+                if (index > -1) {
+                    selectedTags.splice(index, 1);
+                }
+            } else {
+                // Add tag to selection
+                this.classList.add('selected');
+                selectedTags.push(tagId);
+            }
+            
+            // Update hidden input
+            selectedTagsInput.value = selectedTags.join(',');
+        });
     });
     
-    // If in edit mode and subject is selected, trigger change to load topics
-    if (subjectSelect.value) {
-        subjectSelect.dispatchEvent(new Event('change'));
+    // Form submission
+    const moodEntryForm = document.getElementById('mood-entry-form');
+    
+    moodEntryForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        if (!moodLevelInput.value) {
+            alert('Please select your mood level');
+            return;
+        }
+        
+        // Collect form data
+        const formData = new FormData(this);
+        
+        // Send AJAX request
+        fetch('ajax/save_mood.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert('Mood entry saved successfully!');
+                
+                // Redirect to mood tracker
+                window.location.href = 'index.php';
+            } else {
+                // Show error message
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving your mood entry');
+        });
+    });
+    
+    // Cancel button
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+        window.location.href = 'index.php';
+    });
+    
+    // Delete button (for edit mode)
+    const deleteBtn = document.getElementById('delete-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this mood entry?')) {
+                const entryId = <?php echo $is_edit ? $entry_id : 0; ?>;
+                
+                fetch('ajax/delete_entry.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'entry_id=' + entryId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mood entry deleted successfully!');
+                        window.location.href = 'index.php';
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the mood entry');
+                });
+            }
+        });
     }
 });
 </script>
 
-<?php include '../../../includes/footer.php'; ?>
+<?php
+include '../../includes/footer.php';
+?>
