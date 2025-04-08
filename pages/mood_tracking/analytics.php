@@ -222,7 +222,7 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                 <div class="analytics-card stat-card">
                     <div class="stat-icon">
                             <?php 
-                        $avg_mood = $stats['average_mood'];
+                        $avg_mood = $stats['avg_mood'];
                         if ($avg_mood >= 4.5) echo '😄';
                         else if ($avg_mood >= 3.5) echo '🙂';
                         else if ($avg_mood >= 2.5) echo '😐';
