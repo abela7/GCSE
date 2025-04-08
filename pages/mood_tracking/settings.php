@@ -305,53 +305,7 @@ $tag_categories = getMoodTagCategories();
         
         <!-- Settings and Help -->
         <div class="col-lg-4 col-md-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
-                        <i class="fas fa-info-circle me-2"></i>About Tags
-                    </h5>
-                    <p>Tags help you categorize and filter your mood entries. Use them to identify patterns in your mood based on different aspects of your life.</p>
-                    <p>Examples of how to use tags:</p>
-                    <ul>
-                        <li>Track mood related to specific activities (Exercise, Reading)</li>
-                        <li>Monitor how different areas of life affect your mood (Work, Family, Health)</li>
-                        <li>Identify triggers for mood changes (Stress, Sleep, Nutrition)</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
-                        <i class="fas fa-palette me-2"></i>Color Guide
-                    </h5>
-                    <p>Using colors effectively can help you quickly identify different types of tags:</p>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #cdaf56">General</span>
-                        <span class="small text-muted">- Default color</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #28a745">Health</span>
-                        <span class="small text-muted">- For health-related tags</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #17a2b8">Family</span>
-                        <span class="small text-muted">- For family-related tags</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #e83e8c">Relationship</span>
-                        <span class="small text-muted">- For relationship-related tags</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #007bff">School</span>
-                        <span class="small text-muted">- For academic-related tags</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="tag-badge" style="background-color: #fd7e14">Work</span>
-                        <span class="small text-muted">- For professional-related tags</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Removed About Tags and Color Guide sections -->
         </div>
     </div>
 </div>
