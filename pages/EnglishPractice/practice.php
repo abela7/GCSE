@@ -317,6 +317,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: `item_id=${itemId}`
                 })
@@ -326,6 +327,7 @@ require_once __DIR__ . '/../../includes/header.php';
                         icon.classList.toggle('far');
                         icon.classList.toggle('fas');
                         this.classList.toggle('is-favorite');
+                        console.log(data.message); // Add feedback in console
                     }
                 })
                 .catch(error => console.error('Error:', error));
