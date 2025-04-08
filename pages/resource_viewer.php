@@ -4,7 +4,7 @@ require_once '../config/db_connect.php';
 require_once '../includes/functions.php';
 
 if (!isset($_GET['topic_id']) || !isset($_GET['subject'])) {
-    header('Location: /GCSE/pages/subjects.php');
+    header('Location: /pages/subjects.php');
     exit;
 }
 
@@ -118,9 +118,9 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <div class="col">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/GCSE/pages/subjects.php">Subjects</a></li>
-                        <li class="breadcrumb-item"><a href="/GCSE/pages/subjects/<?php echo $subject; ?>.php"><?php echo ucfirst($subject); ?></a></li>
-                        <li class="breadcrumb-item"><a href="/GCSE/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>"><?php echo htmlspecialchars($topic_result['topic_name']); ?></a></li>
+                        <li class="breadcrumb-item"><a href="/pages/subjects.php">Subjects</a></li>
+                        <li class="breadcrumb-item"><a href="/pages/subjects/<?php echo $subject; ?>.php"><?php echo ucfirst($subject); ?></a></li>
+                        <li class="breadcrumb-item"><a href="/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>"><?php echo htmlspecialchars($topic_result['topic_name']); ?></a></li>
                         <li class="breadcrumb-item active">Resources</li>
                     </ol>
                 </nav>
@@ -149,11 +149,20 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             </iframe>
                         </div>
                     <?php else: ?>
-                        <a href="<?php echo htmlspecialchars($resource['image_path']); ?>" 
+                        <?php 
+                            // Ensure image path is absolute but without GCSE
+                            $imagePath = $resource['image_path'];
+                            if (!str_starts_with($imagePath, 'http') && !str_starts_with($imagePath, '/')) {
+                                $imagePath = '/' . ltrim($imagePath, '/');
+                            } else if (str_starts_with($imagePath, '/GCSE/')) {
+                                $imagePath = substr($imagePath, 5); // Remove /GCSE prefix
+                            }
+                        ?>
+                        <a href="<?php echo htmlspecialchars($imagePath); ?>" 
                            class="resource-image-link"
                            data-fancybox="gallery"
                            data-caption="<?php echo htmlspecialchars($resource['title']); ?>">
-                            <img src="<?php echo htmlspecialchars($resource['image_path']); ?>" 
+                            <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
                                  class="resource-thumbnail">
                         </a>
@@ -219,7 +228,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 
-    <a href="/GCSE/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary back-button">
+    <a href="/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary back-button">
         <i class="fas fa-arrow-left"></i> Back to Topic
     </a>
 
@@ -299,7 +308,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 const resourceId = this.dataset.id;
                 
                 try {
-                    const response = await fetch('/GCSE/api/topics/delete_resource.php', {
+                    const response = await fetch('/api/topics/delete_resource.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
