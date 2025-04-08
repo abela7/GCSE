@@ -188,21 +188,30 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                         </div>
                     <?php else: ?>
                         <?php 
-                            // Ensure image path is absolute but without GCSE
+                            // Ensure image path is absolute and correct
                             $imagePath = $resource['image_path'];
-                            if (!str_starts_with($imagePath, 'http') && !str_starts_with($imagePath, '/')) {
-                                $imagePath = '/' . ltrim($imagePath, '/');
-                            } else if (str_starts_with($imagePath, '/GCSE/')) {
-                                $imagePath = substr($imagePath, 5); // Remove /GCSE prefix
+                            // Remove /GCSE/ if it exists at the start
+                            $imagePath = preg_replace('/^\/GCSE\//', '/', $imagePath);
+                            // Remove any double slashes
+                            $imagePath = preg_replace('/\/+/', '/', $imagePath);
+                            // Ensure path starts with /
+                            if (!str_starts_with($imagePath, '/')) {
+                                $imagePath = '/' . $imagePath;
+                            }
+                            // If path contains /uploads/, ensure it's properly formatted
+                            if (strpos($imagePath, '/uploads/') !== false) {
+                                $imagePath = preg_replace('/.*?(\/uploads\/.*)/', '$1', $imagePath);
                             }
                         ?>
                         <a href="<?php echo htmlspecialchars($imagePath); ?>" 
                            class="resource-image-link"
                            data-fancybox="gallery"
-                           data-caption="<?php echo htmlspecialchars($resource['title']); ?>">
+                           data-caption="<?php echo htmlspecialchars($resource['title']); ?>"
+                           data-type="image">
                             <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
-                                 class="resource-thumbnail">
+                                 class="resource-thumbnail"
+                                 onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
                         </a>
                     <?php endif; ?>
                     <div class="resource-info">
@@ -378,7 +387,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         });
 
-        // Initialize Fancybox
+        // Initialize Fancybox with updated options
         Fancybox.bind("[data-fancybox]", {
             // Custom options
             Toolbar: {
@@ -399,6 +408,26 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             Images: {
                 zoom: true,
             },
+            // Add error handling for images
+            Image: {
+                error: function(fancybox, error, instance) {
+                    const $image = instance.$image;
+                    if ($image) {
+                        $image.attr("src", "/assets/images/image-not-found.png");
+                    }
+                }
+            },
+            // Ensure proper loading of images
+            preload: true,
+            // Add click protection
+            click: "next",
+            // Mobile-specific options
+            mobile: {
+                clickContent: "close",
+                clickSlide: "close",
+                dblclickContent: "zoom",
+                touch: true
+            }
         });
 
         // Add category filter functionality
