@@ -141,6 +141,9 @@ include '../includes/header.php';
     </div>
 </div>
 
+<!-- Mood Tracking Widget -->
+<?php include '../includes/mood_widget.php'; ?>
+
 <!-- Quick Links -->
 <div class="row">
     <div class="col-md-3 mb-3">

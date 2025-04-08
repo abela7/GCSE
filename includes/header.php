@@ -325,6 +325,11 @@ require_once 'db_connect.php';
                                 <i class="fas fa-folder me-1"></i> Resources
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo $current_page == 'mood_tracker.php' ? 'active' : ''; ?>" href="/pages/mood_tracker.php">
+                                <i class="fas fa-smile me-1"></i> Mood Tracker
+                            </a>
+                        </li>
                     </ul>
                     <form class="d-flex">
                         <input class="form-control me-2" type="search" placeholder="Search topics..." aria-label="Search">
