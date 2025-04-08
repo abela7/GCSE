@@ -107,6 +107,24 @@ function formatDate($date) {
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-1"><?php echo htmlspecialchars($subsection['subsection_name']); ?></h4>
+                            <p class="text-muted mb-0"><?php echo htmlspecialchars($subsection['subsection_description']); ?></p>
+                        </div>
+                        <button onclick="cleanupDuplicates()" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-broom me-1"></i>Clean Up Duplicates
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Topics Grid -->
     <div class="row g-4">
         <?php foreach ($topics as $topic): ?>
@@ -349,6 +367,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+async function cleanupDuplicates() {
+    if (!confirm('This will remove duplicate topic records. Continue?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/english/cleanup_duplicates.php');
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error cleaning up duplicates: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error cleaning up duplicates. Please try again.');
+    }
+}
 </script>
 
 <?php include '../../includes/footer.php'; ?> 
