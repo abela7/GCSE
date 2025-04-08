@@ -102,6 +102,9 @@ if ($subject_filter) {
 }
 ?>
 
+<!-- Add GLightbox CSS after other stylesheets -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" />
+
 <div class="container py-4">
     <!-- Filters -->
     <div class="card mb-4">
@@ -172,9 +175,22 @@ if ($subject_filter) {
                                         allowfullscreen></iframe>
                             </div>
                         <?php elseif ($resource['resource_type'] === 'image'): ?>
-                            <img src="<?php echo htmlspecialchars($resource['image_path']); ?>" 
-                                 class="img-fluid mb-3 rounded" 
-                                 alt="<?php echo htmlspecialchars($resource['title']); ?>">
+                            <?php 
+                                $imagePath = $resource['image_path'];
+                                if (!str_starts_with($imagePath, '/')) {
+                                    $imagePath = '/' . $imagePath;
+                                }
+                            ?>
+                            <a href="<?php echo htmlspecialchars($imagePath); ?>" 
+                               class="glightbox"
+                               data-gallery="resources-gallery"
+                               data-description="<?php echo htmlspecialchars($resource['title']); ?>"
+                               data-type="image">
+                                <img src="<?php echo htmlspecialchars($imagePath); ?>" 
+                                     class="img-fluid mb-3 rounded resource-thumbnail" 
+                                     alt="<?php echo htmlspecialchars($resource['title']); ?>"
+                                     onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
+                            </a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -250,8 +266,33 @@ img.img-fluid {
     width: 100%;
     object-fit: cover;
 }
+
+.resource-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+/* GLightbox customization */
+.glightbox-clean {
+    --gbackground: rgba(0, 0, 0, 0.95);
+}
+
+.gslide-description {
+    background: transparent;
+}
+
+.gslide-title {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 0;
+}
 </style>
 
+<!-- Add GLightbox JS before the closing body tag -->
+<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const subjectSelect = document.getElementById('subjectSelect');
@@ -287,6 +328,35 @@ function getYoutubeId(url) {
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
 }
-</script>
 
-<?php include '../includes/footer.php'; ?>
+// Initialize GLightbox
+const lightbox = GLightbox({
+    touchNavigation: true,
+    loop: true,
+    autoplayVideos: true,
+    preload: true,
+    moreLength: 0,
+    slideEffect: 'fade',
+    cssEfects: {
+        fade: { in: 'fadeIn', out: 'fadeOut' }
+    },
+    touchFollowAxis: true,
+    keyboardNavigation: true,
+    closeOnOutsideClick: true,
+    openEffect: 'zoom',
+    closeEffect: 'fade',
+    draggable: true,
+    zoomable: true,
+    dragToleranceX: 40,
+    dragToleranceY: 40
+});
+
+// Prevent default link behavior
+document.querySelectorAll('.glightbox').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+    });
+});
+</script>
+</body>
+</html>
