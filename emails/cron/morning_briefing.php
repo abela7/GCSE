@@ -7,6 +7,11 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Function to get time-based greeting
+function getGreeting() {
+    return "Goooood Morning Abela 😇";
+}
+
 try {
     // Get tasks for today
     $query = "SELECT t.id, t.title, t.description, t.due_date, t.due_time, t.priority, t.status,
