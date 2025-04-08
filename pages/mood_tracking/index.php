@@ -662,17 +662,21 @@ function saveQuickEntry() {
 
 // Function to change month
 function changeMonth(direction) {
-    // Get current month from calendar title
+    // Get current month and year from PHP-generated title
     const titleElement = document.querySelector('.card-title');
-    const currentTitle = titleElement.textContent.trim();
+    const currentMonth = <?php echo date('n') - 1; ?>; // JavaScript months are 0-based
+    const currentYear = <?php echo date('Y'); ?>;
     
-    // Parse the date from the title (remove the icon text)
-    const dateText = currentTitle.replace('calendar_alt', '').trim();
-    const date = new Date(dateText);
+    // Create date object for the first day of current month
+    const date = new Date(currentYear, currentMonth, 1);
     
-    // Calculate new month
+    // Add or subtract months
     date.setMonth(date.getMonth() + direction);
-    const newMonth = date.toISOString().slice(0, 7); // Format: YYYY-MM
+    
+    // Format the date for the AJAX request (YYYY-MM)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const newMonth = `${year}-${month}`;
     
     // Update calendar title
     titleElement.innerHTML = `<i class="fas fa-calendar-alt me-2"></i>${date.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`;
