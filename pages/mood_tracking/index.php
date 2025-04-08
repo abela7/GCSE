@@ -662,8 +662,49 @@ function saveQuickEntry() {
 
 // Function to change month
 function changeMonth(direction) {
-    // This would be implemented with AJAX to load new month data
-    alert('Month navigation will be implemented with AJAX');
+    // Get current month from calendar title
+    const currentTitle = document.querySelector('.card-title').textContent;
+    const currentDate = new Date(currentTitle);
+    
+    // Calculate new month
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    const newMonth = currentDate.toISOString().slice(0, 7); // Format: YYYY-MM
+    
+    // Update calendar title
+    document.querySelector('.card-title').innerHTML = 
+        `<i class="fas fa-calendar-alt me-2"></i>${currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`;
+    
+    // Show loading state
+    document.getElementById('mood_calendar').innerHTML = `
+        <div class="text-center py-5" style="grid-column: span 7;">
+            <div class="spinner-border text-accent" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    // Load new month data via AJAX
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'ajax/get_month_entries.php?month=' + newMonth, true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            document.getElementById('mood_calendar').innerHTML = xhr.responseText;
+        } else {
+            document.getElementById('mood_calendar').innerHTML = `
+                <div class="alert alert-danger" style="grid-column: span 7;">
+                    Error loading calendar. Please try again.
+                </div>
+            `;
+        }
+    };
+    xhr.onerror = function() {
+        document.getElementById('mood_calendar').innerHTML = `
+            <div class="alert alert-danger" style="grid-column: span 7;">
+                Network error occurred. Please check your connection.
+            </div>
+        `;
+    };
+    xhr.send();
 }
 
 // Function to view day entries
