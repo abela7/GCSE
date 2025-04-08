@@ -42,10 +42,15 @@ class EmailTemplate {
                 background: #f8f9fa;
                 border-left: 4px solid #4a90e2;
                 border-radius: 3px;
+                font-size: 16px;
             }
             .task-time {
                 color: #666;
-                font-size: 0.9em;
+                font-size: 14px;
+            }
+            .task-description {
+                font-size: 14px;
+                margin: 5px 0;
             }
             .priority-high {
                 border-left-color: #dc3545;
@@ -83,6 +88,15 @@ class EmailTemplate {
                 .btn {
                     flex: 1;
                     margin: 5px;
+                }
+                .task-item {
+                    font-size: 18px;
+                }
+                .task-time {
+                    font-size: 16px;
+                }
+                .task-description {
+                    font-size: 16px;
                 }
             }
             .section {
