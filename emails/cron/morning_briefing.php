@@ -68,7 +68,7 @@ try {
             return [
                 'title' => $task['title'] . ' (' . $task['category_name'] . ')',
                 'description' => $task['description'] ?: 'No description provided',
-                'time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
+                'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
                 'priority' => $task['priority'] ?? 'medium'
             ];
         }, $tasks),
@@ -76,7 +76,7 @@ try {
             return [
                 'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
                 'description' => $habit['description'] ?: 'No description provided',
-                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
+                'due_time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
             ];
         }, $habits),
         'date' => date('l, F j, Y'),
@@ -85,7 +85,7 @@ try {
             return [
                 'title' => $task['title'] . ' (' . $task['category_name'] . ')',
                 'description' => $task['description'] ?: 'No description provided',
-                'time' => date('M j, Y', strtotime($task['due_date'])) . 
+                'due_time' => date('M j, Y', strtotime($task['due_date'])) . 
                          ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '')
             ];
         }, $overdue)
