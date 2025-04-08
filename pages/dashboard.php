@@ -53,8 +53,14 @@ $tasks_result = $conn->query($tasks_query);
 
 // Get habit completion stats
 $habits_query = "SELECT COUNT(*) as total_habits, 
-                SUM(CASE WHEN last_completed >= CURDATE() - INTERVAL 1 DAY THEN 1 ELSE 0 END) as completed_today
-                FROM habits";
+                SUM(CASE WHEN EXISTS (
+                    SELECT 1 FROM habit_completions hc 
+                    WHERE hc.habit_id = h.id 
+                    AND hc.completion_date = CURDATE() 
+                    AND hc.status = 'completed'
+                ) THEN 1 ELSE 0 END) as completed_today
+                FROM habits h
+                WHERE h.is_active = 1";
 $habits_result = $conn->query($habits_query);
 $habits_stats = $habits_result->fetch_assoc();
 
