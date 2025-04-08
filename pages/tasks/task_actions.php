@@ -115,13 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             // For one-time tasks, update the task directly
                             $stmt = $conn->prepare("UPDATE tasks 
                                                   SET status = ?, 
-                                                      updated_at = CURRENT_TIMESTAMP,
-                                                      is_active = CASE 
-                                                          WHEN ? IN ('completed', 'not_done') THEN 0 
-                                                          ELSE is_active 
-                                                      END
+                                                      updated_at = CURRENT_TIMESTAMP
                                                   WHERE id = ?");
-                            $stmt->bind_param('ssi', $status, $status, $taskId);
+                            $stmt->bind_param('si', $status, $taskId);
                             if (!$stmt->execute()) {
                                 throw new Exception("Failed to update task status: " . $stmt->error);
                             }
