@@ -60,6 +60,20 @@ if ($selected_category > 0) {
 
 $where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
 
+// Get selected date from URL or default to today
+$selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+$date_obj = new DateTimeImmutable($selected_date, new DateTimeZone('Europe/London'));
+$prev_date = $date_obj->modify('-1 day')->format('Y-m-d');
+$next_date = $date_obj->modify('+1 day')->format('Y-m-d');
+
+// Get practice day ID for the selected date
+$stmt = $conn->prepare("SELECT id FROM practice_days WHERE practice_date = ?");
+$stmt->bind_param('s', $selected_date);
+$stmt->execute();
+$result = $stmt->get_result();
+$practice_day = $result->fetch_assoc();
+$practice_day_id = $practice_day ? $practice_day['id'] : null;
+
 // Get items with filters applied
 $items = [];
 $query = "
@@ -68,11 +82,15 @@ $query = "
     FROM practice_items pi
     JOIN practice_categories pc ON pi.category_id = pc.id
     LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
+    WHERE pi.practice_day_id = ?
     $where_clause
     ORDER BY pc.name ASC, pi.item_title ASC
 ";
 
-$result = $conn->query($query);
+$stmt = $conn->prepare($query);
+$stmt->bind_param('i', $practice_day_id);
+$stmt->execute();
+$result = $stmt->get_result();
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $items[] = $row;
@@ -305,6 +323,23 @@ require_once __DIR__ . '/../../includes/header.php';
             <a href="daily_entry.php" class="btn btn-outline-accent">
                 <i class="fas fa-plus me-2"></i>New Entry
             </a>
+        </div>
+    </div>
+
+    <!-- Date Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="?date=<?php echo $prev_date; ?>" class="btn btn-outline-secondary">
+                    <i class="fas fa-chevron-left"></i> Previous Day
+                </a>
+                <h3 class="text-center mb-0">
+                    <?php echo $date_obj->format('l, F j, Y'); ?>
+                </h3>
+                <a href="?date=<?php echo $next_date; ?>" class="btn btn-outline-secondary">
+                    Next Day <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
         </div>
     </div>
 
