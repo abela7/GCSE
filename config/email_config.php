@@ -8,13 +8,13 @@ define('SMTP_SECURE', 'tls');
 define('SMTP_AUTH', true);
 
 // Your Gmail credentials
-define('SMTP_USERNAME', ''); // Add your Gmail address here
-define('SMTP_PASSWORD', ''); // Add your App Password here
+define('SMTP_USERNAME', 'abelgoytom77@gmail.com'); // Add your Gmail address here
+define('SMTP_PASSWORD', 'wmfm sgyn ucuz mlbu'); // Add your App Password here
 
 // Email Settings
 define('EMAIL_FROM_NAME', 'GCSE Study App');
-define('EMAIL_FROM_ADDRESS', ''); // Add your Gmail address here
-define('EMAIL_REPLY_TO', ''); // Add your Gmail address here
+define('EMAIL_FROM_ADDRESS', 'abelgoytom77@gmail.com'); // Add your Gmail address here
+define('EMAIL_REPLY_TO', 'abelgoytom77@gmail.com'); // Add your Gmail address here
 
 // Notification Settings
 define('ENABLE_EMAIL_NOTIFICATIONS', true);
