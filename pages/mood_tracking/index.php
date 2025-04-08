@@ -663,26 +663,29 @@ function saveQuickEntry() {
 // Function to change month
 function changeMonth(direction) {
     // Get current month from calendar title
-    const currentTitle = document.querySelector('.card-title').textContent;
-    const currentDate = new Date(currentTitle);
+    const titleElement = document.querySelector('.card-title');
+    const currentTitle = titleElement.textContent.trim();
+    const [month, year] = currentTitle.split(' ');
+    
+    // Create date object from current month/year
+    const date = new Date(`${month} 1, ${year}`);
     
     // Calculate new month
-    currentDate.setMonth(currentDate.getMonth() + direction);
-    const newMonth = currentDate.toISOString().slice(0, 7); // Format: YYYY-MM
+    date.setMonth(date.getMonth() + direction);
+    const newMonth = date.toISOString().slice(0, 7); // Format: YYYY-MM
     
     // Update calendar title
-    document.querySelector('.card-title').innerHTML = 
-        `<i class="fas fa-calendar-alt me-2"></i>${currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`;
+    titleElement.innerHTML = `<i class="fas fa-calendar-alt me-2"></i>${date.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`;
     
     // Show loading state
     document.getElementById('mood_calendar').innerHTML = `
         <div class="text-center py-5" style="grid-column: span 7;">
             <div class="spinner-border text-accent" role="status">
                 <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                `;
-                
+            </div>
+        </div>
+    `;
+    
     // Load new month data via AJAX
     const xhr = new XMLHttpRequest();
     xhr.open('GET', 'ajax/get_month_entries.php?month=' + newMonth, true);
