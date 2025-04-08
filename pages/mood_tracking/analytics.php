@@ -526,18 +526,18 @@ function initCharts() {
                 data: <?php echo json_encode($avg_moods); ?>,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                tension: 0.1, // Reduced tension for sharper curves
+                tension: 0.1,
                 fill: true,
                 pointBackgroundColor: function(context) {
                     const value = context.raw;
-                    if (value >= 4.5) return '#2E7D32'; // Dark green for very good
-                    if (value >= 3.5) return '#4CAF50'; // Green for good
-                    if (value >= 2.5) return '#FFC107'; // Yellow for neutral
-                    if (value >= 1.5) return '#FF9800'; // Orange for bad
-                    return '#F44336'; // Red for very bad
+                    if (value >= 4.5) return '#2E7D32';
+                    if (value >= 3.5) return '#4CAF50';
+                    if (value >= 2.5) return '#FFC107';
+                    if (value >= 1.5) return '#FF9800';
+                    return '#F44336';
                 },
-                pointRadius: 6,
-                pointHoverRadius: 8,
+                pointRadius: 8,
+                pointHoverRadius: 10,
                 borderWidth: 2
             }]
         },
@@ -552,15 +552,11 @@ function initCharts() {
                         stepSize: 1,
                         callback: function(value) {
                             const emojis = ['😢', '😕', '😐', '🙂', '😊'];
-                            const labels = ['Very Bad', 'Bad', 'Neutral', 'Good', 'Very Good'];
                             const index = value - 1;
-                            if (index >= 0 && index < 5) {
-                                return emojis[index] + ' ' + labels[index];
-                            }
-                            return value;
+                            return index >= 0 && index < 5 ? emojis[index] : '';
                         },
                         font: {
-                            size: 14
+                            size: 20 // Larger emoji size
                         }
                     },
                     grid: {
@@ -581,12 +577,11 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const dataIndex = context.dataIndex;
                             const moodValue = context.raw;
-                            const entryCount = <?php echo json_encode($entry_counts); ?>[dataIndex];
-                            const moodText = getMoodText(moodValue);
+                            const entryCount = <?php echo json_encode($entry_counts); ?>[context.dataIndex];
+                            const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(moodValue) - 1] || '';
                             return [
-                                `Mood: ${moodText} (${moodValue.toFixed(1)}/5)`,
+                                `Mood: ${emoji} (${moodValue.toFixed(1)})`,
                                 `Entries: ${entryCount}`
                             ];
                         }
@@ -653,9 +648,24 @@ function initCharts() {
             datasets: [{
                 label: 'Average Mood',
                 data: <?php echo json_encode($time_avg_moods); ?>,
-                backgroundColor: 'rgba(76, 175, 80, 0.6)',
-                borderColor: '#4CAF50',
-                borderWidth: 1
+                backgroundColor: function(context) {
+                    const value = context.raw;
+                    if (value >= 4.5) return '#2E7D32';
+                    if (value >= 3.5) return '#4CAF50';
+                    if (value >= 2.5) return '#FFC107';
+                    if (value >= 1.5) return '#FF9800';
+                    return '#F44336';
+                },
+                borderWidth: 0
+            }, {
+                label: 'Entry Count',
+                data: <?php echo json_encode($time_entry_counts); ?>,
+                type: 'line',
+                borderColor: '#9E9E9E',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 4,
+                yAxisID: 'y1'
             }]
         },
         options: {
@@ -665,11 +675,32 @@ function initCharts() {
                 y: {
                     beginAtZero: true,
                     max: 5,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Average Mood'
+                    },
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
+                            const emojis = ['😢', '😕', '😐', '🙂', '😊'];
+                            const index = value - 1;
+                            return index >= 0 && index < 5 ? emojis[index] : '';
+                        },
+                        font: {
+                            size: 20
                         }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Number of Entries'
+                    },
+                    grid: {
+                        display: false
                     }
                 }
             },
@@ -677,13 +708,13 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const dataIndex = context.dataIndex;
-                            const avgMood = context.raw;
-                            const entryCount = <?php echo json_encode($time_entry_counts); ?>[dataIndex];
-                            return [
-                                `Average Mood: ${avgMood.toFixed(1)}`,
-                                `Entries: ${entryCount}`
-                            ];
+                            if (context.dataset.label === 'Average Mood') {
+                                const value = context.raw;
+                                const emoji = ['😢', '😕', '��', '🙂', '😊'][Math.floor(value) - 1] || '';
+                                return `Average Mood: ${emoji} (${value.toFixed(1)})`;
+                            } else {
+                                return `Entries: ${context.raw}`;
+                            }
                         }
                     }
                 }
@@ -701,23 +732,60 @@ function initCharts() {
             datasets: [{
                 label: 'Average Mood',
                 data: <?php echo json_encode($tag_avg_moods); ?>,
-                backgroundColor: <?php echo json_encode($tag_colors); ?>,
-                borderColor: <?php echo json_encode($tag_colors); ?>,
-                borderWidth: 1
+                backgroundColor: function(context) {
+                    const value = context.raw;
+                    if (value >= 4.5) return '#2E7D32';
+                    if (value >= 3.5) return '#4CAF50';
+                    if (value >= 2.5) return '#FFC107';
+                    if (value >= 1.5) return '#FF9800';
+                    return '#F44336';
+                },
+                borderWidth: 0
+            }, {
+                label: 'Entry Count',
+                data: <?php echo json_encode($tag_entry_counts); ?>,
+                type: 'line',
+                borderColor: '#9E9E9E',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 4,
+                yAxisID: 'y1'
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: {
+                x: {
                     beginAtZero: true,
                     max: 5,
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Average Mood'
+                    },
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
+                            const emojis = ['😢', '😕', '😐', '🙂', '😊'];
+                            const index = value - 1;
+                            return index >= 0 && index < 5 ? emojis[index] : '';
+                        },
+                        font: {
+                            size: 20
                         }
+                    }
+                },
+                x1: {
+                    beginAtZero: true,
+                    position: 'top',
+                    title: {
+                        display: true,
+                        text: 'Number of Entries'
+                    },
+                    grid: {
+                        display: false
                     }
                 }
             },
@@ -725,13 +793,16 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const dataIndex = context.dataIndex;
-                            const avgMood = context.raw;
-                            const entryCount = <?php echo json_encode($tag_entry_counts); ?>[dataIndex];
-                            return [
-                                `Average Mood: ${avgMood.toFixed(1)}`,
-                                `Entries: ${entryCount}`
-                            ];
+                            if (context.dataset.label === 'Average Mood') {
+                                const value = context.raw;
+                                const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(value) - 1] || '';
+                                return [
+                                    `Average Mood: ${emoji} (${value.toFixed(1)})`,
+                                    `Impact: ${value >= 3.5 ? '🌟 Positive' : value <= 2.5 ? '⚠️ Negative' : '➖ Neutral'}`
+                                ];
+                            } else {
+                                return `Entries: ${context.raw}`;
+                            }
                         }
                     }
                 }
