@@ -256,7 +256,10 @@ require_once __DIR__ . '/../../includes/header.php';
                         </button>
                     </div>
                     <div class="flashcard-content">
-                        <h2 class="flashcard-title" id="flashcard-term"><?php echo html_entity_decode(htmlspecialchars_decode($first_item['item_title'])); ?></h2>
+                        <h2 class="flashcard-title" id="flashcard-term"><?php 
+                            // Properly decode HTML entities and special characters
+                            echo html_entity_decode(htmlspecialchars_decode($first_item['item_title']), ENT_QUOTES | ENT_HTML5, 'UTF-8'); 
+                        ?></h2>
                         <p class="text-muted">Click to reveal the answer</p>
                     </div>
                 </div>
@@ -303,6 +306,33 @@ require_once __DIR__ . '/../../includes/header.php';
             const progressBar = document.querySelector('.progress-bar');
             const flashcard = document.getElementById('flashcard');
 
+            // Favorite button functionality
+            document.querySelectorAll('.toggle-favorite').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent card flip when clicking favorite button
+                    const itemId = this.dataset.itemId;
+                    const icons = document.querySelectorAll(`.toggle-favorite[data-item-id="${itemId}"] i`);
+                    
+                    fetch('toggle_favorite.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `item_id=${itemId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            icons.forEach(icon => {
+                                icon.classList.toggle('far');
+                                icon.classList.toggle('fas');
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+
             // Flip card functionality
             document.getElementById('flashcard-reveal').addEventListener('click', function() {
                 flashcard.classList.toggle('is-flipped');
@@ -322,10 +352,24 @@ require_once __DIR__ . '/../../includes/header.php';
                     // Reset card to front
                     flashcard.classList.remove('is-flipped');
                     
-                    // Update card content
-                    document.getElementById('flashcard-term').textContent = nextItem.item_title;
+                    // Update card content with proper decoding
+                    const decodedTitle = nextItem.item_title.replace(/&(?:amp|#0*39|#x0*27);/g, "'");
+                    document.getElementById('flashcard-term').textContent = decodedTitle;
                     document.querySelectorAll('.category-badge').forEach(badge => {
                         badge.textContent = nextItem.category_name;
+                    });
+
+                    // Update favorite buttons
+                    document.querySelectorAll('.toggle-favorite').forEach(btn => {
+                        btn.dataset.itemId = nextItem.id;
+                        const icon = btn.querySelector('i');
+                        if (nextItem.is_favorite) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                        } else {
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                        }
                     });
                     
                     // Update back content
@@ -369,19 +413,12 @@ require_once __DIR__ . '/../../includes/header.php';
                 }
             });
 
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.code === 'Space') {
-                    e.preventDefault();
+            // Click anywhere on card to flip (except favorite button)
+            flashcard.addEventListener('click', function(e) {
+                // Don't flip if clicking favorite button
+                if (!e.target.closest('.toggle-favorite')) {
                     document.getElementById('flashcard-reveal').click();
-                } else if (e.code === 'ArrowRight' && document.getElementById('flashcard-next').style.display !== 'none') {
-                    document.getElementById('flashcard-next').click();
                 }
-            });
-
-            // Click anywhere on card to flip
-            flashcard.addEventListener('click', function() {
-                document.getElementById('flashcard-reveal').click();
             });
         </script>
     <?php endif; ?>
