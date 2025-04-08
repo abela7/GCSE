@@ -40,7 +40,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" />
     <style>
         .resource-grid {
             display: grid;
@@ -62,7 +62,8 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             width: 100%;
             height: 200px;
             object-fit: cover;
-            cursor: zoom-in;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
         .resource-info {
             padding: 15px;
@@ -106,6 +107,20 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         }
         .lb-dataContainer {
             border-radius: 0 0 4px 4px;
+        }
+
+        .glightbox-clean {
+            --gbackground: rgba(0, 0, 0, 0.95);
+        }
+        
+        .gslide-description {
+            background: transparent;
+        }
+
+        .gslide-title {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -153,9 +168,10 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             }
                         ?>
                         <a href="<?php echo htmlspecialchars($imagePath); ?>" 
-                           data-lightbox="resource-gallery"
-                           data-title="<?php echo htmlspecialchars($resource['title']); ?>"
-                           data-alt="<?php echo htmlspecialchars($resource['title']); ?>">
+                           class="glightbox"
+                           data-gallery="resource-gallery"
+                           data-description="<?php echo htmlspecialchars($resource['title']); ?>"
+                           data-type="image">
                             <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
                                  class="resource-thumbnail"
@@ -228,7 +244,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
     <script>
         document.getElementById('resourceType').addEventListener('change', function() {
             const youtubeInput = document.getElementById('youtubeInput');
@@ -324,17 +340,33 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         });
 
-        // Initialize Lightbox with custom options
-        lightbox.option({
-            'resizeDuration': 200,
-            'wrapAround': true,
-            'albumLabel': 'Image %1 of %2',
-            'fadeDuration': 200,
-            'imageFadeDuration': 200,
-            'disableScrolling': true,
-            'positionFromTop': 50,
-            'showImageNumberLabel': true,
-            'alwaysShowNavOnTouchDevices': true
+        // Initialize GLightbox
+        const lightbox = GLightbox({
+            touchNavigation: true,
+            loop: true,
+            autoplayVideos: true,
+            preload: true,
+            moreLength: 0,
+            slideEffect: 'fade',
+            cssEfects: {
+                fade: { in: 'fadeIn', out: 'fadeOut' }
+            },
+            touchFollowAxis: true,
+            keyboardNavigation: true,
+            closeOnOutsideClick: true,
+            openEffect: 'zoom',
+            closeEffect: 'fade',
+            draggable: true,
+            zoomable: true,
+            dragToleranceX: 40,
+            dragToleranceY: 40
+        });
+
+        // Prevent default link behavior
+        document.querySelectorAll('.glightbox').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+            });
         });
     </script>
 </body>
