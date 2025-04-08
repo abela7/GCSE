@@ -49,9 +49,15 @@ if ($subsection_filter) {
 $query = "WITH resource_data AS (
     -- Math Resources
     SELECT 
-        tr.*,
+        tr.id,
+        tr.topic_id,
+        tr.title,
+        tr.resource_type,
+        tr.youtube_url,
+        tr.image_path,
+        tr.is_deleted,
+        tr.created_at,
         t.name as topic_name,
-        t.id as topic_id,
         sub.id as subsection_id,
         sub.name as subsection_name,
         sec.id as section_id,
@@ -70,9 +76,15 @@ $query = "WITH resource_data AS (
 
     -- English Resources
     SELECT 
-        tr.*,
+        tr.id,
+        tr.topic_id,
+        tr.title,
+        tr.resource_type,
+        tr.youtube_url,
+        tr.image_path,
+        tr.is_deleted,
+        tr.created_at,
         t.name as topic_name,
-        t.id as topic_id,
         sub.id as subsection_id,
         sub.name as subsection_name,
         sec.id as section_id,
