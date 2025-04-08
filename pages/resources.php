@@ -186,24 +186,24 @@ function getYoutubeId($url) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" />
 </head>
 <body class="bg-light">
-    <div class="container py-4">
-        <!-- Filters -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form method="GET" class="row g-3" id="filterForm">
+<div class="container py-4">
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3" id="filterForm">
                     <!-- Subject Filter -->
                     <div class="col-md-3">
-                        <label class="form-label">Subject</label>
-                        <select name="subject" class="form-select" id="subjectSelect">
-                            <option value="">All Subjects</option>
-                            <?php foreach ($subjects as $subject): ?>
-                                <option value="<?php echo $subject['id']; ?>" 
-                                        <?php echo $subject_filter == $subject['id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($subject['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <label class="form-label">Subject</label>
+                    <select name="subject" class="form-select" id="subjectSelect">
+                        <option value="">All Subjects</option>
+                        <?php foreach ($subjects as $subject): ?>
+                            <option value="<?php echo $subject['id']; ?>" 
+                                    <?php echo $subject_filter == $subject['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($subject['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
                     <!-- Section Filter -->
                     <div class="col-md-3">
@@ -235,17 +235,17 @@ function getYoutubeId($url) {
 
                     <!-- Topic Filter -->
                     <div class="col-md-3">
-                        <label class="form-label">Topic</label>
+                    <label class="form-label">Topic</label>
                         <select name="topic" class="form-select" id="topicSelect" <?php echo !$subsection_filter ? 'disabled' : ''; ?>>
-                            <option value="">All Topics</option>
-                            <?php foreach ($topics as $topic): ?>
-                                <option value="<?php echo $topic['id']; ?>" 
-                                        <?php echo $topic_filter == $topic['id'] ? 'selected' : ''; ?>>
+                        <option value="">All Topics</option>
+                        <?php foreach ($topics as $topic): ?>
+                            <option value="<?php echo $topic['id']; ?>" 
+                                    <?php echo $topic_filter == $topic['id'] ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($topic['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
                     <!-- Resource Type Filter -->
                     <div class="col-md-3">
@@ -263,19 +263,19 @@ function getYoutubeId($url) {
 
                     <!-- Search -->
                     <div class="col-md-9">
-                        <label class="form-label">Search</label>
+                    <label class="form-label">Search</label>
                         <div class="input-group">
-                            <input type="text" name="search" class="form-control" 
-                                   value="<?php echo htmlspecialchars($search); ?>" 
+                    <input type="text" name="search" class="form-control" 
+                           value="<?php echo htmlspecialchars($search); ?>" 
                                    placeholder="Search in titles, topics, sections...">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
-                    </div>
+                </div>
 
                     <!-- Filter Actions -->
-                    <div class="col-12">
+                <div class="col-12">
                         <div class="d-flex gap-2 align-items-center">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-filter"></i> Apply Filters
@@ -321,27 +321,27 @@ function getYoutubeId($url) {
                                 </div>
                             <?php endif; ?>
                         </div>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Resources Grid -->
-        <div class="row g-4">
-            <?php foreach ($resources as $resource): ?>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 resource-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title mb-0">
-                                    <?php echo htmlspecialchars($resource['title']); ?>
-                                </h5>
-                                <span class="badge" style="background-color: <?php echo $resource['subject_color']; ?>">
-                                    <?php echo htmlspecialchars($resource['subject_name']); ?>
-                                </span>
-                            </div>
-                            
-                            <div class="topic-info mb-3">
+    <!-- Resources Grid -->
+    <div class="row g-4">
+        <?php foreach ($resources as $resource): ?>
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 resource-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">
+                                <?php echo htmlspecialchars($resource['title']); ?>
+                            </h5>
+                            <span class="badge" style="background-color: <?php echo $resource['subject_color']; ?>">
+                                <?php echo htmlspecialchars($resource['subject_name']); ?>
+                            </span>
+                        </div>
+                        
+                        <div class="topic-info mb-3">
                                 <div class="d-flex flex-column gap-1">
                                     <small class="text-muted">
                                         <i class="fas fa-folder"></i> <?php echo htmlspecialchars($resource['section_name']); ?>
@@ -353,15 +353,15 @@ function getYoutubeId($url) {
                                         <i class="fas fa-bookmark"></i> <?php echo htmlspecialchars($resource['topic_name']); ?>
                                     </small>
                                 </div>
-                            </div>
+                        </div>
 
-                            <?php if ($resource['resource_type'] === 'youtube'): ?>
-                                <div class="embed-responsive embed-responsive-16by9 mb-3">
-                                    <iframe class="embed-responsive-item" 
-                                            src="https://www.youtube.com/embed/<?php echo getYoutubeId($resource['youtube_url']); ?>" 
-                                            allowfullscreen></iframe>
-                                </div>
-                            <?php elseif ($resource['resource_type'] === 'image'): ?>
+                        <?php if ($resource['resource_type'] === 'youtube'): ?>
+                            <div class="embed-responsive embed-responsive-16by9 mb-3">
+                                <iframe class="embed-responsive-item" 
+                                        src="https://www.youtube.com/embed/<?php echo getYoutubeId($resource['youtube_url']); ?>" 
+                                        allowfullscreen></iframe>
+                            </div>
+                        <?php elseif ($resource['resource_type'] === 'image'): ?>
                                 <?php 
                                     $imagePath = $resource['image_path'];
                                     if (!str_starts_with($imagePath, '/')) {
@@ -378,35 +378,35 @@ function getYoutubeId($url) {
                                          alt="<?php echo htmlspecialchars($resource['title']); ?>"
                                          onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
                                 </a>
-                            <?php endif; ?>
+                        <?php endif; ?>
                         </div>
-                    </div>
                 </div>
-            <?php endforeach; ?>
-        </div>
-
-        <?php if (empty($resources)): ?>
-            <div class="text-center py-5">
-                <i class="fas fa-photo-video fa-3x text-muted mb-3"></i>
-                <h3>No resources found</h3>
-                <p class="text-muted">Try adjusting your filters or add resources to your topics.</p>
             </div>
-        <?php endif; ?>
+        <?php endforeach; ?>
     </div>
 
-    <style>
-    .resource-card {
-        transition: all 0.3s ease;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        border-radius: 1rem;
-        background: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
+    <?php if (empty($resources)): ?>
+        <div class="text-center py-5">
+            <i class="fas fa-photo-video fa-3x text-muted mb-3"></i>
+            <h3>No resources found</h3>
+            <p class="text-muted">Try adjusting your filters or add resources to your topics.</p>
+        </div>
+    <?php endif; ?>
+</div>
 
-    .resource-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    }
+<style>
+.resource-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 1rem;
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.resource-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
 
     .resource-thumbnail {
         width: 100%;
@@ -416,41 +416,41 @@ function getYoutubeId($url) {
         transition: transform 0.2s;
     }
 
-    .topic-info {
+.topic-info {
         padding: 0.5rem;
-        background: #f8fafc;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-    }
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+}
 
-    .badge {
-        padding: 0.5rem 1rem;
-        border-radius: 0.75rem;
-        font-weight: 500;
-        font-size: 0.875rem;
-    }
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
 
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1e293b;
-    }
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
 
-    .embed-responsive {
-        position: relative;
-        width: 100%;
+.embed-responsive {
+    position: relative;
+    width: 100%;
         padding-bottom: 56.25%;
-    }
+}
 
-    .embed-responsive iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-        border-radius: 0.5rem;
-    }
+.embed-responsive iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0.5rem;
+}
 
     /* GLightbox customization */
     .glightbox-clean {
@@ -465,19 +465,19 @@ function getYoutubeId($url) {
         color: #fff;
         font-size: 16px;
         margin-bottom: 0;
-    }
-    </style>
+}
+</style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const subjectSelect = document.getElementById('subjectSelect');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectSelect = document.getElementById('subjectSelect');
         const sectionSelect = document.getElementById('sectionSelect');
         const subsectionSelect = document.getElementById('subsectionSelect');
-        const topicSelect = document.getElementById('topicSelect');
+    const topicSelect = document.getElementById('topicSelect');
         const typeSelect = document.getElementById('typeSelect');
-        const filterForm = document.getElementById('filterForm');
+    const filterForm = document.getElementById('filterForm');
         const searchInput = document.querySelector('input[name="search"]');
 
         // Initialize GLightbox
@@ -503,12 +503,12 @@ function getYoutubeId($url) {
         });
 
         // Handle subject change
-        subjectSelect.addEventListener('change', async function() {
-            const subjectId = this.value;
+    subjectSelect.addEventListener('change', async function() {
+        const subjectId = this.value;
             resetSelects('section');
-            
-            if (subjectId) {
-                try {
+        
+        if (subjectId) {
+            try {
                     const response = await fetch(`/api/sections/get_sections.php?subject_id=${subjectId}`);
                     const data = await response.json();
                     
@@ -532,9 +532,9 @@ function getYoutubeId($url) {
             if (sectionId) {
                 try {
                     const response = await fetch(`/api/subsections/get_subsections.php?section_id=${sectionId}&subject_id=${subjectId}`);
-                    const data = await response.json();
-                    
-                    if (data.success) {
+                const data = await response.json();
+                
+                if (data.success) {
                         populateSelect(subsectionSelect, data.subsections);
                         subsectionSelect.disabled = false;
                     }
@@ -559,9 +559,9 @@ function getYoutubeId($url) {
                     if (data.success) {
                         populateSelect(topicSelect, data.topics);
                         topicSelect.disabled = false;
-                    }
-                } catch (error) {
-                    console.error('Error fetching topics:', error);
+                }
+            } catch (error) {
+                console.error('Error fetching topics:', error);
                     showError('Failed to load topics');
                 }
             }
@@ -621,6 +621,6 @@ function getYoutubeId($url) {
             }, 5000);
         }
     });
-    </script>
+</script>
 </body>
 </html>

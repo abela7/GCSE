@@ -340,10 +340,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                     <div class="text-center mt-3">
                         <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
                     </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
+            
         <!-- Mood Stats -->
         <div class="col-lg-4 col-md-12 mb-4">
             <div class="dashboard-card">
@@ -367,12 +367,12 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                 </div>
                                 <div class="small text-muted">Average Mood</div>
                                 <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
-                            </div>
+                                </div>
                             <div class="col-4">
                                 <div class="mood-emoji">📊</div>
                                 <div class="small text-muted">Entries</div>
                                 <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
-                            </div>
+                                </div>
                             <div class="col-4">
                                 <div class="mood-emoji">
                                     <?php
@@ -395,7 +395,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                 <?php foreach ($stats['top_tags'] as $tag): ?>
                                     <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
                                         <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
-                                    </span>
+                                </span>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -413,10 +413,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                         </div>
                     <?php endif; ?>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
-    
+        
     <!-- Recent Entries -->
     <div class="row">
         <div class="col-12">
@@ -494,7 +494,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4">
-                            <div class="mb-3">
+                    <div class="mb-3">
                                 <i class="fas fa-book fa-3x text-muted"></i>
                             </div>
                             <p class="text-muted mb-3">No mood entries yet</p>
@@ -506,9 +506,9 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
+                </div>
+            </div>
+            
 <!-- Delete Entry Modal -->
 <div class="modal fade" id="deleteEntryModal" tabindex="-1" aria-labelledby="deleteEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -527,7 +527,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             </div>
         </div>
     </div>
-</div>
+                </div>
 
 <!-- Day Entries Modal -->
 <div class="modal fade" id="dayEntriesModal" tabindex="-1" aria-labelledby="dayEntriesModalLabel" aria-hidden="true">
@@ -583,13 +583,13 @@ function toggleTag(element) {
     const tagId = parseInt(element.dataset.id);
     
     if (element.classList.contains('selected')) {
-        // Remove tag from selection
+                // Remove tag from selection
         element.classList.remove('selected');
         selectedTags = selectedTags.filter(id => id !== tagId);
-    } else {
-        // Add tag to selection
+            } else {
+                // Add tag to selection
         element.classList.add('selected');
-        selectedTags.push(tagId);
+                selectedTags.push(tagId);
     }
 }
 
@@ -629,12 +629,12 @@ function saveQuickEntry() {
                     selectedMood = null;
                     selectedTags = [];
                     
-                    // Show success message
-                    alert('Mood entry saved successfully!');
-                    
+                // Show success message
+                alert('Mood entry saved successfully!');
+                
                     // Reload page to show updated data
-                    window.location.reload();
-                } else {
+                window.location.reload();
+            } else {
                     alert('Error: ' + (response.message || 'Failed to save mood entry'));
                 }
             } catch (e) {
@@ -679,10 +679,10 @@ function changeMonth(direction) {
         <div class="text-center py-5" style="grid-column: span 7;">
             <div class="spinner-border text-accent" role="status">
                 <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
+                        </div>
+                    </div>
+                `;
+                
     // Load new month data via AJAX
     const xhr = new XMLHttpRequest();
     xhr.open('GET', 'ajax/get_month_entries.php?month=' + newMonth, true);

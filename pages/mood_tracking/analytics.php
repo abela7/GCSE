@@ -156,22 +156,22 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
     <div class="row mb-4">
         <div class="col-12">
             <div class="analytics-card">
-                <div class="card-body">
+        <div class="card-body">
                     <h5 class="card-title mb-3" style="color: var(--accent-color);">
                         <i class="fas fa-filter me-2"></i>Filter Analytics
-                    </h5>
-                    
+            </h5>
+            
                     <form id="filter_form" method="GET" action="analytics.php" class="row g-3">
                         <div class="col-md-4">
-                            <label for="start_date" class="form-label">Start Date</label>
-                            <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
-                        </div>
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
+                </div>
                         
                         <div class="col-md-4">
-                            <label for="end_date" class="form-label">End Date</label>
-                            <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
-                        </div>
-                        
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
+                </div>
+                
                         <div class="col-md-4">
                             <label class="form-label">Tags (Optional)</label>
                             <div class="dropdown">
@@ -179,7 +179,7 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                                     <?php echo !empty($tag_ids) ? count($tag_ids) . ' tags selected' : 'Select Tags'; ?>
                                 </button>
                                 <ul class="dropdown-menu w-100" aria-labelledby="tagDropdown">
-                                    <?php foreach ($all_tags as $tag): ?>
+                        <?php foreach ($all_tags as $tag): ?>
                                         <li>
                                             <div class="dropdown-item">
                                                 <div class="form-check">
@@ -189,18 +189,18 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                                                            <?php echo in_array($tag['id'], $tag_ids) ? 'checked' : ''; ?>>
                                                     <label class="form-check-label" for="tag_<?php echo $tag['id']; ?>">
                                                         <span class="tag-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                                            <?php echo htmlspecialchars($tag['name']); ?>
+                                <?php echo htmlspecialchars($tag['name']); ?>
                                                         </span>
                                                     </label>
                                                 </div>
                                             </div>
                                         </li>
-                                    <?php endforeach; ?>
+                        <?php endforeach; ?>
                                 </ul>
                             </div>
                             <input type="hidden" id="tags" name="tags" value="<?php echo implode(',', $tag_ids); ?>">
-                        </div>
-                        
+                </div>
+                
                         <div class="col-12 text-center mt-4">
                             <button type="submit" class="btn btn-accent me-2">
                                 <i class="fas fa-filter me-1"></i>Apply Filters
@@ -217,19 +217,19 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
 
     <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
         <!-- Summary Stats -->
-        <div class="row mb-4">
+    <div class="row mb-4">
             <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
                 <div class="analytics-card stat-card">
                     <div class="stat-icon">
-                        <?php
+                            <?php 
                         $avg_mood = $stats['average_mood'];
                         if ($avg_mood >= 4.5) echo '😄';
                         else if ($avg_mood >= 3.5) echo '🙂';
                         else if ($avg_mood >= 2.5) echo '😐';
                         else if ($avg_mood >= 1.5) echo '😕';
                         else echo '😢';
-                        ?>
-                    </div>
+                            ?>
+                        </div>
                     <div class="stat-value"><?php echo number_format($avg_mood, 1); ?></div>
                     <div class="stat-label">Average Mood</div>
                 </div>
@@ -278,40 +278,40 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
             <!-- Mood Over Time -->
             <div class="col-lg-8 mb-4">
                 <div class="analytics-card">
-                    <div class="card-body">
+                <div class="card-body">
                         <h5 class="card-title mb-3" style="color: var(--accent-color);">
                             <i class="fas fa-chart-line me-2"></i>Mood Over Time
                         </h5>
-                        <div class="chart-container">
+                    <div class="chart-container">
                             <canvas id="moodOverTimeChart"></canvas>
                         </div>
-                    </div>
-                </div>
             </div>
-            
+        </div>
+    </div>
+
             <!-- Mood Distribution -->
             <div class="col-lg-4 mb-4">
                 <div class="analytics-card">
-                    <div class="card-body">
+        <div class="card-body">
                         <h5 class="card-title mb-3" style="color: var(--accent-color);">
                             <i class="fas fa-chart-pie me-2"></i>Mood Distribution
                         </h5>
-                        <div class="chart-container">
+            <div class="chart-container">
                             <canvas id="moodDistributionChart"></canvas>
                         </div>
-                    </div>
-                </div>
             </div>
-            
-            <!-- Mood by Time of Day -->
+        </div>
+    </div>
+
+    <!-- Mood by Time of Day -->
             <div class="col-lg-6 mb-4">
                 <div class="analytics-card">
-                    <div class="card-body">
+                <div class="card-body">
                         <h5 class="card-title mb-3" style="color: var(--accent-color);">
                             <i class="fas fa-clock me-2"></i>Mood by Time of Day
                         </h5>
-                        <div class="chart-container">
-                            <canvas id="moodByTimeChart"></canvas>
+                    <div class="chart-container">
+                        <canvas id="moodByTimeChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -343,7 +343,7 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
             <div class="row">
                 <div class="col-12 mb-4">
                     <div class="analytics-card">
-                        <div class="card-body">
+                <div class="card-body">
                             <h5 class="card-title mb-3" style="color: var(--accent-color);">
                                 <i class="fas fa-tags me-2"></i>Top Tags
                             </h5>
@@ -352,17 +352,17 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                                     <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                                         <div class="d-flex align-items-center">
                                             <span class="mood-badge me-2" style="background-color: <?php echo $tag['color']; ?>">
-                                                <?php echo htmlspecialchars($tag['name']); ?>
-                                            </span>
+                                        <?php echo htmlspecialchars($tag['name']); ?>
+                                    </span>
                                             <span class="text-muted">
-                                                <?php echo $tag['count']; ?> entries
+                                        <?php echo $tag['count']; ?> entries
                                                 <?php if (isset($tag['avg_mood'])): ?>
                                                     (Avg: <?php echo number_format($tag['avg_mood'], 1); ?>)
                                                 <?php endif; ?>
-                                            </span>
+                                    </span>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
+                            <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
@@ -378,7 +378,7 @@ $mood_by_tag = getMoodByTag($start_date, $end_date);
                     <div class="card-body text-center py-5">
                         <div class="mb-3">
                             <i class="fas fa-chart-bar fa-4x text-muted"></i>
-                        </div>
+        </div>
                         <h4 class="mb-3">No mood data available</h4>
                         <p class="text-muted mb-4">Start tracking your mood to see analytics and insights</p>
                         <a href="entry.php" class="btn btn-accent">

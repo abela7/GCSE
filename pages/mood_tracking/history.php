@@ -167,7 +167,7 @@ $all_tags = getMoodTags();
                     </h5>
                     
                     <form id="filter_form" method="GET" action="history.php">
-                        <!-- Date Range -->
+                    <!-- Date Range -->
                         <div class="mb-3">
                             <label for="start_date" class="form-label">Start Date</label>
                             <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
@@ -176,9 +176,9 @@ $all_tags = getMoodTags();
                         <div class="mb-3">
                             <label for="end_date" class="form-label">End Date</label>
                             <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
-                        </div>
-                        
-                        <!-- Mood Level -->
+                    </div>
+                    
+                    <!-- Mood Level -->
                         <div class="mb-3">
                             <label for="mood_level" class="form-label">Mood Level</label>
                             <select class="form-select" id="mood_level" name="mood_level">
@@ -188,22 +188,22 @@ $all_tags = getMoodTags();
                                 <option value="3" <?php echo $mood_level === 3 ? 'selected' : ''; ?>>😐 Neutral</option>
                                 <option value="4" <?php echo $mood_level === 4 ? 'selected' : ''; ?>>🙂 Good</option>
                                 <option value="5" <?php echo $mood_level === 5 ? 'selected' : ''; ?>>😄 Very Good</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Time of Day -->
+                        </select>
+                    </div>
+                    
+                    <!-- Time of Day -->
                         <div class="mb-3">
                             <label for="time_of_day" class="form-label">Time of Day</label>
                             <select class="form-select" id="time_of_day" name="time_of_day">
                                 <option value="">All Times</option>
-                                <option value="morning" <?php echo $time_of_day === 'morning' ? 'selected' : ''; ?>>Morning (5am-12pm)</option>
-                                <option value="afternoon" <?php echo $time_of_day === 'afternoon' ? 'selected' : ''; ?>>Afternoon (12pm-5pm)</option>
-                                <option value="evening" <?php echo $time_of_day === 'evening' ? 'selected' : ''; ?>>Evening (5pm-9pm)</option>
-                                <option value="night" <?php echo $time_of_day === 'night' ? 'selected' : ''; ?>>Night (9pm-5am)</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Tags -->
+                            <option value="morning" <?php echo $time_of_day === 'morning' ? 'selected' : ''; ?>>Morning (5am-12pm)</option>
+                            <option value="afternoon" <?php echo $time_of_day === 'afternoon' ? 'selected' : ''; ?>>Afternoon (12pm-5pm)</option>
+                            <option value="evening" <?php echo $time_of_day === 'evening' ? 'selected' : ''; ?>>Evening (5pm-9pm)</option>
+                            <option value="night" <?php echo $time_of_day === 'night' ? 'selected' : ''; ?>>Night (9pm-5am)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Tags -->
                         <?php if (!empty($all_tags)): ?>
                             <div class="mb-3">
                                 <label class="form-label">Tags</label>
@@ -216,23 +216,23 @@ $all_tags = getMoodTags();
                                                    <?php echo in_array($tag['id'], $tag_ids) ? 'checked' : ''; ?>>
                                             <label class="form-check-label" for="tag_<?php echo $tag['id']; ?>">
                                                 <span class="tag-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                                </span>
+                                <?php echo htmlspecialchars($tag['name']); ?>
+                            </span>
                                             </label>
                                         </div>
-                                    <?php endforeach; ?>
-                                </div>
+                            <?php endforeach; ?>
+                        </div>
                                 <input type="hidden" id="tags" name="tags" value="<?php echo implode(',', $tag_ids); ?>">
-                            </div>
+                    </div>
                         <?php endif; ?>
-                        
-                        <!-- Search -->
+                    
+                    <!-- Search -->
                         <div class="mb-3">
                             <label for="search" class="form-label">Search Notes</label>
                             <input type="text" class="form-control" id="search" name="search" value="<?php echo $search; ?>" placeholder="Search...">
-                        </div>
-                        
-                        <!-- Filter Buttons -->
+                    </div>
+                    
+                    <!-- Filter Buttons -->
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-accent">
                                 <i class="fas fa-filter me-1"></i>Apply Filters
@@ -242,7 +242,7 @@ $all_tags = getMoodTags();
                             </button>
                         </div>
                     </form>
-                </div>
+                    </div>
             </div>
         </div>
         
@@ -261,8 +261,8 @@ $all_tags = getMoodTags();
                             <li><a class="dropdown-item" href="#" onclick="sortEntries('mood', 'desc')">Highest Mood First</a></li>
                             <li><a class="dropdown-item" href="#" onclick="sortEntries('mood', 'asc')">Lowest Mood First</a></li>
                         </ul>
-                    </div>
-                </div>
+            </div>
+            </div>
                 
                 <div id="entries_container">
                     <?php foreach ($entries as $entry): ?>
@@ -283,9 +283,9 @@ $all_tags = getMoodTags();
                                     </h5>
                                     <div class="text-muted">
                                         <i class="fas fa-calendar-alt me-1"></i><?php echo date('M j, Y g:i A', strtotime($entry['date'])); ?>
-                                    </div>
-                                </div>
-                                
+                            </div>
+                        </div>
+                        
                                 <?php if (!empty($entry['tags'])): ?>
                                     <div class="mb-3">
                                         <?php foreach ($entry['tags'] as $tag): ?>
@@ -303,23 +303,23 @@ $all_tags = getMoodTags();
                                 <?php endif; ?>
                                 
                                 <div class="d-flex justify-content-end">
-                                    <a href="entry.php?id=<?php echo $entry['id']; ?>" class="btn btn-sm btn-outline-accent me-2">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </a>
+                            <a href="entry.php?id=<?php echo $entry['id']; ?>" class="btn btn-sm btn-outline-accent me-2">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteEntry(<?php echo $entry['id']; ?>)">
-                                        <i class="fas fa-trash me-1"></i>Delete
-                                    </button>
-                                </div>
-                            </div>
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
                 <div class="history-card">
                     <div class="card-body text-center py-5">
-                        <div class="mb-3">
+                    <div class="mb-3">
                             <i class="fas fa-search fa-3x text-muted"></i>
-                        </div>
+                    </div>
                         <h5 class="mb-3">No entries found</h5>
                         <p class="text-muted mb-4">Try adjusting your filters or create a new mood entry</p>
                         <a href="entry.php" class="btn btn-accent">
