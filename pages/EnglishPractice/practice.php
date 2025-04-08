@@ -178,6 +178,15 @@ require_once __DIR__ . '/../../includes/header.php';
     background-color: #1e88e5;
 }
 
+.back-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.back-btn:hover {
+    background-color: #1e88e5;
+}
+
 .filters-container {
     max-width: 700px;
     margin: 0 auto 2rem;
@@ -287,6 +296,9 @@ require_once __DIR__ . '/../../includes/header.php';
             <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Add to Favorites">
                 <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
             </button>
+            <button class="control-btn back-btn" id="flashcard-back" style="display: none;" title="Previous Card">
+                <i class="fas fa-arrow-left"></i>
+            </button>
             <button class="control-btn reveal-btn" id="flashcard-reveal" title="Flip Card">
                 <i class="fas fa-sync-alt"></i>
             </button>
@@ -297,7 +309,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <!-- Keyboard Shortcuts -->
         <div class="text-center text-muted">
-            <small><i class="fas fa-keyboard me-1"></i> Use <kbd>Space</kbd> to flip, <kbd>→</kbd> for next</small>
+            <small><i class="fas fa-keyboard me-1"></i> Use <kbd>Space</kbd> to flip, <kbd>←</kbd> for previous, <kbd>→</kbd> for next</small>
         </div>
 
         <script>
@@ -306,6 +318,56 @@ require_once __DIR__ . '/../../includes/header.php';
             let currentIndex = 0;
             const progressBar = document.querySelector('.progress-bar');
             const flashcard = document.getElementById('flashcard');
+            const viewedItems = [<?php echo json_encode($first_item); ?>]; // Store viewed items
+
+            // Function to update card content
+            function updateCardContent(item, direction = 'next') {
+                // Reset card to front
+                flashcard.classList.remove('is-flipped');
+                
+                // Update card content with proper decoding
+                const decodedTitle = item.item_title.replace(/&(?:amp|#0*39|#x0*27);/g, "'");
+                document.getElementById('flashcard-term').textContent = decodedTitle;
+                document.querySelectorAll('.category-badge').forEach(badge => {
+                    badge.textContent = item.category_name;
+                });
+
+                // Update favorite button
+                const favoriteBtn = document.querySelector('.toggle-favorite');
+                favoriteBtn.dataset.itemId = item.id;
+                const icon = favoriteBtn.querySelector('i');
+                if (item.is_favorite) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    favoriteBtn.classList.add('is-favorite');
+                } else {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    favoriteBtn.classList.remove('is-favorite');
+                }
+                
+                // Update back content
+                const backContent = flashcard.querySelector('.flashcard-back .flashcard-details');
+                backContent.innerHTML = `
+                    <h3 class="h5 mb-3">Meaning/Rule:</h3>
+                    <p>${item.item_meaning.replace(/\n/g, '<br>')}</p>
+                    <div class="flashcard-example">
+                        <h3 class="h5 mb-2">Example:</h3>
+                        <p class="mb-0">${item.item_example.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+                
+                // Reset buttons
+                document.getElementById('flashcard-reveal').querySelector('i').classList.remove('fa-rotate-180');
+                document.getElementById('flashcard-next').style.display = 'none';
+                
+                // Update navigation buttons visibility
+                document.getElementById('flashcard-back').style.display = currentIndex > 0 ? 'inline-flex' : 'none';
+                
+                // Update progress
+                const progress = ((currentIndex + 1) / totalItems) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
 
             // Favorite button functionality
             document.querySelector('.toggle-favorite').addEventListener('click', function(e) {
@@ -327,7 +389,13 @@ require_once __DIR__ . '/../../includes/header.php';
                         icon.classList.toggle('far');
                         icon.classList.toggle('fas');
                         this.classList.toggle('is-favorite');
-                        console.log(data.message); // Add feedback in console
+                        
+                        // Update the item in viewedItems array
+                        const currentItem = viewedItems[currentIndex];
+                        if (currentItem) {
+                            currentItem.is_favorite = !currentItem.is_favorite;
+                        }
+                        console.log(data.message);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -344,55 +412,21 @@ require_once __DIR__ . '/../../includes/header.php';
                 }
             });
 
+            // Back button functionality
+            document.getElementById('flashcard-back').addEventListener('click', function() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateCardContent(viewedItems[currentIndex], 'back');
+                }
+            });
+
             // Next button functionality
             document.getElementById('flashcard-next').addEventListener('click', function() {
                 if (currentIndex < practiceItems.length) {
                     const nextItem = practiceItems[currentIndex];
-                    
-                    // Reset card to front
-                    flashcard.classList.remove('is-flipped');
-                    
-                    // Update card content with proper decoding
-                    const decodedTitle = nextItem.item_title.replace(/&(?:amp|#0*39|#x0*27);/g, "'");
-                    document.getElementById('flashcard-term').textContent = decodedTitle;
-                    document.querySelectorAll('.category-badge').forEach(badge => {
-                        badge.textContent = nextItem.category_name;
-                    });
-
-                    // Update favorite button
-                    const favoriteBtn = document.querySelector('.toggle-favorite');
-                    favoriteBtn.dataset.itemId = nextItem.id;
-                    const icon = favoriteBtn.querySelector('i');
-                    if (nextItem.is_favorite) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        favoriteBtn.classList.add('is-favorite');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        favoriteBtn.classList.remove('is-favorite');
-                    }
-                    
-                    // Update back content
-                    const backContent = flashcard.querySelector('.flashcard-back .flashcard-details');
-                    backContent.innerHTML = `
-                        <h3 class="h5 mb-3">Meaning/Rule:</h3>
-                        <p>${nextItem.item_meaning.replace(/\n/g, '<br>')}</p>
-                        <div class="flashcard-example">
-                            <h3 class="h5 mb-2">Example:</h3>
-                            <p class="mb-0">${nextItem.item_example.replace(/\n/g, '<br>')}</p>
-                        </div>
-                    `;
-                    
-                    // Reset buttons
-                    document.getElementById('flashcard-reveal').querySelector('i').classList.remove('fa-rotate-180');
-                    this.style.display = 'none';
-                    
-                    // Update progress
-                    const progress = ((currentIndex + 2) / totalItems) * 100;
-                    progressBar.style.width = `${progress}%`;
-                    
+                    viewedItems.push(nextItem); // Store the item
                     currentIndex++;
+                    updateCardContent(nextItem, 'next');
                 } else {
                     // Practice complete
                     document.querySelector('.flashcard-container').innerHTML = `
@@ -419,6 +453,18 @@ require_once __DIR__ . '/../../includes/header.php';
                 const favoriteBtn = e.target.closest('.toggle-favorite');
                 if (!favoriteBtn) {
                     document.getElementById('flashcard-reveal').click();
+                }
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    document.getElementById('flashcard-reveal').click();
+                } else if (e.code === 'ArrowRight' && !flashcard.classList.contains('is-flipped')) {
+                    document.getElementById('flashcard-next').click();
+                } else if (e.code === 'ArrowLeft' && !flashcard.classList.contains('is-flipped')) {
+                    document.getElementById('flashcard-back').click();
                 }
             });
         </script>
