@@ -130,17 +130,44 @@ $nextDate = (clone $dateObj)->modify('+1 day')->format('Y-m-d');
 // Get tasks for the selected date
 $query = "SELECT 
             t.id, t.title, t.description, t.due_date, t.due_time, t.task_type, t.priority,
+            t.is_active, t.status as main_status,
             c.name as category_name, c.icon as category_icon, c.color as category_color,
-            t.status
+            ti.id as instance_id, ti.status as instance_status,
+            COALESCE(ti.status, t.status) as status,
+            COALESCE(ti.due_time, t.due_time) as effective_due_time
           FROM tasks t
           JOIN task_categories c ON t.category_id = c.id
-          WHERE t.is_active = 1
-          AND t.status IN ('pending', 'snoozed', 'in_progress')
-          AND t.due_date = ?
-          ORDER BY t.due_time ASC";
+          LEFT JOIN task_instances ti ON t.id = ti.task_id 
+              AND ti.due_date = ?
+          WHERE 
+            t.is_active = 1
+            AND (
+                /* One-time tasks that are pending/snoozed and due on the selected date */
+                (t.task_type = 'one-time' 
+                 AND t.status IN ('pending', 'snoozed')
+                 AND t.due_date = ?)
+                OR
+                /* Recurring tasks with pending/snoozed instances on the selected date */
+                (t.task_type = 'recurring' 
+                 AND (
+                     /* Include if there's a pending/snoozed instance */
+                     (ti.id IS NOT NULL AND ti.status IN ('pending', 'snoozed'))
+                     OR
+                     /* Or if there's no instance yet but there should be one (based on recurrence) */
+                     (ti.id IS NULL AND EXISTS (
+                         SELECT 1 FROM task_recurrence_rules tr 
+                         WHERE tr.task_id = t.id 
+                         AND tr.is_active = 1
+                         AND tr.start_date <= ?
+                         AND (tr.end_date IS NULL OR tr.end_date >= ?)
+                     ))
+                 )
+                )
+            )
+          ORDER BY COALESCE(ti.due_time, t.due_time) ASC, t.priority DESC";
 
 $stmt = $conn->prepare($query);
-$stmt->bind_param('s', $selectedDate);
+$stmt->bind_param('ssss', $selectedDate, $selectedDate, $selectedDate, $selectedDate);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -148,7 +175,8 @@ $morning_tasks = [];
 $evening_tasks = [];
 
 while ($task = $result->fetch_assoc()) {
-    $task_hour = date('H', strtotime($task['due_time']));
+    $due_time = $task['effective_due_time'] ?? '12:00:00';
+    $task_hour = $due_time ? date('H', strtotime($due_time)) : 12;
     if ($task_hour < 12) {
         $morning_tasks[] = $task;
     } else {
@@ -247,8 +275,8 @@ while ($task = $result->fetch_assoc()) {
                         </button>
                         <button type="button" 
                                 class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
-                                title="Mark as Not Done">
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
+                                title="Cancel Task">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -303,8 +331,8 @@ while ($task = $result->fetch_assoc()) {
                         </button>
                         <button type="button" 
                                 class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
-                                title="Mark as Not Done">
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
+                                title="Cancel Task">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -1064,51 +1092,61 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleTaskAction(taskId, action) {
     if (action === 'snooze') {
         showSnoozeOptions(taskId);
-        return;
-    }
-
-    let confirmMessage = action === 'done' ? 'Mark this task as completed?' : 'Mark this task as not done?';
-    
-    if (confirm(confirmMessage)) {
-        // Show loading state
-        const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
-        taskCard.style.opacity = '0.7';
-        taskCard.style.pointerEvents = 'none';
+    } else {
+        let confirmMessage = '';
+        switch (action) {
+            case 'done':
+                confirmMessage = 'Mark this task as completed?';
+                break;
+            case 'cancel':
+                confirmMessage = 'Cancel this task?';
+                break;
+        }
         
-        // Map action to status
-        const status = action === 'done' ? 'completed' : 'not_done';
-        
-        // Send request to update task status
-        fetch('task_actions.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=update_task_status&task_id=${taskId}&status=${status}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Fade out and remove the task card
-                taskCard.style.transition = 'all 0.3s ease';
-                taskCard.style.opacity = '0';
-                taskCard.style.transform = 'translateX(20px)';
-                setTimeout(() => {
-                    window.location.reload();
-                }, 300);
-            } else {
-                // Show error and reset the card
-                alert('Error: ' + data.message);
+        if (confirm(confirmMessage)) {
+            // Show loading state
+            const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
+            taskCard.style.opacity = '0.7';
+            taskCard.style.pointerEvents = 'none';
+            
+            // Send request to update task status
+            fetch('task_actions.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=update_task_status&task_id=${taskId}&status=${action}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fade out and remove the task card
+                    taskCard.style.transition = 'all 0.3s ease';
+                    taskCard.style.opacity = '0';
+                    taskCard.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        if (action === 'snooze') {
+                            // For snooze, reload the page to show updated time
+                            window.location.reload();
+                        } else {
+                            // For done/cancel, remove the task
+                            taskCard.remove();
+                        }
+                    }, 300);
+                } else {
+                    // Show error and reset the card
+                    alert('Error: ' + data.message);
+                    taskCard.style.opacity = '1';
+                    taskCard.style.pointerEvents = 'auto';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the task.');
                 taskCard.style.opacity = '1';
                 taskCard.style.pointerEvents = 'auto';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the task.');
-            taskCard.style.opacity = '1';
-            taskCard.style.pointerEvents = 'auto';
-        });
+            });
+        }
     }
 }
 
