@@ -66,9 +66,23 @@ $habits_stats = $habits_result ? $habits_result->fetch_assoc() : ['total_habits'
 
 // Include header
 include '../includes/header.php';
+
+// Define the accent color
+$accent_color = "#cdaf56";
 ?>
 
 <style>
+/* Color Variables */
+:root {
+    --accent-color: <?php echo $accent_color; ?>;
+    --accent-color-light: #dbc77a;
+    --accent-color-dark: #b99b3e;
+    --text-color: #333333;
+    --text-muted: #6c757d;
+    --bg-light: #f8f9fa;
+    --border-color: #e9ecef;
+}
+
 /* Card Styles */
 .feature-card {
     border: none;
@@ -93,6 +107,7 @@ include '../includes/header.php';
     align-items: center;
     justify-content: center;
     margin-bottom: 1rem;
+    background-color: var(--accent-color);
 }
 .feature-card .icon-bg i {
     font-size: 1.5rem;
@@ -101,15 +116,36 @@ include '../includes/header.php';
 .feature-card h5 {
     font-weight: 600;
     margin-bottom: 0.75rem;
+    color: var(--text-color);
 }
 .feature-card p {
-    color: #6c757d;
+    color: var(--text-muted);
     margin-bottom: 1rem;
 }
 .feature-card .card-footer {
     background: transparent;
-    border-top: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid var(--border-color);
     padding: 0.75rem 1.5rem;
+}
+
+/* Button Styles */
+.btn-accent {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+.btn-accent:hover {
+    background-color: var(--accent-color-dark);
+    border-color: var(--accent-color-dark);
+    color: white;
+}
+.btn-outline-accent {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.btn-outline-accent:hover {
+    background-color: var(--accent-color);
+    color: white;
 }
 
 /* Progress Styles */
@@ -122,12 +158,15 @@ include '../includes/header.php';
     font-size: 0.875rem;
     font-weight: 500;
 }
+.progress-bar-accent {
+    background-color: var(--accent-color);
+}
 
 /* Stats Card */
 .stats-card {
     border: none;
     border-radius: 10px;
-    background: #f8f9fa;
+    background: var(--bg-light);
     padding: 1rem;
     height: 100%;
 }
@@ -135,9 +174,10 @@ include '../includes/header.php';
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
+    color: var(--accent-color);
 }
 .stats-card .stat-label {
-    color: #6c757d;
+    color: var(--text-muted);
     font-size: 0.875rem;
 }
 
@@ -150,11 +190,15 @@ include '../includes/header.php';
 .section-heading h4 {
     font-weight: 600;
     margin-bottom: 0;
+    color: var(--text-color);
+}
+.section-heading i {
+    color: var(--accent-color);
 }
 .section-heading .line {
     flex-grow: 1;
     height: 1px;
-    background-color: #e9ecef;
+    background-color: var(--border-color);
     margin-left: 1rem;
 }
 
@@ -177,7 +221,7 @@ include '../includes/header.php';
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card feature-card bg-primary text-white">
+            <div class="card feature-card" style="background-color: var(--accent-color); color: white;">
                 <div class="card-body">
                     <h3 class="mb-2">Welcome to Your GCSE Dashboard</h3>
                     <p class="mb-0">Track your progress, manage your studies, and stay organized with all your GCSE preparation tools in one place.</p>
@@ -200,8 +244,8 @@ include '../includes/header.php';
             while($subject = $subjects_result->fetch_assoc()): 
                 $progress = $subject['total_topics'] > 0 ? 
                     round(($subject['completed_topics'] / $subject['total_topics']) * 100) : 0;
-                // Override Math color to blue
-                $subject_color = $subject['name'] === 'Math' ? '#007bff' : $subject['color'];
+                // Use accent color for all subjects
+                $subject_color = $accent_color;
         ?>
         <div class="col-md-6 mb-4">
             <div class="card feature-card">
@@ -216,7 +260,7 @@ include '../includes/header.php';
                         <span class="progress-label"><?php echo $progress; ?>% Complete</span>
                     </div>
                     <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" 
+                        <div class="progress-bar progress-bar-accent" role="progressbar" 
                              style="width: <?php echo $progress; ?>%; background-color: <?php echo $subject_color; ?>" 
                              aria-valuenow="<?php echo $progress; ?>" aria-valuemin="0" aria-valuemax="100">
                         </div>
@@ -227,7 +271,7 @@ include '../includes/header.php';
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="subjects/<?php echo strtolower($subject['name']); ?>.php" class="btn btn-sm btn-outline-primary">View Details</a>
+                    <a href="subjects/<?php echo strtolower($subject['name']); ?>.php" class="btn btn-sm btn-outline-accent">View Details</a>
                 </div>
             </div>
         </div>
@@ -254,14 +298,14 @@ include '../includes/header.php';
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-primary">
+                    <div class="icon-bg">
                         <i class="fas fa-calendar-alt"></i>
                     </div>
                     <h5>Study Planner</h5>
                     <p>Plan your study sessions, track your progress, and manage your time effectively.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="sessions.php" class="btn btn-sm btn-outline-primary">Open Planner</a>
+                    <a href="sessions.php" class="btn btn-sm btn-outline-accent">Open Planner</a>
                 </div>
             </div>
         </div>
@@ -270,14 +314,14 @@ include '../includes/header.php';
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-success">
+                    <div class="icon-bg">
                         <i class="fas fa-tasks"></i>
                     </div>
                     <h5>Task Manager</h5>
                     <p>Create, organize, and complete tasks to stay on top of your studies and assignments.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="tasks.php" class="btn btn-sm btn-outline-success">Manage Tasks</a>
+                    <a href="tasks/index.php" class="btn btn-sm btn-outline-accent">Manage Tasks</a>
                 </div>
             </div>
         </div>
@@ -286,14 +330,14 @@ include '../includes/header.php';
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-info">
+                    <div class="icon-bg">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <h5>Habit Tracker</h5>
                     <p>Build and maintain productive study habits with daily tracking and streaks.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="habits/index.php" class="btn btn-sm btn-outline-info">Track Habits</a>
+                    <a href="habits/index.php" class="btn btn-sm btn-outline-accent">Track Habits</a>
                 </div>
             </div>
         </div>
@@ -302,14 +346,14 @@ include '../includes/header.php';
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-warning">
+                    <div class="icon-bg">
                         <i class="fas fa-smile"></i>
                     </div>
                     <h5>Mood Tracker</h5>
                     <p>Monitor your emotional well-being and identify patterns to optimize your study performance.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Track Mood</a>
+                    <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-accent">Track Mood</a>
                 </div>
             </div>
         </div>
@@ -318,30 +362,14 @@ include '../includes/header.php';
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-danger">
+                    <div class="icon-bg">
                         <i class="fas fa-book"></i>
                     </div>
                     <h5>English Practice</h5>
                     <p>Improve your language skills with comprehensive English practice materials and exercises.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="subjects/english.php" class="btn btn-sm btn-outline-danger">Practice English</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Math Practice -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg bg-primary">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <h5>Math Practice</h5>
-                    <p>Master mathematical concepts with interactive practice problems and step-by-step solutions.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="subjects/math.php" class="btn btn-sm btn-outline-primary">Practice Math</a>
+                    <a href="EnglishPractice/index.php" class="btn btn-sm btn-outline-accent">Practice English</a>
                 </div>
             </div>
         </div>
@@ -358,14 +386,14 @@ include '../includes/header.php';
         <div class="col-md-3 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-secondary">
+                    <div class="icon-bg">
                         <i class="fas fa-folder"></i>
                     </div>
                     <h5>Resources</h5>
                     <p>Access study materials, guides, and references.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="resources.php" class="btn btn-sm btn-outline-secondary">View Resources</a>
+                    <a href="resources.php" class="btn btn-sm btn-outline-accent">View Resources</a>
                 </div>
             </div>
         </div>
@@ -374,14 +402,14 @@ include '../includes/header.php';
         <div class="col-md-3 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-danger">
+                    <div class="icon-bg">
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <h5>Exams</h5>
                     <p>Manage exam schedules and preparation plans.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="exams.php" class="btn btn-sm btn-outline-danger">View Exams</a>
+                    <a href="exam_countdown.php" class="btn btn-sm btn-outline-accent">View Exams</a>
                 </div>
             </div>
         </div>
@@ -390,14 +418,14 @@ include '../includes/header.php';
         <div class="col-md-3 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-success">
+                    <div class="icon-bg">
                         <i class="fas fa-calendar-day"></i>
                     </div>
                     <h5>Today</h5>
                     <p>See your schedule and tasks for today.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="Today.php" class="btn btn-sm btn-outline-success">View Today</a>
+                    <a href="Today.php" class="btn btn-sm btn-outline-accent">View Today</a>
                 </div>
             </div>
         </div>
@@ -406,14 +434,14 @@ include '../includes/header.php';
         <div class="col-md-3 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <div class="icon-bg bg-info">
+                    <div class="icon-bg">
                         <i class="fas fa-book-open"></i>
                     </div>
                     <h5>Assignments</h5>
                     <p>Manage your homework and assignments.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="assignments.php" class="btn btn-sm btn-outline-info">View Assignments</a>
+                    <a href="assignments.php" class="btn btn-sm btn-outline-accent">View Assignments</a>
                 </div>
             </div>
         </div>
@@ -425,7 +453,7 @@ include '../includes/header.php';
         <div class="col-md-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-calendar-alt me-2 text-danger"></i>Upcoming Exams</h5>
+                    <h5 class="mb-3"><i class="fas fa-calendar-alt me-2" style="color: var(--accent-color);"></i>Upcoming Exams</h5>
                     <?php if ($exams_result && $exams_result->num_rows > 0): ?>
                         <?php 
                         $now = new DateTime();
@@ -437,7 +465,7 @@ include '../includes/header.php';
                         <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-1">
-                                    <span class="badge me-2" style="background-color: <?php echo htmlspecialchars($exam['subject_color']); ?>">
+                                    <span class="badge me-2" style="background-color: <?php echo $accent_color; ?>">
                                         <?php echo htmlspecialchars($exam['subject_name']); ?>
                                     </span>
                                     <h6 class="mb-0"><?php echo htmlspecialchars($exam['title']); ?></h6>
@@ -446,13 +474,13 @@ include '../includes/header.php';
                                     <i class="fas fa-calendar me-1"></i> <?php echo $exam_date->format('D, j M Y'); ?> at <?php echo $exam_date->format('g:i A'); ?>
                                 </div>
                             </div>
-                            <span class="badge bg-<?php echo $days_remaining <= 7 ? 'danger' : ($days_remaining <= 14 ? 'warning' : 'primary'); ?>">
+                            <span class="badge" style="background-color: <?php echo $days_remaining <= 7 ? '#dc3545' : ($days_remaining <= 14 ? $accent_color : '#6c757d'); ?>">
                                 <?php echo $days_remaining; ?> days
                             </span>
                         </div>
                         <?php endwhile; ?>
                         <div class="text-end">
-                            <a href="exams.php" class="btn btn-sm btn-outline-primary">View All Exams</a>
+                            <a href="exam_countdown.php" class="btn btn-sm btn-outline-accent">View All Exams</a>
                         </div>
                     <?php else: ?>
                         <p class="text-muted mb-0">No upcoming exams in the next 30 days.</p>
@@ -465,7 +493,7 @@ include '../includes/header.php';
         <div class="col-md-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-tasks me-2 text-success"></i>Pending Tasks</h5>
+                    <h5 class="mb-3"><i class="fas fa-tasks me-2" style="color: var(--accent-color);"></i>Pending Tasks</h5>
                     <?php if ($tasks_result && $tasks_result->num_rows > 0): ?>
                         <?php 
                         while ($task = $tasks_result->fetch_assoc()): 
@@ -477,7 +505,7 @@ include '../includes/header.php';
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-1">
                                     <?php if (!empty($task['category_name'])): ?>
-                                    <span class="badge me-2" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
+                                    <span class="badge me-2" style="background-color: <?php echo $accent_color; ?>">
                                         <?php echo htmlspecialchars($task['category_name']); ?>
                                     </span>
                                     <?php endif; ?>
@@ -487,13 +515,13 @@ include '../includes/header.php';
                                     <i class="fas fa-calendar me-1"></i> Due: <?php echo $due_date->format('D, j M Y'); ?>
                                 </div>
                             </div>
-                            <span class="badge <?php echo $is_overdue ? 'bg-danger' : 'bg-warning'; ?>">
+                            <span class="badge" style="background-color: <?php echo $is_overdue ? '#dc3545' : $accent_color; ?>">
                                 <?php echo $is_overdue ? 'Overdue' : 'Pending'; ?>
                             </span>
                         </div>
                         <?php endwhile; ?>
                         <div class="text-end">
-                            <a href="tasks.php" class="btn btn-sm btn-outline-primary">View All Tasks</a>
+                            <a href="tasks/index.php" class="btn btn-sm btn-outline-accent">View All Tasks</a>
                         </div>
                     <?php else: ?>
                         <p class="text-muted mb-0">No pending tasks. Great job!</p>
@@ -508,7 +536,7 @@ include '../includes/header.php';
         <div class="col-12">
             <div class="card feature-card">
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-smile me-2 text-warning"></i>Mood Tracking</h5>
+                    <h5 class="mb-3"><i class="fas fa-smile me-2" style="color: var(--accent-color);"></i>Mood Tracking</h5>
                     <?php 
                     // Check if mood_widget.php exists before including it
                     $mood_widget_path = '../includes/mood_widget.php';
@@ -519,7 +547,7 @@ include '../includes/header.php';
                     }
                     ?>
                     <div class="text-end mt-3">
-                        <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Open Mood Tracker</a>
+                        <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-accent">Open Mood Tracker</a>
                     </div>
                 </div>
             </div>
