@@ -24,10 +24,94 @@ $mood_over_time = getMoodByDay($start_date, $end_date, $tag_ids);
 $mood_by_time = getMoodByTimeOfDay($start_date, $end_date, $tag_ids);
 $mood_by_tag = getMoodByTag($start_date, $end_date);
 
-// Prepare data for Mood Over Time Chart
-$dates = array_column($mood_over_time, 'date');
-$avg_moods = array_column($mood_over_time, 'avg_mood');
-$entry_counts = array_column($mood_over_time, 'entry_count');
+// Get the date range type (day, week, month)
+$date_range_type = 'month'; // default
+if ($start_date === $end_date) {
+    $date_range_type = 'day';
+} else if (strtotime($end_date) - strtotime($start_date) <= 7*24*60*60) {
+    $date_range_type = 'week';
+}
+
+// Format labels and data based on range type
+$formatted_labels = [];
+$formatted_data = [];
+
+if ($date_range_type === 'day') {
+    // Group data by hour for day view
+    $query = "SELECT 
+                DATE_FORMAT(date, '%H:00') as time_label,
+                AVG(mood_level) as avg_mood,
+                GROUP_CONCAT(notes SEPARATOR '|') as notes
+              FROM mood_entries 
+              WHERE DATE(date) = ?
+              GROUP BY DATE_FORMAT(date, '%H')
+              ORDER BY time_label";
+    
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $start_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $formatted_labels[] = $row['time_label'];
+        $formatted_data[] = [
+            'avg_mood' => round($row['avg_mood'], 1),
+            'notes' => $row['notes']
+        ];
+    }
+} else if ($date_range_type === 'week') {
+    // Group data by day for week view
+    $query = "SELECT 
+                DATE_FORMAT(date, '%W') as day_label,
+                DATE(date) as full_date,
+                AVG(mood_level) as avg_mood,
+                GROUP_CONCAT(notes SEPARATOR '|') as notes
+              FROM mood_entries 
+              WHERE date BETWEEN ? AND ?
+              GROUP BY DATE(date)
+              ORDER BY date";
+    
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $formatted_labels[] = $row['day_label'];
+        $formatted_data[] = [
+            'avg_mood' => round($row['avg_mood'], 1),
+            'notes' => $row['notes']
+        ];
+    }
+} else {
+    // Group data by week for month view
+    $query = "SELECT 
+                CONCAT('Week ', WEEK(date, 1) - WEEK(DATE_SUB(date, INTERVAL DAYOFMONTH(date)-1 DAY), 1) + 1) as week_label,
+                AVG(mood_level) as avg_mood,
+                GROUP_CONCAT(notes SEPARATOR '|') as notes
+              FROM mood_entries 
+              WHERE date BETWEEN ? AND ?
+              GROUP BY WEEK(date, 1)
+              ORDER BY date";
+    
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $formatted_labels[] = $row['week_label'];
+        $formatted_data[] = [
+            'avg_mood' => round($row['avg_mood'], 1),
+            'notes' => $row['notes']
+        ];
+    }
+}
+
+// Pass the formatted data to JavaScript
+$chart_labels = $formatted_labels;
+$chart_data = array_column($formatted_data, 'avg_mood');
+$chart_notes = array_column($formatted_data, 'notes');
 
 // Prepare data for Mood by Time of Day Chart
 $times = array_column($mood_by_time, 'time_of_day');
@@ -520,10 +604,10 @@ function initCharts() {
     new Chart(moodOverTimeCtx, {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($dates); ?>,
+            labels: <?php echo json_encode($chart_labels); ?>,
             datasets: [{
-                label: 'Daily Mood',
-                data: <?php echo json_encode($avg_moods); ?>,
+                label: 'Mood Level',
+                data: <?php echo json_encode($chart_data); ?>,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
                 tension: 0.1,
@@ -569,7 +653,10 @@ function initCharts() {
                     },
                     ticks: {
                         maxRotation: 45,
-                        minRotation: 45
+                        minRotation: 45,
+                        font: {
+                            size: 12
+                        }
                     }
                 }
             },
@@ -579,11 +666,15 @@ function initCharts() {
                         label: function(context) {
                             const moodValue = context.raw;
                             const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(moodValue) - 1] || '';
-                            return `Daily Mood: ${emoji} (${moodValue.toFixed(1)})`;
+                            return `Mood: ${emoji} (${moodValue.toFixed(1)})`;
                         },
                         afterLabel: function(context) {
-                            const notes = <?php echo json_encode(array_column($mood_over_time, 'notes')); ?>[context.dataIndex];
-                            return notes ? `Notes: ${notes}` : '';
+                            const notes = <?php echo json_encode($chart_notes); ?>[context.dataIndex];
+                            if (notes) {
+                                const notesList = notes.split('|');
+                                return notesList.map(note => `Note: ${note.trim()}`);
+                            }
+                            return '';
                         }
                     }
                 },
@@ -753,7 +844,7 @@ function initCharts() {
                     callbacks: {
                         label: function(context) {
                             const value = context.raw;
-                            const emoji = ['😢', '😕', '��', '🙂', '😊'][Math.floor(value) - 1] || '';
+                            const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(value) - 1] || '';
                             let impact = '';
                             if (value >= 4) impact = '🌟 Makes you feel great!';
                             else if (value >= 3.5) impact = '✨ Positive influence';
