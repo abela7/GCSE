@@ -43,9 +43,9 @@ $exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color
 $exams_result = $conn->query($exams_query);
 
 // Get recent tasks
-$tasks_query = "SELECT t.*, s.name as subject_name, s.color as subject_color 
+$tasks_query = "SELECT t.*, c.name as category_name, c.color as category_color 
                 FROM tasks t 
-                LEFT JOIN subjects s ON t.subject_id = s.id 
+                LEFT JOIN task_categories c ON t.category_id = c.id 
                 WHERE t.status != 'completed'
                 ORDER BY t.due_date ASC 
                 LIMIT 5";
@@ -460,9 +460,9 @@ include '../includes/header.php';
                         <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-1">
-                                    <?php if (!empty($task['subject_name'])): ?>
-                                    <span class="badge me-2" style="background-color: <?php echo htmlspecialchars($task['subject_color']); ?>">
-                                        <?php echo htmlspecialchars($task['subject_name']); ?>
+                                    <?php if (!empty($task['category_name'])): ?>
+                                    <span class="badge me-2" style="background-color: <?php echo htmlspecialchars($task['category_color']); ?>">
+                                        <?php echo htmlspecialchars($task['category_name']); ?>
                                     </span>
                                     <?php endif; ?>
                                     <h6 class="mb-0"><?php echo htmlspecialchars($task['title']); ?></h6>
