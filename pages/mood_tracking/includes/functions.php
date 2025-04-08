@@ -646,3 +646,26 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
         return false;
     }
 }
+
+/**
+ * Get text representation of mood level
+ * 
+ * @param int $level Mood level (1-5)
+ * @return string Text representation of the mood level
+ */
+function getMoodLevelText($level) {
+    switch (intval($level)) {
+        case 1:
+            return 'Very Bad';
+        case 2:
+            return 'Bad';
+        case 3:
+            return 'Neutral';
+        case 4:
+            return 'Good';
+        case 5:
+            return 'Very Good';
+        default:
+            return '';
+    }
+}
