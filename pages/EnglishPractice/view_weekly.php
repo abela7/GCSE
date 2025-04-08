@@ -56,7 +56,7 @@ try {
 
     // Get practice items for selected week
     $items_query = "
-        SELECT pi.*, pc.name as category_name, pc.color as category_color,
+        SELECT pi.*, pc.name as category_name,
                pd.practice_date, pd.day_number,
                CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
         FROM practice_items pi
@@ -123,11 +123,33 @@ try {
     color: #2c3e50;
 }
 
+.category-badge[data-category="Vocabulary"] {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.category-badge[data-category="Spelling"] {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.category-badge[data-category="Figurative Language"] {
+    background-color: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+}
+
+.category-badge[data-category="Phrasal Verbs"] {
+    background-color: rgba(214, 51, 132, 0.1);
+    color: #d63384;
+}
+
 .category-badge {
     font-size: 0.85rem;
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
     margin-right: 0.5rem;
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
 }
 
 .item-card {
@@ -247,7 +269,7 @@ try {
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                                     <span class="category-badge" 
-                                                          style="background-color: <?php echo $item['category_color']; ?>20; color: <?php echo $item['category_color']; ?>;">
+                                                          data-category="<?php echo htmlspecialchars($item['category_name']); ?>">
                                                         <?php echo htmlspecialchars($item['category_name']); ?>
                                                     </span>
                                                     <button type="button" 
