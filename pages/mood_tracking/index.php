@@ -1,6 +1,6 @@
 <?php
-// Include database connection and functions
-require_once 'includes/functions.php';
+// Include required files
+require_once __DIR__ . '/includes/functions.php';
 
 // Set page title
 $page_title = "Mood Tracker";

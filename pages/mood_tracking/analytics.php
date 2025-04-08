@@ -1,10 +1,12 @@
 <?php
+// Include required files
+require_once __DIR__ . '/includes/functions.php';
+
 // Set page title
 $page_title = "Mood Analytics";
 
 // Include database connection and functions
 require_once '../../../config/db_connect.php';
-require_once '../includes/functions.php';
 
 // Get filter parameters
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-30 days'));
