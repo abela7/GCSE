@@ -128,19 +128,23 @@ function handleTaskAction(taskId, action) {
     console.log('Action:', action, 'Mapped to status:', status);
 
     // Prepare the form data
-    const formData = new URLSearchParams();
+    const formData = new FormData();
     formData.append('action', 'update_task_status');
     formData.append('task_id', taskId);
     formData.append('status', status);
+
+    // Log the form data for debugging
+    console.log('Form data being sent:', {
+        action: 'update_task_status',
+        task_id: taskId,
+        status: status
+    });
 
     // Send the request
     fetch('task_actions.php', {
         method: 'POST',
         body: formData,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'
-        }
+        credentials: 'same-origin'
     })
     .then(response => {
         if (!response.ok) {

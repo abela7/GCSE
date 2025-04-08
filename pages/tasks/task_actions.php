@@ -77,10 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $taskId = (int)$_POST['task_id'];
                     $status = $_POST['status'];
                     
+                    // Debug logging
+                    error_log("Received status update request - Task ID: $taskId, Status: " . print_r($status, true));
+                    error_log("POST data: " . print_r($_POST, true));
+                    
                     // Validate status value
                     $validStatuses = ['pending', 'in_progress', 'completed', 'not_done', 'snoozed'];
                     if (!in_array($status, $validStatuses)) {
-                        echo json_encode(['success' => false, 'message' => 'Invalid status value']);
+                        error_log("Invalid status value received: '$status'. Valid statuses are: " . implode(', ', $validStatuses));
+                        echo json_encode(['success' => false, 'message' => "Invalid status value: '$status'"]);
                         exit;
                     }
                     
