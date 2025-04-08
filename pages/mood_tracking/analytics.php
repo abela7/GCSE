@@ -23,6 +23,23 @@ if ($filter_tag) {
 // Get mood statistics with filters
 $mood_stats = getMoodStatistics($start_date, $end_date, $filter_subject, $tag_ids);
 
+// Set default values if statistics are empty
+if (!isset($mood_stats['average_mood'])) {
+    $mood_stats['average_mood'] = 0;
+}
+if (!isset($mood_stats['mood_distribution'])) {
+    $mood_stats['mood_distribution'] = [];
+}
+if (!isset($mood_stats['mood_trend'])) {
+    $mood_stats['mood_trend'] = [];
+}
+if (!isset($mood_stats['mood_by_time'])) {
+    $mood_stats['mood_by_time'] = [];
+}
+if (!isset($mood_stats['common_tags'])) {
+    $mood_stats['common_tags'] = [];
+}
+
 // Get subjects for filter
 $subjects_query = "SELECT * FROM subjects ORDER BY name";
 $subjects_result = $conn->query($subjects_query);
@@ -582,4 +599,4 @@ function generateMoodInsights() {
 }
 </script>
 
-<?php include '../../../includes/footer.php'; ?>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>
