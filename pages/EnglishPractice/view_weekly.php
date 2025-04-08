@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // GCSE/pages/EnglishPractice/view_weekly.php
 session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
@@ -7,71 +11,101 @@ require_once __DIR__ . '/_functions.php';
 // Set timezone to London
 date_default_timezone_set('Europe/London');
 
-// Get current week number from URL or default to current week
-$current_week_stmt = $conn->prepare("SELECT week_number FROM practice_days WHERE practice_date = CURRENT_DATE");
-$current_week_stmt->execute();
-$current_week = $current_week_stmt->get_result()->fetch_assoc()['week_number'] ?? 1;
+try {
+    // Get current week number from URL or default to current week
+    $current_week_stmt = $conn->prepare("SELECT week_number FROM practice_days WHERE practice_date = CURRENT_DATE");
+    if (!$current_week_stmt) {
+        throw new Exception("Error preparing current week statement: " . $conn->error);
+    }
+    $current_week_stmt->execute();
+    $current_week_result = $current_week_stmt->get_result();
+    if (!$current_week_result) {
+        throw new Exception("Error getting current week result: " . $current_week_stmt->error);
+    }
+    $current_week = $current_week_result->fetch_assoc()['week_number'] ?? 1;
 
-$selected_week = isset($_GET['week']) ? (int)$_GET['week'] : $current_week;
-$selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
+    $selected_week = isset($_GET['week']) ? (int)$_GET['week'] : $current_week;
+    $selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 
-// Get all weeks for navigation
-$weeks_query = "SELECT DISTINCT week_number, 
-                      MIN(practice_date) as week_start, 
-                      MAX(practice_date) as week_end 
-               FROM practice_days 
-               GROUP BY week_number 
-               ORDER BY week_number DESC";
-$weeks_result = $conn->query($weeks_query);
-$weeks = [];
-while ($week = $weeks_result->fetch_assoc()) {
-    $weeks[] = $week;
-}
+    // Get all weeks for navigation
+    $weeks_query = "SELECT DISTINCT week_number, 
+                          MIN(practice_date) as week_start, 
+                          MAX(practice_date) as week_end 
+                   FROM practice_days 
+                   GROUP BY week_number 
+                   ORDER BY week_number DESC";
+    $weeks_result = $conn->query($weeks_query);
+    if (!$weeks_result) {
+        throw new Exception("Error getting weeks: " . $conn->error);
+    }
+    $weeks = [];
+    while ($week = $weeks_result->fetch_assoc()) {
+        $weeks[] = $week;
+    }
 
-// Get categories for filter
-$categories = [];
-$cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY name ASC");
-if ($cat_result) {
+    // Get categories for filter
+    $categories = [];
+    $cat_result = $conn->query("SELECT id, name FROM practice_categories ORDER BY name ASC");
+    if (!$cat_result) {
+        throw new Exception("Error getting categories: " . $conn->error);
+    }
     while ($row = $cat_result->fetch_assoc()) {
         $categories[] = $row;
     }
     $cat_result->free();
-}
 
-// Get practice items for selected week
-$items_query = "
-    SELECT pi.*, pc.name as category_name, pc.color as category_color,
-           pd.practice_date, pd.day_number,
-           CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
-    FROM practice_items pi
-    JOIN practice_days pd ON pi.practice_day_id = pd.id
-    JOIN practice_categories pc ON pi.category_id = pc.id
-    LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
-    WHERE pd.week_number = ?
-    " . ($selected_category > 0 ? "AND pi.category_id = ?" : "") . "
-    ORDER BY pd.practice_date ASC, pc.name ASC, pi.item_title ASC";
+    // Get practice items for selected week
+    $items_query = "
+        SELECT pi.*, pc.name as category_name, pc.color as category_color,
+               pd.practice_date, pd.day_number,
+               CASE WHEN fpi.practice_item_id IS NOT NULL THEN 1 ELSE 0 END as is_favorite
+        FROM practice_items pi
+        JOIN practice_days pd ON pi.practice_day_id = pd.id
+        JOIN practice_categories pc ON pi.category_id = pc.id
+        LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
+        WHERE pd.week_number = ?
+        " . ($selected_category > 0 ? "AND pi.category_id = ?" : "") . "
+        ORDER BY pd.practice_date ASC, pc.name ASC, pi.item_title ASC";
 
-$stmt = $conn->prepare($items_query);
-if ($selected_category > 0) {
-    $stmt->bind_param('ii', $selected_week, $selected_category);
-} else {
-    $stmt->bind_param('i', $selected_week);
-}
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Organize items by day
-$days_items = [];
-while ($item = $result->fetch_assoc()) {
-    $date = $item['practice_date'];
-    if (!isset($days_items[$date])) {
-        $days_items[$date] = [];
+    $stmt = $conn->prepare($items_query);
+    if (!$stmt) {
+        throw new Exception("Error preparing items query: " . $conn->error);
     }
-    $days_items[$date][] = $item;
-}
+    if ($selected_category > 0) {
+        $stmt->bind_param('ii', $selected_week, $selected_category);
+    } else {
+        $stmt->bind_param('i', $selected_week);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if (!$result) {
+        throw new Exception("Error getting items result: " . $stmt->error);
+    }
 
-$page_title = "Weekly Revision - English";
-require_once __DIR__ . '/../../includes/header.php';
+    // Organize items by day
+    $days_items = [];
+    while ($item = $result->fetch_assoc()) {
+        $date = $item['practice_date'];
+        if (!isset($days_items[$date])) {
+            $days_items[$date] = [];
+        }
+        $days_items[$date][] = $item;
+    }
+
+    $page_title = "Weekly Revision - English";
+    require_once __DIR__ . '/../../includes/header.php';
+
+} catch (Exception $e) {
+    // Log the error
+    error_log("Error in view_weekly.php: " . $e->getMessage());
+    // Display user-friendly error message
+    echo "<div style='padding: 20px; margin: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px;'>";
+    echo "<h4 style='color: #721c24;'>An error occurred</h4>";
+    echo "<p style='color: #721c24;'>Sorry, we encountered an error while loading this page. The error has been logged.</p>";
+    echo "<p style='color: #721c24; font-family: monospace;'>" . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "</div>";
+    exit;
+}
 ?>
 
 <style>
