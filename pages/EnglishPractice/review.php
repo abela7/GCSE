@@ -46,20 +46,6 @@ if ($category_result) {
     $category_result->free();
 }
 
-// Handle filters
-$selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
-$where_conditions = [];
-
-if (isset($_GET['favorites']) && $_GET['favorites'] == 1) {
-    $where_conditions[] = "fpi.practice_item_id IS NOT NULL";
-}
-
-if ($selected_category > 0) {
-    $where_conditions[] = "pi.category_id = " . $selected_category;
-}
-
-$where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
-
 // Get selected date from URL or default to today
 $selected_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $date_obj = new DateTimeImmutable($selected_date, new DateTimeZone('Europe/London'));
@@ -74,6 +60,25 @@ $result = $stmt->get_result();
 $practice_day = $result->fetch_assoc();
 $practice_day_id = $practice_day ? $practice_day['id'] : null;
 
+// Handle filters
+$selected_category = isset($_GET['category']) ? (int)$_GET['category'] : 0;
+$where_conditions = [];
+
+// Add date filter
+if ($practice_day_id) {
+    $where_conditions[] = "pi.practice_day_id = " . $practice_day_id;
+}
+
+if (isset($_GET['favorites']) && $_GET['favorites'] == 1) {
+    $where_conditions[] = "fpi.practice_item_id IS NOT NULL";
+}
+
+if ($selected_category > 0) {
+    $where_conditions[] = "pi.category_id = " . $selected_category;
+}
+
+$where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
+
 // Get items with filters applied
 $items = [];
 $query = "
@@ -82,15 +87,11 @@ $query = "
     FROM practice_items pi
     JOIN practice_categories pc ON pi.category_id = pc.id
     LEFT JOIN favorite_practice_items fpi ON pi.id = fpi.practice_item_id
-    WHERE pi.practice_day_id = ?
     $where_clause
     ORDER BY pc.name ASC, pi.item_title ASC
 ";
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param('i', $practice_day_id);
-$stmt->execute();
-$result = $stmt->get_result();
+$result = $conn->query($query);
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $items[] = $row;
