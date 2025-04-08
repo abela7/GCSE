@@ -24,18 +24,13 @@ try {
     // Start transaction
     $conn->begin_transaction();
 
-    // Reset topic_progress
-    $reset_progress_sql = "
-        UPDATE topic_progress 
-        SET status = 'not_started',
-            total_time_spent = 0,
-            confidence_level = 0,
-            last_studied = NULL,
-            completion_date = NULL
+    // Delete topic_progress instead of updating
+    $delete_progress_sql = "
+        DELETE FROM topic_progress 
         WHERE topic_id = ?
     ";
     
-    $stmt = $conn->prepare($reset_progress_sql);
+    $stmt = $conn->prepare($delete_progress_sql);
     $stmt->bind_param('i', $topic_id);
     $stmt->execute();
 
