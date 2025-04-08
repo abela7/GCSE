@@ -8,234 +8,200 @@ $page_title = "Mood Tracker";
 // Include header
 require_once __DIR__ . '/../../includes/header.php';
 
-// Get current date and time
-$current_date = date('Y-m-d');
-$current_month = date('Y-m');
+// Get recent mood entries
+$recent_entries = getMoodEntries(null, null, null, [], null, null);
+$recent_entries = array_slice($recent_entries, 0, 5);
 
-// Get mood entries for the current month
+// Get all tags for filtering
+$all_tags = getMoodTags();
+
+// Get current month for calendar
+$current_month = date('Y-m');
 $month_entries = getMoodEntriesByDay($current_month);
 
-// Get mood tags
-$mood_tags = getMoodTags();
+// Get mood statistics
+$stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 ?>
 
 <style>
 :root {
     --accent-color: #cdaf56;
-    --accent-color-light: #dbc77a;
-    --accent-color-dark: #b99b3e;
+    --accent-color-light: #e0cb8c;
+    --accent-color-dark: #b09339;
 }
 
-.mood-calendar {
+/* Card Styles */
+.dashboard-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+/* Mood Emoji Styles */
+.mood-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+.mood-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50rem;
+    font-weight: 500;
+    color: #fff;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Calendar Styles */
+.calendar-container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 5px;
 }
-
+.calendar-header {
+    text-align: center;
+    font-weight: 600;
+    padding: 5px;
+    background-color: #f8f9fa;
+}
 .calendar-day {
     aspect-ratio: 1;
-    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+.calendar-day.has-entries {
+    background-color: var(--accent-color-light);
+    color: #333;
+}
+.calendar-day.today {
+    border: 2px solid var(--accent-color);
+    font-weight: bold;
+}
+.day-number {
+    font-size: 1rem;
+    font-weight: 500;
+}
+.entry-indicator {
+    font-size: 0.7rem;
+    margin-top: 2px;
+}
+
+/* Quick Entry Styles */
+.quick-entry-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
-
-.calendar-day:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.calendar-day.today {
-    border: 2px solid var(--accent-color);
-}
-
-.calendar-day .day-number {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.calendar-day .mood-indicator {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    margin-top: 5px;
-}
-
-.calendar-day .entry-count {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: var(--accent-color);
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.7rem;
+.emoji-selector {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 1rem;
 }
-
-.mood-level-1 { background-color: #dc3545; }
-.mood-level-2 { background-color: #fd7e14; }
-.mood-level-3 { background-color: #ffc107; }
-.mood-level-4 { background-color: #20c997; }
-.mood-level-5 { background-color: #28a745; }
-
-.mood-emoji {
-    font-size: 2.5rem;
+.emoji-option {
+    font-size: 2rem;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease;
     opacity: 0.5;
-    margin: 0 5px;
+    text-align: center;
 }
-
-.mood-emoji:hover, .mood-emoji.selected {
+.emoji-option:hover {
+    transform: scale(1.2);
+    opacity: 1;
+}
+.emoji-option.selected {
     transform: scale(1.2);
     opacity: 1;
 }
 
-.tag-badge {
-    margin-right: 5px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
-    padding: 8px 12px;
+/* Tag Styles */
+.tag-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
 }
-
-.tag-badge:hover, .tag-badge.selected {
+.tag-option {
+    padding: 0.4rem 0.8rem;
+    border-radius: 50rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #fff;
+    font-weight: 500;
+    opacity: 0.7;
+}
+.tag-option:hover {
+    opacity: 1;
     transform: translateY(-2px);
 }
-
-.recent-entry {
-    border-left: 4px solid var(--accent-color);
-    padding-left: 15px;
-    margin-bottom: 15px;
-    transition: all 0.2s;
+.tag-option.selected {
+    opacity: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.recent-entry:hover {
-    transform: translateX(5px);
-}
-
-.mood-stats-card {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: all 0.3s;
-    height: 100%;
-}
-
-.mood-stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-}
-
-.mood-stats-card .card-header {
-    font-weight: 600;
-    background-color: var(--accent-color);
-}
-
+/* Button Styles */
 .btn-accent {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
-    color: white;
+    color: #fff;
 }
-
 .btn-accent:hover {
     background-color: var(--accent-color-dark);
     border-color: var(--accent-color-dark);
-    color: white;
+    color: #fff;
 }
-
 .btn-outline-accent {
     color: var(--accent-color);
     border-color: var(--accent-color);
 }
-
 .btn-outline-accent:hover {
     background-color: var(--accent-color);
-    color: white;
+    color: #fff;
 }
 
-/* Mobile Responsiveness Improvements */
+/* Mobile Optimizations */
 @media (max-width: 767.98px) {
-    .mood-calendar {
-        gap: 5px;
+    .mood-emoji {
+        font-size: 1.8rem;
     }
-    
-    .calendar-day .day-number {
+    .emoji-option {
+        font-size: 1.8rem;
+    }
+    .calendar-day {
+        min-height: 40px;
+    }
+    .day-number {
         font-size: 0.9rem;
     }
-    
-    .calendar-day .mood-indicator {
-        width: 18px;
-        height: 18px;
-    }
-    
-    .calendar-day .entry-count {
-        width: 16px;
-        height: 16px;
+    .entry-indicator {
         font-size: 0.6rem;
     }
-    
-    .mood-emoji {
-        font-size: 2rem;
-        margin: 0 2px;
+    .dashboard-card {
+        margin-bottom: 1rem;
     }
-    
-    .tag-badge {
-        font-size: 0.9rem;
-        padding: 6px 10px;
-    }
-    
     .btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
     }
-    
-    h1.h3 {
-        font-size: 1.5rem;
-    }
-    
-    .card-title {
-        font-size: 1.1rem;
-    }
-}
-
-/* Touch-friendly improvements */
-@media (max-width: 576px) {
-    .mood-emoji {
-        font-size: 2.2rem;
-        padding: 10px;
-        margin: 0;
-    }
-    
-    .mood-emoji-container {
-        justify-content: space-between;
-        width: 100%;
-    }
-    
-    .tag-badge {
-        padding: 8px 12px;
-        margin-bottom: 10px;
-    }
-    
-    .form-control, .form-select {
-        font-size: 16px; /* Prevents iOS zoom on focus */
-        padding: 12px;
+    .form-control {
+        font-size: 1rem;
+        padding: 0.75rem;
         height: auto;
-    }
-    
-    .btn {
-        padding: 12px 16px;
     }
 }
 </style>
@@ -243,516 +209,579 @@ $mood_tags = getMoodTags();
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h3 mb-3">Mood Tracker</h1>
+            <h1 class="h3 mb-0" style="color: var(--accent-color);">
+                <i class="fas fa-smile me-2"></i>Mood Tracker
+            </h1>
+            <p class="text-muted">Track, analyze, and understand your moods</p>
         </div>
-        <div class="col-md-4 text-md-end">
-            <a href="entry.php" class="btn btn-accent">
-                <i class="fas fa-plus me-2"></i>New Mood Entry
+        <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+            <a href="entry.php" class="btn btn-accent me-2">
+                <i class="fas fa-plus me-1"></i>New Entry
             </a>
-            <a href="history.php" class="btn btn-outline-accent ms-2">
-                <i class="fas fa-history me-2"></i>History
+            <a href="settings.php" class="btn btn-outline-accent">
+                <i class="fas fa-cog me-1"></i>Settings
             </a>
         </div>
     </div>
 
     <div class="row">
-        <!-- Left Column: Calendar and Quick Entry -->
-        <div class="col-lg-8">
-            <!-- Month Calendar -->
-            <div class="card mb-4">
+        <!-- Quick Entry -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-bolt me-2"></i>Quick Mood Entry
+                    </h5>
+                    <div class="quick-entry-container">
+                        <div class="emoji-selector">
+                            <div class="emoji-option" data-value="1" onclick="selectMood(this, 1)">😢</div>
+                            <div class="emoji-option" data-value="2" onclick="selectMood(this, 2)">😕</div>
+                            <div class="emoji-option" data-value="3" onclick="selectMood(this, 3)">😐</div>
+                            <div class="emoji-option" data-value="4" onclick="selectMood(this, 4)">🙂</div>
+                            <div class="emoji-option" data-value="5" onclick="selectMood(this, 5)">😄</div>
+                        </div>
+                        
+                        <div class="form-group mb-3 w-100">
+                            <textarea class="form-control" id="quick_notes" rows="2" placeholder="How are you feeling? (optional)"></textarea>
+                        </div>
+                        
+                        <div class="tag-selector w-100" id="quick_tags">
+                            <?php foreach ($all_tags as $tag): ?>
+                                <div class="tag-option" 
+                                     style="background-color: <?php echo $tag['color']; ?>"
+                                     data-id="<?php echo $tag['id']; ?>"
+                                     onclick="toggleTag(this)">
+                                    <?php echo htmlspecialchars($tag['name']); ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        
+                        <button type="button" class="btn btn-accent w-100" id="save_quick_entry" onclick="saveQuickEntry()" disabled>
+                            <i class="fas fa-save me-1"></i>Save Mood
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Monthly Calendar -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="dashboard-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-calendar-alt me-2" style="color: var(--accent-color);"></i>
-                            <?php echo date('F Y'); ?>
+                        <h5 class="card-title mb-0" style="color: var(--accent-color);">
+                            <i class="fas fa-calendar-alt me-2"></i><?php echo date('F Y'); ?>
                         </h5>
                         <div>
-                            <button class="btn btn-sm btn-outline-accent me-2" id="prev-month">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-accent" id="next-month">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
                     </div>
                     
-                    <div class="d-flex justify-content-between mb-2">
-                        <div class="text-center" style="width: 14.28%">Sun</div>
-                        <div class="text-center" style="width: 14.28%">Mon</div>
-                        <div class="text-center" style="width: 14.28%">Tue</div>
-                        <div class="text-center" style="width: 14.28%">Wed</div>
-                        <div class="text-center" style="width: 14.28%">Thu</div>
-                        <div class="text-center" style="width: 14.28%">Fri</div>
-                        <div class="text-center" style="width: 14.28%">Sat</div>
-                    </div>
-                    
-                    <div class="mood-calendar" id="mood-calendar">
+                    <div class="calendar-container" id="mood_calendar">
+                        <!-- Calendar headers (Sun-Sat) -->
                         <?php
-                        // Get first day of month
-                        $first_day = date('N', strtotime($current_month . '-01'));
-                        $first_day = $first_day % 7; // Convert to 0-6 (Sun-Sat)
-                        
-                        // Get number of days in month
-                        $days_in_month = date('t', strtotime($current_month . '-01'));
-                        
-                        // Add empty cells for days before first day of month
-                        for ($i = 0; $i < $first_day; $i++) {
-                            echo '<div class="calendar-day" style="visibility: hidden;"></div>';
+                        $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                        foreach ($days as $day) {
+                            echo '<div class="calendar-header">' . $day . '</div>';
                         }
                         
-                        // Add cells for each day of the month
-                        for ($day = 1; $day <= $days_in_month; $day++) {
-                            $day_date = $current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
-                            $is_today = $day_date === $current_date;
+                        // Get first day of month and total days
+                        $first_day_of_month = date('w', strtotime($current_month . '-01'));
+                        $total_days = date('t', strtotime($current_month . '-01'));
+                        $today = date('j');
+                        $current_month_year = date('Y-m');
+                        
+                        // Add empty cells for days before the 1st
+                        for ($i = 0; $i < $first_day_of_month; $i++) {
+                            echo '<div class="calendar-day empty"></div>';
+                        }
+                        
+                        // Add days of the month
+                        for ($day = 1; $day <= $total_days; $day++) {
+                            $is_today = ($day == $today && $current_month_year == date('Y-m'));
                             $has_entries = isset($month_entries[$day]);
-                            
-                            $class = $is_today ? 'calendar-day today' : 'calendar-day';
-                            $mood_level = $has_entries ? round($month_entries[$day]['avg_mood']) : 0;
+                            $avg_mood = $has_entries ? $month_entries[$day]['avg_mood'] : 0;
                             $entry_count = $has_entries ? $month_entries[$day]['entry_count'] : 0;
                             
-                            echo '<div class="' . $class . '" data-date="' . $day_date . '">';
+                            $class = 'calendar-day';
+                            if ($is_today) $class .= ' today';
+                            if ($has_entries) $class .= ' has-entries';
+                            
+                            echo '<div class="' . $class . '" onclick="viewDayEntries(\'' . $current_month . '-' . sprintf('%02d', $day) . '\')">';
                             echo '<span class="day-number">' . $day . '</span>';
-                            
                             if ($has_entries) {
-                                echo '<div class="mood-indicator mood-level-' . $mood_level . '"></div>';
-                                echo '<span class="entry-count">' . $entry_count . '</span>';
+                                $emoji = '';
+                                if ($avg_mood >= 4.5) $emoji = '😄';
+                                else if ($avg_mood >= 3.5) $emoji = '🙂';
+                                else if ($avg_mood >= 2.5) $emoji = '😐';
+                                else if ($avg_mood >= 1.5) $emoji = '😕';
+                                else $emoji = '😢';
+                                
+                                echo '<span class="entry-indicator">' . $emoji . '</span>';
                             }
-                            
                             echo '</div>';
+                        }
+                        
+                        // Add empty cells for days after the last day
+                        $remaining_cells = 7 - (($first_day_of_month + $total_days) % 7);
+                        if ($remaining_cells < 7) {
+                            for ($i = 0; $i < $remaining_cells; $i++) {
+                                echo '<div class="calendar-day empty"></div>';
+                            }
                         }
                         ?>
                     </div>
                     
-                    <div class="d-flex justify-content-center flex-wrap">
-                        <div class="d-flex align-items-center me-3 mb-2">
-                            <div class="mood-indicator mood-level-1 me-2"></div>
-                            <span>Very Low</span>
-                        </div>
-                        <div class="d-flex align-items-center me-3 mb-2">
-                            <div class="mood-indicator mood-level-2 me-2"></div>
-                            <span>Low</span>
-                        </div>
-                        <div class="d-flex align-items-center me-3 mb-2">
-                            <div class="mood-indicator mood-level-3 me-2"></div>
-                            <span>Neutral</span>
-                        </div>
-                        <div class="d-flex align-items-center me-3 mb-2">
-                            <div class="mood-indicator mood-level-4 me-2"></div>
-                            <span>Good</span>
-                        </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="mood-indicator mood-level-5 me-2"></div>
-                            <span>Excellent</span>
-                        </div>
+                    <div class="text-center mt-3">
+                        <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Quick Mood Entry -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">
-                        <i class="fas fa-bolt me-2" style="color: var(--accent-color);"></i>
-                        Quick Mood Entry
-                    </h5>
-                    
-                    <form id="quick-mood-form">
-                        <div class="mb-4">
-                            <label class="form-label">How are you feeling right now?</label>
-                            <div class="d-flex justify-content-between mood-emoji-container">
-                                <div class="text-center">
-                                    <div class="mood-emoji" data-level="1">😢</div>
-                                    <div>Very Low</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji" data-level="2">😕</div>
-                                    <div>Low</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji" data-level="3">😐</div>
-                                    <div>Neutral</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji" data-level="4">🙂</div>
-                                    <div>Good</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji" data-level="5">😄</div>
-                                    <div>Excellent</div>
-                                </div>
-                            </div>
-                            <input type="hidden" id="mood-level" name="mood_level" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="notes" class="form-label">Notes (optional)</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="What's on your mind?"></textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label">Tags</label>
-                            <div class="tag-container d-flex flex-wrap">
-                                <?php foreach ($mood_tags as $tag): ?>
-                                <span class="badge tag-badge" 
-                                      style="background-color: <?php echo htmlspecialchars($tag['color']); ?>"
-                                      data-tag-id="<?php echo $tag['id']; ?>">
-                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                </span>
-                                <?php endforeach; ?>
-                            </div>
-                            <input type="hidden" id="selected-tags" name="tags">
-                        </div>
-                        
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-accent">
-                                <i class="fas fa-save me-2"></i>Save Mood
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
         
-        <!-- Right Column: Stats and Recent Entries -->
-        <div class="col-lg-4">
-            <!-- Mood Stats -->
-            <div class="card mood-stats-card mb-4">
-                <div class="card-header text-white">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Mood Statistics
-                </div>
+        <!-- Mood Stats -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="dashboard-card">
                 <div class="card-body">
-                    <div class="mb-3">
-                        <h6 class="text-muted mb-2">Today's Average Mood</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="display-4 me-3" id="today-mood-emoji">😐</div>
-                            <div>
-                                <div class="progress" style="height: 8px; width: 150px;">
-                                    <div class="progress-bar" id="today-mood-bar" role="progressbar" style="width: 60%; background-color: var(--accent-color);"></div>
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-chart-line me-2"></i>Mood Insights
+                    </h5>
+                    
+                    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $avg_mood = $stats['average_mood'];
+                                    if ($avg_mood >= 4.5) echo '😄';
+                                    else if ($avg_mood >= 3.5) echo '🙂';
+                                    else if ($avg_mood >= 2.5) echo '😐';
+                                    else if ($avg_mood >= 1.5) echo '😕';
+                                    else echo '😢';
+                                    ?>
                                 </div>
-                                <div class="small text-muted mt-1" id="today-mood-text">Neutral (3.0)</div>
+                                <div class="small text-muted">Average Mood</div>
+                                <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">📊</div>
+                                <div class="small text-muted">Entries</div>
+                                <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $most_common_mood = $stats['most_common_mood'];
+                                    if ($most_common_mood == 5) echo '😄';
+                                    else if ($most_common_mood == 4) echo '🙂';
+                                    else if ($most_common_mood == 3) echo '😐';
+                                    else if ($most_common_mood == 2) echo '😕';
+                                    else echo '😢';
+                                    ?>
+                                </div>
+                                <div class="small text-muted">Most Common</div>
+                                <div class="fw-bold">Level <?php echo $most_common_mood; ?></div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6 class="text-muted mb-2">This Week</h6>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="small text-muted">Average Mood:</div>
-                            <div class="fw-bold" id="week-avg-mood">3.2</div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="small text-muted">Entries:</div>
-                            <div class="fw-bold" id="week-entry-count">12</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6 class="text-muted mb-2">Most Used Tags</h6>
-                        <div id="top-tags">
-                            <div class="placeholder-glow">
-                                <span class="placeholder col-4"></span>
-                                <span class="placeholder col-3"></span>
-                                <span class="placeholder col-5"></span>
+                        
+                        <?php if (!empty($stats['top_tags'])): ?>
+                            <h6 class="mt-4 mb-2">Top Tags</h6>
+                            <div>
+                                <?php foreach ($stats['top_tags'] as $tag): ?>
+                                    <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                        <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
+                                    </span>
+                                <?php endforeach; ?>
                             </div>
+                        <?php endif; ?>
+                        
+                        <div class="text-center mt-4">
+                            <a href="analytics.php" class="btn btn-sm btn-outline-accent">View Detailed Analytics</a>
                         </div>
-                    </div>
-                    
-                    <div class="text-center">
-                        <a href="analytics.php" class="btn btn-sm btn-outline-accent">
-                            <i class="fas fa-chart-bar me-2"></i>View Detailed Analytics
-                        </a>
-                    </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-bar fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-3">No mood data available yet</p>
+                            <p class="small text-muted">Start tracking your mood to see insights</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
-            
-            <!-- Recent Entries -->
-            <div class="card mood-stats-card">
-                <div class="card-header text-white">
-                    <i class="fas fa-history me-2"></i>
-                    Recent Entries
-                </div>
+        </div>
+    </div>
+    
+    <!-- Recent Entries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dashboard-card">
                 <div class="card-body">
-                    <div id="recent-entries">
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-12 mb-2"></span>
-                            <span class="placeholder col-10 mb-2"></span>
-                            <span class="placeholder col-8 mb-3"></span>
-                            
-                            <span class="placeholder col-12 mb-2"></span>
-                            <span class="placeholder col-10 mb-2"></span>
-                            <span class="placeholder col-8 mb-3"></span>
-                        </div>
-                    </div>
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-history me-2"></i>Recent Entries
+                    </h5>
                     
-                    <div class="text-center">
-                        <a href="history.php" class="btn btn-sm btn-outline-accent">
-                            <i class="fas fa-list me-2"></i>View All Entries
-                        </a>
-                    </div>
+                    <?php if (!empty($recent_entries)): ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Mood</th>
+                                        <th>Tags</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($recent_entries as $entry): ?>
+                                        <tr>
+                                            <td><?php echo date('M j, Y g:i A', strtotime($entry['date'])); ?></td>
+                                            <td>
+                                                <?php
+                                                $mood = $entry['mood_level'];
+                                                $emoji = '';
+                                                if ($mood == 5) $emoji = '😄';
+                                                else if ($mood == 4) $emoji = '🙂';
+                                                else if ($mood == 3) $emoji = '😐';
+                                                else if ($mood == 2) $emoji = '😕';
+                                                else $emoji = '😢';
+                                                echo $emoji . ' (' . $mood . '/5)';
+                                                ?>
+                                            </td>
+                                            <td>
+                                                <?php if (!empty($entry['tags'])): ?>
+                                                    <?php foreach ($entry['tags'] as $tag): ?>
+                                                        <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                                            <?php echo htmlspecialchars($tag['name']); ?>
+                                                        </span>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">No tags</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php if (!empty($entry['notes'])): ?>
+                                                    <?php echo nl2br(htmlspecialchars(substr($entry['notes'], 0, 100))); ?>
+                                                    <?php if (strlen($entry['notes']) > 100): ?>
+                                                        <span class="text-muted">...</span>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <span class="text-muted">No notes</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <a href="entry.php?id=<?php echo $entry['id']; ?>" class="btn btn-sm btn-outline-accent me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteEntry(<?php echo $entry['id']; ?>)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="history.php" class="btn btn-outline-accent">View All Entries</a>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-book fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted mb-3">No mood entries yet</p>
+                            <a href="entry.php" class="btn btn-accent">
+                                <i class="fas fa-plus me-1"></i>Create Your First Entry
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Mood emoji selection
-    const moodEmojis = document.querySelectorAll('.mood-emoji');
-    const moodLevelInput = document.getElementById('mood-level');
-    
-    moodEmojis.forEach(emoji => {
-        emoji.addEventListener('click', function() {
-            // Remove selected class from all emojis
-            moodEmojis.forEach(e => e.classList.remove('selected'));
-            
-            // Add selected class to clicked emoji
-            this.classList.add('selected');
-            
-            // Set mood level value
-            moodLevelInput.value = this.dataset.level;
-        });
-    });
-    
-    // Tag selection
-    const tagBadges = document.querySelectorAll('.tag-badge');
-    const selectedTagsInput = document.getElementById('selected-tags');
-    const selectedTags = [];
-    
-    tagBadges.forEach(badge => {
-        badge.addEventListener('click', function() {
-            const tagId = this.dataset.tagId;
-            
-            if (this.classList.contains('selected')) {
-                // Remove tag from selection
-                this.classList.remove('selected');
-                const index = selectedTags.indexOf(tagId);
-                if (index > -1) {
-                    selectedTags.splice(index, 1);
-                }
-            } else {
-                // Add tag to selection
-                this.classList.add('selected');
-                selectedTags.push(tagId);
-            }
-            
-            // Update hidden input
-            selectedTagsInput.value = selectedTags.join(',');
-        });
-    });
-    
-    // Calendar day click
-    const calendarDays = document.querySelectorAll('.calendar-day');
-    
-    calendarDays.forEach(day => {
-        if (day.dataset.date) {
-            day.addEventListener('click', function() {
-                window.location.href = 'history.php?date=' + this.dataset.date;
-            });
-        }
-    });
-    
-    // Form submission
-    const quickMoodForm = document.getElementById('quick-mood-form');
-    
-    quickMoodForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Validate form
-        if (!moodLevelInput.value) {
-            alert('Please select your mood level');
-            return;
-        }
-        
-        // Collect form data
-        const formData = new FormData(this);
-        
-        // Send AJAX request
-        fetch('ajax/save_mood.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                alert('Mood entry saved successfully!');
-                
-                // Reset form
-                quickMoodForm.reset();
-                moodEmojis.forEach(e => e.classList.remove('selected'));
-                tagBadges.forEach(b => b.classList.remove('selected'));
-                selectedTags.length = 0;
-                selectedTagsInput.value = '';
-                
-                // Reload page to update calendar and stats
-                window.location.reload();
-            } else {
-                // Show error message
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while saving your mood entry');
-        });
-    });
-    
-    // Load recent entries
-    fetch('ajax/get_recent_entries.php')
-    .then(response => response.json())
-    .then(data => {
-        const recentEntriesContainer = document.getElementById('recent-entries');
-        
-        if (data.length > 0) {
-            let html = '';
-            
-            data.forEach(entry => {
-                const date = new Date(entry.date);
-                const formattedDate = date.toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                let moodEmoji = '😐';
-                switch (parseInt(entry.mood_level)) {
-                    case 1: moodEmoji = '😢'; break;
-                    case 2: moodEmoji = '😕'; break;
-                    case 3: moodEmoji = '😐'; break;
-                    case 4: moodEmoji = '🙂'; break;
-                    case 5: moodEmoji = '😄'; break;
-                }
-                
-                html += `
-                <div class="recent-entry">
-                    <div class="d-flex align-items-center mb-1">
-                        <div class="me-2 fs-4">${moodEmoji}</div>
-                        <div>
-                            <div class="small text-muted">${formattedDate}</div>
+<!-- Delete Entry Modal -->
+<div class="modal fade" id="deleteEntryModal" tabindex="-1" aria-labelledby="deleteEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteEntryModalLabel" style="color: #dc3545;">Delete Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this mood entry?</p>
+                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm_delete">Delete Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Day Entries Modal -->
+<div class="modal fade" id="dayEntriesModal" tabindex="-1" aria-labelledby="dayEntriesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayEntriesModalLabel" style="color: var(--accent-color);">Mood Entries for <span id="day_date"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="day_entries_container">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-accent" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                `;
-                
-                if (entry.notes) {
-                    html += `<div class="small mb-1">${entry.notes}</div>`;
-                }
-                
-                if (entry.tags && entry.tags.length > 0) {
-                    html += '<div class="mb-2">';
-                    entry.tags.forEach(tag => {
-                        html += `
-                        <span class="badge" style="background-color: ${tag.color}; font-size: 0.7rem;">
-                            ${tag.name}
-                        </span> `;
-                    });
-                    html += '</div>';
-                }
-                
-                html += `
-                    <div class="text-end">
-                        <a href="entry.php?id=${entry.id}" class="btn btn-sm btn-outline-accent">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    </div>
-                </div>`;
-            });
-            
-            recentEntriesContainer.innerHTML = html;
-        } else {
-            recentEntriesContainer.innerHTML = '<p class="text-muted">No recent entries found.</p>';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('recent-entries').innerHTML = '<p class="text-danger">Error loading recent entries</p>';
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-accent" id="add_entry_for_day">
+                    <i class="fas fa-plus me-1"></i>Add Entry
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables to store selected mood and tags
+let selectedMood = null;
+let selectedTags = [];
+
+// Function to select mood
+function selectMood(element, value) {
+    // Remove selected class from all options
+    document.querySelectorAll('.emoji-option').forEach(option => {
+        option.classList.remove('selected');
     });
     
-    // Load mood statistics
-    fetch('ajax/get_mood_stats.php')
-    .then(response => response.json())
-    .then(data => {
-        // Update today's mood
-        if (data.today_avg_mood) {
-            const todayMood = parseFloat(data.today_avg_mood);
-            const todayMoodBar = document.getElementById('today-mood-bar');
-            const todayMoodEmoji = document.getElementById('today-mood-emoji');
-            const todayMoodText = document.getElementById('today-mood-text');
-            
-            // Update progress bar
-            todayMoodBar.style.width = (todayMood / 5 * 100) + '%';
-            
-            // Update emoji
-            let moodEmoji = '😐';
-            let moodText = 'Neutral';
-            let barColor = 'var(--accent-color)';
-            
-            switch (Math.round(todayMood)) {
-                case 1: 
-                    moodEmoji = '😢'; 
-                    moodText = 'Very Low';
-                    barColor = '#dc3545';
-                    break;
-                case 2: 
-                    moodEmoji = '😕'; 
-                    moodText = 'Low';
-                    barColor = '#fd7e14';
-                    break;
-                case 3: 
-                    moodEmoji = '😐'; 
-                    moodText = 'Neutral';
-                    barColor = '#ffc107';
-                    break;
-                case 4: 
-                    moodEmoji = '🙂'; 
-                    moodText = 'Good';
-                    barColor = '#20c997';
-                    break;
-                case 5: 
-                    moodEmoji = '😄'; 
-                    moodText = 'Excellent';
-                    barColor = '#28a745';
-                    break;
+    // Add selected class to clicked option
+    element.classList.add('selected');
+    
+    // Store selected mood
+    selectedMood = value;
+    
+    // Enable save button if mood is selected
+    document.getElementById('save_quick_entry').disabled = !selectedMood;
+}
+
+// Function to toggle tag selection
+function toggleTag(element) {
+    const tagId = parseInt(element.dataset.id);
+    
+    if (element.classList.contains('selected')) {
+        // Remove tag from selection
+        element.classList.remove('selected');
+        selectedTags = selectedTags.filter(id => id !== tagId);
+    } else {
+        // Add tag to selection
+        element.classList.add('selected');
+        selectedTags.push(tagId);
+    }
+}
+
+// Function to save quick entry
+function saveQuickEntry() {
+    if (!selectedMood) {
+        alert('Please select a mood level');
+        return;
+    }
+    
+    const notes = document.getElementById('quick_notes').value;
+    const tags = selectedTags.join(',');
+    
+    // Disable save button and show loading state
+    const saveButton = document.getElementById('save_quick_entry');
+    const originalText = saveButton.innerHTML;
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+    
+    // Send AJAX request to save mood
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'ajax/save_mood.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    // Reset form
+                    document.querySelectorAll('.emoji-option').forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    document.querySelectorAll('.tag-option').forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    document.getElementById('quick_notes').value = '';
+                    selectedMood = null;
+                    selectedTags = [];
+                    
+                    // Show success message
+                    alert('Mood entry saved successfully!');
+                    
+                    // Reload page to show updated data
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            } catch (e) {
+                alert('Error processing response');
+            }
+        } else {
+            alert('Error saving mood entry');
+        }
+        
+        // Reset button state
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalText;
+    };
+    xhr.onerror = function() {
+        alert('Network error occurred');
+        saveButton.disabled = false;
+        saveButton.innerHTML = originalText;
+    };
+    xhr.send('mood_level=' + selectedMood + '&notes=' + encodeURIComponent(notes) + '&tags=' + tags);
+}
+
+// Function to change month
+function changeMonth(direction) {
+    // This would be implemented with AJAX to load new month data
+    alert('Month navigation will be implemented with AJAX');
+}
+
+// Function to view day entries
+function viewDayEntries(date) {
+    // Set date in modal
+    document.getElementById('day_date').textContent = new Date(date).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    // Set link for adding entry on this date
+    document.getElementById('add_entry_for_day').href = 'entry.php?date=' + date;
+    
+    // Show loading state
+    document.getElementById('day_entries_container').innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-accent" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('dayEntriesModal'));
+    modal.show();
+    
+    // Load entries for this day via AJAX
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'ajax/get_day_entries.php?date=' + date, true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            document.getElementById('day_entries_container').innerHTML = xhr.responseText;
+        } else {
+            document.getElementById('day_entries_container').innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading entries. Please try again.
+                </div>
+            `;
+        }
+    };
+    xhr.onerror = function() {
+        document.getElementById('day_entries_container').innerHTML = `
+            <div class="alert alert-danger">
+                Network error occurred. Please check your connection.
+            </div>
+        `;
+    };
+    xhr.send();
+}
+
+// Function to delete entry
+function deleteEntry(entryId) {
+    // Store entry ID for deletion
+    const confirmButton = document.getElementById('confirm_delete');
+    confirmButton.dataset.entryId = entryId;
+    
+    // Show confirmation modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteEntryModal'));
+    modal.show();
+    
+    // Set up confirmation button
+    confirmButton.onclick = function() {
+        // Disable button and show loading state
+        confirmButton.disabled = true;
+        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+        
+        // Send AJAX request to delete entry
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'ajax/delete_entry.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        // Hide modal
+                        modal.hide();
+                        
+                        // Reload page to show updated data
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                } catch (e) {
+                    alert('Error processing response');
+                }
+            } else {
+                alert('Error deleting entry');
             }
             
-            todayMoodEmoji.textContent = moodEmoji;
-            todayMoodText.textContent = `${moodText} (${todayMood.toFixed(1)})`;
-            todayMoodBar.style.backgroundColor = barColor;
-        }
-        
-        // Update weekly stats
-        if (data.week_avg_mood) {
-            document.getElementById('week-avg-mood').textContent = parseFloat(data.week_avg_mood).toFixed(1);
-        }
-        
-        if (data.week_entry_count) {
-            document.getElementById('week-entry-count').textContent = data.week_entry_count;
-        }
-        
-        // Update top tags
-        if (data.top_tags && data.top_tags.length > 0) {
-            const topTagsContainer = document.getElementById('top-tags');
-            let html = '';
-            
-            data.top_tags.forEach(tag => {
-                html += `
-                <span class="badge mb-1 me-1" style="background-color: ${tag.color};">
-                    ${tag.name} (${tag.count})
-                </span>`;
-            });
-            
-            topTagsContainer.innerHTML = html;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
+            // Reset button state
+            confirmButton.disabled = false;
+            confirmButton.innerHTML = 'Delete Entry';
+        };
+        xhr.onerror = function() {
+            alert('Network error occurred');
+            confirmButton.disabled = false;
+            confirmButton.innerHTML = 'Delete Entry';
+        };
+        xhr.send('entry_id=' + entryId);
+    };
+}
+
+// Improve mobile experience
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix iOS zoom on input focus
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(input => {
+        input.style.fontSize = '16px';
     });
+    
+    // Increase touch target sizes on mobile
+    if (window.innerWidth < 768) {
+        document.querySelectorAll('.btn-sm').forEach(btn => {
+            btn.classList.remove('btn-sm');
+        });
+    }
 });
 </script>
 
 <?php
-include __DIR__ . '/../../includes/footer.php';
+// Include footer
+require_once __DIR__ . '/../../includes/footer.php';
 ?>
