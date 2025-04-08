@@ -10,7 +10,7 @@ use PHPMailer\PHPMailer\Exception;
 echo '<!DOCTYPE html>
 <html>
 <head>
-    <title>Email Test - GCSE Study App</title>
+    <title>Email Test - Amha-Silassie</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding: 20px; }
@@ -19,7 +19,7 @@ echo '<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4">Email Test - GCSE Study App</h1>';
+        <h1 class="mb-4">Email Test - Amha-Silassie</h1>';
 
 try {
     // Create a new PHPMailer instance
@@ -44,10 +44,10 @@ try {
     
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'Test Email from GCSE Study App';
+    $mail->Subject = 'Test Email from Amha-Silassie';
     $mail->Body = '
         <h1>Email Test Successful!</h1>
-        <p>This is a test email from your GCSE Study App.</p>
+        <p>This is a test email from Amha-Silassie.</p>
         <p>If you are receiving this email, your email configuration is working correctly!</p>
         <p>Time sent: ' . date('Y-m-d H:i:s') . '</p>
         <p>Domain: abel.abuneteklehaymanot.org</p>

@@ -12,7 +12,7 @@ define('SMTP_USERNAME', 'abelgoytom77@gmail.com'); // Add your Gmail address her
 define('SMTP_PASSWORD', 'wmfm sgyn ucuz mlbu'); // Add your App Password here
 
 // Email Settings
-define('EMAIL_FROM_NAME', 'GCSE Study App');
+define('EMAIL_FROM_NAME', 'Amha-Silassie');
 define('EMAIL_FROM_ADDRESS', 'abelgoytom77@gmail.com'); // Add your Gmail address here
 define('EMAIL_REPLY_TO', 'abelgoytom77@gmail.com'); // Add your Gmail address here
 
