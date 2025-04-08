@@ -31,18 +31,19 @@ require_once __DIR__ . '/../../includes/header.php';
     perspective: 1000px;
     margin: 20px auto;
     max-width: 700px;
-    width: 100%;
 }
 
 .flashcard {
     position: relative;
     width: 100%;
-    min-height: 300px;
-    height: calc(100vh - 400px);
-    max-height: 500px;
+    height: 400px;
     transition: transform 0.6s;
     transform-style: preserve-3d;
     cursor: pointer;
+}
+
+.flashcard.is-flipped {
+    transform: rotateY(180deg);
 }
 
 .flashcard-front, .flashcard-back {
@@ -60,7 +61,6 @@ require_once __DIR__ . '/../../includes/header.php';
 
 .flashcard-back {
     transform: rotateY(180deg);
-    overflow-y: auto;
 }
 
 .flashcard-content {
@@ -88,22 +88,25 @@ require_once __DIR__ . '/../../includes/header.php';
 }
 
 .favorite-btn {
-    background-color: white;
+    background-color: #fff;
     border: 2px solid #ffc107;
     color: #ffc107;
 }
 
-.favorite-btn:hover, .favorite-btn.is-favorite {
+.favorite-btn:hover {
+    background-color: #fff3cd;
+}
+
+.favorite-btn.is-favorite {
     background-color: #ffc107;
-    color: white;
+    color: #000;
 }
 
 .flashcard-title {
-    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-size: 2rem;
     margin-bottom: 1.5rem;
     color: #2c3e50;
     font-weight: 600;
-    line-height: 1.3;
 }
 
 .flashcard-details {
@@ -136,30 +139,25 @@ require_once __DIR__ . '/../../includes/header.php';
 }
 
 .controls {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    max-width: 700px;
+    margin: 1.5rem auto;
     display: flex;
+    justify-content: center;
     gap: 1rem;
-    background: white;
-    padding: 0.75rem;
-    border-radius: 50px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    z-index: 1000;
 }
 
 .control-btn {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
+    padding: 0;
     border-radius: 50%;
     border: none;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     transition: all 0.3s;
-    padding: 0;
+    margin: 0 5px;
 }
 
 .reveal-btn {
@@ -187,28 +185,6 @@ require_once __DIR__ . '/../../includes/header.php';
     padding: 1.5rem;
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-@media (max-width: 768px) {
-    .flashcard {
-        min-height: 250px;
-        height: calc(100vh - 300px);
-    }
-
-    .flashcard-front, .flashcard-back {
-        padding: 1.5rem;
-    }
-
-    .controls {
-        bottom: 15px;
-        padding: 0.5rem;
-    }
-
-    .control-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1.1rem;
-    }
 }
 </style>
 
@@ -308,7 +284,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <!-- Controls -->
         <div class="controls">
-            <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Toggle Favorite">
+            <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Add to Favorites">
                 <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
             </button>
             <button class="control-btn reveal-btn" id="flashcard-reveal" title="Flip Card">
@@ -320,8 +296,8 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
 
         <!-- Keyboard Shortcuts -->
-        <div class="text-center text-muted mt-3">
-            <small><i class="fas fa-keyboard me-1"></i> Space: flip • →: next</small>
+        <div class="text-center text-muted">
+            <small><i class="fas fa-keyboard me-1"></i> Use <kbd>Space</kbd> to flip, <kbd>→</kbd> for next</small>
         </div>
 
         <script>
@@ -349,9 +325,6 @@ require_once __DIR__ . '/../../includes/header.php';
                         icon.classList.toggle('far');
                         icon.classList.toggle('fas');
                         this.classList.toggle('is-favorite');
-                        this.innerHTML = `
-                            <i class="${icon.classList.contains('fas') ? 'fas' : 'far'} fa-star"></i>
-                        `;
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -362,9 +335,9 @@ require_once __DIR__ . '/../../includes/header.php';
                 flashcard.classList.toggle('is-flipped');
                 if (flashcard.classList.contains('is-flipped')) {
                     document.getElementById('flashcard-next').style.display = 'inline-flex';
-                    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                    this.querySelector('i').classList.add('fa-rotate-180');
                 } else {
-                    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                    this.querySelector('i').classList.remove('fa-rotate-180');
                 }
             });
 
@@ -397,8 +370,19 @@ require_once __DIR__ . '/../../includes/header.php';
                         favoriteBtn.classList.remove('is-favorite');
                     }
                     
-                    // Reset flip button
-                    document.getElementById('flashcard-reveal').innerHTML = '<i class="fas fa-sync-alt"></i>';
+                    // Update back content
+                    const backContent = flashcard.querySelector('.flashcard-back .flashcard-details');
+                    backContent.innerHTML = `
+                        <h3 class="h5 mb-3">Meaning/Rule:</h3>
+                        <p>${nextItem.item_meaning.replace(/\n/g, '<br>')}</p>
+                        <div class="flashcard-example">
+                            <h3 class="h5 mb-2">Example:</h3>
+                            <p class="mb-0">${nextItem.item_example.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    `;
+                    
+                    // Reset buttons
+                    document.getElementById('flashcard-reveal').querySelector('i').classList.remove('fa-rotate-180');
                     this.style.display = 'none';
                     
                     // Update progress
@@ -415,10 +399,10 @@ require_once __DIR__ . '/../../includes/header.php';
                             <p class="mb-4">You've reviewed all ${totalItems} items.</p>
                             <div class="d-flex justify-content-center gap-3">
                                 <a href="practice.php" class="btn btn-primary">
-                                    <i class="fas fa-redo"></i>
+                                    <i class="fas fa-redo me-1"></i> Practice Again
                                 </a>
                                 <a href="review.php" class="btn btn-outline-secondary">
-                                    <i class="fas fa-list-alt"></i>
+                                    <i class="fas fa-list-alt me-1"></i> Review Entries
                                 </a>
                             </div>
                         </div>
