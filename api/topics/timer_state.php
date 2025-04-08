@@ -1,5 +1,5 @@
 <?php
-require_once '../../config/db_connect.php';
+require_once '../../config/database.php';
 
 // Set timezone for PHP
 date_default_timezone_set('Europe/London');
@@ -25,8 +25,7 @@ if (!$topic_id || !$subject || !$action) {
 }
 
 try {
-    $db = new PDO("mysql:host=localhost;dbname=gcsedb", "root", "");
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db = getDBConnection();
     
     // Align MySQL timezone with PHP
     $db->exec("SET time_zone = '" . date('P') . "'");
@@ -34,7 +33,6 @@ try {
     $db->beginTransaction();
 
     $study_time_table = $subject === 'english' ? 'eng_study_time_tracking' : 'study_time_tracking';
-    $progress_table = $subject === 'english' ? 'eng_topic_progress' : 'topic_progress';
 
     switch ($action) {
         case 'get_state':
@@ -109,43 +107,36 @@ try {
             break;
 
         case 'stop':
-            // First check if the topic is already completed to avoid duplicate updates
-            $check_stmt = $db->prepare("
-                SELECT status FROM $progress_table 
-                WHERE topic_id = ? AND status = 'completed'
-            ");
+            // Update progress table
+            $progress_table = $subject === 'english' ? 'eng_topic_progress' : 'topic_progress';
+            $study_time_table = $subject === 'english' ? 'eng_study_time_tracking' : 'study_time_tracking';
+            
+            // First check if there's an existing progress record
+            $check_stmt = $db->prepare("SELECT total_time_spent FROM $progress_table WHERE topic_id = ?");
             $check_stmt->execute([$topic_id]);
             $existing_progress = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Only update progress if not already completed
-            if (!$existing_progress) {
-                // Get total time spent so far
-                $time_stmt = $db->prepare("
-                    SELECT COALESCE(SUM(accumulated_seconds), 0) as total_time
-                    FROM $study_time_table
-                    WHERE topic_id = ? AND status = 'completed'
+            if ($existing_progress) {
+                // Update existing record
+                $stmt = $db->prepare("
+                    UPDATE $progress_table 
+                    SET total_time_spent = total_time_spent + ?,
+                        last_studied = NOW(),
+                        status = 'completed'
+                    WHERE topic_id = ?
                 ");
-                $time_stmt->execute([$topic_id]);
-                $total_time = $time_stmt->fetch(PDO::FETCH_ASSOC)['total_time'];
-
-                // Add current session time
-                $total_time += $elapsed_seconds;
-
-                // Update progress table with completed status and accumulated time
-                $progress_stmt = $db->prepare("
+                $stmt->execute([$elapsed_seconds, $topic_id]);
+            } else {
+                // Insert new record
+                $stmt = $db->prepare("
                     INSERT INTO $progress_table 
-                    (topic_id, status, total_time_spent, last_studied, completion_date)
-                    VALUES (?, 'completed', ?, NOW(), NOW())
-                    ON DUPLICATE KEY UPDATE
-                    status = 'completed',
-                    total_time_spent = VALUES(total_time_spent),
-                    last_studied = NOW(),
-                    completion_date = NOW()
+                    (topic_id, total_time_spent, last_studied, status)
+                    VALUES (?, ?, NOW(), 'completed')
                 ");
-                $progress_stmt->execute([$topic_id, $total_time]);
+                $stmt->execute([$topic_id, $elapsed_seconds]);
             }
 
-            // Mark current study session as completed
+            // Mark study session as completed
             $stmt = $db->prepare("
                 UPDATE $study_time_table 
                 SET status = 'completed',
@@ -158,26 +149,6 @@ try {
                 LIMIT 1
             ");
             $stmt->execute([$elapsed_seconds, $elapsed_seconds, $topic_id]);
-
-            // Update section progress if it's a math topic
-            if ($subject !== 'english') {
-                $section_stmt = $db->prepare("
-                    UPDATE section_progress sp
-                    JOIN math_sections ms ON sp.section_id = ms.id
-                    JOIN math_subsections msub ON ms.id = msub.section_id
-                    JOIN math_topics mt ON msub.id = mt.subsection_id
-                    SET sp.completed_topics = (
-                        SELECT COUNT(*)
-                        FROM topic_progress tp2
-                        JOIN math_topics mt2 ON tp2.topic_id = mt2.id
-                        JOIN math_subsections msub2 ON mt2.subsection_id = msub2.id
-                        WHERE msub2.section_id = ms.id
-                        AND tp2.status = 'completed'
-                    )
-                    WHERE mt.id = ?
-                ");
-                $section_stmt->execute([$topic_id]);
-            }
             
             echo json_encode(['success' => true]);
             break;
@@ -189,7 +160,7 @@ try {
 
     $db->commit();
 } catch (Exception $e) {
-    if (isset($db)) {
+    if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
     http_response_code(500);
