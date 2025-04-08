@@ -60,70 +60,128 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
 /* Calendar Styles */
 .calendar-container {
+    margin-bottom: 1rem;
+    overflow-x: auto;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    margin-bottom: 1rem;
+    gap: 2px;
+    background-color: #dee2e6;
+    padding: 2px;
+    border-radius: 8px;
 }
+
 .calendar-header {
     text-align: center;
     font-weight: 600;
-    padding: 8px 5px;
+    padding: 10px 5px;
     background-color: #f8f9fa;
-    border-radius: 4px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #495057;
 }
+
 .calendar-day {
     aspect-ratio: 1;
+    background-color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 5px;
-    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    background-color: #fff;
-    border: 1px solid #dee2e6;
+    min-height: 60px;
 }
+
 .calendar-day:hover {
     background-color: #f8f9fa;
     transform: translateY(-2px);
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 .calendar-day.empty {
-    background-color: transparent;
-    border: none;
+    background-color: #f8f9fa;
     cursor: default;
+    color: #adb5bd;
 }
+
 .calendar-day.empty:hover {
     transform: none;
     box-shadow: none;
 }
+
 .calendar-day.has-entries {
     background-color: var(--accent-color-light);
-    border-color: var(--accent-color);
 }
+
 .calendar-day.today {
     border: 2px solid var(--accent-color);
     font-weight: bold;
 }
+
+.calendar-day.other-month {
+    opacity: 0.5;
+}
+
 .day-number {
     position: absolute;
-    top: 2px;
+    top: 5px;
     right: 5px;
     font-size: 0.9rem;
+    font-weight: 500;
     color: #495057;
 }
+
 .entry-indicator {
-    font-size: 1.2rem;
-    margin-top: 15px;
+    font-size: 1.4rem;
+    margin-top: 5px;
 }
+
 .entry-count {
     position: absolute;
-    bottom: 2px;
+    bottom: 3px;
     right: 5px;
     font-size: 0.7rem;
-    color: #666;
+    color: #495057;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1px 4px;
+    border-radius: 10px;
+}
+
+/* Month Navigation */
+.month-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.month-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--accent-color);
+}
+
+.month-nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.month-nav-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    background-color: transparent;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.month-nav-btn:hover {
+    background-color: var(--accent-color-light);
+    border-color: var(--accent-color);
+    color: #495057;
 }
 
 /* Quick Entry Styles */
@@ -207,20 +265,37 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     .emoji-option {
         font-size: 1.8rem;
     }
+    .calendar-container {
+        gap: 1px;
+        padding: 1px;
+    }
     .calendar-header {
-        padding: 5px 2px;
-        font-size: 0.8rem;
+        padding: 8px 2px;
+        font-size: 0.75rem;
     }
     .calendar-day {
+        min-height: 50px;
         padding: 3px;
     }
     .day-number {
         font-size: 0.8rem;
+        top: 3px;
         right: 3px;
     }
     .entry-indicator {
-        font-size: 1rem;
-        margin-top: 12px;
+        font-size: 1.2rem;
+        margin-top: 8px;
+    }
+    .entry-count {
+        font-size: 0.65rem;
+        padding: 0 3px;
+    }
+    .month-title {
+        font-size: 1.1rem;
+    }
+    .month-nav-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.9rem;
     }
     .dashboard-card {
         margin-bottom: 1rem;
@@ -234,6 +309,37 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
         padding: 0.75rem;
         height: auto;
     }
+}
+
+/* Small Mobile Screens */
+@media (max-width: 375px) {
+    .calendar-day {
+        min-height: 45px;
+    }
+    .entry-indicator {
+        font-size: 1rem;
+        margin-top: 10px;
+    }
+    .day-number {
+        font-size: 0.75rem;
+    }
+}
+
+/* Calendar Card */
+.calendar-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.calendar-card-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.calendar-card-body {
+    padding: 1rem;
 }
 </style>
 
@@ -297,19 +403,20 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
         
         <!-- Monthly Calendar -->
         <div class="col-lg-4 col-md-6 mb-4">
-            <div class="dashboard-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0" style="color: var(--accent-color);">
+            <div class="calendar-card">
+                <div class="calendar-card-header">
+                    <div class="month-navigation">
+                        <h5 class="month-title">
+                            <i class="fas fa-calendar-alt me-2"></i>
                             <?php
                             // Get selected month and year from URL parameters or use current date
                             $selected_month = isset($_GET['month']) ? $_GET['month'] : date('m');
                             $selected_year = isset($_GET['year']) ? $_GET['year'] : date('Y');
                             $current_date = "$selected_year-$selected_month-01";
                             ?>
-                            <i class="fas fa-calendar-alt me-2"></i><?php echo date('F Y', strtotime($current_date)); ?>
+                            <?php echo date('F Y', strtotime($current_date)); ?>
                         </h5>
-                        <div>
+                        <div class="month-nav-buttons">
                             <?php
                             // Calculate previous and next month/year
                             $prev_date = date('Y-m', strtotime('-1 month', strtotime($current_date)));
@@ -317,16 +424,19 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             list($prev_year, $prev_month) = explode('-', $prev_date);
                             list($next_year, $next_month) = explode('-', $next_date);
                             ?>
-                            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-sm btn-outline-secondary">
+                            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" 
+                               class="month-nav-btn">
                                 <i class="fas fa-chevron-left"></i>
                             </a>
-                            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-sm btn-outline-secondary">
+                            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" 
+                               class="month-nav-btn">
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                         </div>
                     </div>
-                    
-                    <div class="calendar-container" id="mood_calendar">
+                </div>
+                <div class="calendar-card-body">
+                    <div class="calendar-container">
                         <?php
                         // Calendar headers (Sun-Sat)
                         $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -391,10 +501,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                     <div class="text-center mt-3">
                         <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
                     </div>
-                    </div>
                 </div>
             </div>
-            
+        </div>
+        
         <!-- Mood Stats -->
         <div class="col-lg-4 col-md-12 mb-4">
             <div class="dashboard-card">
