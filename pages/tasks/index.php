@@ -130,44 +130,23 @@ $nextDate = (clone $dateObj)->modify('+1 day')->format('Y-m-d');
 // Get tasks for the selected date
 $query = "SELECT 
             t.id, t.title, t.description, t.due_date, t.due_time, t.task_type, t.priority,
-            t.is_active, t.status as main_status,
             c.name as category_name, c.icon as category_icon, c.color as category_color,
-            ti.id as instance_id, ti.status as instance_status,
-            COALESCE(ti.status, t.status) as status,
-            COALESCE(ti.due_time, t.due_time) as effective_due_time
+            COALESCE(ti.status, t.status) as status
           FROM tasks t
           JOIN task_categories c ON t.category_id = c.id
           LEFT JOIN task_instances ti ON t.id = ti.task_id 
               AND ti.due_date = ?
-          WHERE 
-            t.is_active = 1
-            AND (
-                /* One-time tasks that are pending/snoozed and due on the selected date */
-                (t.task_type = 'one-time' 
-                 AND t.status IN ('pending', 'snoozed')
-                 AND t.due_date = ?)
-                OR
-                /* Recurring tasks with pending/snoozed instances on the selected date */
-                (t.task_type = 'recurring' 
-                 AND (
-                     /* Include if there's a pending/snoozed instance */
-                     (ti.id IS NOT NULL AND ti.status IN ('pending', 'snoozed'))
-                     OR
-                     /* Or if there's no instance yet but there should be one (based on recurrence) */
-                     (ti.id IS NULL AND EXISTS (
-                         SELECT 1 FROM task_recurrence_rules tr 
-                         WHERE tr.task_id = t.id 
-                         AND tr.is_active = 1
-                         AND tr.start_date <= ?
-                         AND (tr.end_date IS NULL OR tr.end_date >= ?)
-                     ))
-                 )
-                )
-            )
-          ORDER BY COALESCE(ti.due_time, t.due_time) ASC, t.priority DESC";
+              AND ti.status IN ('pending', 'snoozed')
+          WHERE t.is_active = 1
+          AND (
+              (t.task_type = 'one-time' AND t.status = 'pending' AND t.due_date = ?)
+              OR 
+              (t.task_type = 'recurring' AND ti.id IS NOT NULL)
+          )
+          ORDER BY t.due_time ASC";
 
 $stmt = $conn->prepare($query);
-$stmt->bind_param('ssss', $selectedDate, $selectedDate, $selectedDate, $selectedDate);
+$stmt->bind_param('ss', $selectedDate, $selectedDate);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -175,8 +154,7 @@ $morning_tasks = [];
 $evening_tasks = [];
 
 while ($task = $result->fetch_assoc()) {
-    $due_time = $task['effective_due_time'] ?? '12:00:00';
-    $task_hour = $due_time ? date('H', strtotime($due_time)) : 12;
+    $task_hour = date('H', strtotime($task['due_time']));
     if ($task_hour < 12) {
         $morning_tasks[] = $task;
     } else {
@@ -262,6 +240,12 @@ while ($task = $result->fetch_assoc()) {
                                 title="Mark as Done">
                             <i class="fas fa-check"></i>
                         </button>
+                        <button type="button" 
+                                class="action-btn cancel-btn" 
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
+                                title="Mark as Not Done">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <?php
                         $dueDateTime = new DateTime($task['due_date'] . ' ' . $task['due_time']);
                         $now = new DateTime();
@@ -270,14 +254,8 @@ while ($task = $result->fetch_assoc()) {
                         <button type="button" 
                                 class="action-btn snooze-btn <?php echo !$isSnoozeEnabled ? 'disabled' : ''; ?>" 
                                 onclick="<?php echo $isSnoozeEnabled ? 'handleTaskAction(' . $task['id'] . ', \'snooze\')' : 'showFutureTaskMessage(' . $task['id'] . ')'; ?>"
-                                title="<?php echo $isSnoozeEnabled ? 'Snooze Task' : 'Task is scheduled for future'; ?>">
+                                title="Snooze Task">
                             <i class="fas fa-clock"></i>
-                        </button>
-                        <button type="button" 
-                                class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
-                                title="Cancel Task">
-                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -318,6 +296,12 @@ while ($task = $result->fetch_assoc()) {
                                 title="Mark as Done">
                             <i class="fas fa-check"></i>
                         </button>
+                        <button type="button" 
+                                class="action-btn cancel-btn" 
+                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'not_done')"
+                                title="Mark as Not Done">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <?php
                         $dueDateTime = new DateTime($task['due_date'] . ' ' . $task['due_time']);
                         $now = new DateTime();
@@ -326,14 +310,8 @@ while ($task = $result->fetch_assoc()) {
                         <button type="button" 
                                 class="action-btn snooze-btn <?php echo !$isSnoozeEnabled ? 'disabled' : ''; ?>" 
                                 onclick="<?php echo $isSnoozeEnabled ? 'handleTaskAction(' . $task['id'] . ', \'snooze\')' : 'showFutureTaskMessage(' . $task['id'] . ')'; ?>"
-                                title="<?php echo $isSnoozeEnabled ? 'Snooze Task' : 'Task is scheduled for future'; ?>">
+                                title="Snooze Task">
                             <i class="fas fa-clock"></i>
-                        </button>
-                        <button type="button" 
-                                class="action-btn cancel-btn" 
-                                onclick="handleTaskAction(<?php echo $task['id']; ?>, 'cancel')"
-                                title="Cancel Task">
-                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -1090,199 +1068,56 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function handleTaskAction(taskId, action) {
+    // Create form data
+    const formData = new FormData();
+    formData.append('task_id', taskId);
+    formData.append('action', action);
+    
     if (action === 'snooze') {
-        showSnoozeOptions(taskId);
-    } else {
-        let confirmMessage = '';
-        switch (action) {
-            case 'done':
-                confirmMessage = 'Mark this task as completed?';
-                break;
-            case 'cancel':
-                confirmMessage = 'Cancel this task?';
-                break;
-        }
-        
-        if (confirm(confirmMessage)) {
-            // Show loading state
-            const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
-            taskCard.style.opacity = '0.7';
-            taskCard.style.pointerEvents = 'none';
-            
-            // Send request to update task status
-            fetch('task_actions.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=update_task_status&task_id=${taskId}&status=${action}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Fade out and remove the task card
-                    taskCard.style.transition = 'all 0.3s ease';
-                    taskCard.style.opacity = '0';
-                    taskCard.style.transform = 'translateX(20px)';
-                    setTimeout(() => {
-                        if (action === 'snooze') {
-                            // For snooze, reload the page to show updated time
-                            window.location.reload();
-                        } else {
-                            // For done/cancel, remove the task
-                            taskCard.remove();
-                        }
-                    }, 300);
-                } else {
-                    // Show error and reset the card
-                    alert('Error: ' + data.message);
-                    taskCard.style.opacity = '1';
-                    taskCard.style.pointerEvents = 'auto';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating the task.');
-                taskCard.style.opacity = '1';
-                taskCard.style.pointerEvents = 'auto';
-            });
-        }
+        formData.append('snooze_minutes', 30); // Default snooze time
     }
-}
-
-function showSnoozeOptions(taskId) {
-    currentTaskId = taskId;
     
-    // Get task details
-    fetch(`task_actions.php?action=get_task&task_id=${taskId}`)
-        .then(response => response.json())
-        .then(task => {
-            const taskDueDate = new Date(task.due_date + ' ' + task.due_time);
-            const now = new Date();
-            const taskInfo = document.getElementById('snoozeTaskInfo');
-            const snoozeOptions = document.getElementById('snoozeOptions');
-            const editOption = document.getElementById('editTaskOption');
-            
-            if (taskDueDate > now) {
-                // Due date hasn't arrived yet
-                taskInfo.innerHTML = `
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        The due date for this task is <strong>${task.due_date} ${task.due_time}</strong>
-                        <br>You can edit the task details if needed.
-                    </div>`;
-                snoozeOptions.style.display = 'none';
-                editOption.style.display = 'block';
-            } else {
-                // Task is due or overdue
-                taskInfo.innerHTML = `
-                    <div class="d-flex align-items-center gap-3 mb-2">
-                        <div class="task-icon">
-                            <i class="${task.category_icon}"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">${task.title}</h6>
-                            <small class="text-muted">Due: ${task.due_date} ${task.due_time}</small>
-                        </div>
-                    </div>
-                    <div class="alert alert-warning mb-0">
-                        <i class="fas fa-clock me-2"></i>
-                        Choose how long to snooze this task:
-                    </div>`;
-                snoozeOptions.style.display = 'flex';
-                editOption.style.display = 'none';
-            }
-            
-            snoozeModal.show();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error loading task details');
-        });
-}
-
-function handleSnoozeSelection(minutes) {
-    if (!currentTaskId) return;
-    
-    const taskCard = document.querySelector(`.task-card button[onclick*="${currentTaskId}"]`).closest('.task-card');
-    taskCard.style.opacity = '0.7';
-    taskCard.style.pointerEvents = 'none';
-    
-    fetch('task_actions.php', {
+    // Submit form
+    fetch(window.location.href, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `action=snooze_task&task_id=${currentTaskId}&minutes=${minutes}`
+        body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            snoozeModal.hide();
-            taskCard.style.transition = 'all 0.3s ease';
+    .then(response => {
+        if (response.ok) {
+            // Hide the task card
+            const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
             taskCard.style.opacity = '0';
-            taskCard.style.transform = 'translateX(20px)';
             setTimeout(() => {
-                window.location.reload();
+                taskCard.style.display = 'none';
             }, 300);
+            
+            // Show success message
+            showNotification('Task updated successfully', 'success');
         } else {
-            alert('Error: ' + data.message);
-            taskCard.style.opacity = '1';
-            taskCard.style.pointerEvents = 'auto';
+            throw new Error('Network response was not ok');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while snoozing the task.');
-        taskCard.style.opacity = '1';
-        taskCard.style.pointerEvents = 'auto';
+        showNotification('Error updating task', 'error');
     });
 }
 
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
 function showFutureTaskMessage(taskId) {
-    // Get task details
-    fetch(`task_actions.php?action=get_task&task_id=${taskId}`)
-        .then(response => response.json())
-        .then(task => {
-            const dueDateTime = new Date(task.due_date + ' ' + task.due_time);
-            const formattedDate = dueDateTime.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric'
-            });
-            
-            const taskCard = document.querySelector(`.task-card button[onclick*="${taskId}"]`).closest('.task-card');
-            const existingMessage = taskCard.querySelector('.future-task-message');
-            
-            if (!existingMessage) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'alert alert-info mt-2 mb-0 future-task-message';
-                messageDiv.style.fontSize = '0.875rem';
-                messageDiv.innerHTML = `
-                    <i class="fas fa-info-circle me-2"></i>
-                    This task is scheduled for <strong>${formattedDate}</strong>. You can't snooze it yet.
-                    <div class="mt-2">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="openEditTask(${taskId})">
-                            <i class="fas fa-edit me-1"></i> Edit Task
-                        </button>
-                    </div>
-                `;
-                
-                // Insert after task content
-                const taskContent = taskCard.querySelector('.task-content');
-                taskContent.parentNode.insertBefore(messageDiv, taskContent.nextSibling);
-                
-                // Remove message after 5 seconds
-                setTimeout(() => {
-                    messageDiv.remove();
-                }, 5000);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+    showNotification('Cannot snooze a future task', 'warning');
 }
 
 // Update the openEditTask function to work with the message
