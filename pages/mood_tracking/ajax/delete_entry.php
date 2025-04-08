@@ -2,9 +2,6 @@
 // Include required files
 require_once __DIR__ . '/../includes/functions.php';
 
-// Include database connection
-require_once '../../../config/db_connect.php';
-
 // Check if entry ID is provided
 if (!isset($_POST['entry_id']) || empty($_POST['entry_id'])) {
     header('Content-Type: application/json');

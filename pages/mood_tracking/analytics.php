@@ -8,9 +8,6 @@ $page_title = "Mood Analytics";
 // Include header
 require_once __DIR__ . '/../../includes/header.php';
 
-// Include database connection and functions
-require_once '../../../config/db_connect.php';
-
 // Get filter parameters
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-30 days'));
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');

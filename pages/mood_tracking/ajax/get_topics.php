@@ -5,9 +5,6 @@ require_once __DIR__ . '/../includes/functions.php';
 // Set header to return JSON
 header('Content-Type: application/json');
 
-// Include database connection
-require_once '../../../config/db_connect.php';
-
 // Get topics for a subject
 if (isset($_GET['subject_id'])) {
     $subject_id = intval($_GET['subject_id']);

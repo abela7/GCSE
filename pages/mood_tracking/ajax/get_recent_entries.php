@@ -2,9 +2,6 @@
 // Include required files
 require_once __DIR__ . '/../includes/functions.php';
 
-// Include database connection
-require_once '../../../config/db_connect.php';
-
 // Get recent mood entries (last 5)
 $query = "SELECT m.*, 
           s.name as subject_name, 
