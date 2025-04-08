@@ -172,22 +172,32 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
     <div class="row mb-4">
         <div class="col-12">
             <div class="analytics-card">
-        <div class="card-body">
+                <div class="card-body">
                     <h5 class="card-title mb-3" style="color: var(--accent-color);">
                         <i class="fas fa-filter me-2"></i>Filter Analytics
-            </h5>
-            
+                    </h5>
+                    
                     <form id="filter_form" method="GET" action="analytics.php" class="row g-3">
+                        <!-- Quick Date Range Buttons -->
+                        <div class="col-12 mb-3">
+                            <div class="btn-group w-100" role="group" aria-label="Date range options">
+                                <button type="button" class="btn btn-outline-accent" data-range="today">Today</button>
+                                <button type="button" class="btn btn-outline-accent" data-range="week">This Week</button>
+                                <button type="button" class="btn btn-outline-accent" data-range="month">This Month</button>
+                                <button type="button" class="btn btn-outline-accent" data-range="custom">Custom Range</button>
+                            </div>
+                        </div>
+
                         <div class="col-md-4">
-                    <label for="start_date" class="form-label">Start Date</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
-                </div>
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
+                        </div>
                         
                         <div class="col-md-4">
-                    <label for="end_date" class="form-label">End Date</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
-                </div>
-                
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
+                        </div>
+                        
                         <div class="col-md-4">
                             <label class="form-label">Tags (Optional)</label>
                             <div class="dropdown">
@@ -195,7 +205,7 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
                                     <?php echo !empty($tag_ids) ? count($tag_ids) . ' tags selected' : 'Select Tags'; ?>
                                 </button>
                                 <ul class="dropdown-menu w-100" aria-labelledby="tagDropdown">
-                        <?php foreach ($all_tags as $tag): ?>
+                                    <?php foreach ($all_tags as $tag): ?>
                                         <li>
                                             <div class="dropdown-item">
                                                 <div class="form-check">
@@ -205,18 +215,18 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
                                                            <?php echo in_array($tag['id'], $tag_ids) ? 'checked' : ''; ?>>
                                                     <label class="form-check-label" for="tag_<?php echo $tag['id']; ?>">
                                                         <span class="tag-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                <?php echo htmlspecialchars($tag['name']); ?>
+                                                            <?php echo htmlspecialchars($tag['name']); ?>
                                                         </span>
                                                     </label>
                                                 </div>
                                             </div>
                                         </li>
-                        <?php endforeach; ?>
+                                    <?php endforeach; ?>
                                 </ul>
                             </div>
                             <input type="hidden" id="tags" name="tags" value="<?php echo implode(',', $tag_ids); ?>">
-                </div>
-                
+                        </div>
+                        
                         <div class="col-12 text-center mt-4">
                             <button type="submit" class="btn btn-accent me-2">
                                 <i class="fas fa-filter me-1"></i>Apply Filters
@@ -429,6 +439,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Date range buttons functionality
+    const dateRangeButtons = document.querySelectorAll('[data-range]');
+    dateRangeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const range = this.dataset.range;
+            const today = new Date();
+            let startDate, endDate;
+
+            switch(range) {
+                case 'today':
+                    startDate = today;
+                    endDate = today;
+                    break;
+                case 'week':
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+                    endDate = new Date(today);
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today);
+                    break;
+                case 'custom':
+                    // Just activate the date inputs
+                    document.getElementById('start_date').focus();
+                    return;
+            }
+
+            // Format dates for input fields (YYYY-MM-DD)
+            document.getElementById('start_date').value = startDate.toISOString().split('T')[0];
+            document.getElementById('end_date').value = endDate.toISOString().split('T')[0];
+
+            // Update active button state
+            dateRangeButtons.forEach(btn => btn.classList.remove('active'));
+            if (range !== 'custom') {
+                this.classList.add('active');
+            }
+        });
+    });
+
     // Initialize charts if data is available
     <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
         initCharts();
@@ -472,12 +522,23 @@ function initCharts() {
         data: {
             labels: <?php echo json_encode($dates); ?>,
             datasets: [{
-                label: 'Average Mood',
+                label: 'Mood Level',
                 data: <?php echo json_encode($avg_moods); ?>,
                 borderColor: '#4CAF50',
                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                tension: 0.4,
-                fill: true
+                tension: 0.1, // Reduced tension for sharper curves
+                fill: true,
+                pointBackgroundColor: function(context) {
+                    const value = context.raw;
+                    if (value >= 4.5) return '#2E7D32'; // Dark green for very good
+                    if (value >= 3.5) return '#4CAF50'; // Green for good
+                    if (value >= 2.5) return '#FFC107'; // Yellow for neutral
+                    if (value >= 1.5) return '#FF9800'; // Orange for bad
+                    return '#F44336'; // Red for very bad
+                },
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                borderWidth: 2
             }]
         },
         options: {
@@ -490,13 +551,29 @@ function initCharts() {
                     ticks: {
                         stepSize: 1,
                         callback: function(value) {
-                            return ['😢', '😕', '😐', '🙂', '😊'][value - 1] || value;
+                            const emojis = ['😢', '😕', '😐', '🙂', '😊'];
+                            const labels = ['Very Bad', 'Bad', 'Neutral', 'Good', 'Very Good'];
+                            const index = value - 1;
+                            if (index >= 0 && index < 5) {
+                                return emojis[index] + ' ' + labels[index];
+                            }
+                            return value;
+                        },
+                        font: {
+                            size: 14
                         }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
                     }
                 },
                 x: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
             },
@@ -505,14 +582,18 @@ function initCharts() {
                     callbacks: {
                         label: function(context) {
                             const dataIndex = context.dataIndex;
-                            const avgMood = context.raw;
+                            const moodValue = context.raw;
                             const entryCount = <?php echo json_encode($entry_counts); ?>[dataIndex];
+                            const moodText = getMoodText(moodValue);
                             return [
-                                `Average Mood: ${avgMood.toFixed(1)}`,
+                                `Mood: ${moodText} (${moodValue.toFixed(1)}/5)`,
                                 `Entries: ${entryCount}`
                             ];
                         }
                     }
+                },
+                legend: {
+                    display: false
                 }
             }
         }
@@ -667,6 +748,15 @@ document.addEventListener('DOMContentLoaded', function() {
         input.style.fontSize = '16px';
     });
 });
+
+// Helper function to get mood text
+function getMoodText(value) {
+    if (value >= 4.5) return 'Very Good 😊';
+    if (value >= 3.5) return 'Good 🙂';
+    if (value >= 2.5) return 'Neutral 😐';
+    if (value >= 1.5) return 'Bad 😕';
+    return 'Very Bad 😢';
+}
 </script>
 
 <?php
