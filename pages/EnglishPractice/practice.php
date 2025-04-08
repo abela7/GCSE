@@ -88,16 +88,26 @@ require_once __DIR__ . '/../../includes/header.php';
 }
 
 .favorite-btn {
-    background: none;
-    border: none;
-    color: #ffc107;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: transform 0.2s;
+    background-color: #fff !important;
+    border: 2px solid #ffc107 !important;
+    color: #ffc107 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 25px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
 }
 
 .favorite-btn:hover {
-    transform: scale(1.1);
+    background-color: #fff3cd !important;
+    transform: translateY(-1px) !important;
+}
+
+.favorite-btn.is-favorite {
+    background-color: #ffc107 !important;
+    color: #000 !important;
 }
 
 .flashcard-title {
@@ -251,13 +261,9 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="flashcard-front">
                     <div class="flashcard-header">
                         <span class="category-badge"><?php echo htmlspecialchars($first_item['category_name']); ?></span>
-                        <button type="button" class="favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>">
-                            <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
-                        </button>
                     </div>
                     <div class="flashcard-content">
                         <h2 class="flashcard-title" id="flashcard-term"><?php 
-                            // Properly decode HTML entities and special characters
                             echo html_entity_decode(htmlspecialchars_decode($first_item['item_title']), ENT_QUOTES | ENT_HTML5, 'UTF-8'); 
                         ?></h2>
                         <p class="text-muted">Click to reveal the answer</p>
@@ -266,9 +272,6 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="flashcard-back">
                     <div class="flashcard-header">
                         <span class="category-badge"><?php echo htmlspecialchars($first_item['category_name']); ?></span>
-                        <button type="button" class="favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>">
-                            <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
-                        </button>
                     </div>
                     <div class="flashcard-content">
                         <div class="flashcard-details">
@@ -286,6 +289,10 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <!-- Controls -->
         <div class="controls">
+            <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Add to Favorites">
+                <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
+                <?php echo $first_item['is_favorite'] ? 'Remove from Favorites' : 'Add to Favorites'; ?>
+            </button>
             <button class="control-btn reveal-btn" id="flashcard-reveal">
                 <i class="fas fa-sync-alt"></i> Flip Card
             </button>
@@ -307,30 +314,30 @@ require_once __DIR__ . '/../../includes/header.php';
             const flashcard = document.getElementById('flashcard');
 
             // Favorite button functionality
-            document.querySelectorAll('.toggle-favorite').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Prevent card flip when clicking favorite button
-                    const itemId = this.dataset.itemId;
-                    const icons = document.querySelectorAll(`.toggle-favorite[data-item-id="${itemId}"] i`);
-                    
-                    fetch('toggle_favorite.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `item_id=${itemId}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            icons.forEach(icon => {
-                                icon.classList.toggle('far');
-                                icon.classList.toggle('fas');
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                });
+            document.querySelector('.toggle-favorite').addEventListener('click', function(e) {
+                const itemId = this.dataset.itemId;
+                const icon = this.querySelector('i');
+                
+                fetch('toggle_favorite.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `item_id=${itemId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        icon.classList.toggle('far');
+                        icon.classList.toggle('fas');
+                        this.classList.toggle('is-favorite');
+                        this.innerHTML = `
+                            <i class="${icon.classList.contains('fas') ? 'fas' : 'far'} fa-star"></i>
+                            ${icon.classList.contains('fas') ? 'Remove from Favorites' : 'Add to Favorites'}
+                        `;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             });
 
             // Flip card functionality
@@ -359,18 +366,21 @@ require_once __DIR__ . '/../../includes/header.php';
                         badge.textContent = nextItem.category_name;
                     });
 
-                    // Update favorite buttons
-                    document.querySelectorAll('.toggle-favorite').forEach(btn => {
-                        btn.dataset.itemId = nextItem.id;
-                        const icon = btn.querySelector('i');
-                        if (nextItem.is_favorite) {
-                            icon.classList.remove('far');
-                            icon.classList.add('fas');
-                        } else {
-                            icon.classList.remove('fas');
-                            icon.classList.add('far');
-                        }
-                    });
+                    // Update favorite button
+                    const favoriteBtn = document.querySelector('.toggle-favorite');
+                    favoriteBtn.dataset.itemId = nextItem.id;
+                    const icon = favoriteBtn.querySelector('i');
+                    if (nextItem.is_favorite) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        favoriteBtn.classList.add('is-favorite');
+                        favoriteBtn.innerHTML = '<i class="fas fa-star"></i> Remove from Favorites';
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        favoriteBtn.classList.remove('is-favorite');
+                        favoriteBtn.innerHTML = '<i class="far fa-star"></i> Add to Favorites';
+                    }
                     
                     // Update back content
                     const backContent = flashcard.querySelector('.flashcard-back .flashcard-details');
