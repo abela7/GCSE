@@ -117,12 +117,15 @@ function handleTaskAction(taskId, action) {
         case 'not_done':
             status = 'not_done';
             break;
+        case 'snooze':
+            status = 'snoozed';
+            break;
         default:
             status = action;
     }
 
-    // Log the action for debugging
-    console.log('Updating task:', taskId, 'with status:', status);
+    // Log the action and status for debugging
+    console.log('Action:', action, 'Mapped to status:', status);
 
     // Prepare the form data
     const formData = new URLSearchParams();

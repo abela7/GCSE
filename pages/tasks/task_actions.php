@@ -77,6 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $taskId = (int)$_POST['task_id'];
                     $status = $_POST['status'];
                     
+                    // Validate status value
+                    $validStatuses = ['pending', 'in_progress', 'completed', 'not_done', 'snoozed'];
+                    if (!in_array($status, $validStatuses)) {
+                        echo json_encode(['success' => false, 'message' => 'Invalid status value']);
+                        exit;
+                    }
+                    
                     try {
                         $conn->begin_transaction();
                         
@@ -108,16 +115,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 throw new Exception("Failed to update task status: " . $stmt->error);
                             }
                             
+                            // Log the attempted update
+                            error_log("Attempting to update task {$taskId} to status: {$status}");
+                            
                             // Verify the update with detailed error
-                            $stmt = $conn->prepare("SELECT status, is_active FROM tasks WHERE id = ?");
+                            $stmt = $conn->prepare("SELECT status FROM tasks WHERE id = ?");
                             $stmt->bind_param('i', $taskId);
                             $stmt->execute();
                             $result = $stmt->get_result()->fetch_assoc();
                             
-                            if (!$result || $result['status'] !== $status) {
-                                throw new Exception("Status update verification failed. Expected: {$status}, Got: " . ($result['status'] ?? 'null'));
+                            if (!$result) {
+                                throw new Exception("Task not found after update");
                             }
                             
+                            // Log the actual status after update
+                            error_log("Task {$taskId} status after update: " . ($result['status'] ?? 'null'));
+                            
+                            if ($result['status'] !== $status) {
+                                throw new Exception("Status update verification failed. Got: " . ($result['status'] ?? 'null'));
+                            }
                         } else {
                             // For recurring tasks, update both the task and instance
                             // First, check if there's an instance for today
