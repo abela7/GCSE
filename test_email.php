@@ -38,9 +38,9 @@ try {
     // $mail->SMTPDebug = 2;
     
     // Recipients
-    $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-    $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
-    $mail->addAddress(SMTP_USERNAME); // Sending to yourself for testing
+    $mail->setFrom(EMAIL_FROM_ADDRESS, 'Amha-Silassie <'.EMAIL_FROM_ADDRESS.'>');
+    $mail->addReplyTo(EMAIL_REPLY_TO, 'Amha-Silassie');
+    $mail->addAddress(SMTP_USERNAME, 'Amha-Silassie'); // Sending to yourself for testing
     
     // Content
     $mail->isHTML(true);
