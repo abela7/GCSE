@@ -309,6 +309,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
             // Favorite button functionality
             document.querySelector('.toggle-favorite').addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card flip
                 const itemId = this.dataset.itemId;
                 const icon = this.querySelector('i');
                 
@@ -413,8 +414,8 @@ require_once __DIR__ . '/../../includes/header.php';
 
             // Click anywhere on card to flip (except favorite button)
             flashcard.addEventListener('click', function(e) {
-                // Don't flip if clicking favorite button
-                if (!e.target.closest('.toggle-favorite')) {
+                const favoriteBtn = e.target.closest('.toggle-favorite');
+                if (!favoriteBtn) {
                     document.getElementById('flashcard-reveal').click();
                 }
             });
