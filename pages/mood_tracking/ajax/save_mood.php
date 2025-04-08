@@ -45,7 +45,7 @@ if (!empty($tags)) {
 try {
     if ($entry_id) {
         // Update existing entry
-        $result = updateMoodEntry($entry_id, $mood_level, $notes, $date_time, $tag_ids);
+        $result = updateMoodEntry($entry_id, $mood_level, $notes, $tag_ids, $date_time);
         if ($result) {
             $response['success'] = true;
             $response['message'] = 'Mood entry updated successfully';
@@ -55,7 +55,7 @@ try {
         }
     } else {
         // Create new entry
-        $entry_id = addMoodEntry($mood_level, $notes, $date_time, $tag_ids);
+        $entry_id = createMoodEntry($mood_level, $notes, $tag_ids, $date_time);
         if ($entry_id) {
             $response['success'] = true;
             $response['message'] = 'Mood entry saved successfully';

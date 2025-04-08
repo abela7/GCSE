@@ -635,13 +635,16 @@ function saveQuickEntry() {
                     // Reload page to show updated data
                     window.location.reload();
                 } else {
-                    alert('Error: ' + response.message);
+                    alert('Error: ' + (response.message || 'Failed to save mood entry'));
                 }
             } catch (e) {
-                alert('Error processing response');
+                console.error('Error parsing response:', e);
+                console.error('Response text:', xhr.responseText);
+                alert('Error: Invalid response from server');
             }
         } else {
-            alert('Error saving mood entry');
+            console.error('Server returned status:', xhr.status);
+            alert('Error: Server returned status ' + xhr.status);
         }
         
         // Reset button state
@@ -649,7 +652,8 @@ function saveQuickEntry() {
         saveButton.innerHTML = originalText;
     };
     xhr.onerror = function() {
-        alert('Network error occurred');
+        console.error('Network error occurred');
+        alert('Error: Network error occurred. Please check your connection.');
         saveButton.disabled = false;
         saveButton.innerHTML = originalText;
     };
