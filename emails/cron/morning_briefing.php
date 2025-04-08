@@ -12,7 +12,7 @@ try {
     $today = date('Y-m-d');
     
     // Fetch today's tasks
-    $taskQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color 
+    $taskQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color, t.description 
                  FROM tasks t 
                  LEFT JOIN task_categories tc ON t.category_id = tc.id 
                  WHERE DATE(t.due_date) = ? 
@@ -25,7 +25,7 @@ try {
     $tasks = $tasksResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch today's habits
-    $habitQuery = "SELECT h.*, hc.name as category_name, hc.color as category_color 
+    $habitQuery = "SELECT h.*, hc.name as category_name, hc.color as category_color, h.description 
                   FROM habits h 
                   LEFT JOIN habit_categories hc ON h.category_id = hc.id 
                   WHERE h.is_active = 1 
@@ -34,7 +34,7 @@ try {
     $habits = $habitsResult->fetch_all(MYSQLI_ASSOC);
     
     // Fetch overdue tasks
-    $overdueQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color 
+    $overdueQuery = "SELECT t.*, tc.name as category_name, tc.color as category_color, t.description 
                     FROM tasks t 
                     LEFT JOIN task_categories tc ON t.category_id = tc.id 
                     WHERE t.due_date < ? 
@@ -50,22 +50,28 @@ try {
     $emailData = [
         'tasks' => array_map(function($task) {
             return [
-                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'title' => $task['title'],
+                'description' => $task['description'] ?? '',
                 'due_time' => $task['due_time'] ? date('h:i A', strtotime($task['due_time'])) : 'No time set',
-                'priority' => $task['priority'] ?? 'medium'
+                'priority' => $task['priority'] ?? 'medium',
+                'category_name' => $task['category_name'] ?? 'Uncategorized'
             ];
         }, $tasks),
         'habits' => array_map(function($habit) {
             return [
-                'title' => $habit['name'] . ' (' . $habit['category_name'] . ')',
-                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set'
+                'title' => $habit['name'],
+                'description' => $habit['description'] ?? '',
+                'time' => $habit['target_time'] ? date('h:i A', strtotime($habit['target_time'])) : 'No time set',
+                'category_name' => $habit['category_name'] ?? 'Uncategorized'
             ];
         }, $habits),
         'overdue' => array_map(function($task) {
             return [
-                'title' => $task['title'] . ' (' . $task['category_name'] . ')',
+                'title' => $task['title'],
+                'description' => $task['description'] ?? '',
                 'due_time' => date('M j, Y', strtotime($task['due_date'])) . 
-                             ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : '')
+                             ($task['due_time'] ? ' ' . date('h:i A', strtotime($task['due_time'])) : ''),
+                'category_name' => $task['category_name'] ?? 'Uncategorized'
             ];
         }, $overdue)
     ];
