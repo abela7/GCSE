@@ -40,6 +40,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.css">
     <style>
         .resource-grid {
             display: grid;
@@ -61,7 +62,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             width: 100%;
             height: 200px;
             object-fit: cover;
-            cursor: pointer;
+            cursor: zoom-in;
         }
         .resource-info {
             padding: 15px;
@@ -85,48 +86,21 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             right: 20px;
             z-index: 1000;
         }
-        .modal-image {
-            max-width: 100%;
-            height: auto;
+        
+        /* PhotoSwipe UI customization */
+        .pswp {
+            --pswp-bg: #000000;
+            --pswp-placeholder-bg: #000000;
         }
-        .modal-fullscreen .modal-content {
-            height: 100%;
-            border: 0;
-            border-radius: 0;
-        }
-        .modal-fullscreen .modal-body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            background: #000;
-        }
-        .modal-fullscreen img {
-            max-height: 100vh;
-            max-width: 100%;
+        .pswp__img {
             object-fit: contain;
         }
-        .image-navigation {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;
-            z-index: 1060;
-            pointer-events: none;
+        .pswp__button--arrow {
+            opacity: 0;
+            transition: opacity 0.2s;
         }
-        .image-navigation button {
-            pointer-events: auto;
-            position: absolute;
-            background: rgba(255, 255, 255, 0.8);
-            border: none;
-            padding: 1rem;
-            border-radius: 50%;
-        }
-        .image-navigation .prev-image {
-            left: 20px;
-        }
-        .image-navigation .next-image {
-            right: 20px;
+        .pswp:hover .pswp__button--arrow {
+            opacity: 1;
         }
     </style>
 </head>
@@ -154,7 +128,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
 
-        <div class="resource-grid">
+        <div class="resource-grid" id="gallery">
             <?php foreach ($resources as $resource): ?>
                 <div class="resource-card">
                     <?php if ($resource['resource_type'] === 'youtube'): ?>
@@ -173,15 +147,15 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                 $imagePath = '/' . $imagePath;
                             }
                         ?>
-                        <div class="image-container" 
-                             data-image="<?php echo htmlspecialchars($imagePath); ?>"
-                             data-title="<?php echo htmlspecialchars($resource['title']); ?>">
+                        <a href="<?php echo htmlspecialchars($imagePath); ?>" 
+                           data-pswp-width="2000" 
+                           data-pswp-height="2000" 
+                           target="_blank">
                             <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
                                  class="resource-thumbnail"
-                                 onclick="openImageModal(this)"
                                  onerror="this.onerror=null; this.src='/assets/images/image-not-found.png';">
-                        </div>
+                        </a>
                     <?php endif; ?>
                     <div class="resource-info">
                         <h5><?php echo htmlspecialchars($resource['title']); ?></h5>
@@ -244,34 +218,12 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 
-    <!-- Image View Modal -->
-    <div class="modal fade modal-fullscreen" id="imageViewModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered m-0">
-            <div class="modal-content bg-dark">
-                <div class="modal-header border-0 text-white">
-                    <h5 class="modal-title" id="imageTitle"></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <img src="" id="modalImage" class="modal-image" alt="">
-                </div>
-                <div class="image-navigation">
-                    <button class="prev-image" onclick="navigateImage(-1)">
-                        <i class="fas fa-chevron-left fa-2x"></i>
-                    </button>
-                    <button class="next-image" onclick="navigateImage(1)">
-                        <i class="fas fa-chevron-right fa-2x"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <a href="/pages/topic.php?id=<?php echo $topic_id; ?>&subject=<?php echo $subject; ?>" class="btn btn-primary back-button">
         <i class="fas fa-arrow-left"></i> Back to Topic
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.umd.min.js"></script>
     <script>
         document.getElementById('resourceType').addEventListener('change', function() {
             const youtubeInput = document.getElementById('youtubeInput');
@@ -367,64 +319,55 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         });
 
-        // Image viewing functionality
-        let currentImageIndex = 0;
-        const images = Array.from(document.querySelectorAll('.image-container'));
-        const imageModal = new bootstrap.Modal(document.getElementById('imageViewModal'));
+        // Initialize PhotoSwipe
+        let lightbox = null;
+        
+        const options = {
+            gallery: '#gallery',
+            children: 'a',
+            pswpModule: PhotoSwipe,
+            wheelToZoom: true,
+            padding: { top: 30, bottom: 30, left: 0, right: 0 },
+            bgOpacity: 0.9,
+            showHideAnimationType: 'fade',
+            imageClickAction: 'zoom',
+            tapAction: 'zoom',
+            doubleTapAction: 'zoom',
+            preloaderDelay: 2000,
+            arrowPrevSVG: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>',
+            arrowNextSVG: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 24 24"><path d="M10.59 6L12 7.41 7.83 12 12 16.59 10.59 18l-6-6z"/></svg>',
+        };
 
-        function openImageModal(imgElement) {
-            const container = imgElement.closest('.image-container');
-            currentImageIndex = images.indexOf(container);
-            updateModalImage();
-            imageModal.show();
-        }
+        const gallery = new PhotoSwipe(options);
 
-        function updateModalImage() {
-            const container = images[currentImageIndex];
-            const modalImg = document.getElementById('modalImage');
-            const titleElement = document.getElementById('imageTitle');
-            
-            modalImg.src = container.dataset.image;
-            titleElement.textContent = container.dataset.title;
-        }
-
-        function navigateImage(direction) {
-            currentImageIndex = (currentImageIndex + direction + images.length) % images.length;
-            updateModalImage();
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (!document.getElementById('imageViewModal').classList.contains('show')) return;
-            
-            if (e.key === 'ArrowLeft') {
-                navigateImage(-1);
-            } else if (e.key === 'ArrowRight') {
-                navigateImage(1);
-            } else if (e.key === 'Escape') {
-                imageModal.hide();
-            }
-        });
-
-        // Touch swipe handling
-        let touchStartX = 0;
-        const modalElement = document.getElementById('imageViewModal');
-
-        modalElement.addEventListener('touchstart', function(e) {
-            touchStartX = e.touches[0].clientX;
-        });
-
-        modalElement.addEventListener('touchend', function(e) {
-            const touchEndX = e.changedTouches[0].clientX;
-            const diff = touchStartX - touchEndX;
-
-            if (Math.abs(diff) > 50) { // Minimum swipe distance
-                if (diff > 0) {
-                    navigateImage(1); // Swipe left, next image
-                } else {
-                    navigateImage(-1); // Swipe right, previous image
+        gallery.on('uiRegister', function() {
+            gallery.ui.registerElement({
+                name: 'custom-caption',
+                order: 9,
+                isButton: false,
+                appendTo: 'root',
+                html: 'Caption text',
+                onInit: (el, pswp) => {
+                    gallery.on('change', () => {
+                        const currSlideElement = gallery.currSlide.data.element;
+                        let captionHTML = '';
+                        if (currSlideElement) {
+                            const title = currSlideElement.closest('.resource-card').querySelector('h5').textContent;
+                            captionHTML = title;
+                        }
+                        el.innerHTML = captionHTML;
+                    });
                 }
-            }
+            });
+        });
+
+        // Add custom keyboard shortcuts
+        gallery.on('bindEvents', () => {
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    gallery.close();
+                }
+            });
         });
     </script>
 </body>
