@@ -357,7 +357,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             <div class="col-4">
                                 <div class="mood-emoji">
                                     <?php
-                                    $avg_mood = $stats['average_mood'];
+                                    $avg_mood = isset($stats['average_mood']) ? $stats['average_mood'] : 0;
                                     if ($avg_mood >= 4.5) echo '😄';
                                     else if ($avg_mood >= 3.5) echo '🙂';
                                     else if ($avg_mood >= 2.5) echo '😐';
