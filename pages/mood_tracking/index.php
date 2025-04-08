@@ -665,10 +665,10 @@ function changeMonth(direction) {
     // Get current month from calendar title
     const titleElement = document.querySelector('.card-title');
     const currentTitle = titleElement.textContent.trim();
-    const [month, year] = currentTitle.split(' ');
     
-    // Create date object from current month/year
-    const date = new Date(`${month} 1, ${year}`);
+    // Parse the date from the title (remove the icon text)
+    const dateText = currentTitle.replace('calendar_alt', '').trim();
+    const date = new Date(dateText);
     
     // Calculate new month
     date.setMonth(date.getMonth() + direction);
