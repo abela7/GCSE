@@ -40,7 +40,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <title><?php echo $page_title; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
     <style>
         .resource-grid {
             display: grid;
@@ -86,21 +86,26 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             right: 20px;
             z-index: 1000;
         }
-        
-        /* PhotoSwipe UI customization */
-        .pswp {
-            --pswp-bg: #000000;
-            --pswp-placeholder-bg: #000000;
+
+        /* Lightbox customization */
+        .lb-data .lb-caption {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
         }
-        .pswp__img {
-            object-fit: contain;
+        .lb-nav a.lb-prev,
+        .lb-nav a.lb-next {
+            opacity: 0.3;
         }
-        .pswp__button--arrow {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .pswp:hover .pswp__button--arrow {
+        .lb-nav a.lb-prev:hover,
+        .lb-nav a.lb-next:hover {
             opacity: 1;
+        }
+        .lb-outerContainer {
+            border-radius: 4px 4px 0 0;
+        }
+        .lb-dataContainer {
+            border-radius: 0 0 4px 4px;
         }
     </style>
 </head>
@@ -128,7 +133,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
 
-        <div class="resource-grid" id="gallery">
+        <div class="resource-grid">
             <?php foreach ($resources as $resource): ?>
                 <div class="resource-card">
                     <?php if ($resource['resource_type'] === 'youtube'): ?>
@@ -148,9 +153,9 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             }
                         ?>
                         <a href="<?php echo htmlspecialchars($imagePath); ?>" 
-                           data-pswp-width="2000" 
-                           data-pswp-height="2000" 
-                           target="_blank">
+                           data-lightbox="resource-gallery"
+                           data-title="<?php echo htmlspecialchars($resource['title']); ?>"
+                           data-alt="<?php echo htmlspecialchars($resource['title']); ?>">
                             <img src="<?php echo htmlspecialchars($imagePath); ?>" 
                                  alt="<?php echo htmlspecialchars($resource['title']); ?>" 
                                  class="resource-thumbnail"
@@ -223,7 +228,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
     <script>
         document.getElementById('resourceType').addEventListener('change', function() {
             const youtubeInput = document.getElementById('youtubeInput');
@@ -319,55 +324,17 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             });
         });
 
-        // Initialize PhotoSwipe
-        let lightbox = null;
-        
-        const options = {
-            gallery: '#gallery',
-            children: 'a',
-            pswpModule: PhotoSwipe,
-            wheelToZoom: true,
-            padding: { top: 30, bottom: 30, left: 0, right: 0 },
-            bgOpacity: 0.9,
-            showHideAnimationType: 'fade',
-            imageClickAction: 'zoom',
-            tapAction: 'zoom',
-            doubleTapAction: 'zoom',
-            preloaderDelay: 2000,
-            arrowPrevSVG: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>',
-            arrowNextSVG: '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 24 24"><path d="M10.59 6L12 7.41 7.83 12 12 16.59 10.59 18l-6-6z"/></svg>',
-        };
-
-        const gallery = new PhotoSwipe(options);
-
-        gallery.on('uiRegister', function() {
-            gallery.ui.registerElement({
-                name: 'custom-caption',
-                order: 9,
-                isButton: false,
-                appendTo: 'root',
-                html: 'Caption text',
-                onInit: (el, pswp) => {
-                    gallery.on('change', () => {
-                        const currSlideElement = gallery.currSlide.data.element;
-                        let captionHTML = '';
-                        if (currSlideElement) {
-                            const title = currSlideElement.closest('.resource-card').querySelector('h5').textContent;
-                            captionHTML = title;
-                        }
-                        el.innerHTML = captionHTML;
-                    });
-                }
-            });
-        });
-
-        // Add custom keyboard shortcuts
-        gallery.on('bindEvents', () => {
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    gallery.close();
-                }
-            });
+        // Initialize Lightbox with custom options
+        lightbox.option({
+            'resizeDuration': 200,
+            'wrapAround': true,
+            'albumLabel': 'Image %1 of %2',
+            'fadeDuration': 200,
+            'imageFadeDuration': 200,
+            'disableScrolling': true,
+            'positionFromTop': 50,
+            'showImageNumberLabel': true,
+            'alwaysShowNavOnTouchDevices': true
         });
     </script>
 </body>
