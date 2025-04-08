@@ -669,3 +669,170 @@ function getMoodLevelText($level) {
             return '';
     }
 }
+
+/**
+ * Get mood data grouped by day for the chart
+ * 
+ * @param string $start_date Start date (YYYY-MM-DD)
+ * @param string $end_date End date (YYYY-MM-DD)
+ * @param array $tag_ids Optional array of tag IDs to filter by
+ * @return array Array of mood data grouped by day
+ */
+function getMoodByDay($start_date, $end_date, $tag_ids = []) {
+    global $conn;
+    
+    try {
+        $query = "SELECT DATE(m.date) as day, AVG(m.mood_level) as avg_mood, COUNT(*) as entry_count 
+                 FROM mood_entries m";
+        
+        if (!empty($tag_ids)) {
+            $query .= " JOIN mood_entry_tags met ON m.id = met.mood_entry_id";
+        }
+        
+        $query .= " WHERE DATE(m.date) BETWEEN ? AND ?";
+        
+        $params = [$start_date, $end_date];
+        $types = "ss";
+        
+        if (!empty($tag_ids)) {
+            $placeholders = implode(',', array_fill(0, count($tag_ids), '?'));
+            $query .= " AND met.tag_id IN ($placeholders)";
+            foreach ($tag_ids as $tag_id) {
+                $params[] = $tag_id;
+                $types .= "i";
+            }
+        }
+        
+        $query .= " GROUP BY DATE(m.date) ORDER BY day";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $mood_data = [];
+        while ($row = $result->fetch_assoc()) {
+            $mood_data[] = [
+                'date' => $row['day'],
+                'avg_mood' => round($row['avg_mood'], 1),
+                'entry_count' => $row['entry_count']
+            ];
+        }
+        
+        return $mood_data;
+    } catch (Exception $e) {
+        error_log("Error getting mood by day: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Get mood data grouped by time of day
+ * 
+ * @param string $start_date Start date (YYYY-MM-DD)
+ * @param string $end_date End date (YYYY-MM-DD)
+ * @param array $tag_ids Optional array of tag IDs to filter by
+ * @return array Array of mood data grouped by time of day
+ */
+function getMoodByTimeOfDay($start_date, $end_date, $tag_ids = []) {
+    global $conn;
+    
+    try {
+        $query = "SELECT 
+                    CASE 
+                        WHEN HOUR(m.date) BETWEEN 5 AND 11 THEN 'Morning'
+                        WHEN HOUR(m.date) BETWEEN 12 AND 16 THEN 'Afternoon'
+                        WHEN HOUR(m.date) BETWEEN 17 AND 20 THEN 'Evening'
+                        ELSE 'Night'
+                    END as time_of_day,
+                    AVG(m.mood_level) as avg_mood,
+                    COUNT(*) as entry_count
+                 FROM mood_entries m";
+        
+        if (!empty($tag_ids)) {
+            $query .= " JOIN mood_entry_tags met ON m.id = met.mood_entry_id";
+        }
+        
+        $query .= " WHERE DATE(m.date) BETWEEN ? AND ?";
+        
+        $params = [$start_date, $end_date];
+        $types = "ss";
+        
+        if (!empty($tag_ids)) {
+            $placeholders = implode(',', array_fill(0, count($tag_ids), '?'));
+            $query .= " AND met.tag_id IN ($placeholders)";
+            foreach ($tag_ids as $tag_id) {
+                $params[] = $tag_id;
+                $types .= "i";
+            }
+        }
+        
+        $query .= " GROUP BY time_of_day ORDER BY FIELD(time_of_day, 'Morning', 'Afternoon', 'Evening', 'Night')";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $mood_data = [];
+        while ($row = $result->fetch_assoc()) {
+            $mood_data[] = [
+                'time_of_day' => $row['time_of_day'],
+                'avg_mood' => round($row['avg_mood'], 1),
+                'entry_count' => $row['entry_count']
+            ];
+        }
+        
+        return $mood_data;
+    } catch (Exception $e) {
+        error_log("Error getting mood by time of day: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Get mood data grouped by tag
+ * 
+ * @param string $start_date Start date (YYYY-MM-DD)
+ * @param string $end_date End date (YYYY-MM-DD)
+ * @return array Array of mood data grouped by tag
+ */
+function getMoodByTag($start_date, $end_date) {
+    global $conn;
+    
+    try {
+        $query = "SELECT 
+                    t.id,
+                    t.name,
+                    t.color,
+                    AVG(m.mood_level) as avg_mood,
+                    COUNT(*) as entry_count
+                 FROM mood_tags t
+                 JOIN mood_entry_tags met ON t.id = met.tag_id
+                 JOIN mood_entries m ON met.mood_entry_id = m.id
+                 WHERE DATE(m.date) BETWEEN ? AND ?
+                 GROUP BY t.id
+                 ORDER BY entry_count DESC";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $mood_data = [];
+        while ($row = $result->fetch_assoc()) {
+            $mood_data[] = [
+                'tag_id' => $row['id'],
+                'tag_name' => $row['name'],
+                'color' => $row['color'],
+                'avg_mood' => round($row['avg_mood'], 1),
+                'entry_count' => $row['entry_count']
+            ];
+        }
+        
+        return $mood_data;
+    } catch (Exception $e) {
+        error_log("Error getting mood by tag: " . $e->getMessage());
+        return [];
+    }
+}
