@@ -249,149 +249,75 @@ if (!$units_result) {
     </form>
 </div>
 
-<!-- Add TinyMCE -->
 <script src="https://cdn.tiny.cloud/1/hheg1rfe0lrc09roq9hgmj6wy45e6b1r2mbjjdl5ovxtnfkf/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
-// Initialize TinyMCE
-tinymce.init({
-    selector: '.rich-editor',
-    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-    height: 300,
-    menubar: false,
-    branding: false,
-    promotion: false,
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
-    setup: function(editor) {
-        editor.on('change', function() {
-            editor.save();
-        });
+    tinymce.init({
+        selector: '.rich-editor',
+        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+        height: 300,
+        menubar: false,
+        statusbar: false,
+        branding: false
+    });
+
+    // Function to add new criteria
+    function addCriteria() {
+        const container = document.getElementById('criteriaContainer');
+        const criteriaCount = container.children.length;
+        
+        const criteriaDiv = document.createElement('div');
+        criteriaDiv.className = 'row mb-3 criteria-item';
+        criteriaDiv.innerHTML = `
+            <div class="col-md-2">
+                <input type="text" class="form-control" name="criteria[${criteriaCount}][code]" placeholder="AC 1.1">
+            </div>
+            <div class="col-md-7">
+                <input type="text" class="form-control" name="criteria[${criteriaCount}][text]" placeholder="Criteria description">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="criteria[${criteriaCount}][grade]">
+                    <option value="pass">Pass</option>
+                    <option value="merit">Merit</option>
+                    <option value="distinction">Distinction</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.criteria-item').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(criteriaDiv);
     }
-});
 
-// Form validation
-(function () {
-    'use strict'
-    var forms = document.querySelectorAll('.needs-validation')
-    Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
-            }
-            form.classList.add('was-validated')
-        }, false)
-    })
-})()
-
-// Add criteria function
-function addCriteria() {
-    const container = document.getElementById('criteriaContainer');
-    const index = container.children.length;
-    
-    const criteriaHtml = `
-        <div class="card mb-3 criteria-item" id="criteria-${index}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
-                    <h6 class="mb-0">Criterion ${index + 1}</h6>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="removeCriteria(${index})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Code</label>
-                        <input type="text" class="form-control" name="criteria[${index}][code]" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Grade Required</label>
-                        <select class="form-select" name="criteria[${index}][grade]" required>
-                            <option value="pass">Pass</option>
-                            <option value="merit">Merit</option>
-                            <option value="distinction">Distinction</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control rich-editor" name="criteria[${index}][text]" rows="3" required></textarea>
-                </div>
+    // Function to add new guidance
+    function addGuidance() {
+        const container = document.getElementById('guidanceContainer');
+        const guidanceCount = container.children.length;
+        
+        const guidanceDiv = document.createElement('div');
+        guidanceDiv.className = 'row mb-3 guidance-item';
+        guidanceDiv.innerHTML = `
+            <div class="col-md-9">
+                <input type="text" class="form-control" name="guidance[${guidanceCount}][text]" placeholder="Guidance text">
             </div>
-        </div>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', criteriaHtml);
-    tinymce.init({
-        selector: `#criteria-${index} .rich-editor`,
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-        height: 200,
-        menubar: false,
-        branding: false,
-        promotion: false
-    });
-}
-
-// Remove criteria function
-function removeCriteria(index) {
-    const element = document.getElementById(`criteria-${index}`);
-    element.remove();
-}
-
-// Add guidance function
-function addGuidance() {
-    const container = document.getElementById('guidanceContainer');
-    const index = container.children.length;
-    
-    const guidanceHtml = `
-        <div class="card mb-3 guidance-item" id="guidance-${index}">
-            <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
-                    <h6 class="mb-0">Guidance ${index + 1}</h6>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="removeGuidance(${index})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Type</label>
-                    <select class="form-select" name="guidance[${index}][type]" required>
-                        <option value="general">General</option>
-                        <option value="research">Research</option>
-                        <option value="reference">Reference</option>
-                        <option value="technical">Technical</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Guidance Text</label>
-                    <textarea class="form-control rich-editor" name="guidance[${index}][text]" rows="3" required></textarea>
-                </div>
+            <div class="col-md-2">
+                <select class="form-select" name="guidance[${guidanceCount}][type]">
+                    <option value="general">General</option>
+                    <option value="research">Research</option>
+                    <option value="reference">Reference</option>
+                    <option value="technical">Technical</option>
+                </select>
             </div>
-        </div>
-    `;
-    
-    container.insertAdjacentHTML('beforeend', guidanceHtml);
-    tinymce.init({
-        selector: `#guidance-${index} .rich-editor`,
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
-        height: 200,
-        menubar: false,
-        branding: false,
-        promotion: false
-    });
-}
-
-// Remove guidance function
-function removeGuidance(index) {
-    const element = document.getElementById(`guidance-${index}`);
-    element.remove();
-}
-
-// Add initial criteria and guidance items
-document.addEventListener('DOMContentLoaded', function() {
-    addCriteria();
-    addGuidance();
-});
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.guidance-item').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(guidanceDiv);
+    }
 </script>
 
 <?php include '../includes/footer.php'; ?> 
