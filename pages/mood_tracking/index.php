@@ -376,7 +376,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             <div class="col-4">
                                 <div class="mood-emoji">
                                     <?php
-                                    $most_common_mood = $stats['most_common_mood'];
+                                    $most_common_mood = isset($stats['most_common_mood']) ? $stats['most_common_mood'] : 3;
                                     if ($most_common_mood == 5) echo '😄';
                                     else if ($most_common_mood == 4) echo '🙂';
                                     else if ($most_common_mood == 3) echo '😐';
