@@ -551,7 +551,8 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
         $stats = [
             'total_entries' => 0,
             'avg_mood' => 0,
-            'mood_distribution' => [
+            'most_common_mood' => 0,
+            'mood_counts' => [
                 1 => 0,
                 2 => 0,
                 3 => 0,
@@ -565,7 +566,8 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
                 'night' => 0
             ],
             'mood_by_day' => [],
-            'mood_by_tag' => []
+            'mood_by_tag' => [],
+            'top_tags' => []
         ];
         
         $total_mood = 0;
@@ -575,7 +577,7 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
         while ($entry = $result->fetch_assoc()) {
             $stats['total_entries']++;
             $total_mood += $entry['mood_level'];
-            $stats['mood_distribution'][$entry['mood_level']]++;
+            $stats['mood_counts'][$entry['mood_level']]++;
             
             // Determine time of day
             $hour = (int)date('H', strtotime($entry['date']));
@@ -596,6 +598,14 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
         // Calculate average mood
         $stats['avg_mood'] = $stats['total_entries'] > 0 ? round($total_mood / $stats['total_entries'], 1) : 0;
         
+        // Find most common mood
+        if (!empty($stats['mood_counts'])) {
+            $max_count = max($stats['mood_counts']);
+            $stats['most_common_mood'] = array_search($max_count, $stats['mood_counts']);
+        } else {
+            $stats['most_common_mood'] = 3; // Default to neutral if no data
+        }
+        
         // Calculate mood by day
         $mood_by_day = [];
         foreach ($entries as $entry) {
@@ -614,12 +624,12 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
             $stats['mood_by_day'][$day] = round($data['total'] / $data['count'], 1);
         }
         
-        // Calculate mood by tag
+        // Calculate mood by tag and get top tags
         if (!empty($entries)) {
             $entry_ids = array_column($entries, 'id');
             $id_list = implode(',', $entry_ids);
             
-            $tag_query = "SELECT t.id, t.name, t.color, AVG(m.mood_level) as avg_mood, COUNT(m.id) as entry_count
+            $tag_query = "SELECT t.id, t.name, t.color, COUNT(m.id) as entry_count, AVG(m.mood_level) as avg_mood
                          FROM mood_tags t
                          JOIN mood_entry_tags met ON t.id = met.tag_id
                          JOIN mood_entries m ON met.mood_entry_id = m.id
@@ -637,13 +647,31 @@ function getMoodStatistics($start_date = null, $end_date = null, $tag_ids = []) 
                     'avg_mood' => round($tag['avg_mood'], 1),
                     'entry_count' => $tag['entry_count']
                 ];
+                
+                // Add to top tags
+                $stats['top_tags'][] = [
+                    'id' => $tag['id'],
+                    'name' => $tag['name'],
+                    'color' => $tag['color'],
+                    'count' => $tag['entry_count'],
+                    'avg_mood' => round($tag['avg_mood'], 1)
+                ];
             }
         }
         
         return $stats;
     } catch (Exception $e) {
         error_log("Error getting mood statistics: " . $e->getMessage());
-        return false;
+        return [
+            'total_entries' => 0,
+            'avg_mood' => 0,
+            'most_common_mood' => 3,
+            'mood_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0],
+            'time_of_day' => ['morning' => 0, 'afternoon' => 0, 'evening' => 0, 'night' => 0],
+            'mood_by_day' => [],
+            'mood_by_tag' => [],
+            'top_tags' => []
+        ];
     }
 }
 
