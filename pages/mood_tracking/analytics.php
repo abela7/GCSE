@@ -8,91 +8,107 @@ $page_title = "Mood Analytics";
 // Include header
 require_once __DIR__ . '/../../includes/header.php';
 
-// Get filter parameters
+// Initialize filter variables
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-30 days'));
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
-$filter_subject = isset($_GET['subject_id']) ? intval($_GET['subject_id']) : null;
-$filter_tag = isset($_GET['tag_id']) ? intval($_GET['tag_id']) : null;
+$tag_ids = isset($_GET['tags']) && !empty($_GET['tags']) ? explode(',', $_GET['tags']) : [];
 
-// Prepare tag IDs array for filtering
-$tag_ids = [];
-if ($filter_tag) {
-    $tag_ids[] = $filter_tag;
-}
+// Get mood statistics
+$stats = getMoodStatistics($start_date, $end_date, $tag_ids);
 
-// Get mood statistics with filters
-$mood_stats = getMoodStatistics($start_date, $end_date, $filter_subject, $tag_ids);
-
-// Set default values if statistics are empty
-if (!isset($mood_stats['average_mood'])) {
-    $mood_stats['average_mood'] = 0;
-}
-if (!isset($mood_stats['mood_distribution'])) {
-    $mood_stats['mood_distribution'] = [];
-}
-if (!isset($mood_stats['mood_trend'])) {
-    $mood_stats['mood_trend'] = [];
-}
-if (!isset($mood_stats['mood_by_time'])) {
-    $mood_stats['mood_by_time'] = [];
-}
-if (!isset($mood_stats['common_tags'])) {
-    $mood_stats['common_tags'] = [];
-}
-
-// Get subjects for filter
-$subjects_query = "SELECT * FROM subjects ORDER BY name";
-$subjects_result = $conn->query($subjects_query);
-
-// Get all tags for filter
+// Get all tags for filtering
 $all_tags = getMoodTags();
+
+// Get mood data for charts
+$mood_by_day = getMoodByDay($start_date, $end_date, $tag_ids);
+$mood_by_time = getMoodByTimeOfDay($start_date, $end_date, $tag_ids);
+$mood_by_tag = getMoodByTag($start_date, $end_date);
 ?>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-
 <style>
-/* General Styles */
-.mood-card {
+:root {
+    --accent-color: #cdaf56;
+    --accent-color-light: #e0cb8c;
+    --accent-color-dark: #b09339;
+}
+
+/* Card Styles */
+.analytics-card {
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    margin-bottom: 1rem;
-}
-.mood-card:hover {
-    transform: translateY(-2px);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
 }
 
-/* Mood Level Indicators */
-.mood-level {
-    font-size: 1.5rem;
-    font-weight: bold;
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Stat Card */
+.stat-card {
     text-align: center;
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
-    border-radius: 50%;
-    margin-right: 1rem;
+    padding: 1.5rem;
 }
-.mood-level-1 { background-color: #ff6b6b; color: white; }
-.mood-level-2 { background-color: #ffa06b; color: white; }
-.mood-level-3 { background-color: #ffd56b; color: black; }
-.mood-level-4 { background-color: #c2e06b; color: black; }
-.mood-level-5 { background-color: #6be07b; color: white; }
-.mood-emoji { font-size: 2rem; }
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+}
+.stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.stat-label {
+    color: #6c757d;
+    font-size: 1rem;
+}
 
-/* Tag Styles */
-.tag-badge {
+/* Mood Badge */
+.mood-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50rem;
+    font-weight: 500;
+    color: #fff;
     margin-right: 0.5rem;
     margin-bottom: 0.5rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 50rem;
 }
 
-/* Chart Containers */
-.chart-container {
-    height: 300px;
-    position: relative;
+/* Tag Badge */
+.tag-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
+/* Button Styles */
+.btn-accent {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+}
+.btn-accent:hover {
+    background-color: var(--accent-color-dark);
+    border-color: var(--accent-color-dark);
+    color: #fff;
+}
+.btn-outline-accent {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.btn-outline-accent:hover {
+    background-color: var(--accent-color);
+    color: #fff;
 }
 
 /* Mobile Optimizations */
@@ -100,8 +116,23 @@ $all_tags = getMoodTags();
     .chart-container {
         height: 250px;
     }
-    .filter-section {
-        margin-bottom: 1rem;
+    .stat-icon {
+        font-size: 2rem;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+    .form-control {
+        font-size: 1rem;
+        padding: 0.75rem;
+        height: auto;
     }
 }
 </style>
@@ -109,254 +140,330 @@ $all_tags = getMoodTags();
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h3 mb-0">
+            <h1 class="h3 mb-0" style="color: var(--accent-color);">
                 <i class="fas fa-chart-line me-2"></i>Mood Analytics
             </h1>
-            <p class="text-muted">Analyze your mood patterns and trends</p>
+            <p class="text-muted">Visualize and analyze your mood patterns</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="index.php" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i>Dashboard
+        <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+            <a href="index.php" class="btn btn-outline-accent">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
             </a>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title mb-3">
-                <i class="fas fa-filter me-2"></i>Filters
-            </h5>
-            
-            <form method="GET" class="row g-3">
-                <!-- Date Range -->
-                <div class="col-md-3 filter-section">
-                    <label for="start_date" class="form-label">Start Date</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
-                </div>
-                <div class="col-md-3 filter-section">
-                    <label for="end_date" class="form-label">End Date</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
-                </div>
-                
-                <!-- Subject -->
-                <div class="col-md-3 filter-section">
-                    <label for="subject_id" class="form-label">Subject</label>
-                    <select class="form-select" id="subject_id" name="subject_id">
-                        <option value="">All Subjects</option>
-                        <?php while ($subject = $subjects_result->fetch_assoc()): ?>
-                            <option value="<?php echo $subject['id']; ?>" <?php echo ($filter_subject == $subject['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($subject['name']); ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                
-                <!-- Tag -->
-                <div class="col-md-3 filter-section">
-                    <label for="tag_id" class="form-label">Tag</label>
-                    <select class="form-select" id="tag_id" name="tag_id">
-                        <option value="">All Tags</option>
-                        <?php foreach ($all_tags as $tag): ?>
-                            <option value="<?php echo $tag['id']; ?>" <?php echo ($filter_tag == $tag['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($tag['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                
-                <!-- Submit and Reset -->
-                <div class="col-md-12 text-end">
-                    <a href="analytics.php" class="btn btn-outline-secondary me-2">Reset Filters</a>
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Average Mood -->
     <div class="row mb-4">
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Average Mood</h5>
-                    <div class="d-flex align-items-center justify-content-center py-4">
-                        <div class="mood-level mood-level-<?php echo round($mood_stats['average_mood']); ?> me-3">
-                            <?php echo number_format($mood_stats['average_mood'], 1); ?>
+        <div class="col-12">
+            <div class="analytics-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-filter me-2"></i>Filter Analytics
+                    </h5>
+                    
+                    <form id="filter_form" method="GET" action="analytics.php" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo $start_date; ?>">
                         </div>
-                        <div class="mood-emoji">
-                            <?php 
-                            $avg_mood = round($mood_stats['average_mood']);
-                            $emoji = '';
-                            switch ($avg_mood) {
-                                case 1: $emoji = '😢'; break;
-                                case 2: $emoji = '😕'; break;
-                                case 3: $emoji = '😐'; break;
-                                case 4: $emoji = '🙂'; break;
-                                case 5: $emoji = '😄'; break;
-                                default: $emoji = '❓'; break;
-                            }
-                            echo $emoji;
-                            ?>
+                        
+                        <div class="col-md-4">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo $end_date; ?>">
                         </div>
-                    </div>
-                    <div class="text-muted">
-                        <?php echo date('M j, Y', strtotime($start_date)); ?> - <?php echo date('M j, Y', strtotime($end_date)); ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Mood Distribution</h5>
-                    <div class="chart-container">
-                        <canvas id="moodDistributionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mood Trend -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Mood Trend Over Time</h5>
-            <div class="chart-container">
-                <canvas id="moodTrendChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mood by Time of Day -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Mood by Time of Day</h5>
-                    <div class="chart-container">
-                        <canvas id="moodByTimeChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Common Tags</h5>
-                    <?php if (!empty($mood_stats['common_tags'])): ?>
-                        <ul class="list-group list-group-flush">
-                            <?php foreach ($mood_stats['common_tags'] as $tag): ?>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span class="tag-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                        <?php echo htmlspecialchars($tag['name']); ?>
-                                    </span>
-                                    <span class="badge bg-secondary rounded-pill">
-                                        <?php echo $tag['count']; ?> entries
-                                    </span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else: ?>
-                        <p class="text-muted text-center py-4">No tags recorded for this period</p>
-                    <?php endif; ?>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Tags (Optional)</label>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="tagDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <?php echo !empty($tag_ids) ? count($tag_ids) . ' tags selected' : 'Select Tags'; ?>
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="tagDropdown">
+                                    <?php foreach ($all_tags as $tag): ?>
+                                        <li>
+                                            <div class="dropdown-item">
+                                                <div class="form-check">
+                                                    <input class="form-check-input tag-checkbox" type="checkbox" 
+                                                           id="tag_<?php echo $tag['id']; ?>" 
+                                                           value="<?php echo $tag['id']; ?>"
+                                                           <?php echo in_array($tag['id'], $tag_ids) ? 'checked' : ''; ?>>
+                                                    <label class="form-check-label" for="tag_<?php echo $tag['id']; ?>">
+                                                        <span class="tag-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                                            <?php echo htmlspecialchars($tag['name']); ?>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <input type="hidden" id="tags" name="tags" value="<?php echo implode(',', $tag_ids); ?>">
+                        </div>
+                        
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-accent me-2">
+                                <i class="fas fa-filter me-1"></i>Apply Filters
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                                <i class="fas fa-undo me-1"></i>Reset Filters
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Insights -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Mood Insights</h5>
+    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
+        <!-- Summary Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="analytics-card stat-card">
+                    <div class="stat-icon">
+                        <?php
+                        $avg_mood = $stats['average_mood'];
+                        if ($avg_mood >= 4.5) echo '😄';
+                        else if ($avg_mood >= 3.5) echo '🙂';
+                        else if ($avg_mood >= 2.5) echo '😐';
+                        else if ($avg_mood >= 1.5) echo '😕';
+                        else echo '😢';
+                        ?>
+                    </div>
+                    <div class="stat-value"><?php echo number_format($avg_mood, 1); ?></div>
+                    <div class="stat-label">Average Mood</div>
+                </div>
+            </div>
             
-            <div id="moodInsights">
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="analytics-card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
                     </div>
-                    <p class="mt-2 text-muted">Analyzing your mood data...</p>
+                    <div class="stat-value"><?php echo $stats['total_entries']; ?></div>
+                    <div class="stat-label">Total Entries</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="analytics-card stat-card">
+                    <div class="stat-icon">
+                        <?php
+                        $most_common_mood = $stats['most_common_mood'];
+                        if ($most_common_mood == 5) echo '😄';
+                        else if ($most_common_mood == 4) echo '🙂';
+                        else if ($most_common_mood == 3) echo '😐';
+                        else if ($most_common_mood == 2) echo '😕';
+                        else echo '😢';
+                        ?>
+                    </div>
+                    <div class="stat-value"><?php echo $most_common_mood; ?>/5</div>
+                    <div class="stat-label">Most Common Mood</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="analytics-card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="stat-value"><?php echo count($stats['top_tags']); ?></div>
+                    <div class="stat-label">Tags Used</div>
                 </div>
             </div>
         </div>
-    </div>
+        
+        <!-- Charts -->
+        <div class="row">
+            <!-- Mood Over Time -->
+            <div class="col-lg-8 mb-4">
+                <div class="analytics-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                            <i class="fas fa-chart-line me-2"></i>Mood Over Time
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="moodOverTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mood Distribution -->
+            <div class="col-lg-4 mb-4">
+                <div class="analytics-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                            <i class="fas fa-chart-pie me-2"></i>Mood Distribution
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="moodDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mood by Time of Day -->
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                            <i class="fas fa-clock me-2"></i>Mood by Time of Day
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="moodByTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mood by Tag -->
+            <div class="col-lg-6 mb-4">
+                <div class="analytics-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                            <i class="fas fa-tags me-2"></i>Mood by Tag
+                        </h5>
+                        <?php if (!empty($mood_by_tag)): ?>
+                            <div class="chart-container">
+                                <canvas id="moodByTagChart"></canvas>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No tag data available</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Tags -->
+        <?php if (!empty($stats['top_tags'])): ?>
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="analytics-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                                <i class="fas fa-tags me-2"></i>Top Tags
+                            </h5>
+                            <div class="row">
+                                <?php foreach ($stats['top_tags'] as $tag): ?>
+                                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <span class="mood-badge me-2" style="background-color: <?php echo $tag['color']; ?>">
+                                                <?php echo htmlspecialchars($tag['name']); ?>
+                                            </span>
+                                            <span class="text-muted">
+                                                <?php echo $tag['count']; ?> entries
+                                                <?php if (isset($tag['avg_mood'])): ?>
+                                                    (Avg: <?php echo number_format($tag['avg_mood'], 1); ?>)
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+    <?php else: ?>
+        <!-- No Data Message -->
+        <div class="row">
+            <div class="col-12">
+                <div class="analytics-card">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-bar fa-4x text-muted"></i>
+                        </div>
+                        <h4 class="mb-3">No mood data available</h4>
+                        <p class="text-muted mb-4">Start tracking your mood to see analytics and insights</p>
+                        <a href="entry.php" class="btn btn-accent">
+                            <i class="fas fa-plus me-1"></i>Create Your First Entry
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+// Function to handle tag checkboxes
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Mood Distribution Chart
-    const distributionCtx = document.getElementById('moodDistributionChart').getContext('2d');
-    const distributionData = <?php echo json_encode(array_map(function($item) {
-        return ['mood_level' => $item['mood_level'], 'count' => $item['count']];
-    }, $mood_stats['mood_distribution'] ?? [])); ?>;
+    const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
+    const tagsInput = document.getElementById('tags');
+    const tagDropdown = document.getElementById('tagDropdown');
     
-    const moodLabels = ['Very Low', 'Low', 'Neutral', 'Good', 'Excellent'];
-    const moodColors = ['#ff6b6b', '#ffa06b', '#ffd56b', '#c2e06b', '#6be07b'];
-    
-    // Prepare data for chart
-    const chartData = [0, 0, 0, 0, 0]; // Initialize with zeros
-    distributionData.forEach(item => {
-        if (item.mood_level >= 1 && item.mood_level <= 5) {
-            chartData[item.mood_level - 1] = parseInt(item.count);
-        }
-    });
-    
-    new Chart(distributionCtx, {
-        type: 'bar',
-        data: {
-            labels: moodLabels,
-            datasets: [{
-                label: 'Number of Entries',
-                data: chartData,
-                backgroundColor: moodColors,
-                borderColor: moodColors,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
+    tagCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const selectedTags = [];
+            tagCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    selectedTags.push(cb.value);
                 }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
+            });
+            tagsInput.value = selectedTags.join(',');
+            tagDropdown.textContent = selectedTags.length > 0 ? selectedTags.length + ' tags selected' : 'Select Tags';
+        });
     });
     
-    // Initialize Mood Trend Chart
-    const trendCtx = document.getElementById('moodTrendChart').getContext('2d');
-    const trendData = <?php echo json_encode($mood_stats['mood_trend'] ?? []); ?>;
+    // Initialize charts if data is available
+    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
+        initCharts();
+    <?php endif; ?>
+});
+
+// Function to reset filters
+function resetFilters() {
+    document.getElementById('start_date').value = '';
+    document.getElementById('end_date').value = '';
     
-    const trendDates = [];
-    const trendValues = [];
-    
-    trendData.forEach(item => {
-        const date = new Date(item.day);
-        trendDates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-        trendValues.push(parseFloat(item.average_mood).toFixed(1));
+    // Reset tag checkboxes
+    document.querySelectorAll('.tag-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
     });
+    document.getElementById('tags').value = '';
+    document.getElementById('tagDropdown').textContent = 'Select Tags';
     
-    new Chart(trendCtx, {
+    // Submit form
+    document.getElementById('filter_form').submit();
+}
+
+// Function to initialize charts
+function initCharts() {
+    // Chart colors
+    const chartColors = {
+        red: '#dc3545',
+        orange: '#fd7e14',
+        yellow: '#ffc107',
+        green: '#28a745',
+        blue: '#17a2b8',
+        accent: '#cdaf56',
+        accentLight: '#e0cb8c',
+        gray: '#6c757d'
+    };
+    
+    // Mood Over Time Chart
+    const moodOverTimeCtx = document.getElementById('moodOverTimeChart').getContext('2d');
+    new Chart(moodOverTimeCtx, {
         type: 'line',
         data: {
-            labels: trendDates,
+            labels: <?php echo json_encode(array_keys($mood_by_day)); ?>,
             datasets: [{
                 label: 'Average Mood',
-                data: trendValues,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                data: <?php echo json_encode(array_values($mood_by_day)); ?>,
+                backgroundColor: chartColors.accentLight,
+                borderColor: chartColors.accent,
                 borderWidth: 2,
                 tension: 0.3,
                 fill: true,
+                pointBackgroundColor: chartColors.accent,
                 pointRadius: 4,
                 pointHoverRadius: 6
             }]
@@ -366,54 +473,103 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    min: 1,
+                    beginAtZero: true,
                     max: 5,
                     ticks: {
                         stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Mood Level'
                     }
                 },
                 x: {
-                    ticks: {
-                        maxRotation: 45,
-                        minRotation: 45
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Mood: ' + context.raw + '/5';
+                        }
                     }
                 }
             }
         }
     });
     
-    // Initialize Mood by Time of Day Chart
-    const timeCtx = document.getElementById('moodByTimeChart').getContext('2d');
-    const timeData = <?php echo json_encode($mood_stats['mood_by_time'] ?? []); ?>;
-    
-    const timeLabels = [];
-    const timeValues = [];
-    const counts = [];
-    
-    timeData.forEach(item => {
-        timeLabels.push(item.time_of_day);
-        timeValues.push(parseFloat(item.average_mood).toFixed(1));
-        counts.push(parseInt(item.count));
+    // Mood Distribution Chart
+    const moodDistributionCtx = document.getElementById('moodDistributionChart').getContext('2d');
+    new Chart(moodDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Very Bad (1)', 'Bad (2)', 'Neutral (3)', 'Good (4)', 'Very Good (5)'],
+            datasets: [{
+                data: [
+                    <?php echo isset($stats['mood_counts'][1]) ? $stats['mood_counts'][1] : 0; ?>,
+                    <?php echo isset($stats['mood_counts'][2]) ? $stats['mood_counts'][2] : 0; ?>,
+                    <?php echo isset($stats['mood_counts'][3]) ? $stats['mood_counts'][3] : 0; ?>,
+                    <?php echo isset($stats['mood_counts'][4]) ? $stats['mood_counts'][4] : 0; ?>,
+                    <?php echo isset($stats['mood_counts'][5]) ? $stats['mood_counts'][5] : 0; ?>
+                ],
+                backgroundColor: [
+                    chartColors.red,
+                    chartColors.orange,
+                    chartColors.yellow,
+                    chartColors.green,
+                    chartColors.blue
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return label + ': ' + value + ' entries (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
     });
     
-    new Chart(timeCtx, {
+    // Mood by Time of Day Chart
+    const moodByTimeCtx = document.getElementById('moodByTimeChart').getContext('2d');
+    new Chart(moodByTimeCtx, {
         type: 'bar',
         data: {
-            labels: timeLabels,
+            labels: ['Morning', 'Afternoon', 'Evening', 'Night'],
             datasets: [{
                 label: 'Average Mood',
-                data: timeValues,
-                backgroundColor: [
-                    'rgba(255, 159, 64, 0.7)',  // Morning
-                    'rgba(255, 205, 86, 0.7)',  // Afternoon
-                    'rgba(54, 162, 235, 0.7)',  // Evening
-                    'rgba(153, 102, 255, 0.7)'  // Night
+                data: [
+                    <?php echo isset($mood_by_time['morning']) ? $mood_by_time['morning'] : 0; ?>,
+                    <?php echo isset($mood_by_time['afternoon']) ? $mood_by_time['afternoon'] : 0; ?>,
+                    <?php echo isset($mood_by_time['evening']) ? $mood_by_time['evening'] : 0; ?>,
+                    <?php echo isset($mood_by_time['night']) ? $mood_by_time['night'] : 0; ?>
                 ],
-                borderColor: [
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)'
+                backgroundColor: [
+                    chartColors.yellow,
+                    chartColors.orange,
+                    chartColors.blue,
+                    chartColors.gray
                 ],
                 borderWidth: 1
             }]
@@ -423,18 +579,25 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    min: 1,
+                    beginAtZero: true,
                     max: 5,
                     ticks: {
                         stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Average Mood Level'
                     }
                 }
             },
             plugins: {
+                legend: {
+                    display: false
+                },
                 tooltip: {
                     callbacks: {
-                        afterLabel: function(context) {
-                            return `Entries: ${counts[context.dataIndex]}`;
+                        label: function(context) {
+                            return 'Average Mood: ' + context.raw.toFixed(1) + '/5';
                         }
                     }
                 }
@@ -442,161 +605,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Generate mood insights
-    generateMoodInsights();
-});
-
-// Function to generate mood insights
-function generateMoodInsights() {
-    const distributionData = <?php echo json_encode(array_map(function($item) {
-        return ['mood_level' => $item['mood_level'], 'count' => $item['count']];
-    }, $mood_stats['mood_distribution'] ?? [])); ?>;
-    
-    const timeData = <?php echo json_encode($mood_stats['mood_by_time'] ?? []); ?>;
-    const trendData = <?php echo json_encode($mood_stats['mood_trend'] ?? []); ?>;
-    const tagData = <?php echo json_encode($mood_stats['common_tags'] ?? []); ?>;
-    const avgMood = <?php echo $mood_stats['average_mood'] ?? 0; ?>;
-    
-    let insights = [];
-    
-    // Average mood insight
-    if (avgMood > 0) {
-        let moodDescription = '';
-        if (avgMood >= 4.5) moodDescription = 'excellent';
-        else if (avgMood >= 3.5) moodDescription = 'good';
-        else if (avgMood >= 2.5) moodDescription = 'neutral';
-        else if (avgMood >= 1.5) moodDescription = 'low';
-        else moodDescription = 'very low';
-        
-        insights.push(`Your average mood during this period was <strong>${moodDescription}</strong> (${avgMood.toFixed(1)}/5).`);
-    }
-    
-    // Distribution insights
-    if (distributionData.length > 0) {
-        // Find most common mood
-        let maxCount = 0;
-        let maxMood = 0;
-        distributionData.forEach(item => {
-            if (parseInt(item.count) > maxCount) {
-                maxCount = parseInt(item.count);
-                maxMood = parseInt(item.mood_level);
-            }
-        });
-        
-        if (maxMood > 0) {
-            let moodText = '';
-            switch (maxMood) {
-                case 1: moodText = 'very low (1/5)'; break;
-                case 2: moodText = 'low (2/5)'; break;
-                case 3: moodText = 'neutral (3/5)'; break;
-                case 4: moodText = 'good (4/5)'; break;
-                case 5: moodText = 'excellent (5/5)'; break;
-            }
-            
-            insights.push(`Your most frequent mood was <strong>${moodText}</strong> with ${maxCount} entries.`);
-        }
-        
-        // Check for mood extremes
-        const lowMoods = distributionData.filter(item => item.mood_level <= 2).reduce((sum, item) => sum + parseInt(item.count), 0);
-        const highMoods = distributionData.filter(item => item.mood_level >= 4).reduce((sum, item) => sum + parseInt(item.count), 0);
-        const totalMoods = distributionData.reduce((sum, item) => sum + parseInt(item.count), 0);
-        
-        if (lowMoods > 0 && totalMoods > 0) {
-            const lowPercentage = Math.round((lowMoods / totalMoods) * 100);
-            if (lowPercentage >= 50) {
-                insights.push(`<strong>${lowPercentage}%</strong> of your mood entries were in the low range (1-2). Consider checking the common factors affecting these low moods.`);
+    <?php if (!empty($mood_by_tag)): ?>
+    // Mood by Tag Chart
+    const moodByTagCtx = document.getElementById('moodByTagChart').getContext('2d');
+    new Chart(moodByTagCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode(array_column($mood_by_tag, 'name')); ?>,
+            datasets: [{
+                label: 'Average Mood',
+                data: <?php echo json_encode(array_column($mood_by_tag, 'avg_mood')); ?>,
+                backgroundColor: <?php echo json_encode(array_column($mood_by_tag, 'color')); ?>,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Average Mood Level'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Average Mood: ' + context.raw.toFixed(1) + '/5';
+                        }
+                    }
+                }
             }
         }
-        
-        if (highMoods > 0 && totalMoods > 0) {
-            const highPercentage = Math.round((highMoods / totalMoods) * 100);
-            if (highPercentage >= 50) {
-                insights.push(`<strong>${highPercentage}%</strong> of your mood entries were in the high range (4-5). Great job maintaining positive moods!`);
-            }
-        }
-    }
-    
-    // Time of day insights
-    if (timeData.length > 0) {
-        // Find best and worst times
-        let bestTime = '';
-        let worstTime = '';
-        let bestMood = 0;
-        let worstMood = 6;
-        
-        timeData.forEach(item => {
-            const mood = parseFloat(item.average_mood);
-            if (mood > bestMood) {
-                bestMood = mood;
-                bestTime = item.time_of_day;
-            }
-            if (mood < worstMood) {
-                worstMood = mood;
-                worstTime = item.time_of_day;
-            }
-        });
-        
-        if (bestTime && worstTime && bestTime !== worstTime) {
-            insights.push(`Your mood tends to be highest during the <strong>${bestTime.toLowerCase()}</strong> (${bestMood.toFixed(1)}/5) and lowest during the <strong>${worstTime.toLowerCase()}</strong> (${worstMood.toFixed(1)}/5).`);
-        }
-    }
-    
-    // Trend insights
-    if (trendData.length >= 7) {
-        // Check for improving or declining trend
-        const firstWeek = trendData.slice(0, 7);
-        const lastWeek = trendData.slice(-7);
-        
-        const firstWeekAvg = firstWeek.reduce((sum, item) => sum + parseFloat(item.average_mood), 0) / firstWeek.length;
-        const lastWeekAvg = lastWeek.reduce((sum, item) => sum + parseFloat(item.average_mood), 0) / lastWeek.length;
-        
-        const difference = lastWeekAvg - firstWeekAvg;
-        
-        if (Math.abs(difference) >= 0.5) {
-            if (difference > 0) {
-                insights.push(`Your mood has been <strong>improving</strong> over this period, with an average increase of ${difference.toFixed(1)} points.`);
-            } else {
-                insights.push(`Your mood has been <strong>declining</strong> over this period, with an average decrease of ${Math.abs(difference).toFixed(1)} points.`);
-            }
-        }
-    }
-    
-    // Tag insights
-    if (tagData.length > 0) {
-        const topTag = tagData[0];
-        insights.push(`The tag <strong>${topTag.name}</strong> appears most frequently in your mood entries (${topTag.count} times).`);
-    }
-    
-    // Display insights
-    const insightsContainer = document.getElementById('moodInsights');
-    
-    if (insights.length > 0) {
-        let insightsHTML = '<div class="list-group">';
-        insights.forEach(insight => {
-            insightsHTML += `
-                <div class="list-group-item">
-                    <div class="d-flex">
-                        <div class="me-3">
-                            <i class="fas fa-lightbulb text-warning fs-4"></i>
-                        </div>
-                        <div>
-                            ${insight}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        insightsHTML += '</div>';
-        
-        insightsContainer.innerHTML = insightsHTML;
-    } else {
-        insightsContainer.innerHTML = `
-            <div class="text-center py-4">
-                <p class="text-muted">Not enough data to generate insights. Continue tracking your mood to see patterns.</p>
-            </div>
-        `;
-    }
+    });
+    <?php endif; ?>
 }
+
+// Improve mobile experience
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix iOS zoom on input focus
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="date"]').forEach(input => {
+        input.style.fontSize = '16px';
+    });
+});
 </script>
 
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+<?php
+// Include footer
+require_once __DIR__ . '/../../includes/footer.php';
+?>

@@ -9,127 +9,135 @@ $page_title = "Mood Entry";
 require_once __DIR__ . '/../../includes/header.php';
 
 // Initialize variables
-$entry_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$entry_id = isset($_GET['id']) ? intval($_GET['id']) : null;
+$entry_date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d H:i:s');
 $entry = null;
-$is_edit = false;
 
-// If entry ID is provided, get entry data
-if ($entry_id > 0) {
+// If editing existing entry, get the data
+if ($entry_id) {
     $entry = getMoodEntry($entry_id);
-    $is_edit = ($entry !== false);
+    if (!$entry) {
+        echo '<div class="alert alert-danger">Entry not found</div>';
+        exit;
+    }
+    $entry_date = $entry['date'];
 }
 
-// Get mood tags
-$mood_tags = getMoodTags();
+// Get all tags for selection
+$all_tags = getMoodTags();
 ?>
 
 <style>
 :root {
     --accent-color: #cdaf56;
-    --accent-color-light: #dbc77a;
-    --accent-color-dark: #b99b3e;
+    --accent-color-light: #e0cb8c;
+    --accent-color-dark: #b09339;
 }
 
+/* Card Styles */
+.entry-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Mood Emoji Styles */
 .mood-emoji {
-    font-size: 2.5rem;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
     cursor: pointer;
-    transition: transform 0.2s;
-    opacity: 0.5;
-    margin: 0 5px;
 }
-
-.mood-emoji:hover, .mood-emoji.selected {
+.mood-emoji:hover {
+    transform: scale(1.1);
+}
+.mood-emoji.selected {
     transform: scale(1.2);
-    opacity: 1;
+    text-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
-.tag-badge {
-    margin-right: 5px;
-    margin-bottom: 5px;
+/* Tag Styles */
+.tag-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+.tag-option {
+    padding: 0.5rem 1rem;
+    border-radius: 50rem;
     cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
-    padding: 8px 12px;
+    transition: all 0.2s ease;
+    color: #fff;
+    font-weight: 500;
+    opacity: 0.7;
 }
-
-.tag-badge:hover, .tag-badge.selected {
+.tag-option:hover {
+    opacity: 1;
     transform: translateY(-2px);
 }
+.tag-option.selected {
+    opacity: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
 
+/* Button Styles */
 .btn-accent {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
-    color: white;
+    color: #fff;
 }
-
 .btn-accent:hover {
     background-color: var(--accent-color-dark);
     border-color: var(--accent-color-dark);
-    color: white;
+    color: #fff;
 }
-
 .btn-outline-accent {
     color: var(--accent-color);
     border-color: var(--accent-color);
 }
-
 .btn-outline-accent:hover {
     background-color: var(--accent-color);
-    color: white;
+    color: #fff;
 }
 
-/* Mobile Responsiveness Improvements */
+/* Date/Time Picker Styles */
+.datetime-container {
+    position: relative;
+}
+.datetime-container .form-control {
+    padding-right: 2.5rem;
+}
+.datetime-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+/* Mobile Optimizations */
 @media (max-width: 767.98px) {
     .mood-emoji {
-        font-size: 2rem;
-        margin: 0 2px;
+        font-size: 2.5rem;
     }
-    
-    .tag-badge {
+    .tag-option {
+        padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
-        padding: 6px 10px;
     }
-    
     .btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
     }
-    
-    h1.h3 {
-        font-size: 1.5rem;
-    }
-    
-    .card-title {
-        font-size: 1.1rem;
-    }
-}
-
-/* Touch-friendly improvements */
-@media (max-width: 576px) {
-    .mood-emoji {
-        font-size: 2.2rem;
-        padding: 10px;
-        margin: 0;
-    }
-    
-    .mood-emoji-container {
-        justify-content: space-between;
-        width: 100%;
-    }
-    
-    .tag-badge {
-        padding: 8px 12px;
-        margin-bottom: 10px;
-    }
-    
-    .form-control, .form-select {
-        font-size: 16px; /* Prevents iOS zoom on focus */
-        padding: 12px;
+    .form-control {
+        font-size: 1rem;
+        padding: 0.75rem;
         height: auto;
     }
-    
-    .btn {
-        padding: 12px 16px;
+    .form-label {
+        font-size: 1rem;
     }
 }
 </style>
@@ -137,101 +145,116 @@ $mood_tags = getMoodTags();
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="h3 mb-3"><?php echo $is_edit ? 'Edit Mood Entry' : 'New Mood Entry'; ?></h1>
+            <h1 class="h3 mb-0" style="color: var(--accent-color);">
+                <i class="fas fa-edit me-2"></i><?php echo $entry_id ? 'Edit Mood Entry' : 'New Mood Entry'; ?>
+            </h1>
+            <p class="text-muted">Record how you're feeling</p>
         </div>
-        <div class="col-md-4 text-md-end">
+        <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
             <a href="index.php" class="btn btn-outline-accent">
-                <i class="fas fa-arrow-left me-2"></i>Back to Tracker
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
             </a>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card">
-                <div class="card-body">
-                    <form id="mood-entry-form">
-                        <?php if ($is_edit): ?>
-                        <input type="hidden" name="entry_id" value="<?php echo $entry_id; ?>">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="entry-card card">
+                <div class="card-body p-4">
+                    <form id="mood_entry_form" method="POST" action="ajax/save_mood.php">
+                        <?php if ($entry_id): ?>
+                            <input type="hidden" name="entry_id" value="<?php echo $entry_id; ?>">
                         <?php endif; ?>
                         
+                        <!-- Mood Selection -->
                         <div class="mb-4">
                             <label class="form-label">How are you feeling?</label>
-                            <div class="d-flex justify-content-between mood-emoji-container">
-                                <div class="text-center">
-                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 1) ? 'selected' : ''; ?>" data-level="1">😢</div>
-                                    <div>Very Low</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-center mood-selector">
+                                    <div class="mood-emoji" data-value="1" onclick="selectMood(this, 1)">😢</div>
+                                    <div class="small text-muted">Very Bad</div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 2) ? 'selected' : ''; ?>" data-level="2">😕</div>
-                                    <div>Low</div>
+                                <div class="text-center mood-selector">
+                                    <div class="mood-emoji" data-value="2" onclick="selectMood(this, 2)">😕</div>
+                                    <div class="small text-muted">Bad</div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 3) ? 'selected' : ''; ?>" data-level="3">😐</div>
-                                    <div>Neutral</div>
+                                <div class="text-center mood-selector">
+                                    <div class="mood-emoji" data-value="3" onclick="selectMood(this, 3)">😐</div>
+                                    <div class="small text-muted">Neutral</div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 4) ? 'selected' : ''; ?>" data-level="4">🙂</div>
-                                    <div>Good</div>
+                                <div class="text-center mood-selector">
+                                    <div class="mood-emoji" data-value="4" onclick="selectMood(this, 4)">🙂</div>
+                                    <div class="small text-muted">Good</div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="mood-emoji <?php echo ($is_edit && $entry['mood_level'] == 5) ? 'selected' : ''; ?>" data-level="5">😄</div>
-                                    <div>Excellent</div>
+                                <div class="text-center mood-selector">
+                                    <div class="mood-emoji" data-value="5" onclick="selectMood(this, 5)">😄</div>
+                                    <div class="small text-muted">Very Good</div>
                                 </div>
                             </div>
-                            <input type="hidden" id="mood-level" name="mood_level" value="<?php echo $is_edit ? $entry['mood_level'] : ''; ?>" required>
+                            <input type="hidden" id="mood_level" name="mood_level" value="<?php echo $entry ? $entry['mood_level'] : ''; ?>" required>
                         </div>
                         
+                        <!-- Date and Time -->
                         <div class="mb-4">
-                            <label for="notes" class="form-label">Notes (optional)</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="What's on your mind?"><?php echo $is_edit ? htmlspecialchars($entry['notes']) : ''; ?></textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label">Tags</label>
-                            <div class="tag-container d-flex flex-wrap">
-                                <?php 
-                                $selected_tag_ids = [];
-                                if ($is_edit && isset($entry['tags'])) {
-                                    foreach ($entry['tags'] as $tag) {
-                                        $selected_tag_ids[] = $tag['id'];
-                                    }
-                                }
-                                
-                                foreach ($mood_tags as $tag): 
-                                    $is_selected = in_array($tag['id'], $selected_tag_ids);
-                                ?>
-                                <span class="badge tag-badge <?php echo $is_selected ? 'selected' : ''; ?>" 
-                                      style="background-color: <?php echo htmlspecialchars($tag['color']); ?>"
-                                      data-tag-id="<?php echo $tag['id']; ?>">
-                                    <?php echo htmlspecialchars($tag['name']); ?>
-                                </span>
-                                <?php endforeach; ?>
+                            <label for="date_time" class="form-label">Date & Time</label>
+                            <div class="datetime-container">
+                                <input type="datetime-local" class="form-control" id="date_time" name="date_time" 
+                                       value="<?php echo date('Y-m-d\TH:i', strtotime($entry_date)); ?>" required>
+                                <span class="datetime-icon"><i class="fas fa-calendar-alt"></i></span>
                             </div>
-                            <input type="hidden" id="selected-tags" name="tags" value="<?php echo implode(',', $selected_tag_ids); ?>">
                         </div>
                         
+                        <!-- Notes -->
                         <div class="mb-4">
-                            <label for="date-time" class="form-label">Date and Time</label>
-                            <input type="datetime-local" class="form-control" id="date-time" name="date_time" 
-                                   value="<?php echo $is_edit ? date('Y-m-d\TH:i', strtotime($entry['date'])) : date('Y-m-d\TH:i'); ?>">
+                            <label for="notes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                      placeholder="What's on your mind? How are you feeling?"><?php echo $entry ? $entry['notes'] : ''; ?></textarea>
                         </div>
                         
-                        <div class="d-flex justify-content-between">
-                            <?php if ($is_edit): ?>
-                            <button type="button" id="delete-btn" class="btn btn-danger">
-                                <i class="fas fa-trash me-2"></i>Delete
-                            </button>
-                            <?php else: ?>
-                            <div></div>
-                            <?php endif; ?>
+                        <!-- Tags -->
+                        <div class="mb-4">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>Tags (Optional)</span>
+                                <a href="settings.php" class="btn btn-sm btn-outline-accent">
+                                    <i class="fas fa-cog me-1"></i>Manage Tags
+                                </a>
+                            </label>
                             
-                            <div>
-                                <button type="button" id="cancel-btn" class="btn btn-outline-secondary me-2">Cancel</button>
-                                <button type="submit" class="btn btn-accent">
-                                    <i class="fas fa-save me-2"></i><?php echo $is_edit ? 'Update' : 'Save'; ?>
-                                </button>
-                            </div>
+                            <?php if (!empty($all_tags)): ?>
+                                <div class="tag-selector" id="tag_selector">
+                                    <?php 
+                                    $selected_tag_ids = [];
+                                    if ($entry && !empty($entry['tags'])) {
+                                        foreach ($entry['tags'] as $tag) {
+                                            $selected_tag_ids[] = $tag['id'];
+                                        }
+                                    }
+                                    
+                                    foreach ($all_tags as $tag): 
+                                        $is_selected = in_array($tag['id'], $selected_tag_ids);
+                                    ?>
+                                        <div class="tag-option <?php echo $is_selected ? 'selected' : ''; ?>" 
+                                             style="background-color: <?php echo $tag['color']; ?>"
+                                             data-id="<?php echo $tag['id']; ?>"
+                                             onclick="toggleTag(this)">
+                                            <?php echo htmlspecialchars($tag['name']); ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <input type="hidden" id="selected_tags" name="tags" value="<?php echo implode(',', $selected_tag_ids); ?>">
+                            <?php else: ?>
+                                <div class="alert alert-info">
+                                    No tags available. <a href="settings.php">Create some tags</a> to categorize your mood entries.
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex flex-column flex-md-row justify-content-between mt-4">
+                            <button type="button" class="btn btn-secondary mb-3 mb-md-0" onclick="window.location.href='index.php'">Cancel</button>
+                            <button type="submit" class="btn btn-accent" id="save_button">
+                                <i class="fas fa-save me-1"></i><?php echo $entry_id ? 'Update Entry' : 'Save Entry'; ?>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -241,67 +264,66 @@ $mood_tags = getMoodTags();
 </div>
 
 <script>
+// Function to select mood
+function selectMood(element, value) {
+    // Remove selected class from all emojis
+    document.querySelectorAll('.mood-emoji').forEach(emoji => {
+        emoji.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked emoji
+    element.classList.add('selected');
+    
+    // Update hidden input value
+    document.getElementById('mood_level').value = value;
+}
+
+// Function to toggle tag selection
+function toggleTag(element) {
+    const tagId = element.dataset.id;
+    
+    // Toggle selected class
+    element.classList.toggle('selected');
+    
+    // Update hidden input with selected tag IDs
+    const selectedTags = [];
+    document.querySelectorAll('.tag-option.selected').forEach(tag => {
+        selectedTags.push(tag.dataset.id);
+    });
+    
+    document.getElementById('selected_tags').value = selectedTags.join(',');
+}
+
+// Set initial mood selection if editing
 document.addEventListener('DOMContentLoaded', function() {
-    // Mood emoji selection
-    const moodEmojis = document.querySelectorAll('.mood-emoji');
-    const moodLevelInput = document.getElementById('mood-level');
+    const moodLevel = document.getElementById('mood_level').value;
+    if (moodLevel) {
+        const moodEmoji = document.querySelector(`.mood-emoji[data-value="${moodLevel}"]`);
+        if (moodEmoji) {
+            moodEmoji.classList.add('selected');
+        }
+    }
     
-    moodEmojis.forEach(emoji => {
-        emoji.addEventListener('click', function() {
-            // Remove selected class from all emojis
-            moodEmojis.forEach(e => e.classList.remove('selected'));
-            
-            // Add selected class to clicked emoji
-            this.classList.add('selected');
-            
-            // Set mood level value
-            moodLevelInput.value = this.dataset.level;
-        });
-    });
-    
-    // Tag selection
-    const tagBadges = document.querySelectorAll('.tag-badge');
-    const selectedTagsInput = document.getElementById('selected-tags');
-    let selectedTags = selectedTagsInput.value ? selectedTagsInput.value.split(',') : [];
-    
-    tagBadges.forEach(badge => {
-        badge.addEventListener('click', function() {
-            const tagId = this.dataset.tagId;
-            
-            if (this.classList.contains('selected')) {
-                // Remove tag from selection
-                this.classList.remove('selected');
-                const index = selectedTags.indexOf(tagId);
-                if (index > -1) {
-                    selectedTags.splice(index, 1);
-                }
-            } else {
-                // Add tag to selection
-                this.classList.add('selected');
-                selectedTags.push(tagId);
-            }
-            
-            // Update hidden input
-            selectedTagsInput.value = selectedTags.join(',');
-        });
-    });
-    
-    // Form submission
-    const moodEntryForm = document.getElementById('mood-entry-form');
-    
-    moodEntryForm.addEventListener('submit', function(e) {
+    // Form submission handling
+    document.getElementById('mood_entry_form').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Validate form
-        if (!moodLevelInput.value) {
-            alert('Please select your mood level');
+        // Validate mood selection
+        const moodLevel = document.getElementById('mood_level').value;
+        if (!moodLevel) {
+            alert('Please select a mood level');
             return;
         }
         
-        // Collect form data
+        // Show loading state
+        const saveButton = document.getElementById('save_button');
+        const originalText = saveButton.innerHTML;
+        saveButton.disabled = true;
+        saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+        
+        // Submit form via AJAX
         const formData = new FormData(this);
         
-        // Send AJAX request
         fetch('ajax/save_mood.php', {
             method: 'POST',
             body: formData
@@ -309,60 +331,31 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Show success message
-                alert('Mood entry saved successfully!');
-                
-                // Redirect to mood tracker
+                // Redirect to dashboard
                 window.location.href = 'index.php';
             } else {
-                // Show error message
+                // Show error
                 alert('Error: ' + data.message);
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalText;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while saving your mood entry');
+            alert('An error occurred while saving. Please try again.');
+            saveButton.disabled = false;
+            saveButton.innerHTML = originalText;
         });
     });
     
-    // Cancel button
-    document.getElementById('cancel-btn').addEventListener('click', function() {
-        window.location.href = 'index.php';
+    // Fix iOS zoom on input focus
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(input => {
+        input.style.fontSize = '16px';
     });
-    
-    // Delete button (for edit mode)
-    const deleteBtn = document.getElementById('delete-btn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete this mood entry?')) {
-                const entryId = <?php echo $is_edit ? $entry_id : 0; ?>;
-                
-                fetch('ajax/delete_entry.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'entry_id=' + entryId
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Mood entry deleted successfully!');
-                        window.location.href = 'index.php';
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the mood entry');
-                });
-            }
-        });
-    }
 });
 </script>
 
 <?php
-include '../../includes/footer.php';
+// Include footer
+require_once __DIR__ . '/../../includes/footer.php';
 ?>
