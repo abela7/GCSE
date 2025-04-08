@@ -117,9 +117,17 @@ function handleTaskAction(taskId, action) {
     // Send the request
     fetch('task_actions.php', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'Accept': 'application/json'
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Fade out and remove the task card
@@ -131,6 +139,7 @@ function handleTaskAction(taskId, action) {
             }, 300);
         } else {
             // Show error and reset the card
+            console.error('Server error:', data.message);
             alert('Error: ' + data.message);
             taskCard.style.opacity = '1';
             taskCard.style.pointerEvents = 'auto';

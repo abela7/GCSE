@@ -94,30 +94,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             // For one-time tasks, update the task directly
                             $stmt = $conn->prepare("UPDATE tasks 
                                                   SET status = ?, 
-                                                      is_active = CASE WHEN ? IN ('completed', 'not_done') THEN 0 ELSE 1 END,
                                                       updated_at = CURRENT_TIMESTAMP 
                                                   WHERE id = ?");
-                            $stmt->bind_param('ssi', $status, $status, $taskId);
+                            $stmt->bind_param('si', $status, $taskId);
+                            if (!$stmt->execute()) {
+                                throw new Exception("Failed to update task status: " . $stmt->error);
+                            }
+                            
+                            // Verify the update
+                            $stmt = $conn->prepare("SELECT status FROM tasks WHERE id = ?");
+                            $stmt->bind_param('i', $taskId);
                             $stmt->execute();
+                            $result = $stmt->get_result()->fetch_assoc();
+                            if ($result['status'] !== $status) {
+                                throw new Exception("Status update verification failed");
+                            }
                         } else {
-                            // For recurring tasks, update the current instance
-                            $stmt = $conn->prepare("UPDATE task_instances 
+                            // For recurring tasks, update both the task and instance
+                            // Update the task's status
+                            $stmt = $conn->prepare("UPDATE tasks 
                                                   SET status = ?,
                                                       updated_at = CURRENT_TIMESTAMP 
-                                                  WHERE task_id = ? 
-                                                  AND due_date = CURRENT_DATE 
-                                                  AND status IN ('pending', 'snoozed')");
+                                                  WHERE id = ?");
                             $stmt->bind_param('si', $status, $taskId);
-                            $stmt->execute();
+                            if (!$stmt->execute()) {
+                                throw new Exception("Failed to update task status: " . $stmt->error);
+                            }
                             
-                            // If the task is completed or cancelled, also update the task's status
-                            if ($status === 'completed' || $status === 'not_done') {
-                                $stmt = $conn->prepare("UPDATE tasks 
-                                                      SET status = ?,
-                                                          updated_at = CURRENT_TIMESTAMP 
-                                                      WHERE id = ?");
-                                $stmt->bind_param('si', $status, $taskId);
-                                $stmt->execute();
+                            // Update or insert task instance for today
+                            $stmt = $conn->prepare("INSERT INTO task_instances 
+                                                  (task_id, due_date, status, created_at, updated_at)
+                                                  VALUES (?, CURRENT_DATE, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                                                  ON DUPLICATE KEY UPDATE 
+                                                  status = ?,
+                                                  updated_at = CURRENT_TIMESTAMP");
+                            $stmt->bind_param('iss', $taskId, $status, $status);
+                            if (!$stmt->execute()) {
+                                throw new Exception("Failed to update task instance: " . $stmt->error);
                             }
                         }
                         
@@ -125,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         echo json_encode(['success' => true, 'message' => 'Task status updated successfully']);
                     } catch (Exception $e) {
                         $conn->rollback();
+                        error_log("Error updating task status: " . $e->getMessage());
                         echo json_encode(['success' => false, 'message' => 'Error updating task status: ' . $e->getMessage()]);
                     }
                 } else {
