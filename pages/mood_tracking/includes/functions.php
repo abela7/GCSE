@@ -1,6 +1,6 @@
 <?php
 // Include database connection
-require_once '../../../config/database.php';
+require_once '../../../config/db_connect.php';
 
 /**
  * Create a new mood entry
@@ -13,57 +13,50 @@ require_once '../../../config/database.php';
  * @return int|bool The ID of the inserted mood entry or false on failure
  */
 function createMoodEntry($mood_level, $notes = null, $subject_id = null, $topic_id = null, $tag_ids = []) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         // Begin transaction
-        $db->beginTransaction();
+        $conn->begin_transaction();
         
         // Insert mood entry
-        $stmt = $db->prepare("INSERT INTO mood_entries (mood_level, notes, associated_subject_id, associated_topic_id) 
-                             VALUES (:mood_level, :notes, :subject_id, :topic_id)");
+        $stmt = $conn->prepare("INSERT INTO mood_entries (mood_level, notes, associated_subject_id, associated_topic_id) 
+                             VALUES (?, ?, ?, ?)");
         
-        $stmt->bindParam(':mood_level', $mood_level, PDO::PARAM_INT);
-        $stmt->bindParam(':notes', $notes, PDO::PARAM_STR);
-        $stmt->bindParam(':subject_id', $subject_id, PDO::PARAM_INT);
-        $stmt->bindParam(':topic_id', $topic_id, PDO::PARAM_INT);
-        
+        $stmt->bind_param("isii", $mood_level, $notes, $subject_id, $topic_id);
         $stmt->execute();
-        $mood_entry_id = $db->lastInsertId();
+        
+        $mood_entry_id = $conn->insert_id;
         
         // Insert mood tags if provided
         if (!empty($tag_ids) && $mood_entry_id) {
-            $tag_stmt = $db->prepare("INSERT INTO mood_entry_tags (mood_entry_id, tag_id) 
-                                     VALUES (:mood_entry_id, :tag_id)");
+            $tag_stmt = $conn->prepare("INSERT INTO mood_entry_tags (mood_entry_id, tag_id) 
+                                     VALUES (?, ?)");
             
             foreach ($tag_ids as $tag_id) {
-                $tag_stmt->bindParam(':mood_entry_id', $mood_entry_id, PDO::PARAM_INT);
-                $tag_stmt->bindParam(':tag_id', $tag_id, PDO::PARAM_INT);
+                $tag_stmt->bind_param("ii", $mood_entry_id, $tag_id);
                 $tag_stmt->execute();
             }
         }
         
         // Insert mood factors if provided (for backward compatibility)
         if (isset($_POST['factors']) && !empty($_POST['factors']) && $mood_entry_id) {
-            $factor_stmt = $db->prepare("INSERT INTO mood_entry_factors (mood_entry_id, mood_factor_id) 
-                                        VALUES (:mood_entry_id, :factor_id)");
+            $factor_stmt = $conn->prepare("INSERT INTO mood_entry_factors (mood_entry_id, mood_factor_id) 
+                                        VALUES (?, ?)");
             
             foreach ($_POST['factors'] as $factor_id) {
-                $factor_stmt->bindParam(':mood_entry_id', $mood_entry_id, PDO::PARAM_INT);
-                $factor_stmt->bindParam(':factor_id', $factor_id, PDO::PARAM_INT);
+                $factor_stmt->bind_param("ii", $mood_entry_id, $factor_id);
                 $factor_stmt->execute();
             }
         }
         
         // Commit transaction
-        $db->commit();
+        $conn->commit();
         
         return $mood_entry_id;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         // Rollback transaction on error
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
+        $conn->rollback();
         error_log("Error creating mood entry: " . $e->getMessage());
         return false;
     }
@@ -81,55 +74,47 @@ function createMoodEntry($mood_level, $notes = null, $subject_id = null, $topic_
  * @return bool True on success, false on failure
  */
 function updateMoodEntry($entry_id, $mood_level, $notes = null, $subject_id = null, $topic_id = null, $tag_ids = []) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         // Begin transaction
-        $db->beginTransaction();
+        $conn->begin_transaction();
         
         // Update mood entry
-        $stmt = $db->prepare("UPDATE mood_entries 
-                             SET mood_level = :mood_level, 
-                                 notes = :notes, 
-                                 associated_subject_id = :subject_id, 
-                                 associated_topic_id = :topic_id,
+        $stmt = $conn->prepare("UPDATE mood_entries 
+                             SET mood_level = ?, 
+                                 notes = ?, 
+                                 associated_subject_id = ?, 
+                                 associated_topic_id = ?,
                                  updated_at = CURRENT_TIMESTAMP
-                             WHERE id = :entry_id");
+                             WHERE id = ?");
         
-        $stmt->bindParam(':mood_level', $mood_level, PDO::PARAM_INT);
-        $stmt->bindParam(':notes', $notes, PDO::PARAM_STR);
-        $stmt->bindParam(':subject_id', $subject_id, PDO::PARAM_INT);
-        $stmt->bindParam(':topic_id', $topic_id, PDO::PARAM_INT);
-        $stmt->bindParam(':entry_id', $entry_id, PDO::PARAM_INT);
-        
+        $stmt->bind_param("isiii", $mood_level, $notes, $subject_id, $topic_id, $entry_id);
         $stmt->execute();
         
         // Delete existing tags for this entry
-        $delete_stmt = $db->prepare("DELETE FROM mood_entry_tags WHERE mood_entry_id = :entry_id");
-        $delete_stmt->bindParam(':entry_id', $entry_id, PDO::PARAM_INT);
+        $delete_stmt = $conn->prepare("DELETE FROM mood_entry_tags WHERE mood_entry_id = ?");
+        $delete_stmt->bind_param("i", $entry_id);
         $delete_stmt->execute();
         
         // Insert new tags
         if (!empty($tag_ids)) {
-            $tag_stmt = $db->prepare("INSERT INTO mood_entry_tags (mood_entry_id, tag_id) 
-                                     VALUES (:mood_entry_id, :tag_id)");
+            $tag_stmt = $conn->prepare("INSERT INTO mood_entry_tags (mood_entry_id, tag_id) 
+                                     VALUES (?, ?)");
             
             foreach ($tag_ids as $tag_id) {
-                $tag_stmt->bindParam(':mood_entry_id', $entry_id, PDO::PARAM_INT);
-                $tag_stmt->bindParam(':tag_id', $tag_id, PDO::PARAM_INT);
+                $tag_stmt->bind_param("ii", $entry_id, $tag_id);
                 $tag_stmt->execute();
             }
         }
         
         // Commit transaction
-        $db->commit();
+        $conn->commit();
         
         return true;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         // Rollback transaction on error
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
+        $conn->rollback();
         error_log("Error updating mood entry: " . $e->getMessage());
         return false;
     }
@@ -142,53 +127,65 @@ function updateMoodEntry($entry_id, $mood_level, $notes = null, $subject_id = nu
  * @return array|bool The mood entry or false on failure
  */
 function getMoodEntry($entry_id) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
+        $query = "SELECT m.*, 
+                  s.name as subject_name, 
+                  CASE 
+                      WHEN m.associated_subject_id = 1 THEN CONCAT(es.name, ' - ', et.name) 
+                      WHEN m.associated_subject_id = 2 THEN CONCAT(ms.name, ' - ', mt.name)
+                      ELSE NULL
+                  END as topic_name
+                FROM mood_entries m
+                LEFT JOIN subjects s ON m.associated_subject_id = s.id
+                LEFT JOIN eng_sections es ON m.associated_subject_id = 1
+                LEFT JOIN eng_topics et ON m.associated_topic_id = et.id
+                LEFT JOIN math_sections ms ON m.associated_subject_id = 2
+                LEFT JOIN math_topics mt ON m.associated_topic_id = mt.id
+                WHERE m.id = ?";
         
-        $stmt = $db->prepare("SELECT m.*, 
-                              s.name as subject_name, 
-                              CASE 
-                                  WHEN m.associated_subject_id = 1 THEN CONCAT(es.name, ' - ', et.name) 
-                                  WHEN m.associated_subject_id = 2 THEN CONCAT(ms.name, ' - ', mt.name)
-                                  ELSE NULL
-                              END as topic_name
-                            FROM mood_entries m
-                            LEFT JOIN subjects s ON m.associated_subject_id = s.id
-                            LEFT JOIN eng_sections es ON m.associated_subject_id = 1
-                            LEFT JOIN eng_topics et ON m.associated_topic_id = et.id
-                            LEFT JOIN math_sections ms ON m.associated_subject_id = 2
-                            LEFT JOIN math_topics mt ON m.associated_topic_id = mt.id
-                            WHERE m.id = :entry_id");
-        
-        $stmt->bindParam(':entry_id', $entry_id, PDO::PARAM_INT);
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $entry_id);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
+        $entry = $result->fetch_assoc();
         
         if (!$entry) {
             return false;
         }
         
         // Get tags for this entry
-        $tag_stmt = $db->prepare("SELECT t.* 
-                                 FROM mood_tags t
-                                 JOIN mood_entry_tags met ON t.id = met.tag_id
-                                 WHERE met.mood_entry_id = :entry_id");
-        $tag_stmt->bindParam(':entry_id', $entry_id, PDO::PARAM_INT);
+        $tag_query = "SELECT t.* 
+                     FROM mood_tags t
+                     JOIN mood_entry_tags met ON t.id = met.tag_id
+                     WHERE met.mood_entry_id = ?";
+        $tag_stmt = $conn->prepare($tag_query);
+        $tag_stmt->bind_param("i", $entry_id);
         $tag_stmt->execute();
-        $entry['tags'] = $tag_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $tag_result = $tag_stmt->get_result();
+        $entry['tags'] = [];
+        while ($tag = $tag_result->fetch_assoc()) {
+            $entry['tags'][] = $tag;
+        }
         
         // Get factors for this entry (for backward compatibility)
-        $factor_stmt = $db->prepare("SELECT f.* 
-                                    FROM mood_factors f
-                                    JOIN mood_entry_factors mef ON f.id = mef.mood_factor_id
-                                    WHERE mef.mood_entry_id = :entry_id");
-        $factor_stmt->bindParam(':entry_id', $entry_id, PDO::PARAM_INT);
+        $factor_query = "SELECT f.* 
+                        FROM mood_factors f
+                        JOIN mood_entry_factors mef ON f.id = mef.mood_factor_id
+                        WHERE mef.mood_entry_id = ?";
+        $factor_stmt = $conn->prepare($factor_query);
+        $factor_stmt->bind_param("i", $entry_id);
         $factor_stmt->execute();
-        $entry['factors'] = $factor_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $factor_result = $factor_stmt->get_result();
+        $entry['factors'] = [];
+        while ($factor = $factor_result->fetch_assoc()) {
+            $entry['factors'][] = $factor;
+        }
         
         return $entry;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         error_log("Error getting mood entry: " . $e->getMessage());
         return false;
     }
@@ -208,9 +205,9 @@ function getMoodEntry($entry_id) {
  * @return array|bool Array of mood entries or false on failure
  */
 function getMoodEntries($start_date = null, $end_date = null, $subject_id = null, $topic_id = null, $mood_level = null, $tag_ids = [], $time_of_day = null, $search = null) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         $query = "SELECT DISTINCT m.*, 
                     s.name as subject_name, 
                     CASE 
@@ -233,36 +230,45 @@ function getMoodEntries($start_date = null, $end_date = null, $subject_id = null
         $query .= " WHERE 1=1";
         
         $params = [];
+        $types = "";
         
         if ($start_date) {
-            $query .= " AND DATE(m.date) >= :start_date";
-            $params[':start_date'] = $start_date;
+            $query .= " AND DATE(m.date) >= ?";
+            $params[] = $start_date;
+            $types .= "s";
         }
         
         if ($end_date) {
-            $query .= " AND DATE(m.date) <= :end_date";
-            $params[':end_date'] = $end_date;
+            $query .= " AND DATE(m.date) <= ?";
+            $params[] = $end_date;
+            $types .= "s";
         }
         
         if ($subject_id) {
-            $query .= " AND m.associated_subject_id = :subject_id";
-            $params[':subject_id'] = $subject_id;
+            $query .= " AND m.associated_subject_id = ?";
+            $params[] = $subject_id;
+            $types .= "i";
         }
         
         if ($topic_id) {
-            $query .= " AND m.associated_topic_id = :topic_id";
-            $params[':topic_id'] = $topic_id;
+            $query .= " AND m.associated_topic_id = ?";
+            $params[] = $topic_id;
+            $types .= "i";
         }
         
         if ($mood_level) {
-            $query .= " AND m.mood_level = :mood_level";
-            $params[':mood_level'] = $mood_level;
+            $query .= " AND m.mood_level = ?";
+            $params[] = $mood_level;
+            $types .= "i";
         }
         
         if (!empty($tag_ids)) {
             $placeholders = implode(',', array_fill(0, count($tag_ids), '?'));
             $query .= " AND met.tag_id IN ($placeholders)";
-            // We'll bind these parameters later
+            foreach ($tag_ids as $tag_id) {
+                $params[] = $tag_id;
+                $types .= "i";
+            }
         }
         
         if ($time_of_day) {
@@ -283,52 +289,57 @@ function getMoodEntries($start_date = null, $end_date = null, $subject_id = null
         }
         
         if ($search) {
-            $query .= " AND m.notes LIKE :search";
-            $params[':search'] = "%$search%";
+            $query .= " AND m.notes LIKE ?";
+            $params[] = "%$search%";
+            $types .= "s";
         }
         
         $query .= " ORDER BY m.date DESC";
         
-        $stmt = $db->prepare($query);
+        $stmt = $conn->prepare($query);
         
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-        
-        // Bind tag_id parameters
-        if (!empty($tag_ids)) {
-            foreach ($tag_ids as $index => $tag_id) {
-                $stmt->bindValue($index + 1, $tag_id, PDO::PARAM_INT);
-            }
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
         
         $stmt->execute();
-        $mood_entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->get_result();
         
-        // Get tags and factors for each mood entry
-        foreach ($mood_entries as &$entry) {
-            // Get tags
-            $tag_stmt = $db->prepare("SELECT t.* 
-                                     FROM mood_tags t
-                                     JOIN mood_entry_tags met ON t.id = met.tag_id
-                                     WHERE met.mood_entry_id = :entry_id");
-            $tag_stmt->bindParam(':entry_id', $entry['id'], PDO::PARAM_INT);
+        $mood_entries = [];
+        while ($entry = $result->fetch_assoc()) {
+            // Get tags for this entry
+            $tag_query = "SELECT t.* 
+                         FROM mood_tags t
+                         JOIN mood_entry_tags met ON t.id = met.tag_id
+                         WHERE met.mood_entry_id = ?";
+            $tag_stmt = $conn->prepare($tag_query);
+            $tag_stmt->bind_param("i", $entry['id']);
             $tag_stmt->execute();
-            $entry['tags'] = $tag_stmt->fetchAll(PDO::FETCH_ASSOC);
+            $tag_result = $tag_stmt->get_result();
+            $entry['tags'] = [];
+            while ($tag = $tag_result->fetch_assoc()) {
+                $entry['tags'][] = $tag;
+            }
             
-            // Get factors (for backward compatibility)
-            $factor_stmt = $db->prepare("SELECT f.* 
-                                        FROM mood_factors f
-                                        JOIN mood_entry_factors mef ON f.id = mef.mood_factor_id
-                                        WHERE mef.mood_entry_id = :entry_id");
-            $factor_stmt->bindParam(':entry_id', $entry['id'], PDO::PARAM_INT);
+            // Get factors for this entry (for backward compatibility)
+            $factor_query = "SELECT f.* 
+                            FROM mood_factors f
+                            JOIN mood_entry_factors mef ON f.id = mef.mood_factor_id
+                            WHERE mef.mood_entry_id = ?";
+            $factor_stmt = $conn->prepare($factor_query);
+            $factor_stmt->bind_param("i", $entry['id']);
             $factor_stmt->execute();
-            $entry['factors'] = $factor_stmt->fetchAll(PDO::FETCH_ASSOC);
+            $factor_result = $factor_stmt->get_result();
+            $entry['factors'] = [];
+            while ($factor = $factor_result->fetch_assoc()) {
+                $entry['factors'][] = $factor;
+            }
+            
+            $mood_entries[] = $entry;
         }
         
         return $mood_entries;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         error_log("Error getting mood entries: " . $e->getMessage());
         return false;
     }
@@ -341,9 +352,9 @@ function getMoodEntries($start_date = null, $end_date = null, $subject_id = null
  * @return array|bool Array of mood entries grouped by day or false on failure
  */
 function getMoodEntriesByDay($year_month) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         $start_date = $year_month . '-01';
         $end_date = date('Y-m-t', strtotime($start_date));
         
@@ -352,26 +363,26 @@ function getMoodEntriesByDay($year_month) {
                     COUNT(*) as entry_count,
                     AVG(mood_level) as avg_mood
                   FROM mood_entries
-                  WHERE DATE(date) BETWEEN :start_date AND :end_date
+                  WHERE DATE(date) BETWEEN ? AND ?
                   GROUP BY DATE(date)
                   ORDER BY day";
         
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(':start_date', $start_date);
-        $stmt->bindParam(':end_date', $end_date);
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        $result = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $entries_by_day = [];
+        while ($row = $result->fetch_assoc()) {
             $day = (int)substr($row['day'], 8, 2);
-            $result[$day] = [
+            $entries_by_day[$day] = [
                 'entry_count' => $row['entry_count'],
                 'avg_mood' => round($row['avg_mood'], 1)
             ];
         }
         
-        return $result;
-    } catch (PDOException $e) {
+        return $entries_by_day;
+    } catch (Exception $e) {
         error_log("Error getting mood entries by day: " . $e->getMessage());
         return false;
     }
@@ -384,30 +395,37 @@ function getMoodEntriesByDay($year_month) {
  * @return array|bool Array of mood tags or false on failure
  */
 function getMoodTags($category = null) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         $query = "SELECT * FROM mood_tags WHERE 1=1";
-        
         $params = [];
+        $types = "";
         
         if ($category) {
-            $query .= " AND category = :category";
-            $params[':category'] = $category;
+            $query .= " AND category = ?";
+            $params[] = $category;
+            $types .= "s";
         }
         
         $query .= " ORDER BY name ASC";
         
-        $stmt = $db->prepare($query);
+        $stmt = $conn->prepare($query);
         
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
         }
         
         $stmt->execute();
+        $result = $stmt->get_result();
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
+        $tags = [];
+        while ($tag = $result->fetch_assoc()) {
+            $tags[] = $tag;
+        }
+        
+        return $tags;
+    } catch (Exception $e) {
         error_log("Error getting mood tags: " . $e->getMessage());
         return false;
     }
@@ -419,21 +437,19 @@ function getMoodTags($category = null) {
  * @return array|bool Array of unique tag categories or false on failure
  */
 function getMoodTagCategories() {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
         $query = "SELECT DISTINCT category FROM mood_tags WHERE category IS NOT NULL ORDER BY category";
-        
-        $stmt = $db->prepare($query);
-        $stmt->execute();
+        $result = $conn->query($query);
         
         $categories = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        while ($row = $result->fetch_assoc()) {
             $categories[] = $row['category'];
         }
         
         return $categories;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         error_log("Error getting mood tag categories: " . $e->getMessage());
         return false;
     }
@@ -448,46 +464,39 @@ function getMoodTagCategories() {
  * @return int|bool The ID of the inserted tag or false on failure
  */
 function createMoodTag($name, $category = null, $color = '#6c757d') {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
-        
-        $stmt = $db->prepare("INSERT INTO mood_tags (name, category, color) VALUES (:name, :category, :color)");
-        
-        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
-        $stmt->bindParam(':category', $category, PDO::PARAM_STR);
-        $stmt->bindParam(':color', $color, PDO::PARAM_STR);
-        
+        $stmt = $conn->prepare("INSERT INTO mood_tags (name, category, color) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $category, $color);
         $stmt->execute();
         
-        return $db->lastInsertId();
-    } catch (PDOException $e) {
+        return $conn->insert_id;
+    } catch (Exception $e) {
         error_log("Error creating mood tag: " . $e->getMessage());
         return false;
     }
 }
 
 /**
- * Update a mood tag
+ * Update an existing mood tag
  * 
- * @param int $tag_id Tag ID
+ * @param int $tag_id The ID of the tag to update
  * @param string $name Tag name
  * @param string $category Optional tag category
  * @param string $color Optional tag color (hex code)
  * @return bool True on success, false on failure
  */
 function updateMoodTag($tag_id, $name, $category = null, $color = '#6c757d') {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
+        $stmt = $conn->prepare("UPDATE mood_tags SET name = ?, category = ?, color = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $name, $category, $color, $tag_id);
+        $stmt->execute();
         
-        $stmt = $db->prepare("UPDATE mood_tags SET name = :name, category = :category, color = :color WHERE id = :tag_id");
-        
-        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
-        $stmt->bindParam(':category', $category, PDO::PARAM_STR);
-        $stmt->bindParam(':color', $color, PDO::PARAM_STR);
-        $stmt->bindParam(':tag_id', $tag_id, PDO::PARAM_INT);
-        
-        return $stmt->execute();
-    } catch (PDOException $e) {
+        return $stmt->affected_rows > 0;
+    } catch (Exception $e) {
         error_log("Error updating mood tag: " . $e->getMessage());
         return false;
     }
@@ -496,19 +505,60 @@ function updateMoodTag($tag_id, $name, $category = null, $color = '#6c757d') {
 /**
  * Delete a mood tag
  * 
- * @param int $tag_id Tag ID
+ * @param int $tag_id The ID of the tag to delete
  * @return bool True on success, false on failure
  */
 function deleteMoodTag($tag_id) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
+        $stmt = $conn->prepare("DELETE FROM mood_tags WHERE id = ?");
+        $stmt->bind_param("i", $tag_id);
+        $stmt->execute();
         
-        $stmt = $db->prepare("DELETE FROM mood_tags WHERE id = :tag_id");
-        $stmt->bindParam(':tag_id', $tag_id, PDO::PARAM_INT);
-        
-        return $stmt->execute();
-    } catch (PDOException $e) {
+        return $stmt->affected_rows > 0;
+    } catch (Exception $e) {
         error_log("Error deleting mood tag: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Delete a mood entry
+ * 
+ * @param int $entry_id The ID of the entry to delete
+ * @return bool True on success, false on failure
+ */
+function deleteMoodEntry($entry_id) {
+    global $conn;
+    
+    try {
+        // Begin transaction
+        $conn->begin_transaction();
+        
+        // Delete associated tags
+        $tag_stmt = $conn->prepare("DELETE FROM mood_entry_tags WHERE mood_entry_id = ?");
+        $tag_stmt->bind_param("i", $entry_id);
+        $tag_stmt->execute();
+        
+        // Delete associated factors
+        $factor_stmt = $conn->prepare("DELETE FROM mood_entry_factors WHERE mood_entry_id = ?");
+        $factor_stmt->bind_param("i", $entry_id);
+        $factor_stmt->execute();
+        
+        // Delete the entry
+        $entry_stmt = $conn->prepare("DELETE FROM mood_entries WHERE id = ?");
+        $entry_stmt->bind_param("i", $entry_id);
+        $entry_stmt->execute();
+        
+        // Commit transaction
+        $conn->commit();
+        
+        return $entry_stmt->affected_rows > 0;
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        error_log("Error deleting mood entry: " . $e->getMessage());
         return false;
     }
 }
@@ -523,234 +573,208 @@ function deleteMoodTag($tag_id) {
  * @return array|bool Array of mood statistics or false on failure
  */
 function getMoodStatistics($start_date = null, $end_date = null, $subject_id = null, $tag_ids = []) {
+    global $conn;
+    
     try {
-        $db = getDBConnection();
+        // Base query for all statistics
+        $base_query = "FROM mood_entries m";
         
-        // Base query for filtering
-        $base_condition = "1=1";
+        // Join with tags table if tag filtering is requested
+        if (!empty($tag_ids)) {
+            $base_query .= " LEFT JOIN mood_entry_tags met ON m.id = met.mood_entry_id";
+        }
+        
+        $base_query .= " WHERE 1=1";
+        
         $params = [];
+        $types = "";
         
         if ($start_date) {
-            $base_condition .= " AND DATE(m.date) >= :start_date";
-            $params[':start_date'] = $start_date;
+            $base_query .= " AND DATE(m.date) >= ?";
+            $params[] = $start_date;
+            $types .= "s";
         }
         
         if ($end_date) {
-            $base_condition .= " AND DATE(m.date) <= :end_date";
-            $params[':end_date'] = $end_date;
+            $base_query .= " AND DATE(m.date) <= ?";
+            $params[] = $end_date;
+            $types .= "s";
         }
         
         if ($subject_id) {
-            $base_condition .= " AND m.associated_subject_id = :subject_id";
-            $params[':subject_id'] = $subject_id;
+            $base_query .= " AND m.associated_subject_id = ?";
+            $params[] = $subject_id;
+            $types .= "i";
         }
         
-        // Tag filtering requires a different approach
-        $tag_join = "";
-        $tag_condition = "";
         if (!empty($tag_ids)) {
-            $tag_join = " JOIN mood_entry_tags met ON m.id = met.mood_entry_id";
             $placeholders = implode(',', array_fill(0, count($tag_ids), '?'));
-            $tag_condition = " AND met.tag_id IN ($placeholders)";
+            $base_query .= " AND met.tag_id IN ($placeholders)";
+            foreach ($tag_ids as $tag_id) {
+                $params[] = $tag_id;
+                $types .= "i";
+            }
         }
         
         // Get average mood
-        $avg_query = "SELECT AVG(m.mood_level) as average_mood 
-                     FROM mood_entries m
-                     $tag_join
-                     WHERE $base_condition $tag_condition";
+        $avg_query = "SELECT AVG(mood_level) as avg_mood " . $base_query;
+        $avg_stmt = $conn->prepare($avg_query);
         
-        $avg_stmt = $db->prepare($avg_query);
-        
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $avg_stmt->bindValue($key, $value);
-        }
-        
-        // Bind tag_id parameters if needed
-        if (!empty($tag_ids)) {
-            foreach ($tag_ids as $index => $tag_id) {
-                $avg_stmt->bindValue($index + 1, $tag_id, PDO::PARAM_INT);
-            }
+        if (!empty($params)) {
+            $avg_stmt->bind_param($types, ...$params);
         }
         
         $avg_stmt->execute();
-        $avg_result = $avg_stmt->fetch(PDO::FETCH_ASSOC);
+        $avg_result = $avg_stmt->get_result();
+        $avg_row = $avg_result->fetch_assoc();
+        $avg_mood = $avg_row['avg_mood'] ? round($avg_row['avg_mood'], 1) : 0;
         
         // Get mood distribution
-        $dist_query = "SELECT m.mood_level, COUNT(*) as count 
-                      FROM mood_entries m
-                      $tag_join
-                      WHERE $base_condition $tag_condition
-                      GROUP BY m.mood_level 
-                      ORDER BY m.mood_level";
+        $dist_query = "SELECT mood_level, COUNT(*) as count " . $base_query . " GROUP BY mood_level ORDER BY mood_level";
+        $dist_stmt = $conn->prepare($dist_query);
         
-        $dist_stmt = $db->prepare($dist_query);
-        
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $dist_stmt->bindValue($key, $value);
-        }
-        
-        // Bind tag_id parameters if needed
-        if (!empty($tag_ids)) {
-            foreach ($tag_ids as $index => $tag_id) {
-                $dist_stmt->bindValue($index + 1, $tag_id, PDO::PARAM_INT);
-            }
+        if (!empty($params)) {
+            $dist_stmt->bind_param($types, ...$params);
         }
         
         $dist_stmt->execute();
-        $dist_result = $dist_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $dist_result = $dist_stmt->get_result();
         
-        // Get most common tags
-        $tag_query = "SELECT t.name, t.category, t.color, COUNT(*) as count 
-                     FROM mood_tags t
-                     JOIN mood_entry_tags met ON t.id = met.tag_id
-                     JOIN mood_entries m ON met.mood_entry_id = m.id
-                     WHERE $base_condition
-                     GROUP BY t.id
-                     ORDER BY count DESC
-                     LIMIT 5";
-        
-        $tag_stmt = $db->prepare($tag_query);
-        
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $tag_stmt->bindValue($key, $value);
+        $mood_distribution = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+        while ($row = $dist_result->fetch_assoc()) {
+            $mood_distribution[$row['mood_level']] = (int)$row['count'];
         }
-        
-        $tag_stmt->execute();
-        $tag_result = $tag_stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Get mood by time of day
         $time_query = "SELECT 
                         CASE 
-                            WHEN TIME(m.date) BETWEEN '05:00:00' AND '11:59:59' THEN 'Morning'
-                            WHEN TIME(m.date) BETWEEN '12:00:00' AND '16:59:59' THEN 'Afternoon'
-                            WHEN TIME(m.date) BETWEEN '17:00:00' AND '20:59:59' THEN 'Evening'
-                            ELSE 'Night'
+                            WHEN TIME(date) BETWEEN '05:00:00' AND '11:59:59' THEN 'morning'
+                            WHEN TIME(date) BETWEEN '12:00:00' AND '16:59:59' THEN 'afternoon'
+                            WHEN TIME(date) BETWEEN '17:00:00' AND '20:59:59' THEN 'evening'
+                            ELSE 'night'
                         END as time_of_day,
-                        AVG(m.mood_level) as average_mood,
+                        AVG(mood_level) as avg_mood,
                         COUNT(*) as count
-                      FROM mood_entries m
-                      $tag_join
-                      WHERE $base_condition $tag_condition
+                      " . $base_query . "
                       GROUP BY time_of_day
-                      ORDER BY 
-                        CASE time_of_day
-                            WHEN 'Morning' THEN 1
-                            WHEN 'Afternoon' THEN 2
-                            WHEN 'Evening' THEN 3
-                            WHEN 'Night' THEN 4
-                        END";
+                      ORDER BY FIELD(time_of_day, 'morning', 'afternoon', 'evening', 'night')";
         
-        $time_stmt = $db->prepare($time_query);
+        $time_stmt = $conn->prepare($time_query);
         
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $time_stmt->bindValue($key, $value);
-        }
-        
-        // Bind tag_id parameters if needed
-        if (!empty($tag_ids)) {
-            foreach ($tag_ids as $index => $tag_id) {
-                $time_stmt->bindValue($index + 1, $tag_id, PDO::PARAM_INT);
-            }
+        if (!empty($params)) {
+            $time_stmt->bind_param($types, ...$params);
         }
         
         $time_stmt->execute();
-        $time_result = $time_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $time_result = $time_stmt->get_result();
         
-        // Get daily mood averages for trend analysis
-        $trend_query = "SELECT DATE(m.date) as day, AVG(m.mood_level) as average_mood
-                       FROM mood_entries m
-                       $tag_join
-                       WHERE $base_condition $tag_condition
-                       GROUP BY DATE(m.date)
-                       ORDER BY day ASC
-                       LIMIT 30";
+        $mood_by_time = [
+            'morning' => ['avg_mood' => 0, 'count' => 0],
+            'afternoon' => ['avg_mood' => 0, 'count' => 0],
+            'evening' => ['avg_mood' => 0, 'count' => 0],
+            'night' => ['avg_mood' => 0, 'count' => 0]
+        ];
         
-        $trend_stmt = $db->prepare($trend_query);
-        
-        // Bind named parameters
-        foreach ($params as $key => $value) {
-            $trend_stmt->bindValue($key, $value);
+        while ($row = $time_result->fetch_assoc()) {
+            $mood_by_time[$row['time_of_day']] = [
+                'avg_mood' => round($row['avg_mood'], 1),
+                'count' => (int)$row['count']
+            ];
         }
         
-        // Bind tag_id parameters if needed
-        if (!empty($tag_ids)) {
-            foreach ($tag_ids as $index => $tag_id) {
-                $trend_stmt->bindValue($index + 1, $tag_id, PDO::PARAM_INT);
-            }
+        // Get mood trend by day
+        $trend_query = "SELECT 
+                        DATE(date) as day,
+                        AVG(mood_level) as avg_mood
+                      " . $base_query . "
+                      GROUP BY day
+                      ORDER BY day
+                      LIMIT 30";
+        
+        $trend_stmt = $conn->prepare($trend_query);
+        
+        if (!empty($params)) {
+            $trend_stmt->bind_param($types, ...$params);
         }
         
         $trend_stmt->execute();
-        $trend_result = $trend_stmt->fetchAll(PDO::FETCH_ASSOC);
+        $trend_result = $trend_stmt->get_result();
         
-        // Prepare statistics array
-        $statistics = [
-            'average_mood' => round($avg_result['average_mood'] ?? 0, 1),
-            'mood_distribution' => $dist_result,
-            'common_tags' => $tag_result,
-            'mood_by_time' => $time_result,
-            'mood_trend' => $trend_result
+        $mood_trend = [];
+        while ($row = $trend_result->fetch_assoc()) {
+            $mood_trend[] = [
+                'day' => $row['day'],
+                'avg_mood' => round($row['avg_mood'], 1)
+            ];
+        }
+        
+        // Get tag statistics
+        $tag_query = "SELECT 
+                      t.id,
+                      t.name,
+                      t.color,
+                      COUNT(*) as count,
+                      AVG(m.mood_level) as avg_mood
+                    FROM mood_tags t
+                    JOIN mood_entry_tags met ON t.id = met.tag_id
+                    JOIN mood_entries m ON met.mood_entry_id = m.id
+                    WHERE 1=1";
+        
+        $tag_params = [];
+        $tag_types = "";
+        
+        if ($start_date) {
+            $tag_query .= " AND DATE(m.date) >= ?";
+            $tag_params[] = $start_date;
+            $tag_types .= "s";
+        }
+        
+        if ($end_date) {
+            $tag_query .= " AND DATE(m.date) <= ?";
+            $tag_params[] = $end_date;
+            $tag_types .= "s";
+        }
+        
+        if ($subject_id) {
+            $tag_query .= " AND m.associated_subject_id = ?";
+            $tag_params[] = $subject_id;
+            $tag_types .= "i";
+        }
+        
+        $tag_query .= " GROUP BY t.id
+                      ORDER BY count DESC
+                      LIMIT 10";
+        
+        $tag_stmt = $conn->prepare($tag_query);
+        
+        if (!empty($tag_params)) {
+            $tag_stmt->bind_param($tag_types, ...$tag_params);
+        }
+        
+        $tag_stmt->execute();
+        $tag_result = $tag_stmt->get_result();
+        
+        $tag_stats = [];
+        while ($row = $tag_result->fetch_assoc()) {
+            $tag_stats[] = [
+                'id' => $row['id'],
+                'name' => $row['name'],
+                'color' => $row['color'],
+                'count' => (int)$row['count'],
+                'avg_mood' => round($row['avg_mood'], 1)
+            ];
+        }
+        
+        // Return all statistics
+        return [
+            'avg_mood' => $avg_mood,
+            'mood_distribution' => $mood_distribution,
+            'mood_by_time' => $mood_by_time,
+            'mood_trend' => $mood_trend,
+            'tag_stats' => $tag_stats
         ];
-        
-        return $statistics;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         error_log("Error getting mood statistics: " . $e->getMessage());
         return false;
     }
 }
-
-/**
- * Delete a mood entry
- * 
- * @param int $mood_entry_id The ID of the mood entry to delete
- * @return bool True on success, false on failure
- */
-function deleteMoodEntry($mood_entry_id) {
-    try {
-        $db = getDBConnection();
-        
-        $stmt = $db->prepare("DELETE FROM mood_entries WHERE id = :id");
-        $stmt->bindParam(':id', $mood_entry_id, PDO::PARAM_INT);
-        
-        return $stmt->execute();
-    } catch (PDOException $e) {
-        error_log("Error deleting mood entry: " . $e->getMessage());
-        return false;
-    }
-}
-
-/**
- * Get mood factors (for backward compatibility)
- * 
- * @param bool $positive_only Optional filter for positive factors only
- * @param bool $negative_only Optional filter for negative factors only
- * @return array|bool Array of mood factors or false on failure
- */
-function getMoodFactors($positive_only = false, $negative_only = false) {
-    try {
-        $db = getDBConnection();
-        
-        $query = "SELECT * FROM mood_factors WHERE 1=1";
-        
-        if ($positive_only) {
-            $query .= " AND is_positive = 1";
-        } elseif ($negative_only) {
-            $query .= " AND is_positive = 0";
-        }
-        
-        $query .= " ORDER BY name ASC";
-        
-        $stmt = $db->prepare($query);
-        $stmt->execute();
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Error getting mood factors: " . $e->getMessage());
-        return false;
-    }
-}
-?>

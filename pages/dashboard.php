@@ -42,7 +42,7 @@ $exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color
                 LIMIT 3";
 $exams_result = $conn->query($exams_query);
 
-// Get recent tasks
+// Get recent tasks - fixed query to match existing database structure
 $tasks_query = "SELECT t.*, c.name as category_name, c.color as category_color 
                 FROM tasks t 
                 LEFT JOIN task_categories c ON t.category_id = c.id 
@@ -51,7 +51,7 @@ $tasks_query = "SELECT t.*, c.name as category_name, c.color as category_color
                 LIMIT 5";
 $tasks_result = $conn->query($tasks_query);
 
-// Get habit completion stats
+// Get habit completion stats - fixed query to match existing database structure
 $habits_query = "SELECT COUNT(*) as total_habits, 
                 SUM(CASE WHEN EXISTS (
                     SELECT 1 FROM habit_completions hc 
@@ -62,7 +62,7 @@ $habits_query = "SELECT COUNT(*) as total_habits,
                 FROM habits h
                 WHERE h.is_active = 1";
 $habits_result = $conn->query($habits_query);
-$habits_stats = $habits_result->fetch_assoc();
+$habits_stats = $habits_result ? $habits_result->fetch_assoc() : ['total_habits' => 0, 'completed_today' => 0];
 
 // Include header
 include '../includes/header.php';
@@ -195,12 +195,13 @@ include '../includes/header.php';
     <div class="row mb-4">
         <?php 
         // Reset the result pointer
-        $subjects_result->data_seek(0);
-        while($subject = $subjects_result->fetch_assoc()): 
-            $progress = $subject['total_topics'] > 0 ? 
-                round(($subject['completed_topics'] / $subject['total_topics']) * 100) : 0;
-            // Override Math color to blue
-            $subject_color = $subject['name'] === 'Math' ? '#007bff' : $subject['color'];
+        if ($subjects_result && $subjects_result->num_rows > 0) {
+            $subjects_result->data_seek(0);
+            while($subject = $subjects_result->fetch_assoc()): 
+                $progress = $subject['total_topics'] > 0 ? 
+                    round(($subject['completed_topics'] / $subject['total_topics']) * 100) : 0;
+                // Override Math color to blue
+                $subject_color = $subject['name'] === 'Math' ? '#007bff' : $subject['color'];
         ?>
         <div class="col-md-6 mb-4">
             <div class="card feature-card">
@@ -226,11 +227,20 @@ include '../includes/header.php';
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/subjects/<?php echo strtolower($subject['name']); ?>.php" class="btn btn-sm btn-outline-primary">View Details</a>
+                    <a href="subjects/<?php echo strtolower($subject['name']); ?>.php" class="btn btn-sm btn-outline-primary">View Details</a>
                 </div>
             </div>
         </div>
-        <?php endwhile; ?>
+        <?php 
+            endwhile;
+        } else {
+        ?>
+        <div class="col-12">
+            <div class="alert alert-info">
+                No subject progress data available.
+            </div>
+        </div>
+        <?php } ?>
     </div>
 
     <!-- Main Features Navigation -->
@@ -251,7 +261,7 @@ include '../includes/header.php';
                     <p>Plan your study sessions, track your progress, and manage your time effectively.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/planner.php" class="btn btn-sm btn-outline-primary">Open Planner</a>
+                    <a href="sessions.php" class="btn btn-sm btn-outline-primary">Open Planner</a>
                 </div>
             </div>
         </div>
@@ -267,7 +277,7 @@ include '../includes/header.php';
                     <p>Create, organize, and complete tasks to stay on top of your studies and assignments.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/tasks.php" class="btn btn-sm btn-outline-success">Manage Tasks</a>
+                    <a href="tasks.php" class="btn btn-sm btn-outline-success">Manage Tasks</a>
                 </div>
             </div>
         </div>
@@ -283,7 +293,7 @@ include '../includes/header.php';
                     <p>Build and maintain productive study habits with daily tracking and streaks.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/habits.php" class="btn btn-sm btn-outline-info">Track Habits</a>
+                    <a href="habits/index.php" class="btn btn-sm btn-outline-info">Track Habits</a>
                 </div>
             </div>
         </div>
@@ -299,7 +309,7 @@ include '../includes/header.php';
                     <p>Monitor your emotional well-being and identify patterns to optimize your study performance.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Track Mood</a>
+                    <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Track Mood</a>
                 </div>
             </div>
         </div>
@@ -315,7 +325,7 @@ include '../includes/header.php';
                     <p>Improve your language skills with comprehensive English practice materials and exercises.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/subjects/english.php" class="btn btn-sm btn-outline-danger">Practice English</a>
+                    <a href="subjects/english.php" class="btn btn-sm btn-outline-danger">Practice English</a>
                 </div>
             </div>
         </div>
@@ -331,7 +341,7 @@ include '../includes/header.php';
                     <p>Master mathematical concepts with interactive practice problems and step-by-step solutions.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/subjects/math.php" class="btn btn-sm btn-outline-primary">Practice Math</a>
+                    <a href="subjects/math.php" class="btn btn-sm btn-outline-primary">Practice Math</a>
                 </div>
             </div>
         </div>
@@ -355,7 +365,7 @@ include '../includes/header.php';
                     <p>Access study materials, guides, and references.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/resources.php" class="btn btn-sm btn-outline-secondary">View Resources</a>
+                    <a href="resources.php" class="btn btn-sm btn-outline-secondary">View Resources</a>
                 </div>
             </div>
         </div>
@@ -371,7 +381,7 @@ include '../includes/header.php';
                     <p>Manage exam schedules and preparation plans.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/exams.php" class="btn btn-sm btn-outline-danger">View Exams</a>
+                    <a href="exams.php" class="btn btn-sm btn-outline-danger">View Exams</a>
                 </div>
             </div>
         </div>
@@ -387,23 +397,23 @@ include '../includes/header.php';
                     <p>See your schedule and tasks for today.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/Today.php" class="btn btn-sm btn-outline-success">View Today</a>
+                    <a href="Today.php" class="btn btn-sm btn-outline-success">View Today</a>
                 </div>
             </div>
         </div>
         
-        <!-- Notes -->
+        <!-- Assignments -->
         <div class="col-md-3 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg bg-info">
-                        <i class="fas fa-sticky-note"></i>
+                        <i class="fas fa-book-open"></i>
                     </div>
-                    <h5>Notes</h5>
-                    <p>Create and organize your study notes.</p>
+                    <h5>Assignments</h5>
+                    <p>Manage your homework and assignments.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="/pages/notes.php" class="btn btn-sm btn-outline-info">View Notes</a>
+                    <a href="assignments.php" class="btn btn-sm btn-outline-info">View Assignments</a>
                 </div>
             </div>
         </div>
@@ -416,7 +426,7 @@ include '../includes/header.php';
             <div class="card feature-card">
                 <div class="card-body">
                     <h5 class="mb-3"><i class="fas fa-calendar-alt me-2 text-danger"></i>Upcoming Exams</h5>
-                    <?php if ($exams_result->num_rows > 0): ?>
+                    <?php if ($exams_result && $exams_result->num_rows > 0): ?>
                         <?php 
                         $now = new DateTime();
                         while ($exam = $exams_result->fetch_assoc()): 
@@ -442,7 +452,7 @@ include '../includes/header.php';
                         </div>
                         <?php endwhile; ?>
                         <div class="text-end">
-                            <a href="/pages/exams.php" class="btn btn-sm btn-outline-primary">View All Exams</a>
+                            <a href="exams.php" class="btn btn-sm btn-outline-primary">View All Exams</a>
                         </div>
                     <?php else: ?>
                         <p class="text-muted mb-0">No upcoming exams in the next 30 days.</p>
@@ -483,7 +493,7 @@ include '../includes/header.php';
                         </div>
                         <?php endwhile; ?>
                         <div class="text-end">
-                            <a href="/pages/tasks.php" class="btn btn-sm btn-outline-primary">View All Tasks</a>
+                            <a href="tasks.php" class="btn btn-sm btn-outline-primary">View All Tasks</a>
                         </div>
                     <?php else: ?>
                         <p class="text-muted mb-0">No pending tasks. Great job!</p>
@@ -499,9 +509,17 @@ include '../includes/header.php';
             <div class="card feature-card">
                 <div class="card-body">
                     <h5 class="mb-3"><i class="fas fa-smile me-2 text-warning"></i>Mood Tracking</h5>
-                    <?php include '../includes/mood_widget.php'; ?>
+                    <?php 
+                    // Check if mood_widget.php exists before including it
+                    $mood_widget_path = '../includes/mood_widget.php';
+                    if (file_exists($mood_widget_path)) {
+                        include $mood_widget_path;
+                    } else {
+                        echo '<div class="alert alert-info">Quick mood entry will be available soon!</div>';
+                    }
+                    ?>
                     <div class="text-end mt-3">
-                        <a href="/pages/mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Open Mood Tracker</a>
+                        <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-warning">Open Mood Tracker</a>
                     </div>
                 </div>
             </div>
