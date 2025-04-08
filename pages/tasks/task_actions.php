@@ -228,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             FROM tasks t 
                             LEFT JOIN task_instances ti ON t.id = ti.task_id 
                                 AND ti.due_date = CURRENT_DATE 
-                                AND ti.status IN ('pending', 'snoozed')
+                                AND ti.status = 'pending'
                             WHERE t.id = ?
                         ");
                         $stmt->bind_param('i', $taskId);
@@ -255,67 +255,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $newTime = $dueDateTime->format('H:i:s');
                         
                         if ($task['task_type'] === 'one-time') {
-                            // For one-time tasks, update the task directly
+                            // Update the task directly - keep status as pending
                             $stmt = $conn->prepare("
                                 UPDATE tasks 
                                 SET due_date = ?,
                                     due_time = ?,
-                                    status = 'snoozed',
                                     updated_at = CURRENT_TIMESTAMP 
                                 WHERE id = ?
                             ");
                             $stmt->bind_param('ssi', $newDate, $newTime, $taskId);
-                            $stmt->execute();
                             
-                            if ($stmt->affected_rows === 0) {
-                                throw new Exception("Failed to update task");
+                            if (!$stmt->execute()) {
+                                throw new Exception("Failed to update task: " . $stmt->error);
                             }
                         } else {
-                            // For recurring tasks, handle both tables
-                            
-                            // Update the main task's time (this affects future instances)
-                            $stmt = $conn->prepare("
-                                UPDATE tasks 
-                                SET due_time = ?,
-                                    updated_at = CURRENT_TIMESTAMP 
-                                WHERE id = ?
-                            ");
-                            $stmt->bind_param('si', $newTime, $taskId);
-                            $stmt->execute();
-                            
+                            // For recurring tasks
                             if ($task['instance_id']) {
-                                // Update existing instance
+                                // Update existing instance - keep status as pending
                                 $stmt = $conn->prepare("
                                     UPDATE task_instances 
                                     SET due_time = ?,
-                                        status = 'snoozed',
                                         updated_at = CURRENT_TIMESTAMP 
                                     WHERE id = ?
                                 ");
                                 $stmt->bind_param('si', $newTime, $task['instance_id']);
-                                $stmt->execute();
                             } else {
-                                // Create new instance for today
+                                // Create new instance for today with pending status
                                 $stmt = $conn->prepare("
                                     INSERT INTO task_instances 
                                     (task_id, due_date, due_time, status, created_at, updated_at)
-                                    VALUES (?, CURRENT_DATE, ?, 'snoozed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                                    VALUES (?, CURRENT_DATE, ?, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                                 ");
                                 $stmt->bind_param('is', $taskId, $newTime);
-                                $stmt->execute();
+                            }
+                            
+                            if (!$stmt->execute()) {
+                                throw new Exception("Failed to update task instance: " . $stmt->error);
                             }
                         }
                         
                         $conn->commit();
                         echo json_encode([
                             'success' => true, 
-                            'message' => 'Task snoozed successfully',
+                            'message' => 'Task time updated successfully',
                             'new_due_date' => $newDate,
                             'new_due_time' => $newTime
                         ]);
+                        
                     } catch (Exception $e) {
                         $conn->rollback();
-                        echo json_encode(['success' => false, 'message' => 'Error snoozing task: ' . $e->getMessage()]);
+                        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
                     }
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Missing task_id or minutes parameter']);

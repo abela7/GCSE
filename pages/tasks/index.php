@@ -136,7 +136,7 @@ $query = "SELECT
           JOIN task_categories c ON t.category_id = c.id
           LEFT JOIN task_instances ti ON t.id = ti.task_id 
               AND ti.due_date = ?
-              AND ti.status IN ('pending', 'snoozed')
+              AND ti.status = 'pending'
           WHERE t.is_active = 1
           AND (
               (t.task_type = 'one-time' AND t.status = 'pending' AND t.due_date = ?)
