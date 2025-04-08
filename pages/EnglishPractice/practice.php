@@ -31,19 +31,18 @@ require_once __DIR__ . '/../../includes/header.php';
     perspective: 1000px;
     margin: 20px auto;
     max-width: 700px;
+    width: 100%;
 }
 
 .flashcard {
     position: relative;
     width: 100%;
-    height: 400px;
+    min-height: 300px;
+    height: calc(100vh - 400px);
+    max-height: 500px;
     transition: transform 0.6s;
     transform-style: preserve-3d;
     cursor: pointer;
-}
-
-.flashcard.is-flipped {
-    transform: rotateY(180deg);
 }
 
 .flashcard-front, .flashcard-back {
@@ -61,6 +60,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 .flashcard-back {
     transform: rotateY(180deg);
+    overflow-y: auto;
 }
 
 .flashcard-content {
@@ -88,33 +88,22 @@ require_once __DIR__ . '/../../includes/header.php';
 }
 
 .favorite-btn {
-    background-color: #fff !important;
-    border: 2px solid #ffc107 !important;
-    color: #ffc107 !important;
-    padding: 0.75rem 1.5rem !important;
-    border-radius: 25px !important;
-    font-weight: 500 !important;
-    transition: all 0.3s !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
+    background-color: white;
+    border: 2px solid #ffc107;
+    color: #ffc107;
 }
 
-.favorite-btn:hover {
-    background-color: #fff3cd !important;
-    transform: translateY(-1px) !important;
-}
-
-.favorite-btn.is-favorite {
-    background-color: #ffc107 !important;
-    color: #000 !important;
+.favorite-btn:hover, .favorite-btn.is-favorite {
+    background-color: #ffc107;
+    color: white;
 }
 
 .flashcard-title {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
     margin-bottom: 1.5rem;
     color: #2c3e50;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .flashcard-details {
@@ -147,22 +136,30 @@ require_once __DIR__ . '/../../includes/header.php';
 }
 
 .controls {
-    max-width: 700px;
-    margin: 1.5rem auto;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: center;
     gap: 1rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
 }
 
 .control-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     border: none;
-    font-weight: 500;
-    transition: all 0.3s;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: all 0.3s;
+    padding: 0;
 }
 
 .reveal-btn {
@@ -190,6 +187,28 @@ require_once __DIR__ . '/../../includes/header.php';
     padding: 1.5rem;
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 768px) {
+    .flashcard {
+        min-height: 250px;
+        height: calc(100vh - 300px);
+    }
+
+    .flashcard-front, .flashcard-back {
+        padding: 1.5rem;
+    }
+
+    .controls {
+        bottom: 15px;
+        padding: 0.5rem;
+    }
+
+    .control-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
 }
 </style>
 
@@ -289,21 +308,20 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <!-- Controls -->
         <div class="controls">
-            <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Add to Favorites">
+            <button class="control-btn favorite-btn toggle-favorite" data-item-id="<?php echo $first_item['id']; ?>" title="Toggle Favorite">
                 <i class="<?php echo $first_item['is_favorite'] ? 'fas' : 'far'; ?> fa-star"></i>
-                <?php echo $first_item['is_favorite'] ? 'Remove from Favorites' : 'Add to Favorites'; ?>
             </button>
-            <button class="control-btn reveal-btn" id="flashcard-reveal">
-                <i class="fas fa-sync-alt"></i> Flip Card
+            <button class="control-btn reveal-btn" id="flashcard-reveal" title="Flip Card">
+                <i class="fas fa-sync-alt"></i>
             </button>
-            <button class="control-btn next-btn" id="flashcard-next" style="display: none;">
-                <i class="fas fa-arrow-right"></i> Next
+            <button class="control-btn next-btn" id="flashcard-next" style="display: none;" title="Next Card">
+                <i class="fas fa-arrow-right"></i>
             </button>
         </div>
 
         <!-- Keyboard Shortcuts -->
-        <div class="text-center text-muted">
-            <small><i class="fas fa-keyboard me-1"></i> Use <kbd>Space</kbd> to flip, <kbd>→</kbd> for next</small>
+        <div class="text-center text-muted mt-3">
+            <small><i class="fas fa-keyboard me-1"></i> Space: flip • →: next</small>
         </div>
 
         <script>
@@ -333,7 +351,6 @@ require_once __DIR__ . '/../../includes/header.php';
                         this.classList.toggle('is-favorite');
                         this.innerHTML = `
                             <i class="${icon.classList.contains('fas') ? 'fas' : 'far'} fa-star"></i>
-                            ${icon.classList.contains('fas') ? 'Remove from Favorites' : 'Add to Favorites'}
                         `;
                     }
                 })
@@ -345,9 +362,9 @@ require_once __DIR__ . '/../../includes/header.php';
                 flashcard.classList.toggle('is-flipped');
                 if (flashcard.classList.contains('is-flipped')) {
                     document.getElementById('flashcard-next').style.display = 'inline-flex';
-                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Flip Back';
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 } else {
-                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Flip Card';
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
                 }
             });
 
@@ -374,27 +391,14 @@ require_once __DIR__ . '/../../includes/header.php';
                         icon.classList.remove('far');
                         icon.classList.add('fas');
                         favoriteBtn.classList.add('is-favorite');
-                        favoriteBtn.innerHTML = '<i class="fas fa-star"></i> Remove from Favorites';
                     } else {
                         icon.classList.remove('fas');
                         icon.classList.add('far');
                         favoriteBtn.classList.remove('is-favorite');
-                        favoriteBtn.innerHTML = '<i class="far fa-star"></i> Add to Favorites';
                     }
                     
-                    // Update back content
-                    const backContent = flashcard.querySelector('.flashcard-back .flashcard-details');
-                    backContent.innerHTML = `
-                        <h3 class="h5 mb-3">Meaning/Rule:</h3>
-                        <p>${nextItem.item_meaning.replace(/\n/g, '<br>')}</p>
-                        <div class="flashcard-example">
-                            <h3 class="h5 mb-2">Example:</h3>
-                            <p class="mb-0">${nextItem.item_example.replace(/\n/g, '<br>')}</p>
-                        </div>
-                    `;
-                    
-                    // Reset buttons
-                    document.getElementById('flashcard-reveal').innerHTML = '<i class="fas fa-sync-alt"></i> Flip Card';
+                    // Reset flip button
+                    document.getElementById('flashcard-reveal').innerHTML = '<i class="fas fa-sync-alt"></i>';
                     this.style.display = 'none';
                     
                     // Update progress
@@ -411,10 +415,10 @@ require_once __DIR__ . '/../../includes/header.php';
                             <p class="mb-4">You've reviewed all ${totalItems} items.</p>
                             <div class="d-flex justify-content-center gap-3">
                                 <a href="practice.php" class="btn btn-primary">
-                                    <i class="fas fa-redo me-1"></i> Practice Again
+                                    <i class="fas fa-redo"></i>
                                 </a>
                                 <a href="review.php" class="btn btn-outline-secondary">
-                                    <i class="fas fa-list-alt me-1"></i> Review Entries
+                                    <i class="fas fa-list-alt"></i>
                                 </a>
                             </div>
                         </div>
