@@ -23,35 +23,10 @@ $stmt->bind_param("i", $topic_id);
 $stmt->execute();
 $topic_result = $stmt->get_result()->fetch_assoc();
 
-// Get categories for filter
-$categories_query = "SELECT DISTINCT category FROM topic_resources WHERE topic_id = ? AND is_deleted = 0 AND category IS NOT NULL";
-$stmt = $conn->prepare($categories_query);
-$stmt->bind_param("i", $topic_id);
-$stmt->execute();
-$categories_result = $stmt->get_result();
-$categories = [];
-while ($row = $categories_result->fetch_assoc()) {
-    if (!empty($row['category'])) {
-        $categories[] = $row['category'];
-    }
-}
-
-// Get selected category from URL parameter
-$selected_category = isset($_GET['category']) ? $_GET['category'] : '';
-
-// Modify resources query to include category filter
-$resources_query = "SELECT * FROM topic_resources WHERE topic_id = ? AND is_deleted = 0";
-if (!empty($selected_category)) {
-    $resources_query .= " AND category = ?";
-}
-$resources_query .= " ORDER BY added_at DESC";
-
+// Get resources without category filter
+$resources_query = "SELECT * FROM topic_resources WHERE topic_id = ? AND is_deleted = 0 ORDER BY added_at DESC";
 $stmt = $conn->prepare($resources_query);
-if (!empty($selected_category)) {
-    $stmt->bind_param("is", $topic_id, $selected_category);
-} else {
-    $stmt->bind_param("i", $topic_id);
-}
+$stmt->bind_param("i", $topic_id);
 $stmt->execute();
 $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -154,23 +129,10 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
                     <i class="fas fa-plus"></i> Add Resource
                 </button>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex justify-content-end">
-                    <select class="form-select" style="max-width: 200px;" id="categoryFilter">
-                        <option value="">All Categories</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo htmlspecialchars($category); ?>"
-                                    <?php echo $selected_category === $category ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($category); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
             </div>
         </div>
 
@@ -256,16 +218,6 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                         <div class="mb-3">
                             <label class="form-label">Title</label>
                             <input type="text" class="form-control" name="title" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Category</label>
-                            <input type="text" class="form-control" name="category" list="categoryList">
-                            <datalist id="categoryList">
-                                <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo htmlspecialchars($category); ?>">
-                                <?php endforeach; ?>
-                            </datalist>
                         </div>
 
                         <div id="youtubeInput" class="mb-3">
@@ -428,17 +380,6 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 dblclickContent: "zoom",
                 touch: true
             }
-        });
-
-        // Add category filter functionality
-        document.getElementById('categoryFilter').addEventListener('change', function() {
-            const currentUrl = new URL(window.location.href);
-            if (this.value) {
-                currentUrl.searchParams.set('category', this.value);
-            } else {
-                currentUrl.searchParams.delete('category');
-            }
-            window.location.href = currentUrl.toString();
         });
     </script>
 </body>
