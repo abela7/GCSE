@@ -116,7 +116,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="card-body">
                     <h5 class="card-title">Weekly Overview</h5>
                     <p class="card-text">See this week's progress.</p>
-                    <a href="review.php?view=week" class="btn btn-secondary">
+                    <a href="/pages/EnglishPractice/view_weekly.php" class="btn btn-secondary">
                         <i class="fas fa-calendar-week me-1"></i>View Week
                     </a>
                 </div>
