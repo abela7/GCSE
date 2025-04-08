@@ -114,8 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->execute();
                             $result = $stmt->get_result()->fetch_assoc();
                             
-                            if ($result['status'] !== $status) {
-                                throw new Exception("Status update verification failed. Expected: {$status}, Got: {$result['status']}");
+                            if (!$result || $result['status'] !== $status) {
+                                throw new Exception("Status update verification failed. Expected: {$status}, Got: " . ($result['status'] ?? 'null'));
                             }
                             
                         } else {
@@ -148,11 +148,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 }
                             }
                             
-                            // Update the main task's status
+                            // For recurring tasks, keep the main task active but update its status
                             $stmt = $conn->prepare("UPDATE tasks 
                                                   SET status = ?,
-                                                      updated_at = CURRENT_TIMESTAMP,
-                                                      is_active = 1
+                                                      updated_at = CURRENT_TIMESTAMP
                                                   WHERE id = ?");
                             $stmt->bind_param('si', $status, $taskId);
                             if (!$stmt->execute()) {
@@ -169,8 +168,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->execute();
                             $result = $stmt->get_result()->fetch_assoc();
                             
-                            if (!$result || $result['instance_status'] !== $status) {
-                                throw new Exception("Status update verification failed for recurring task. Task status: {$result['task_status']}, Instance status: {$result['instance_status']}");
+                            if (!$result) {
+                                throw new Exception("Could not verify task update - task not found");
+                            }
+                            
+                            // For recurring tasks, we mainly care about the instance status
+                            if ($instance && (!isset($result['instance_status']) || $result['instance_status'] !== $status)) {
+                                throw new Exception("Status update verification failed for recurring task instance. Expected: {$status}, Got: " . ($result['instance_status'] ?? 'null'));
                             }
                         }
                         

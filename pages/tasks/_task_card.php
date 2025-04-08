@@ -108,17 +108,24 @@ function handleTaskAction(taskId, action) {
     taskCard.style.opacity = '0.7';
     taskCard.style.pointerEvents = 'none';
 
+    // Map action to status
+    const status = action === 'done' ? 'completed' : action === 'not_done' ? 'not_done' : action;
+
+    // Log the action for debugging
+    console.log('Updating task:', taskId, 'with status:', status);
+
     // Prepare the form data
-    const formData = new FormData();
+    const formData = new URLSearchParams();
     formData.append('action', 'update_task_status');
     formData.append('task_id', taskId);
-    formData.append('status', action === 'done' ? 'completed' : 'not_done');
+    formData.append('status', status);
 
     // Send the request
     fetch('task_actions.php', {
         method: 'POST',
         body: formData,
         headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json'
         }
     })
@@ -129,6 +136,7 @@ function handleTaskAction(taskId, action) {
         return response.json();
     })
     .then(data => {
+        console.log('Server response:', data); // Debug log
         if (data.success) {
             // Fade out and remove the task card
             taskCard.style.transition = 'all 0.3s ease';
