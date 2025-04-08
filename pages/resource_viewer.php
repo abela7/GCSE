@@ -63,6 +63,7 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             width: 100%;
             height: 200px;
             object-fit: cover;
+            cursor: pointer;
         }
         .resource-info {
             padding: 15px;
@@ -85,6 +86,29 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             bottom: 20px;
             right: 20px;
             z-index: 1000;
+        }
+        .resource-image-link {
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+        .resource-image-link::after {
+            content: '\f00e';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 8px;
+            border-radius: 50%;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .resource-image-link:hover::after {
+            opacity: 1;
         }
     </style>
 </head>
@@ -125,8 +149,13 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             </iframe>
                         </div>
                     <?php else: ?>
-                        <a href="<?php echo htmlspecialchars($resource['image_path']); ?>" data-lightbox="topic-images" data-title="<?php echo htmlspecialchars($resource['title']); ?>">
-                            <img src="<?php echo htmlspecialchars($resource['image_path']); ?>" alt="<?php echo htmlspecialchars($resource['title']); ?>" class="resource-thumbnail">
+                        <a href="<?php echo htmlspecialchars($resource['image_path']); ?>" 
+                           class="resource-image-link"
+                           data-fancybox="gallery"
+                           data-caption="<?php echo htmlspecialchars($resource['title']); ?>">
+                            <img src="<?php echo htmlspecialchars($resource['image_path']); ?>" 
+                                 alt="<?php echo htmlspecialchars($resource['title']); ?>" 
+                                 class="resource-thumbnail">
                         </a>
                     <?php endif; ?>
                     <div class="resource-info">
@@ -290,6 +319,29 @@ $resources = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     alert('Error deleting resource');
                 }
             });
+        });
+
+        // Initialize Fancybox
+        Fancybox.bind("[data-fancybox]", {
+            // Custom options
+            Toolbar: {
+                display: [
+                    { id: "prev", position: "center" },
+                    { id: "counter", position: "center" },
+                    { id: "next", position: "center" },
+                    "zoom",
+                    "slideshow",
+                    "fullscreen",
+                    "download",
+                    "close",
+                ],
+            },
+            Carousel: {
+                transition: "slide",
+            },
+            Images: {
+                zoom: true,
+            },
         });
     </script>
 </body>
