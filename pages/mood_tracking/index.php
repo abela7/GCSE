@@ -64,13 +64,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     overflow-x: auto;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 2px;
     background-color: #dee2e6;
-    padding: 4px;
+    padding: 2px;
     border-radius: 8px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .calendar-header {
@@ -90,11 +87,11 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 8px;
+    padding: 5px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .calendar-day:hover {
@@ -129,16 +126,16 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
 .day-number {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 1rem;
+    top: 5px;
+    right: 5px;
+    font-size: 0.9rem;
     font-weight: 500;
     color: #495057;
 }
 
 .entry-indicator {
-    font-size: 1.8rem;
-    margin-top: 8px;
+    font-size: 1.4rem;
+    margin-top: 5px;
 }
 
 .entry-count {
@@ -269,25 +266,25 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
         font-size: 1.8rem;
     }
     .calendar-container {
-        gap: 2px;
-        padding: 2px;
+        gap: 1px;
+        padding: 1px;
     }
     .calendar-header {
         padding: 8px 2px;
         font-size: 0.75rem;
     }
     .calendar-day {
-        min-height: 60px;
-        padding: 4px;
+        min-height: 50px;
+        padding: 3px;
     }
     .day-number {
-        font-size: 0.9rem;
-        top: 4px;
-        right: 4px;
+        font-size: 0.8rem;
+        top: 3px;
+        right: 3px;
     }
     .entry-indicator {
-        font-size: 1.4rem;
-        margin-top: 6px;
+        font-size: 1.2rem;
+        margin-top: 8px;
     }
     .entry-count {
         font-size: 0.65rem;
@@ -317,11 +314,11 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 /* Small Mobile Screens */
 @media (max-width: 375px) {
     .calendar-day {
-        min-height: 50px;
+        min-height: 45px;
     }
     .entry-indicator {
-        font-size: 1.2rem;
-        margin-top: 4px;
+        font-size: 1rem;
+        margin-top: 10px;
     }
     .day-number {
         font-size: 0.75rem;
@@ -343,6 +340,90 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
 .calendar-card-body {
     padding: 1rem;
+}
+
+/* Accordion Styles */
+.accordion-item {
+    background-color: transparent;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.accordion-button {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px !important;
+    padding: 1rem;
+    box-shadow: none;
+    transition: all 0.2s ease;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--accent-color-light);
+    border-color: var(--accent-color);
+    color: inherit;
+    box-shadow: none;
+}
+
+.accordion-button::after {
+    background-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 1rem;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: var(--accent-color);
+}
+
+.accordion-body {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 1rem;
+}
+
+.entry-date {
+    color: #495057;
+    font-weight: 500;
+}
+
+.entry-notes {
+    color: #495057;
+    white-space: pre-line;
+}
+
+.entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.mood-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .accordion-button {
+        padding: 0.75rem;
+    }
+    
+    .entry-date {
+        font-size: 0.9rem;
+    }
+    
+    .mood-badge {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+    }
+    
+    .entry-emoji {
+        font-size: 1.2rem !important;
+    }
 }
 </style>
 
@@ -366,12 +447,12 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 
     <div class="row">
         <!-- Quick Entry -->
-        <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="dashboard-card">
                 <div class="card-body">
                     <h5 class="card-title mb-3" style="color: var(--accent-color);">
                         <i class="fas fa-bolt me-2"></i>Quick Mood Entry
-                    </h5>
+                        </h5>
                     <div class="quick-entry-container">
                         <div class="emoji-selector">
                             <div class="emoji-option" data-value="1" onclick="selectMood(this, 1)">😢</div>
@@ -383,8 +464,8 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                         
                         <div class="form-group mb-3 w-100">
                             <textarea class="form-control" id="quick_notes" rows="2" placeholder="How are you feeling? (optional)"></textarea>
-                        </div>
-                        
+                    </div>
+                    
                         <div class="tag-selector w-100" id="quick_tags">
                             <?php foreach ($all_tags as $tag): ?>
                                 <div class="tag-option" 
@@ -394,8 +475,8 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                     <?php echo htmlspecialchars($tag['name']); ?>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
-                        
+                    </div>
+                    
                         <button type="button" class="btn btn-accent w-100" id="save_quick_entry" onclick="saveQuickEntry()" disabled>
                             <i class="fas fa-save me-1"></i>Save Mood
                         </button>
@@ -404,89 +485,14 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             </div>
         </div>
         
-        <!-- Mood Stats -->
-        <div class="col-md-6 col-lg-8 mb-4">
-            <div class="dashboard-card">
-                <div class="card-body">
-                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
-                        <i class="fas fa-chart-line me-2"></i>Mood Insights
-                    </h5>
-                    
-                    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
-                        <div class="row text-center mb-3">
-                            <div class="col-4">
-                                <div class="mood-emoji">
-                                    <?php
-                                    $avg_mood = isset($stats['average_mood']) ? $stats['average_mood'] : 0;
-                                    if ($avg_mood >= 4.5) echo '😄';
-                                    else if ($avg_mood >= 3.5) echo '🙂';
-                                    else if ($avg_mood >= 2.5) echo '😐';
-                                    else if ($avg_mood >= 1.5) echo '😕';
-                                    else echo '😢';
-                                    ?>
-                                </div>
-                                <div class="small text-muted">Average Mood</div>
-                                <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
-                                </div>
-                            <div class="col-4">
-                                <div class="mood-emoji">📊</div>
-                                <div class="small text-muted">Entries</div>
-                                <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
-                                </div>
-                            <div class="col-4">
-                                <div class="mood-emoji">
-                                    <?php
-                                    $most_common_mood = isset($stats['most_common_mood']) ? $stats['most_common_mood'] : 3;
-                                    if ($most_common_mood == 5) echo '😄';
-                                    else if ($most_common_mood == 4) echo '🙂';
-                                    else if ($most_common_mood == 3) echo '😐';
-                                    else if ($most_common_mood == 2) echo '😕';
-                                    else echo '😢';
-                                    ?>
-                                </div>
-                                <div class="small text-muted">Most Common</div>
-                                <div class="fw-bold">Level <?php echo $most_common_mood; ?></div>
-                            </div>
-                        </div>
-                        
-                        <?php if (!empty($stats['top_tags'])): ?>
-                            <h6 class="mt-4 mb-2">Top Tags</h6>
-                            <div>
-                                <?php foreach ($stats['top_tags'] as $tag): ?>
-                                    <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                        <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
-                                </span>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <div class="text-center mt-4">
-                            <a href="analytics.php" class="btn btn-sm btn-outline-accent">View Detailed Analytics</a>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-4">
-                            <div class="mb-3">
-                                <i class="fas fa-chart-bar fa-3x text-muted"></i>
-                            </div>
-                            <p class="text-muted mb-3">No mood data available yet</p>
-                            <p class="small text-muted">Start tracking your mood to see insights</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar Row -->
-    <div class="row mb-4">
-        <div class="col-12">
+        <!-- Monthly Calendar -->
+        <div class="col-lg-4 col-md-6 mb-4">
             <div class="calendar-card">
                 <div class="calendar-card-header">
                     <div class="month-navigation">
                         <h5 class="month-title">
                             <i class="fas fa-calendar-alt me-2"></i>
-                            <?php
+                        <?php
                             // Get selected month and year from URL parameters or use current date
                             $selected_month = isset($_GET['month']) ? $_GET['month'] : date('m');
                             $selected_year = isset($_GET['year']) ? $_GET['year'] : date('Y');
@@ -578,13 +584,85 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                     
                     <div class="text-center mt-3">
                         <a href="history.php" class="btn btn-sm btn-outline-accent">View Full History</a>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+        
+        <!-- Mood Stats -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--accent-color);">
+                        <i class="fas fa-chart-line me-2"></i>Mood Insights
+                    </h5>
+                    
+                    <?php if (isset($stats['total_entries']) && $stats['total_entries'] > 0): ?>
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $avg_mood = isset($stats['average_mood']) ? $stats['average_mood'] : 0;
+                                    if ($avg_mood >= 4.5) echo '😄';
+                                    else if ($avg_mood >= 3.5) echo '🙂';
+                                    else if ($avg_mood >= 2.5) echo '😐';
+                                    else if ($avg_mood >= 1.5) echo '😕';
+                                    else echo '😢';
+                                    ?>
+                        </div>
+                                <div class="small text-muted">Average Mood</div>
+                                <div class="fw-bold"><?php echo number_format($avg_mood, 1); ?>/5</div>
                     </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">📊</div>
+                                <div class="small text-muted">Entries</div>
+                                <div class="fw-bold"><?php echo $stats['total_entries']; ?></div>
+                                </div>
+                            <div class="col-4">
+                                <div class="mood-emoji">
+                                    <?php
+                                    $most_common_mood = isset($stats['most_common_mood']) ? $stats['most_common_mood'] : 3;
+                                    if ($most_common_mood == 5) echo '😄';
+                                    else if ($most_common_mood == 4) echo '🙂';
+                                    else if ($most_common_mood == 3) echo '😐';
+                                    else if ($most_common_mood == 2) echo '😕';
+                                    else echo '😢';
+                                    ?>
+                                </div>
+                                <div class="small text-muted">Most Common</div>
+                                <div class="fw-bold">Level <?php echo $most_common_mood; ?></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Recent Entries Row -->
+            
+                        <?php if (!empty($stats['top_tags'])): ?>
+                            <h6 class="mt-4 mb-2">Top Tags</h6>
+                            <div>
+                                <?php foreach ($stats['top_tags'] as $tag): ?>
+                                    <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                        <?php echo htmlspecialchars($tag['name']); ?> (<?php echo $tag['count']; ?>)
+                                </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="text-center mt-4">
+                            <a href="analytics.php" class="btn btn-sm btn-outline-accent">View Detailed Analytics</a>
+                                </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-bar fa-3x text-muted"></i>
+                                </div>
+                            <p class="text-muted mb-3">No mood data available yet</p>
+                            <p class="small text-muted">Start tracking your mood to see insights</p>
+                                </div>
+                    <?php endif; ?>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+    <!-- Recent Entries -->
     <div class="row">
         <div class="col-12">
             <div class="dashboard-card">
@@ -594,74 +672,75 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                     </h5>
                     
                     <?php if (!empty($recent_entries)): ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Date & Time</th>
-                                        <th>Mood</th>
-                                        <th>Tags</th>
-                                        <th>Notes</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($recent_entries as $entry): ?>
-                                        <tr>
-                                            <td><?php echo date('M j, Y g:i A', strtotime($entry['date'])); ?></td>
-                                            <td>
-                                                <?php
-                                                $mood = $entry['mood_level'];
-                                                $emoji = '';
-                                                if ($mood == 5) $emoji = '😄';
-                                                else if ($mood == 4) $emoji = '🙂';
-                                                else if ($mood == 3) $emoji = '😐';
-                                                else if ($mood == 2) $emoji = '😕';
-                                                else $emoji = '😢';
-                                                echo $emoji . ' (' . $mood . '/5)';
-                                                ?>
-                                            </td>
-                                            <td>
-                                                <?php if (!empty($entry['tags'])): ?>
-                                                    <?php foreach ($entry['tags'] as $tag): ?>
-                                                        <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
-                                                            <?php echo htmlspecialchars($tag['name']); ?>
-                                                        </span>
-                                                    <?php endforeach; ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted">No tags</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if (!empty($entry['notes'])): ?>
-                                                    <?php echo nl2br(htmlspecialchars(substr($entry['notes'], 0, 100))); ?>
-                                                    <?php if (strlen($entry['notes']) > 100): ?>
-                                                        <span class="text-muted">...</span>
-                                                    <?php endif; ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted">No notes</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <a href="entry.php?id=<?php echo $entry['id']; ?>" class="btn btn-sm btn-outline-accent me-1">
-                                                    <i class="fas fa-edit"></i>
+                        <div class="accordion" id="recentEntriesAccordion">
+                            <?php foreach ($recent_entries as $index => $entry): ?>
+                                <div class="accordion-item border-0 mb-2">
+                                    <h2 class="accordion-header" id="entry-heading-<?php echo $entry['id']; ?>">
+                                        <button class="accordion-button collapsed" type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#entry-collapse-<?php echo $entry['id']; ?>" 
+                                                aria-expanded="false" 
+                                                aria-controls="entry-collapse-<?php echo $entry['id']; ?>">
+                                            <div class="d-flex align-items-center w-100">
+                                                <div class="entry-emoji me-3 fs-4">
+                                                    <?php
+                                                    $mood = $entry['mood_level'];
+                                                    if ($mood == 5) echo '😄';
+                                                    else if ($mood == 4) echo '🙂';
+                                                    else if ($mood == 3) echo '😐';
+                                                    else if ($mood == 2) echo '😕';
+                                                    else echo '😢';
+                                                    ?>
+                                                </div>
+                                                <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between w-100">
+                                                    <div class="entry-date">
+                                                        <?php echo date('M j, Y g:i A', strtotime($entry['date'])); ?>
+                                                    </div>
+                                                    <div class="entry-tags mt-1 mt-sm-0">
+                                                        <?php if (!empty($entry['tags'])): ?>
+                                                            <?php foreach ($entry['tags'] as $tag): ?>
+                                                                <span class="mood-badge" style="background-color: <?php echo $tag['color']; ?>">
+                                                                    <?php echo htmlspecialchars($tag['name']); ?>
+                                                                </span>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="entry-collapse-<?php echo $entry['id']; ?>" 
+                                         class="accordion-collapse collapse" 
+                                         aria-labelledby="entry-heading-<?php echo $entry['id']; ?>" 
+                                         data-bs-parent="#recentEntriesAccordion">
+                                        <div class="accordion-body">
+                                            <?php if (!empty($entry['notes'])): ?>
+                                                <div class="entry-notes mb-3">
+                                                    <?php echo nl2br(htmlspecialchars($entry['notes'])); ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="text-muted mb-3">No notes added</div>
+                                            <?php endif; ?>
+                                            <div class="entry-actions">
+                                                <a href="entry.php?id=<?php echo $entry['id']; ?>" class="btn btn-sm btn-outline-accent me-2">
+                                                    <i class="fas fa-edit me-1"></i>Edit Entry
                                                 </a>
                                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteEntry(<?php echo $entry['id']; ?>)">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-trash me-1"></i>Delete Entry
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                         
-                        <div class="text-center mt-3">
+                        <div class="text-center mt-4">
                             <a href="history.php" class="btn btn-outline-accent">View All Entries</a>
                         </div>
                     <?php else: ?>
                         <div class="text-center py-4">
-                    <div class="mb-3">
+                            <div class="mb-3">
                                 <i class="fas fa-book fa-3x text-muted"></i>
                             </div>
                             <p class="text-muted mb-3">No mood entries yet</p>
@@ -670,12 +749,12 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                             </a>
                         </div>
                     <?php endif; ?>
-                        </div>
-                    </div>
-                    </div>
                 </div>
             </div>
-            
+        </div>
+    </div>
+</div>
+
 <!-- Delete Entry Modal -->
 <div class="modal fade" id="deleteEntryModal" tabindex="-1" aria-labelledby="deleteEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -694,7 +773,7 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
             </div>
         </div>
     </div>
-                </div>
+</div>
 
 <!-- Day Entries Modal -->
 <div class="modal fade" id="dayEntriesModal" tabindex="-1" aria-labelledby="dayEntriesModalLabel" aria-hidden="true">
@@ -750,13 +829,13 @@ function toggleTag(element) {
     const tagId = parseInt(element.dataset.id);
     
     if (element.classList.contains('selected')) {
-                // Remove tag from selection
+        // Remove tag from selection
         element.classList.remove('selected');
         selectedTags = selectedTags.filter(id => id !== tagId);
-            } else {
-                // Add tag to selection
+    } else {
+        // Add tag to selection
         element.classList.add('selected');
-                selectedTags.push(tagId);
+        selectedTags.push(tagId);
     }
 }
 
@@ -796,12 +875,12 @@ function saveQuickEntry() {
                     selectedMood = null;
                     selectedTags = [];
                     
-                // Show success message
-                alert('Mood entry saved successfully!');
-                
+                    // Show success message
+                    alert('Mood entry saved successfully!');
+                    
                     // Reload page to show updated data
-                window.location.reload();
-            } else {
+                    window.location.reload();
+                } else {
                     alert('Error: ' + (response.message || 'Failed to save mood entry'));
                 }
             } catch (e) {
@@ -845,10 +924,10 @@ function viewDayEntries(date) {
         <div class="text-center py-3">
             <div class="spinner-border text-accent" role="status">
                 <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                `;
-                
+            </div>
+        </div>
+    `;
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('dayEntriesModal'));
     modal.show();
