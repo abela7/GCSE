@@ -46,7 +46,7 @@ $exams_result = $conn->query($exams_query);
 $tasks_query = "SELECT t.*, s.name as subject_name, s.color as subject_color 
                 FROM tasks t 
                 LEFT JOIN subjects s ON t.subject_id = s.id 
-                WHERE t.completed = 0
+                WHERE t.status != 'completed'
                 ORDER BY t.due_date ASC 
                 LIMIT 5";
 $tasks_result = $conn->query($tasks_query);

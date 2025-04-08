@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 08, 2025 at 08:43 AM
+-- Generation Time: Apr 08, 2025 at 07:32 PM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -1002,6 +1002,106 @@ INSERT INTO `math_topics` (`id`, `subsection_id`, `name`, `description`, `create
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mood_entries`
+--
+
+CREATE TABLE `mood_entries` (
+  `id` int(11) NOT NULL,
+  `date` datetime NOT NULL DEFAULT current_timestamp(),
+  `mood_level` tinyint(1) NOT NULL COMMENT 'Scale of 1-5 (1=very low, 5=very high)',
+  `notes` text DEFAULT NULL,
+  `associated_subject_id` int(11) DEFAULT NULL COMMENT 'Optional link to subject',
+  `associated_topic_id` int(11) DEFAULT NULL COMMENT 'Optional link to topic',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mood_entry_factors`
+--
+
+CREATE TABLE `mood_entry_factors` (
+  `id` int(11) NOT NULL,
+  `mood_entry_id` int(11) NOT NULL,
+  `mood_factor_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mood_entry_tags`
+--
+
+CREATE TABLE `mood_entry_tags` (
+  `id` int(11) NOT NULL,
+  `mood_entry_id` int(11) NOT NULL,
+  `tag_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mood_factors`
+--
+
+CREATE TABLE `mood_factors` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `is_positive` tinyint(1) DEFAULT 1 COMMENT '1=positive factor, 0=negative factor',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `mood_factors`
+--
+
+INSERT INTO `mood_factors` (`id`, `name`, `description`, `is_positive`, `created_at`) VALUES
+(1, 'Well Rested', 'Got enough sleep', 1, '2025-04-08 17:41:36'),
+(2, 'Focused', 'Able to concentrate well', 1, '2025-04-08 17:41:36'),
+(3, 'Motivated', 'Feeling driven to achieve goals', 1, '2025-04-08 17:41:36'),
+(4, 'Confident', 'Feeling self-assured about abilities', 1, '2025-04-08 17:41:36'),
+(5, 'Stressed', 'Feeling under pressure or overwhelmed', 0, '2025-04-08 17:41:36'),
+(6, 'Tired', 'Feeling fatigued or exhausted', 0, '2025-04-08 17:41:36'),
+(7, 'Anxious', 'Feeling worried about exams or performance', 0, '2025-04-08 17:41:36'),
+(8, 'Distracted', 'Having trouble focusing on studies', 0, '2025-04-08 17:41:36'),
+(9, 'Excited', 'Feeling enthusiastic about learning', 1, '2025-04-08 17:41:36'),
+(10, 'Frustrated', 'Feeling stuck or unable to progress', 0, '2025-04-08 17:41:36'),
+(11, 'Satisfied', 'Feeling content with progress made', 1, '2025-04-08 17:41:36'),
+(12, 'Overwhelmed', 'Feeling there is too much to learn', 0, '2025-04-08 17:41:36');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mood_tags`
+--
+
+CREATE TABLE `mood_tags` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `color` varchar(7) DEFAULT '#6c757d',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+
+--
+-- Dumping data for table `mood_tags`
+--
+
+INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
+(1, 'Health', 'Personal', '#28a745', '2025-04-08 18:26:18'),
+(2, 'Family', 'Personal', '#17a2b8', '2025-04-08 18:26:18'),
+(3, 'Relationship', 'Personal', '#e83e8c', '2025-04-08 18:26:18'),
+(4, 'School', 'Academic', '#007bff', '2025-04-08 18:26:18'),
+(5, 'Work', 'Professional', '#fd7e14', '2025-04-08 18:26:18');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `overall_progress`
 --
 
@@ -1542,15 +1642,7 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(54, 6, NULL, 'Submit Access Assignment Draft', 'Unit 10 draft - AI/ML.', 'one-time', 'high', 120, '2025-04-02', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
-(56, 1, NULL, 'Read Spiritual Text', 'Morning reflection reading.', 'one-time', 'medium', 30, '2025-04-07', '08:10:00', 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-08 05:09:06'),
-(63, 4, NULL, 'Complete Math Practice Paper 2', 'Calculator paper.', 'one-time', 'high', 120, '2025-04-10', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
-(65, 6, NULL, 'Research University Open Days', 'Check dates for preferred unis.', 'one-time', 'medium', 60, '2025-04-15', NULL, 'pending', 0.00, 1, '2025-04-05 02:28:45', '2025-04-05 02:28:45'),
-(75, 5, NULL, 'Eat Food', 'Eat Pasta With Rice!', 'one-time', 'medium', 15, '2025-04-08', '08:55:00', 'completed', 0.00, 0, '2025-04-07 19:33:53', '2025-04-08 07:00:28'),
-(76, 9, NULL, 'Call Guche', '', 'one-time', 'high', 20, '2025-04-08', '16:00:00', 'completed', 0.00, 0, '2025-04-07 19:35:02', '2025-04-08 07:30:26'),
-(101, 5, NULL, 'CookIng', 'Coock Rice', 'one-time', 'low', 10, '2025-04-08', '09:23:00', 'pending', 0.00, 0, '2025-04-08 05:12:36', '2025-04-08 07:30:55'),
-(102, 5, NULL, 'Pasta', 'Cook pasta', 'one-time', 'medium', 12, '2025-04-08', '08:15:00', 'pending', 0.00, 0, '2025-04-08 05:14:02', '2025-04-08 07:01:46'),
-(103, 2, NULL, 'How Good Is This!', 'I loved IT!', 'one-time', 'high', 12, '2025-04-08', '10:24:00', 'pending', 0.00, 0, '2025-04-08 06:22:09', '2025-04-08 07:37:22');
+(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', NULL, 'pending', 0.00, 1, '2025-04-08 08:30:13', '2025-04-08 08:30:13');
 
 -- --------------------------------------------------------
 
@@ -1580,9 +1672,9 @@ INSERT INTO `task_categories` (`id`, `name`, `description`, `icon`, `color`, `di
 (3, 'Productivity', 'Task management and planning', 'fas fa-tasks', '#4682B4', 3, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (4, 'Study', 'Academic work and revision', 'fas fa-book-reader', '#1E90FF', 4, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (5, 'Health', 'Physical health and fitness', 'fas fa-heartbeat', '#32CD32', 5, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
-(6, 'Study', 'Access to Higher Education coursework', 'fas fa-trophy', '#2ce2d6', 6, 1, '2025-04-02 19:13:35', '2025-04-04 13:02:25'),
 (9, 'Education', 'General educational activities', 'fas fa-school', '#4169E1', 9, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
-(10, 'Uncategorized', NULL, 'fas fa-folder', '#6c757d', 0, 1, '2025-04-02 23:56:40', '2025-04-02 23:56:40');
+(10, 'Uncategorized', NULL, 'fas fa-folder', '#6c757d', 0, 1, '2025-04-02 23:56:40', '2025-04-02 23:56:40'),
+(0, 'Self Care', NULL, 'fas fa-star', '#1f8291', 0, 1, '2025-04-08 09:18:13', '2025-04-08 09:18:13');
 
 -- --------------------------------------------------------
 
@@ -1879,6 +1971,46 @@ ALTER TABLE `habit_progress`
   ADD KEY `date_index` (`date`);
 
 --
+-- Indexes for table `mood_entries`
+--
+ALTER TABLE `mood_entries`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `mood_date_idx` (`date`),
+  ADD KEY `mood_subject_idx` (`associated_subject_id`),
+  ADD KEY `mood_topic_idx` (`associated_topic_id`);
+
+--
+-- Indexes for table `mood_entry_factors`
+--
+ALTER TABLE `mood_entry_factors`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_entry_factor` (`mood_entry_id`,`mood_factor_id`),
+  ADD KEY `mood_entry_idx` (`mood_entry_id`),
+  ADD KEY `mood_factor_idx` (`mood_factor_id`);
+
+--
+-- Indexes for table `mood_entry_tags`
+--
+ALTER TABLE `mood_entry_tags`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_entry_tag` (`mood_entry_id`,`tag_id`),
+  ADD KEY `fk_tag_entry` (`tag_id`);
+
+--
+-- Indexes for table `mood_factors`
+--
+ALTER TABLE `mood_factors`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_factor_name` (`name`);
+
+--
+-- Indexes for table `mood_tags`
+--
+ALTER TABLE `mood_tags`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_tag_name` (`name`);
+
+--
 -- Indexes for table `practice_categories`
 --
 ALTER TABLE `practice_categories`
@@ -1937,6 +2069,36 @@ ALTER TABLE `habit_progress`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `mood_entries`
+--
+ALTER TABLE `mood_entries`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `mood_entry_factors`
+--
+ALTER TABLE `mood_entry_factors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `mood_entry_tags`
+--
+ALTER TABLE `mood_entry_tags`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mood_factors`
+--
+ALTER TABLE `mood_factors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `mood_tags`
+--
+ALTER TABLE `mood_tags`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `practice_categories`
 --
 ALTER TABLE `practice_categories`
@@ -1958,7 +2120,7 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
 
 --
 -- Constraints for dumped tables
@@ -1969,6 +2131,20 @@ ALTER TABLE `tasks`
 --
 ALTER TABLE `favorite_practice_items`
   ADD CONSTRAINT `fk_fav_item_id` FOREIGN KEY (`practice_item_id`) REFERENCES `practice_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `mood_entry_factors`
+--
+ALTER TABLE `mood_entry_factors`
+  ADD CONSTRAINT `fk_mood_entry` FOREIGN KEY (`mood_entry_id`) REFERENCES `mood_entries` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_mood_factor` FOREIGN KEY (`mood_factor_id`) REFERENCES `mood_factors` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `mood_entry_tags`
+--
+ALTER TABLE `mood_entry_tags`
+  ADD CONSTRAINT `fk_mood_entry_tag` FOREIGN KEY (`mood_entry_id`) REFERENCES `mood_entries` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_tag_entry` FOREIGN KEY (`tag_id`) REFERENCES `mood_tags` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `practice_items`
