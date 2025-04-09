@@ -4,6 +4,9 @@
  * Shows all tasks due today and their times
  */
 
+// Set timezone to London time
+date_default_timezone_set('Europe/London');
+
 // Set content type to HTML for browser display
 header('Content-Type: text/html; charset=utf-8');
 
@@ -39,6 +42,7 @@ echo "<!DOCTYPE html>
         .due-soon { background-color: #fff3cd; }
         .overdue { background-color: #f8d7da; }
         .debug-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa; }
+        .timezone-warning { background-color: #f8d7da; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -49,7 +53,7 @@ echo "<!DOCTYPE html>
         <p><strong>Server Date:</strong> " . date('Y-m-d') . "</p>
         <p><strong>Server Time:</strong> " . date('H:i:s') . " (" . date('h:i A') . ")</p>
         <p><strong>PHP Version:</strong> " . phpversion() . "</p>
-        <p><strong>Timezone:</strong> " . date_default_timezone_get() . "</p>
+        <p><strong>Timezone Setting:</strong> " . date_default_timezone_get() . " (Changed to London time)</p>
     </div>";
 
 // Get ALL tasks due today
@@ -79,7 +83,7 @@ try {
     $stmt->bind_param("s", $today);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     $task_count = $result->num_rows;
     
     echo "<div class='debug-section'>
