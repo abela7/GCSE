@@ -5,6 +5,14 @@ require_once __DIR__ . '/includes/functions.php';
 // Set page title
 $page_title = "Mood History";
 
+// Check if user is logged in
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    // User is not logged in, redirect to login page
+    header("Location: /login.php?redirect=" . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
 // Include header
 require_once __DIR__ . '/../../includes/header.php';
 
