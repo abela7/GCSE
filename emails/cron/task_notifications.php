@@ -23,11 +23,10 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time plus buffer (for tasks due within the next 5 minutes)
-$buffer_minutes = 5; // Changed from 15 to 5 minutes
+// Remove the buffer to focus on exact due time
 $current_time = date('H:i:s');
-$notification_window_start = date('H:i:s');
-$notification_window_end = date('H:i:s', strtotime("+{$buffer_minutes} minutes"));
+$notification_window_start = date('H:i:s', strtotime("-1 minute")); // Give a small 1-minute window
+$notification_window_end = date('H:i:s', strtotime("+1 minute"));   // to catch tasks due right now
 $today = date('Y-m-d');
 
 error_log("Checking for tasks due between {$notification_window_start} and {$notification_window_end} on {$today}");
@@ -187,13 +186,20 @@ while ($current_task = $result->fetch_assoc()) {
             error_log("SMTP Debug: $str");
         };
         
+        // Anti-spam measures
+        $mail->XMailer = 'GCSE Study App Mailer';
+        $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+        $mail->addCustomHeader('Precedence', 'bulk');
+        $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+        $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+        
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress('Abelgoytom77@gmail.com'); // Send to Abel's Gmail
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Task Due: " . $current_task['title'];
+        $mail->Subject = "Task Due Now: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         

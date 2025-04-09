@@ -23,7 +23,7 @@ $testData = [
         'title' => 'Complete Math Assignment',
         'description' => 'Solve problems from Chapter 5: Quadratic Equations',
         'priority' => 'high',
-        'due_time' => '04:00 PM',
+        'due_time' => 'Now',
         'estimated_duration' => '45'
     ],
     'upcoming_tasks' => [
@@ -55,6 +55,9 @@ $testData = [
         ]
     ]
 ];
+
+// Add app URL to the test data
+$testData['app_url'] = $app_url;
 
 // Create instance of TaskNotification
 $notification = new TaskNotification();

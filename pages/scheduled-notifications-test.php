@@ -413,6 +413,11 @@ include '../includes/header.php';
                                         </div>
                                     <?php endif; ?>
                                     
+                                    <div class="alert alert-info mb-3">
+                                        <h6><i class="fas fa-info-circle me-1"></i> Notification Timing Update</h6>
+                                        <p class="small mb-0">Task notifications are now configured to send exactly when tasks are due (±1 minute) instead of 5 minutes before. Anti-spam measures have also been added to improve delivery rates.</p>
+                                    </div>
+                                    
                                     <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>
                                     <form method="post">
                                         <div class="mb-3">
@@ -435,6 +440,10 @@ include '../includes/header.php';
                                         </a>
                                         <a href="../test_habit_notification.php" target="_blank" class="btn btn-outline-secondary">
                                             <i class="fas fa-external-link-alt me-1"></i> View Habit Test Script
+                                        </a>
+                                        
+                                        <a href="../emails/cron/task_notifications.php" target="_blank" class="btn btn-outline-primary mt-2">
+                                            <i class="fas fa-code me-1"></i> Run Task Notification Script Directly
                                         </a>
                                     </div>
                                 </div>
@@ -466,9 +475,14 @@ include '../includes/header.php';
                                             <?= ENABLE_EMAIL_NOTIFICATIONS ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-danger">Disabled</span>' ?>
                                         </li>
                                     </ul>
-                                    <a href="../config/email_config.php" class="btn btn-success btn-sm" target="_blank">
-                                        <i class="fas fa-edit me-1"></i> View Config File
-                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <a href="../config/email_config.php" class="btn btn-success btn-sm" target="_blank">
+                                            <i class="fas fa-edit me-1"></i> View Config
+                                        </a>
+                                        <a href="../test_email_delivery.php" class="btn btn-warning btn-sm" target="_blank">
+                                            <i class="fas fa-wrench me-1"></i> Email Diagnostic Tool
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
