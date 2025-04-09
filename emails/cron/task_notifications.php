@@ -1,15 +1,11 @@
 <?php
 /**
- * Task Notification Script - STRICT TIME VERSION
- * This script ONLY sends notifications for tasks due RIGHT NOW (within 1 minute)
- * It should be run by a cron job every minute
+ * Task Notification Script - SUPER SIMPLE VERSION
+ * Gets tasks due in the next 3 minutes and sends notifications
+ * Runs every minute via cron
  */
 
-// Enable error logging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+// Basic error logging
 error_log("==== TASK NOTIFICATION SCRIPT STARTED ====");
 error_log("Script running at: " . date('Y-m-d H:i:s'));
 
@@ -26,8 +22,6 @@ use PHPMailer\PHPMailer\Exception;
 if ($conn->connect_error) {
     error_log("DATABASE CONNECTION ERROR: " . $conn->connect_error);
     exit;
-} else {
-    error_log("Database connection successful");
 }
 
 // Application URL for links in emails
@@ -39,37 +33,17 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time info for STRICT time matching
+// Get current time and the 3-minute future window
 $current_time = date('H:i:s');
-$current_hour_minute = date('H:i');
-$one_min_before = date('H:i:s', strtotime("-1 minute"));
-$one_min_after = date('H:i:s', strtotime("+1 minute"));
+$three_min_future = date('H:i:s', strtotime("+3 minutes"));
 $today = date('Y-m-d');
-$now_timestamp = time();
 
 error_log("Current date: {$today}");
 error_log("Current time: {$current_time}");
-error_log("Strict time window: {$one_min_before} to {$one_min_after}");
+error_log("3-min future window: {$three_min_future}");
 
-// Log all pending tasks to help with debugging
-$all_tasks_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE status IN ('pending', 'in_progress') ORDER BY due_date, due_time";
-$all_tasks_result = $conn->query($all_tasks_query);
-error_log("=== DEBUG: ALL PENDING TASKS IN DATABASE ===");
-if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
-    while($row = $all_tasks_result->fetch_assoc()) {
-        $task_time = strtotime($row['due_date'] . ' ' . $row['due_time']);
-        $time_diff = $task_time - $now_timestamp;
-        $diff_minutes = round($time_diff / 60);
-        
-        error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']} - Due in: {$diff_minutes} minutes");
-    }
-} else {
-    error_log("No pending tasks found in database at all!");
-}
-
-// STRICT METHOD: Get ONLY tasks due RIGHT NOW (±1 minute window)
-// No fallbacks, no exceptions - only send notifications for tasks due right now
-$strict_query = "
+// Simple query: Get tasks due in the next 3 minutes
+$query = "
     SELECT 
         t.id, 
         t.title, 
@@ -87,38 +61,23 @@ $strict_query = "
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
-        AND (
-            (t.due_time BETWEEN ? AND ?) 
-            OR SUBSTRING(t.due_time, 1, 5) = ?
-        )
+        AND t.due_time BETWEEN ? AND ?
     ORDER BY 
-        ABS(TIME_TO_SEC(TIMEDIFF(t.due_time, ?))) ASC,
+        t.due_time ASC,
         FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 1
+    LIMIT 5
 ";
 
-error_log("Executing STRICT time query with params: today={$today}, window={$one_min_before} to {$one_min_after}, hour:min={$current_hour_minute}");
-
 try {
-    $strict_stmt = $conn->prepare($strict_query);
-    if (!$strict_stmt) {
-        error_log("PREPARE ERROR: " . $conn->error);
-        exit;
-    }
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sss", $today, $current_time, $three_min_future);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
-    $strict_stmt->bind_param("sssss", $today, $one_min_before, $one_min_after, $current_hour_minute, $current_time);
-    $strict_stmt->execute();
-    
-    if ($strict_stmt->error) {
-        error_log("EXECUTE ERROR: " . $strict_stmt->error);
-        exit;
-    }
-    
-    $result = $strict_stmt->get_result();
-    error_log("Query executed successfully. Found " . $result->num_rows . " tasks due RIGHT NOW.");
+    error_log("Found " . $result->num_rows . " tasks due in the next 3 minutes");
     
     if ($result->num_rows === 0) {
-        error_log("No tasks due RIGHT NOW. Exiting without sending any notifications.");
+        error_log("No tasks due in the next 3 minutes. Exiting.");
         exit;
     }
 } catch (Exception $e) {
@@ -126,26 +85,14 @@ try {
     exit;
 }
 
-// Process each task found (should be at most 1)
+// Process each task found
 while ($current_task = $result->fetch_assoc()) {
-    // Convert due time to timestamp for verification
-    $task_timestamp = strtotime($current_task['due_date'] . ' ' . $current_task['due_time']);
-    $time_diff = $task_timestamp - $now_timestamp;
-    $minutes_diff = round($time_diff / 60);
-    
-    // Double-check that this task is actually due right now
-    if (abs($minutes_diff) > 2) {
-        error_log("⚠️ SKIPPING task #{$current_task['id']} - Due time {$current_task['due_time']} is not within 2 minutes of current time ({$minutes_diff} minutes away)");
-        continue;
-    }
-    
-    error_log("✅ SENDING NOTIFICATION for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
-    error_log("Task is due RIGHT NOW ({$minutes_diff} minutes from current time)");
+    error_log("Sending notification for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
     
-    // Prepare email data (just the current task)
+    // Prepare email data
     $emailData = [
         'current_task' => $current_task,
         'overdue_tasks' => [],
@@ -170,36 +117,23 @@ while ($current_task = $result->fetch_assoc()) {
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         
-        // Set debugging level
-        $mail->SMTPDebug = 2;
-        $mail->Debugoutput = function($str, $level) {
-            error_log("SMTP Debug: $str");
-        };
-        
-        // Anti-spam measures
-        $mail->XMailer = 'GCSE Study App Mailer';
-        $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
-        $mail->addCustomHeader('Precedence', 'bulk');
-        $mail->addCustomHeader('X-Priority', '1'); // Higher priority
-        $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
-        
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress(SMTP_USERNAME);
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "⏰ TASK DUE NOW: " . $current_task['title'];
+        $mail->Subject = "⏰ Task Due Soon: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
         // Send the email
         if (!$mail->send()) {
-            error_log("❌ Email could not be sent: " . $mail->ErrorInfo);
+            error_log("Email could not be sent: " . $mail->ErrorInfo);
             continue;
         }
         
-        error_log("✅ Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
+        error_log("Email sent successfully for task ID {$current_task['id']}");
         
         // Record in tracking table for history
         $tracking_query = "
@@ -220,6 +154,5 @@ while ($current_task = $result->fetch_assoc()) {
 }
 
 $conn->close();
-error_log("Task notification check completed at " . date('Y-m-d H:i:s'));
-error_log("==== TASK NOTIFICATION SCRIPT ENDED ====");
+error_log("Task notification check completed");
 ?> 
