@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/email_template.php';
 
-class TaskNotification extends EmailTemplate {
+class HabitNotification extends EmailTemplate {
     public function generateEmail($data) {
         return '
         <!DOCTYPE html>
@@ -9,7 +9,7 @@ class TaskNotification extends EmailTemplate {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Task Reminder</title>
+            <title>Habit Reminder</title>
             <style>
                 body {
                     font-family: "Segoe UI", Arial, sans-serif;
@@ -41,7 +41,7 @@ class TaskNotification extends EmailTemplate {
                     letter-spacing: 0.5px;
                     word-break: break-word;
                 }
-                .task-time {
+                .habit-time {
                     font-size: 16px;
                     margin-top: 10px;
                     font-weight: bold;
@@ -74,7 +74,7 @@ class TaskNotification extends EmailTemplate {
                     height: 2px;
                     background-color: rgb(168, 142, 64);
                 }
-                .task-card {
+                .habit-card {
                     background-color: #f8f9fa;
                     border-left: 4px solid #4a90e2;
                     border-radius: 8px;
@@ -85,11 +85,11 @@ class TaskNotification extends EmailTemplate {
                     word-wrap: break-word;
                     overflow-wrap: break-word;
                 }
-                .task-card:hover {
+                .habit-card:hover {
                     transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
-                .task-card.current {
+                .habit-card.current {
                     background-color: rgba(238, 246, 255, 0.8);
                     border-left: 4px solid rgb(168, 142, 64);
                     border-radius: 10px;
@@ -98,7 +98,7 @@ class TaskNotification extends EmailTemplate {
                     box-shadow: 0 5px 15px rgba(0,0,0,0.07);
                     position: relative;
                 }
-                .task-card.current:before {
+                .habit-card.current:before {
                     content: "NOW DUE";
                     position: absolute;
                     top: -10px;
@@ -111,29 +111,25 @@ class TaskNotification extends EmailTemplate {
                     font-weight: bold;
                     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 }
-                .task-card.overdue {
-                    border-left-color: #e53935;
-                    background-color: rgba(255, 240, 240, 0.5);
-                }
-                .task-title {
+                .habit-title {
                     font-size: 18px;
                     font-weight: 600;
                     margin-bottom: 8px;
                     color: #2d3436;
                     word-break: break-word;
                 }
-                .task-card.current .task-title {
+                .habit-card.current .habit-title {
                     font-size: 20px;
                     color: #1a1a1a;
                 }
-                .task-description {
+                .habit-description {
                     font-size: 15px;
                     margin: 10px 0;
                     color: #555;
                     line-height: 1.5;
                     word-break: break-word;
                 }
-                .task-details {
+                .habit-details {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 8px;
@@ -142,7 +138,7 @@ class TaskNotification extends EmailTemplate {
                     margin-top: 15px;
                     align-items: center;
                 }
-                .task-detail-item {
+                .habit-detail-item {
                     display: inline-flex;
                     align-items: center;
                     background: rgba(0,0,0,0.05);
@@ -162,6 +158,14 @@ class TaskNotification extends EmailTemplate {
                 }
                 .priority-low {
                     color: #43a047;
+                }
+                .points {
+                    color: #4a90e2;
+                    font-weight: bold;
+                }
+                .streak {
+                    color: #9c27b0;
+                    font-weight: bold;
                 }
                 .action-buttons {
                     display: flex;
@@ -186,6 +190,12 @@ class TaskNotification extends EmailTemplate {
                 }
                 .complete-button:hover {
                     background-color: #388e3c;
+                }
+                .skip-button {
+                    background-color: #ff9800;
+                }
+                .skip-button:hover {
+                    background-color: #f57c00;
                 }
                 .view-button {
                     background-color: rgb(168, 142, 64);
@@ -228,7 +238,7 @@ class TaskNotification extends EmailTemplate {
                     .header h1 {
                         font-size: 20px;
                     }
-                    .task-time {
+                    .habit-time {
                         font-size: 14px;
                         padding: 4px 12px;
                     }
@@ -240,33 +250,33 @@ class TaskNotification extends EmailTemplate {
                         font-size: 16px;
                         margin-bottom: 12px;
                     }
-                    .task-card {
+                    .habit-card {
                         padding: 12px 10px;
                         margin-bottom: 12px;
                     }
-                    .task-card.current {
+                    .habit-card.current {
                         padding: 15px 10px;
                     }
-                    .task-card.current:before {
+                    .habit-card.current:before {
                         font-size: 10px;
                         padding: 3px 8px;
                         top: -8px;
                         right: 10px;
                     }
-                    .task-title {
+                    .habit-title {
                         font-size: 16px;
                     }
-                    .task-card.current .task-title {
+                    .habit-card.current .habit-title {
                         font-size: 18px;
                     }
-                    .task-description {
+                    .habit-description {
                         font-size: 14px;
                     }
-                    .task-details {
+                    .habit-details {
                         gap: 6px;
                         font-size: 13px;
                     }
-                    .task-detail-item {
+                    .habit-detail-item {
                         padding: 4px 8px;
                     }
                     .action-buttons {
@@ -285,37 +295,32 @@ class TaskNotification extends EmailTemplate {
             <div class="container">
                 <div class="header">
                     <h1>' . htmlspecialchars($data['current_task']['title']) . '</h1>
-                    <div class="task-time">Due at: ' . htmlspecialchars($data['current_task']['due_time']) . '</div>
+                    <div class="habit-time">Due at: ' . htmlspecialchars($data['current_task']['due_time']) . '</div>
                 </div>
                 
                 <div class="section">
-                    <div class="task-card current">
-                        <div class="task-title">It\'s time to complete: ' . htmlspecialchars($data['current_task']['title']) . '</div>
-                        ' . ($data['current_task']['description'] ? '<div class="task-description">' . htmlspecialchars($data['current_task']['description']) . '</div>' : '') . '
-                        <div class="task-details">
-                            <div class="task-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
+                    <div class="habit-card current">
+                        <div class="habit-title">Time to complete your habit: ' . htmlspecialchars($data['current_task']['title']) . '</div>
+                        ' . ($data['current_task']['description'] ? '<div class="habit-description">' . htmlspecialchars($data['current_task']['description']) . '</div>' : '') . '
+                        <div class="habit-details">
+                            <div class="habit-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
                                 Priority: ' . ucfirst(htmlspecialchars($data['current_task']['priority'])) . '
                             </div>
-                            ' . ($data['current_task']['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($data['current_task']['estimated_duration']) . ' min</div>' : '') . '
-                            ' . ($data['current_task']['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
+                            ' . ($data['current_task']['points'] ? '<div class="habit-detail-item points">Earn: +' . htmlspecialchars($data['current_task']['points']) . ' points</div>' : '') . '
+                            ' . ($data['current_task']['category_name'] ? '<div class="habit-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
                         </div>
                         <div class="action-buttons">
-                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button complete-button">Mark Complete</a>
-                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button view-button">View Details</a>
+                            <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php?action=complete&habit_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button complete-button">Complete Now</a>
+                            <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php?action=skip&habit_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button skip-button">Skip Today</a>
+                            <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php?habit_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button view-button">View Details</a>
                         </div>
                     </div>
                 </div>
                 
-                ' . (count($data['overdue_tasks']) > 0 ? '
-                <div class="section">
-                    <div class="section-title">Overdue Tasks</div>
-                    ' . $this->renderTaskList($data['overdue_tasks'], 'overdue') . '
-                </div>' : '') . '
-                
                 ' . (count($data['upcoming_tasks']) > 0 ? '
                 <div class="section">
-                    <div class="section-title">Other Tasks Today</div>
-                    ' . $this->renderTaskList($data['upcoming_tasks']) . '
+                    <div class="section-title">Other Habits Today</div>
+                    ' . $this->renderHabitList($data['upcoming_tasks']) . '
                 </div>' : '') . '
                 
                 <div class="footer">
@@ -328,20 +333,20 @@ class TaskNotification extends EmailTemplate {
         </html>';
     }
     
-    private function renderTaskList($tasks, $type = '') {
+    private function renderHabitList($habits) {
         $output = '';
-        foreach ($tasks as $task) {
+        foreach ($habits as $habit) {
             $output .= '
-            <div class="task-card ' . $type . '">
-                <div class="task-title">' . htmlspecialchars($task['title']) . '</div>
-                ' . ($task['description'] ? '<div class="task-description">' . htmlspecialchars($task['description']) . '</div>' : '') . '
-                <div class="task-details">
-                    <div class="task-detail-item priority-' . htmlspecialchars($task['priority']) . '">
-                        Priority: ' . ucfirst(htmlspecialchars($task['priority'])) . '
+            <div class="habit-card">
+                <div class="habit-title">' . htmlspecialchars($habit['title']) . '</div>
+                ' . ($habit['description'] ? '<div class="habit-description">' . htmlspecialchars($habit['description']) . '</div>' : '') . '
+                <div class="habit-details">
+                    <div class="habit-detail-item priority-' . htmlspecialchars($habit['priority']) . '">
+                        Priority: ' . ucfirst(htmlspecialchars($habit['priority'])) . '
                     </div>
-                    ' . ($task['due_time'] ? '<div class="task-detail-item">Due: ' . htmlspecialchars($task['due_time']) . '</div>' : '') . '
-                    ' . ($task['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($task['estimated_duration']) . ' min</div>' : '') . '
-                    ' . ($task['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($task['category_name']) . '</div>' : '') . '
+                    ' . ($habit['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($habit['due_time']) . '</div>' : '') . '
+                    ' . ($habit['estimated_duration'] ? '<div class="habit-detail-item">' . htmlspecialchars($habit['estimated_duration']) . '</div>' : '') . '
+                    ' . ($habit['category_name'] ? '<div class="habit-detail-item">Category: ' . htmlspecialchars($habit['category_name']) . '</div>' : '') . '
                 </div>
             </div>';
         }

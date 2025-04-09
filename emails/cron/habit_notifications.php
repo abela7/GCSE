@@ -9,7 +9,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../config/email_config.php';
 require_once __DIR__ . '/../../includes/db_connect.php';
-require_once __DIR__ . '/../templates/task_notification.php';
+require_once __DIR__ . '/../templates/habit_notification.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -191,7 +191,7 @@ while ($current_habit = $result->fetch_assoc()) {
     ];
     
     // Generate email content
-    $notification = new TaskNotification();
+    $notification = new HabitNotification();
     $emailContent = $notification->generateEmail($emailData);
     
     // Send email
@@ -219,7 +219,7 @@ while ($current_habit = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Habit Due: " . $current_habit['title'];
+        $mail->Subject = "Habit Due Now: " . $current_habit['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
