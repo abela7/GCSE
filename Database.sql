@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 09, 2025 at 12:54 AM
+-- Generation Time: Apr 09, 2025 at 04:43 AM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -1047,9 +1047,9 @@ INSERT INTO `mood_entries` (`id`, `date`, `mood_level`, `notes`, `created_at`, `
 (27, '2025-04-07 00:13:34', 3, 'IT helped recover everything.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
 (28, '2025-04-07 00:13:34', 5, 'Found even better solution!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
 (29, '2025-04-08 00:13:34', 4, 'Morning meditation and exercise.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(30, '2025-04-08 00:13:34', 2, 'Difficult client meeting.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(30, '2025-04-08 00:13:34', 2, 'Difficult client meeting.', '2025-04-08 23:13:34', '2025-04-08 23:58:09'),
 (31, '2025-04-08 00:13:34', 1, 'Project deadline stress mounting.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(32, '2025-04-08 00:13:34', 5, 'Successfully submitted project!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
+(32, '2025-04-08 00:13:34', 5, 'Successfully submitted project!', '2025-04-08 23:13:34', '2025-04-08 23:59:30'),
 (33, '2025-04-09 00:00:00', 3, 'Regular start to the day.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
 (34, '2025-04-09 00:00:00', 5, 'Breakthrough in morning meeting!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
 (35, '2025-04-09 00:00:00', 2, 'Post-lunch energy crash.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
@@ -1133,9 +1133,7 @@ INSERT INTO `mood_entry_tags` (`id`, `mood_entry_id`, `tag_id`, `created_at`) VA
 (28, 25, 5, '2025-04-08 23:19:53'),
 (29, 29, 7, '2025-04-08 23:19:53'),
 (30, 29, 10, '2025-04-08 23:19:53'),
-(31, 30, 5, '2025-04-08 23:19:53'),
 (32, 31, 5, '2025-04-08 23:19:53'),
-(33, 32, 5, '2025-04-08 23:19:53'),
 (34, 34, 5, '2025-04-08 23:19:53'),
 (35, 36, 11, '2025-04-08 23:19:53'),
 (39, 57, 7, '2025-04-08 23:52:04'),
@@ -1162,7 +1160,9 @@ INSERT INTO `mood_entry_tags` (`id`, `mood_entry_id`, `tag_id`, `created_at`) VA
 (60, 41, 5, '2025-04-08 23:52:04'),
 (61, 40, 1, '2025-04-08 23:52:04'),
 (62, 39, 8, '2025-04-08 23:52:04'),
-(63, 38, 1, '2025-04-08 23:52:04');
+(63, 38, 1, '2025-04-08 23:52:04'),
+(64, 30, 1, '2025-04-08 23:58:09'),
+(65, 32, 7, '2025-04-08 23:59:30');
 
 -- --------------------------------------------------------
 
@@ -1655,10 +1655,6 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `subject_id`, `date`, `duration`, `notes`) VALUES
-(1, 1, '2025-03-15', 60, 'Worked on Shakespeare quotes'),
-(2, 1, '2025-03-18', 45, 'Practiced creative writing'),
-(3, 2, '2025-03-16', 90, 'Solved quadratic equations'),
-(4, 2, '2025-03-20', 75, 'Reviewed trigonometry'),
 (0, 1, '2025-04-08', 10, 'Studied maths Algebra');
 
 -- --------------------------------------------------------
@@ -1702,8 +1698,6 @@ CREATE TABLE `study_time_tracking` (
 --
 
 INSERT INTO `study_time_tracking` (`id`, `topic_id`, `start_time`, `end_time`, `duration_seconds`, `status`, `last_pause_time`, `accumulated_seconds`) VALUES
-(0, 186, '2025-04-08 03:09:34', '2025-04-08 03:09:36', 1, 'completed', NULL, 1),
-(0, 190, '2025-04-08 03:14:57', '2025-04-08 03:15:19', 20, 'completed', NULL, 20),
 (0, 203, '2025-04-08 04:45:59', '2025-04-08 04:48:27', 276, 'completed', NULL, 276);
 
 -- --------------------------------------------------------
@@ -1771,7 +1765,8 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', NULL, 'pending', 0.00, 1, '2025-04-08 08:30:13', '2025-04-08 08:30:13');
+(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', '02:19:18', 'not_done', 0.00, 1, '2025-04-08 08:30:13', '2025-04-09 02:09:31'),
+(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '12:00:00', 'pending', 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 03:26:00');
 
 -- --------------------------------------------------------
 
@@ -1803,7 +1798,8 @@ INSERT INTO `task_categories` (`id`, `name`, `description`, `icon`, `color`, `di
 (5, 'Health', 'Physical health and fitness', 'fas fa-heartbeat', '#32CD32', 5, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (9, 'Education', 'General educational activities', 'fas fa-school', '#4169E1', 9, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (10, 'Uncategorized', NULL, 'fas fa-folder', '#6c757d', 0, 1, '2025-04-02 23:56:40', '2025-04-02 23:56:40'),
-(0, 'Self Care', NULL, 'fas fa-star', '#1f8291', 0, 1, '2025-04-08 09:18:13', '2025-04-08 09:18:13');
+(0, 'Self Care', NULL, 'fas fa-star', '#1f8291', 0, 1, '2025-04-08 09:18:13', '2025-04-08 09:18:13'),
+(0, 'Social Life', NULL, 'fas fa-tasks', '#277a7a', 0, 1, '2025-04-09 03:25:12', '2025-04-09 03:25:12');
 
 -- --------------------------------------------------------
 
@@ -1968,9 +1964,6 @@ CREATE TABLE `topic_progress` (
 --
 
 INSERT INTO `topic_progress` (`id`, `topic_id`, `status`, `total_time_spent`, `confidence_level`, `last_studied`, `completion_date`, `notes`) VALUES
-(0, 186, 'completed', 1, 5, '2025-04-08 03:29:08', '2025-04-08 03:29:08', ''),
-(0, 190, 'completed', 0, 5, '2025-04-08 03:15:30', '2025-04-08 03:15:30', ''),
-(0, 190, 'completed', 20, 5, '2025-04-08 03:15:30', '2025-04-08 03:15:30', ''),
 (0, 203, 'completed', 276, 3, '2025-04-08 04:48:27', NULL, '');
 
 -- --------------------------------------------------------
@@ -2175,7 +2168,7 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT for table `favorite_practice_items`
 --
 ALTER TABLE `favorite_practice_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `habits`
@@ -2211,7 +2204,7 @@ ALTER TABLE `mood_entry_factors`
 -- AUTO_INCREMENT for table `mood_entry_tags`
 --
 ALTER TABLE `mood_entry_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `mood_factors`
@@ -2247,7 +2240,7 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=110;
 
 --
 -- Constraints for dumped tables

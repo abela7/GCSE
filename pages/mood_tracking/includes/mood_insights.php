@@ -640,6 +640,77 @@ function analyzeCommonFactors($entries) {
     
     arsort($factors);
     return array_slice($factors, 0, 3, true);
-} 
-    return array_slice($factors, 0, 3, true);
-} 
+}
+
+// This include file displays the pattern analysis sections
+// It's used across different time periods (daily, weekly, monthly)
+// to maintain consistency and reduce code duplication
+
+// Tag Patterns
+if (!empty($analysis['insights']['patterns']['tags'])): ?>
+    <div class="mb-4">
+        <h4 class="h5 mb-3">Activity Impact</h4>
+        <?php foreach ($analysis['insights']['patterns']['tags'] as $pattern): ?>
+            <div class="pattern-card">
+                <div class="pattern-title">
+                    <i class="fas fa-tag me-2"></i><?php echo htmlspecialchars($pattern['title'] ?? 'Unknown Tag'); ?>
+                </div>
+                <div class="pattern-description"><?php echo htmlspecialchars($pattern['description'] ?? 'No description available.'); ?></div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<!-- Mood Consistency -->
+<?php if (!empty($analysis['insights']['patterns']['consistency'])): ?>
+    <div class="mb-4">
+        <h4 class="h5 mb-3">Mood Consistency</h4>
+        <div class="pattern-card">
+            <?php 
+            $consistency = $analysis['insights']['patterns']['consistency'];
+            $icon = '';
+            $level = $consistency['level'] ?? 'unknown';
+            switch($level) {
+                case 'very_stable': $icon = '🎯'; break;
+                case 'stable': $icon = '⚖️'; break;
+                case 'moderate': $icon = '🔄'; break;
+                case 'volatile': $icon = '📊'; break;
+                default: $icon = '📈';
+            }
+            ?>
+            <div class="pattern-title"><?php echo $icon . ' ' . ucfirst(str_replace('_', ' ', $level)); ?></div>
+            <div class="pattern-description"><?php echo htmlspecialchars($consistency['description'] ?? 'No description available.'); ?></div>
+            <?php if (!empty($consistency['metrics'])): ?>
+                <div class="mt-2 text-white-50">
+                    <small>
+                        <?php 
+                        echo "Stable days: {$consistency['metrics']['stable_days']}/{$consistency['metrics']['total_days']}";
+                        if (isset($consistency['metrics']['mood_swings']) && $consistency['metrics']['mood_swings'] > 0) {
+                            echo " • Significant mood changes: {$consistency['metrics']['mood_swings']}";
+                        }
+                        ?>
+                    </small>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- Improvement Areas -->
+<?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
+    <div class="mb-4">
+        <h4 class="h5 mb-3">Areas for Improvement</h4>
+        <div class="pattern-card">
+            <div class="pattern-title"><i class="fas fa-bullseye me-2"></i>Focus Areas</div>
+            <div class="pattern-description">
+                <ul class="list-unstyled mb-0">
+                    <?php foreach ($analysis['insights']['patterns']['improvement_areas']['suggestions'] as $suggestion): ?>
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right me-2"></i><?php echo htmlspecialchars($suggestion); ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+    </div>
+<?php endif; ?> 
