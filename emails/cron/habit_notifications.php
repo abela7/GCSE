@@ -23,8 +23,8 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time plus buffer (for habits due within the next 5-15 minutes)
-$buffer_minutes = 15; // Notification ahead of time
+// Get current time plus buffer (for habits due within the next 5 minutes)
+$buffer_minutes = 5; // Changed from 15 to 5 minutes
 $current_time = date('H:i:s');
 $notification_window_start = date('H:i:s');
 $notification_window_end = date('H:i:s', strtotime("+{$buffer_minutes} minutes"));
