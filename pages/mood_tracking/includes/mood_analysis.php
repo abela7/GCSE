@@ -643,5 +643,111 @@ class MoodAnalyzer {
 
         return $time_patterns;
     }
+
+    private function analyzeMoodConsistency($start_date, $end_date) {
+        $query = "SELECT 
+                    mood_level,
+                    COUNT(*) as count,
+                    DATE(date) as entry_date
+                  FROM mood_entries
+                  WHERE date BETWEEN ? AND ?
+                  GROUP BY DATE(date), mood_level
+                  ORDER BY entry_date";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $daily_moods = [];
+        while ($row = $result->fetch_assoc()) {
+            if (!isset($daily_moods[$row['entry_date']])) {
+                $daily_moods[$row['entry_date']] = [];
+            }
+            $daily_moods[$row['entry_date']][$row['mood_level']] = $row['count'];
+        }
+
+        // Calculate consistency metrics
+        $consistency = [
+            'level' => 'stable',
+            'description' => '',
+            'metrics' => [
+                'mood_swings' => 0,
+                'stable_days' => 0,
+                'total_days' => count($daily_moods)
+            ]
+        ];
+
+        if (empty($daily_moods)) {
+            return $consistency;
+        }
+
+        $previous_mood = null;
+        foreach ($daily_moods as $date => $moods) {
+            // Get the most frequent mood for the day
+            arsort($moods);
+            $current_mood = key($moods);
+
+            if ($previous_mood !== null) {
+                // Count mood swings (changes of 2 or more levels)
+                if (abs($current_mood - $previous_mood) >= 2) {
+                    $consistency['metrics']['mood_swings']++;
+                }
+            }
+
+            // Count stable days (same mood level throughout the day)
+            if (count($moods) === 1) {
+                $consistency['metrics']['stable_days']++;
+            }
+
+            $previous_mood = $current_mood;
+        }
+
+        // Determine consistency level
+        $swing_percentage = ($consistency['metrics']['mood_swings'] / $consistency['metrics']['total_days']) * 100;
+        $stability_percentage = ($consistency['metrics']['stable_days'] / $consistency['metrics']['total_days']) * 100;
+
+        if ($swing_percentage >= 50) {
+            $consistency['level'] = 'volatile';
+            $consistency['description'] = "Your mood shows significant fluctuations, with frequent changes in emotional state.";
+        } elseif ($swing_percentage >= 30) {
+            $consistency['level'] = 'moderate';
+            $consistency['description'] = "Your mood shows moderate fluctuations, with some changes in emotional state.";
+        } elseif ($stability_percentage >= 70) {
+            $consistency['level'] = 'very_stable';
+            $consistency['description'] = "Your mood is very stable, showing consistent emotional patterns.";
+        } else {
+            $consistency['level'] = 'stable';
+            $consistency['description'] = "Your mood is generally stable, with occasional changes in emotional state.";
+        }
+
+        return $consistency;
+    }
+
+    private function identifyImprovementAreas($start_date, $end_date) {
+        $query = "SELECT 
+                    t.name as tag_name,
+                    AVG(me.mood_level) as avg_mood,
+                    COUNT(*) as entry_count
+                  FROM mood_entries me
+                  JOIN mood_entry_tags met ON me.id = met.mood_entry_id
+                  JOIN mood_tags t ON met.tag_id = t.id
+                  WHERE me.date BETWEEN ? AND ?
+                  GROUP BY t.name
+                  HAVING avg_mood < 3
+                  ORDER BY avg_mood ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $improvement_areas = [];
+        while ($row = $result->fetch_assoc()) {
+            $improvement_areas[] = $row['tag_name'];
+        }
+
+        return $improvement_areas;
+    }
 }
 ?> 
