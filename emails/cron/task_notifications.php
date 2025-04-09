@@ -43,6 +43,7 @@ error_log("Current date: {$today}");
 error_log("Current time: {$current_time}");
 
 // MAJOR CHANGE: Completely bypass the time window checks and just get pending tasks for today
+// Limit to 2 tasks per run to avoid notification flooding
 $tasks_query = "
     SELECT 
         t.id, 
@@ -67,7 +68,7 @@ $tasks_query = "
     ORDER BY 
         t.due_time ASC, 
         FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 5
+    LIMIT 2
 ";
 
 // Log the actual SQL before executing
