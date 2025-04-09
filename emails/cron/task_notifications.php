@@ -168,12 +168,25 @@ try {
             // Check if task was recently notified (within last 5 minutes)
             $recently_notified = false;
             $last_notified_readable = "Never";
+            $last_notified_time = null;
             
             if (!empty($task['last_notified'])) {
                 $last_notified_time = strtotime($task['last_notified']);
                 $time_since_notification = time() - $last_notified_time;
-                $recently_notified = ($time_since_notification < 300); // 5 minutes = 300 seconds
                 $last_notified_readable = date('h:i:s A', $last_notified_time);
+                
+                // Check if the task due time is AFTER the last notification time
+                // This handles cases where a task is snoozed/rescheduled after being notified
+                $task_datetime = strtotime($task['due_date'] . ' ' . $task['due_time']);
+                
+                if ($task_datetime > $last_notified_time) {
+                    // The task was rescheduled for a later time after the notification
+                    $recently_notified = false;
+                    $last_notified_readable .= " (Task rescheduled since then)";
+                } else {
+                    // Normal case - check if it was notified recently
+                    $recently_notified = ($time_since_notification < 300); // 5 minutes = 300 seconds
+                }
             }
             
             // Determine if notification should be sent
