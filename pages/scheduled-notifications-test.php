@@ -423,20 +423,15 @@ include '../includes/header.php';
                                         <p class="small mb-0">Notification emails are now sent to <strong><?= SMTP_USERNAME ?></strong> instead of a hardcoded Gmail address. This matches the test notification settings.</p>
                                     </div>
                                     
-                                    <div class="alert alert-warning mb-3">
-                                        <h6><i class="fas fa-tools me-1"></i> Advanced Troubleshooting</h6>
-                                        <p class="small mb-0">If you're experiencing email issues, try these advanced debugging tools:</p>
-                                        <div class="mt-2">
-                                            <a href="../debug_email_connection.php" class="btn btn-sm btn-outline-primary me-2 mb-1">
-                                                <i class="fas fa-plug me-1"></i> Test SMTP Connection
-                                            </a>
-                                            <a href="../force_task_notification.php" class="btn btn-sm btn-outline-danger me-2 mb-1">
-                                                <i class="fas fa-paper-plane me-1"></i> Force Send Notification
-                                            </a>
-                                            <a href="../debug_notification_tables.php" class="btn btn-sm btn-outline-dark mb-1">
-                                                <i class="fas fa-database me-1"></i> Debug Notification System
-                                            </a>
-                                        </div>
+                                    <div class="alert alert-secondary mt-3">
+                                        <h4>🔧 Advanced Troubleshooting</h4>
+                                        <p>If you're experiencing issues with task notifications, try these debugging tools:</p>
+                                        <ul>
+                                            <li><a href="../debug_email_connection.php" class="btn btn-sm btn-info">Test SMTP Connection</a> - Verify email server connection is working</li>
+                                            <li><a href="../emails/cron/direct_debug.php" class="btn btn-sm btn-primary">Task Notification Debug Dashboard</a> - Interactive debugging and testing tool</li>
+                                            <li><a href="../force_task_notification.php" class="btn btn-sm btn-warning">Force Send Notification</a> - Send a notification for a specific task</li>
+                                            <li><a href="../debug_notification_tables.php" class="btn btn-sm btn-secondary">Debug Notification Tables</a> - Check notification tracking</li>
+                                        </ul>
                                     </div>
                                     
                                     <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>

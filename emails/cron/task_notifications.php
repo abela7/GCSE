@@ -35,16 +35,17 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Set up precise time windows for notifications
+// Set up time windows for notifications with a wider range
 $current_time = date('H:i:s');
-$three_min_future = date('H:i:s', strtotime("+3 minutes"));
+$one_min_ago = date('H:i:s', strtotime("-1 minute")); // Check tasks due in the last minute
+$five_min_future = date('H:i:s', strtotime("+5 minutes")); // Check tasks due in the next 5 minutes
 $today = date('Y-m-d');
 
 error_log("Current date: {$today}");
 error_log("Current time: {$current_time}");
-error_log("3-minute future window: {$three_min_future}");
+error_log("Checking for tasks due between {$one_min_ago} and {$five_min_future}");
 
-// Modified query to only get tasks due right now or within the next 3 minutes
+// Modified query to check for tasks due in a wider window
 // Limit to 1 task per run to prevent multiple notifications
 $tasks_query = "
     SELECT 
@@ -75,7 +76,7 @@ $tasks_query = "
 ";
 
 // Log the actual SQL before executing
-error_log("SQL Query with params: [date={$today}, start_time={$current_time}, end_time={$three_min_future}]");
+error_log("SQL Query with params: [date={$today}, start_time={$one_min_ago}, end_time={$five_min_future}]");
 
 try {
     $stmt = $conn->prepare($tasks_query);
@@ -84,7 +85,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("sss", $today, $current_time, $three_min_future);
+    $stmt->bind_param("sss", $today, $one_min_ago, $five_min_future);
     $stmt->execute();
     
     if ($stmt->error) {
@@ -252,7 +253,7 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Task Due Today: " . $current_task['title'];
+        $mail->Subject = "⏰ Task Due Now: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
