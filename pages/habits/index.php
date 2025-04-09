@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/../../../includes/auth_check.php';
+
+// Include required files
+require_once '../../config/db_connect.php';
+
 require_once '../../includes/header.php';
 require_once '../../includes/db_connect.php';  // Database connection
 

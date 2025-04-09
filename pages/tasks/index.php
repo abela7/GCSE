@@ -1,9 +1,11 @@
 <?php
+require_once __DIR__ . '/../../../includes/auth_check.php';
+
 // Set timezone to London
 date_default_timezone_set('Europe/London');
 
-require_once '../../includes/header.php';
-require_once '../../includes/db_connect.php';
+// Include required files
+require_once '../../config/db_connect.php';
 
 // Handle POST actions for tasks
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
