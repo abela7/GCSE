@@ -194,10 +194,8 @@ class MoodAnalyzer {
                     YEARWEEK(date) as week,
                     AVG(mood_level) as avg_mood,
                     COUNT(*) as entry_count,
-                    GROUP_CONCAT(DISTINCT notes) as notes,
-                    GROUP_CONCAT(DISTINCT tag_id) as tags
-                  FROM mood_entries me
-                  LEFT JOIN mood_entry_tags met ON me.id = met.mood_entry_id
+                    GROUP_CONCAT(notes) as notes
+                  FROM mood_entries
                   WHERE date BETWEEN ? AND ?
                   GROUP BY YEARWEEK(date)
                   ORDER BY week DESC";
@@ -212,14 +210,56 @@ class MoodAnalyzer {
             $weekly_data[$row['week']] = [
                 'avg_mood' => round($row['avg_mood'], 1),
                 'entry_count' => $row['entry_count'],
-                'notes' => explode(',', $row['notes']),
-                'tags' => explode(',', $row['tags']),
-                'mood_label' => $this->getMoodLabel($row['avg_mood']),
-                'trend' => $this->calculateMoodTrend($row['avg_mood'])
+                'notes' => explode(',', $row['notes'])
             ];
         }
 
         return $weekly_data;
+    }
+
+    private function generateWeeklyInsights($weekly_data) {
+        if (empty($weekly_data)) {
+            return null;
+        }
+
+        $current_week = date('YW');
+        if (!isset($weekly_data[$current_week])) {
+            return null;
+        }
+
+        $mood_level = round($weekly_data[$current_week]['avg_mood']);
+        $mood_label = $this->mood_scale[$mood_level]['label'];
+
+        return [
+            'mood' => $mood_label,
+            'mood_level' => $mood_level,
+            'description' => $this->generateWeeklyDescription($mood_level, $weekly_data[$current_week]),
+            'suggestions' => $this->generateWeeklySuggestions($mood_level)
+        ];
+    }
+
+    private function generateWeeklyDescription($mood_level, $data) {
+        $descriptions = [
+            5 => "You've had an excellent week! Your mood has been consistently positive and uplifting.",
+            4 => "You've had a good week! Your mood has been generally positive and stable.",
+            3 => "You've had a balanced week. Your mood has been steady and neutral.",
+            2 => "You've had a challenging week. Your mood has been somewhat low.",
+            1 => "You've had a difficult week. Your mood has been significantly low."
+        ];
+
+        return $descriptions[$mood_level] ?? "No weekly mood description available.";
+    }
+
+    private function generateWeeklySuggestions($mood_level) {
+        $suggestions = [
+            5 => "Consider documenting what's been working well this week to maintain this positive momentum.",
+            4 => "Build on this positive week by planning activities you enjoy for the coming days.",
+            3 => "Try incorporating more mood-lifting activities into your weekly routine.",
+            2 => "Consider adjusting your weekly routine and reaching out for support if needed.",
+            1 => "It might be helpful to talk to someone and review your self-care strategies for the week."
+        ];
+
+        return $suggestions[$mood_level] ?? "No weekly suggestions available.";
     }
 
     private function analyzeMonthlyMood($start_date, $end_date) {
@@ -227,10 +267,8 @@ class MoodAnalyzer {
                     DATE_FORMAT(date, '%Y-%m') as month,
                     AVG(mood_level) as avg_mood,
                     COUNT(*) as entry_count,
-                    GROUP_CONCAT(DISTINCT notes) as notes,
-                    GROUP_CONCAT(DISTINCT tag_id) as tags
-                  FROM mood_entries me
-                  LEFT JOIN mood_entry_tags met ON me.id = met.mood_entry_id
+                    GROUP_CONCAT(notes) as notes
+                  FROM mood_entries
                   WHERE date BETWEEN ? AND ?
                   GROUP BY DATE_FORMAT(date, '%Y-%m')
                   ORDER BY month DESC";
@@ -245,14 +283,56 @@ class MoodAnalyzer {
             $monthly_data[$row['month']] = [
                 'avg_mood' => round($row['avg_mood'], 1),
                 'entry_count' => $row['entry_count'],
-                'notes' => explode(',', $row['notes']),
-                'tags' => explode(',', $row['tags']),
-                'mood_label' => $this->getMoodLabel($row['avg_mood']),
-                'trend' => $this->calculateMoodTrend($row['avg_mood'])
+                'notes' => explode(',', $row['notes'])
             ];
         }
 
         return $monthly_data;
+    }
+
+    private function generateMonthlyInsights($monthly_data) {
+        if (empty($monthly_data)) {
+            return null;
+        }
+
+        $current_month = date('Y-m');
+        if (!isset($monthly_data[$current_month])) {
+            return null;
+        }
+
+        $mood_level = round($monthly_data[$current_month]['avg_mood']);
+        $mood_label = $this->mood_scale[$mood_level]['label'];
+
+        return [
+            'mood' => $mood_label,
+            'mood_level' => $mood_level,
+            'description' => $this->generateMonthlyDescription($mood_level, $monthly_data[$current_month]),
+            'suggestions' => $this->generateMonthlySuggestions($mood_level)
+        ];
+    }
+
+    private function generateMonthlyDescription($mood_level, $data) {
+        $descriptions = [
+            5 => "You've had an excellent month! Your mood has been consistently positive and uplifting.",
+            4 => "You've had a good month! Your mood has been generally positive and stable.",
+            3 => "You've had a balanced month. Your mood has been steady and neutral.",
+            2 => "You've had a challenging month. Your mood has been somewhat low.",
+            1 => "You've had a difficult month. Your mood has been significantly low."
+        ];
+
+        return $descriptions[$mood_level] ?? "No monthly mood description available.";
+    }
+
+    private function generateMonthlySuggestions($mood_level) {
+        $suggestions = [
+            5 => "Consider documenting what's been working well this month to maintain this positive momentum.",
+            4 => "Build on this positive month by planning activities you enjoy for the coming weeks.",
+            3 => "Try incorporating more mood-lifting activities into your monthly routine.",
+            2 => "Consider adjusting your monthly routine and reaching out for support if needed.",
+            1 => "It might be helpful to talk to someone and review your self-care strategies for the month."
+        ];
+
+        return $suggestions[$mood_level] ?? "No monthly suggestions available.";
     }
 
     private function analyzeTimeOfDayPatterns($start_date, $end_date) {
@@ -456,6 +536,44 @@ class MoodAnalyzer {
         if ($mood_level >= 2.5) return 'stable';
         if ($mood_level >= 1.5) return 'challenging';
         return 'difficult';
+    }
+
+    private function generateTagInsights($tag_correlations) {
+        $insights = [];
+        foreach ($tag_correlations as $tag => $data) {
+            if ($data['entry_count'] > 0) {
+                $insights[] = [
+                    'title' => $tag,
+                    'description' => $this->generateTagDescription($tag, $data['avg_mood'], $data['impact'])
+                ];
+            }
+        }
+        return $insights;
+    }
+
+    private function generateTagDescription($tag, $avg_mood, $impact) {
+        $descriptions = [
+            'very_positive' => "Activities tagged with '$tag' consistently boost your mood!",
+            'positive' => "Activities tagged with '$tag' generally have a positive effect on your mood.",
+            'neutral' => "Activities tagged with '$tag' tend to maintain your current mood level.",
+            'negative' => "Activities tagged with '$tag' might be contributing to lower mood levels.",
+            'very_negative' => "Activities tagged with '$tag' often coincide with significant mood drops."
+        ];
+
+        return $descriptions[$impact] ?? "No pattern detected for activities tagged with '$tag'.";
+    }
+
+    private function generateImprovementSuggestions($areas) {
+        if (empty($areas)) {
+            return ["No specific areas for improvement identified at this time."];
+        }
+
+        $suggestions = [];
+        foreach ($areas as $area) {
+            $suggestions[] = "Consider reviewing your approach to activities tagged with '$area'.";
+        }
+
+        return $suggestions;
     }
 }
 ?> 
