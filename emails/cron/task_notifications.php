@@ -35,16 +35,14 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Remove the buffer to focus on exact due time - expand the window slightly for testing
+// Expand the window even more to catch tasks within a 20-minute window of current time
 $current_time = date('H:i:s');
-$notification_window_start = date('H:i:s', strtotime("-5 minute")); // Expand to 5-minute window
-$notification_window_end = date('H:i:s', strtotime("+5 minute"));   // to catch more tasks
 $today = date('Y-m-d');
 
-error_log("Checking for tasks due between {$notification_window_start} and {$notification_window_end} on {$today}");
-error_log("Current time is: {$current_time}");
+error_log("Current date: {$today}");
+error_log("Current time: {$current_time}");
 
-// Find tasks that are due within the notification window
+// MAJOR CHANGE: Completely bypass the time window checks and just get pending tasks for today
 $tasks_query = "
     SELECT 
         t.id, 
@@ -65,11 +63,11 @@ $tasks_query = "
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
-        AND t.due_time BETWEEN ? AND ?
         AND tnt.id IS NULL
     ORDER BY 
         t.due_time ASC, 
         FIELD(t.priority, 'high', 'medium', 'low')
+    LIMIT 5
 ";
 
 // Log the actual SQL before executing
@@ -82,7 +80,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("sss", $today, $notification_window_start, $notification_window_end);
+    $stmt->bind_param("s", $today);
     $stmt->execute();
     
     if ($stmt->error) {
@@ -95,6 +93,20 @@ try {
     
     if ($result->num_rows === 0) {
         error_log("No due tasks found for notification. Exiting.");
+        
+        // DEBUG: List all tasks to see if we're missing something
+        $all_tasks_query = "SELECT id, title, due_date, due_time, status FROM tasks ORDER BY due_date DESC, due_time ASC LIMIT 10";
+        $all_tasks_result = $conn->query($all_tasks_query);
+        
+        if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
+            error_log("Recent tasks in database:");
+            while($row = $all_tasks_result->fetch_assoc()) {
+                error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']}");
+            }
+        } else {
+            error_log("No tasks found in database at all!");
+        }
+        
         exit;
     }
 } catch (Exception $e) {
@@ -102,21 +114,10 @@ try {
     exit;
 }
 
-// DEBUG: Let's query the tasks table directly to check what tasks exist
-$debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' ORDER BY due_time";
-$debug_result = $conn->query($debug_query);
-if ($debug_result) {
-    error_log("DEBUG - Tasks for today: " . $debug_result->num_rows . " tasks found");
-    while ($row = $debug_result->fetch_assoc()) {
-        error_log("DEBUG - Task ID: {$row['id']}, Title: {$row['title']}, Due: {$row['due_time']}, Status: {$row['status']}");
-    }
-} else {
-    error_log("DEBUG - Failed to query tasks: " . $conn->error);
-}
-
+// Process each task found
 while ($current_task = $result->fetch_assoc()) {
     // Log task found
-    error_log("Preparing notification for task: {$current_task['id']} - {$current_task['title']} due at {$current_task['due_time']}");
+    error_log("Processing notification for task: {$current_task['id']} - {$current_task['title']} due at {$current_task['due_time']}");
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
@@ -182,7 +183,6 @@ while ($current_task = $result->fetch_assoc()) {
         WHERE 
             t.status IN ('pending', 'in_progress')
             AND t.due_date = ?
-            AND t.due_time > ?
             AND t.id != ?
         ORDER BY 
             t.due_time ASC, 
@@ -191,7 +191,7 @@ while ($current_task = $result->fetch_assoc()) {
     ";
     
     $upcoming_stmt = $conn->prepare($upcoming_tasks_query);
-    $upcoming_stmt->bind_param("ssi", $today, $notification_window_end, $current_task['id']);
+    $upcoming_stmt->bind_param("si", $today, $current_task['id']);
     $upcoming_stmt->execute();
     $upcoming_result = $upcoming_stmt->get_result();
     
@@ -248,12 +248,16 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Task Due Now: " . $current_task['title'];
+        $mail->Subject = "Task Due Today: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
         // Send the email
-        $mail->send();
+        if (!$mail->send()) {
+            error_log("Email could not be sent: " . $mail->ErrorInfo);
+            continue; // Skip to next task if email fails
+        }
+        
         error_log("Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
         
         // Record that notification has been sent - moved after successful email sending
