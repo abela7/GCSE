@@ -220,6 +220,8 @@ class TaskNotification extends EmailTemplate {
                         Priority: ' . ucfirst(htmlspecialchars($task['priority'])) . '
                     </li>
                     ' . ($task['due_time'] ? '<li class="task-detail-item">Due Time: ' . htmlspecialchars($task['due_time']) . '</li>' : '') . '
+                    ' . ($type == 'overdue' && isset($task['overdue_text']) ? '<li class="task-detail-item" style="color: #f44336;"><strong>' . htmlspecialchars($task['overdue_text']) . '</strong></li>' : '') . '
+                    ' . ($type != 'overdue' && isset($task['upcoming_text']) ? '<li class="task-detail-item" style="color: #4caf50;"><strong>' . htmlspecialchars($task['upcoming_text']) . '</strong></li>' : '') . '
                     ' . ($task['estimated_duration'] ? '<li class="task-detail-item">Estimated Duration: ' . htmlspecialchars($task['estimated_duration']) . ' minutes</li>' : '') . '
                 </ul>
             </div>';
