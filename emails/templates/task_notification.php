@@ -200,8 +200,14 @@ class TaskNotification extends EmailTemplate {
                 </div>' : '') . '
                 
                 <div class="footer">
-                    <p>This is an automated notification from <span class="app-name">Amha-Silassie Study App</span></p>
-                    <p>© ' . date('Y') . ' Amha-Silassie. All rights reserved.</p>
+                    <p>ኃይልን በሚሰጠኝ በክርስቶስ ሁሉን እችላለሁ </br>
+                    ፊልጵስዩስ 4:13
+                    </br>
+                    
+                    </p>
+                    <p>This email was sent from AMHA-SLASSIE</p>
+                    <p>© ' . date('Y') . ' Amha-SELASIE. All rights reserved.</p>
+                    <p><a href="{unsubscribe_link}" style="color: #888; text-decoration: underline;">Unsubscribe</a> from these notifications</p>
                 </div>
             </div>
         </body>
