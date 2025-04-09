@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 09, 2025 at 04:43 AM
+-- Generation Time: Apr 09, 2025 at 01:13 PM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -649,7 +649,7 @@ CREATE TABLE `habits` (
 
 INSERT INTO `habits` (`id`, `category_id`, `point_rule_id`, `name`, `description`, `icon`, `target_time`, `current_points`, `total_completions`, `total_procrastinated`, `total_skips`, `current_streak`, `longest_streak`, `success_rate`, `is_active`, `created_at`, `updated_at`) VALUES
 (21, 1, 3, 'Morning Prayer', 'ተግተን እንፀልይ ወደ ፈተና እንዳንገባ!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-08 05:45:56', '2025-04-08 05:45:56'),
-(22, 3, 2, 'Use Meloxline', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-08 05:47:04', '2025-04-08 05:47:04');
+(22, 3, 2, 'Use Meloxline', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', -7, 0, 0, 1, 0, 0, 0.00, 1, '2025-04-08 05:47:04', '2025-04-09 03:52:40');
 
 -- --------------------------------------------------------
 
@@ -700,6 +700,13 @@ CREATE TABLE `habit_completions` (
   `notes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `habit_completions`
+--
+
+INSERT INTO `habit_completions` (`id`, `habit_id`, `completion_date`, `completion_time`, `status`, `reason`, `points_earned`, `notes`, `created_at`) VALUES
+(5, 22, '2025-04-09', '04:52:40', 'skipped', 'Being stressed', -7, 'Stressed and can\'t manage my time yet', '2025-04-09 03:52:40');
 
 -- --------------------------------------------------------
 
@@ -1230,6 +1237,20 @@ INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notification_tracking`
+--
+
+CREATE TABLE `notification_tracking` (
+  `id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `item_type` enum('task','habit') NOT NULL,
+  `last_sent_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `overall_progress`
 --
 
@@ -1754,6 +1775,7 @@ CREATE TABLE `tasks` (
   `due_date` date DEFAULT NULL,
   `due_time` time DEFAULT NULL,
   `status` enum('pending','in_progress','completed','not_done','snoozed') DEFAULT 'pending',
+  `notification_sent` tinyint(1) DEFAULT 0,
   `completion_percentage` decimal(5,2) DEFAULT 0.00,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1764,9 +1786,18 @@ CREATE TABLE `tasks` (
 -- Dumping data for table `tasks`
 --
 
-INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', '02:19:18', 'not_done', 0.00, 1, '2025-04-08 08:30:13', '2025-04-09 02:09:31'),
-(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '12:00:00', 'pending', 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 03:26:00');
+INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `notification_sent`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
+(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', '02:19:18', 'not_done', 0, 0.00, 1, '2025-04-08 08:30:13', '2025-04-09 02:09:31'),
+(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '12:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 03:26:00'),
+(110, 12, NULL, 'Call sara', 'Ask her to Bring the cash', 'one-time', 'medium', 5, '2025-04-09', '13:30:00', 'pending', 0, 0.00, 1, '2025-04-09 03:50:13', '2025-04-09 03:51:04'),
+(111, 12, NULL, 'Call John ', '', 'one-time', 'medium', 10, '2025-04-09', '13:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:51:53', '2025-04-09 03:51:53'),
+(112, 11, NULL, 'Go to Boots', 'Buy Self care Products', 'one-time', 'high', 20, '2025-04-09', '14:30:00', 'pending', 0, 0.00, 1, '2025-04-09 03:55:26', '2025-04-09 03:55:26'),
+(113, 9, NULL, 'Study English', 'Start Studying', 'one-time', 'high', 120, '2025-04-09', '16:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:58:58', '2025-04-09 03:58:58'),
+(114, 12, NULL, 'Geez Web App project', 'Do it just for 1hr', 'one-time', 'medium', 60, '2025-04-09', '18:00:00', 'pending', 0, 0.00, 1, '2025-04-09 04:02:10', '2025-04-09 04:02:10'),
+(115, 1, NULL, 'Pray', 'Start Easy', 'one-time', 'high', 15, '2025-04-09', '11:40:00', 'pending', 0, 0.00, 1, '2025-04-09 04:03:15', '2025-04-09 04:03:15'),
+(116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'pending', 0, 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 04:04:23'),
+(117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'pending', 0, 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 04:05:30'),
+(118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'pending', 0, 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 12:07:02');
 
 -- --------------------------------------------------------
 
@@ -1795,11 +1826,10 @@ INSERT INTO `task_categories` (`id`, `name`, `description`, `icon`, `color`, `di
 (2, 'Self-Development', 'Personal growth and learning', 'fas fa-brain', '#9370DB', 2, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (3, 'Productivity', 'Task management and planning', 'fas fa-tasks', '#4682B4', 3, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (4, 'Study', 'Academic work and revision', 'fas fa-book-reader', '#1E90FF', 4, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
-(5, 'Health', 'Physical health and fitness', 'fas fa-heartbeat', '#32CD32', 5, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (9, 'Education', 'General educational activities', 'fas fa-school', '#4169E1', 9, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (10, 'Uncategorized', NULL, 'fas fa-folder', '#6c757d', 0, 1, '2025-04-02 23:56:40', '2025-04-02 23:56:40'),
-(0, 'Self Care', NULL, 'fas fa-star', '#1f8291', 0, 1, '2025-04-08 09:18:13', '2025-04-08 09:18:13'),
-(0, 'Social Life', NULL, 'fas fa-tasks', '#277a7a', 0, 1, '2025-04-09 03:25:12', '2025-04-09 03:25:12');
+(11, 'Self Care', NULL, 'fas fa-heart', '#c70000', 0, 1, '2025-04-08 09:18:13', '2025-04-09 03:57:33'),
+(12, 'Social Life', NULL, 'fas fa-users', '#277a7a', 0, 1, '2025-04-09 03:25:12', '2025-04-09 03:57:05');
 
 -- --------------------------------------------------------
 
@@ -2131,6 +2161,13 @@ ALTER TABLE `mood_tags`
   ADD UNIQUE KEY `unique_tag_name` (`name`);
 
 --
+-- Indexes for table `notification_tracking`
+--
+ALTER TABLE `notification_tracking`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_notification` (`item_id`,`item_type`);
+
+--
 -- Indexes for table `practice_categories`
 --
 ALTER TABLE `practice_categories`
@@ -2161,6 +2198,12 @@ ALTER TABLE `tasks`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `task_categories`
+--
+ALTER TABLE `task_categories`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -2180,7 +2223,7 @@ ALTER TABLE `habits`
 -- AUTO_INCREMENT for table `habit_completions`
 --
 ALTER TABLE `habit_completions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `habit_progress`
@@ -2219,6 +2262,12 @@ ALTER TABLE `mood_tags`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
+-- AUTO_INCREMENT for table `notification_tracking`
+--
+ALTER TABLE `notification_tracking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `practice_categories`
 --
 ALTER TABLE `practice_categories`
@@ -2240,7 +2289,13 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=110;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+
+--
+-- AUTO_INCREMENT for table `task_categories`
+--
+ALTER TABLE `task_categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
