@@ -89,21 +89,22 @@ class HabitNotification extends EmailTemplate {
                 }
                 .habit-details {
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 8px;
+                    flex-direction: column;
+                    gap: 6px;
                     font-size: 14px;
                     color: #aaa;
                     margin-top: 12px;
                 }
                 .habit-detail-item {
-                    display: inline-flex;
+                    display: flex;
                     align-items: center;
-                    background: rgba(255,255,255,0.1);
                     padding: 5px 10px;
                     border-radius: 4px;
-                    margin-bottom: 5px;
-                    box-sizing: border-box;
                     word-break: break-word;
+                }
+                .habit-detail-item:before {
+                    content: "• ";
+                    margin-right: 5px;
                 }
                 .priority-high {
                     color: #f44336;
@@ -180,8 +181,8 @@ class HabitNotification extends EmailTemplate {
                             <div class="habit-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
                                 Priority: ' . ucfirst(htmlspecialchars($data['current_task']['priority'])) . '
                             </div>
+                            ' . ($data['current_task']['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($data['current_task']['due_time']) . '</div>' : '') . '
                             ' . ($data['current_task']['points'] ? '<div class="habit-detail-item points">Earn: +' . htmlspecialchars($data['current_task']['points']) . ' points</div>' : '') . '
-                            ' . ($data['current_task']['category_name'] ? '<div class="habit-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
                         </div>
                         <a href="https://abel.abuneteklehaymanot.org/pages/habits/index.php?action=complete&habit_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button">Complete Now</a>
                     </div>
@@ -215,7 +216,6 @@ class HabitNotification extends EmailTemplate {
                     </div>
                     ' . ($habit['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($habit['due_time']) . '</div>' : '') . '
                     ' . ($habit['estimated_duration'] ? '<div class="habit-detail-item">' . htmlspecialchars($habit['estimated_duration']) . '</div>' : '') . '
-                    ' . ($habit['category_name'] ? '<div class="habit-detail-item">Category: ' . htmlspecialchars($habit['category_name']) . '</div>' : '') . '
                 </div>
             </div>';
         }

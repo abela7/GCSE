@@ -92,21 +92,22 @@ class TaskNotification extends EmailTemplate {
                 }
                 .task-details {
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 8px;
+                    flex-direction: column;
+                    gap: 6px;
                     font-size: 14px;
                     color: #aaa;
                     margin-top: 12px;
                 }
                 .task-detail-item {
-                    display: inline-flex;
+                    display: flex;
                     align-items: center;
-                    background: rgba(255,255,255,0.1);
                     padding: 5px 10px;
                     border-radius: 4px;
-                    margin-bottom: 5px;
-                    box-sizing: border-box;
                     word-break: break-word;
+                }
+                .task-detail-item:before {
+                    content: "• ";
+                    margin-right: 5px;
                 }
                 .priority-high {
                     color: #f44336;
@@ -179,8 +180,8 @@ class TaskNotification extends EmailTemplate {
                             <div class="task-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
                                 Priority: ' . ucfirst(htmlspecialchars($data['current_task']['priority'])) . '
                             </div>
+                            ' . ($data['current_task']['due_time'] ? '<div class="task-detail-item">Due: ' . htmlspecialchars($data['current_task']['due_time']) . '</div>' : '') . '
                             ' . ($data['current_task']['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($data['current_task']['estimated_duration']) . ' min</div>' : '') . '
-                            ' . ($data['current_task']['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
                         </div>
                         <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button">Mark Complete</a>
                     </div>
@@ -220,7 +221,6 @@ class TaskNotification extends EmailTemplate {
                     </div>
                     ' . ($task['due_time'] ? '<div class="task-detail-item">Due: ' . htmlspecialchars($task['due_time']) . '</div>' : '') . '
                     ' . ($task['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($task['estimated_duration']) . ' min</div>' : '') . '
-                    ' . ($task['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($task['category_name']) . '</div>' : '') . '
                 </div>
             </div>';
         }
