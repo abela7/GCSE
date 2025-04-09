@@ -353,7 +353,7 @@ $accent_color = "#cdaf56";
                     <p>Monitor your emotional well-being and identify patterns to optimize your study performance.</p>
                 </div>
                 <div class="card-footer">
-                    <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-accent">Track Mood</a>
+                    <a href="mood_tracking/entry.php" class="btn btn-sm btn-outline-accent">Track Mood</a>
                 </div>
             </div>
         </div>
@@ -535,20 +535,9 @@ $accent_color = "#cdaf56";
     <div class="row mb-4">
         <div class="col-12">
             <div class="card feature-card">
-                <div class="card-body">
+                <div class="card-body text-center">
                     <h5 class="mb-3"><i class="fas fa-smile me-2" style="color: var(--accent-color);"></i>Mood Tracking</h5>
-                    <?php 
-                    // Check if mood_widget.php exists before including it
-                    $mood_widget_path = '../includes/mood_widget.php';
-                    if (file_exists($mood_widget_path)) {
-                        include $mood_widget_path;
-                    } else {
-                        echo '<div class="alert alert-info">Quick mood entry will be available soon!</div>';
-                    }
-                    ?>
-                    <div class="text-end mt-3">
-                        <a href="mood_tracking/index.php" class="btn btn-sm btn-outline-accent">Open Mood Tracker</a>
-                    </div>
+                    <a href="mood_tracking/entry.php" class="btn btn-accent">Track your mood</a>
                 </div>
             </div>
         </div>
