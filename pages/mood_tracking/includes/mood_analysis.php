@@ -267,7 +267,7 @@ class MoodAnalyzer {
                 'difficult' => "You're having a tough day, but showing resilience by maintaining stability."
             ],
             'Down' => [
-                'excellent' => "You're having a challenging day, but showing signs of improvement.",
+                'excellent' => "You're having a challenging day, but shown signs of improvement.",
                 'positive' => "You're having a difficult day, but maintaining hope for better times.",
                 'stable' => "You're having a tough day, but managing to stay composed.",
                 'challenging' => "You're having a particularly challenging day with your mood being affected.",
@@ -276,7 +276,7 @@ class MoodAnalyzer {
             'Very Down' => [
                 'excellent' => "You're having an extremely challenging day, but showing incredible strength.",
                 'positive' => "You're having a very difficult day, but maintaining hope for improvement.",
-                'stable' => "You're having a tough day, but showing resilience in the face of challenges.",
+                'stable' => "You're having a tough day, but shown resilience in the face of challenges.",
                 'challenging' => "You're having an extremely difficult day with your mood being severely affected.",
                 'difficult' => "You're having an exceptionally challenging day with your mood being deeply impacted."
             ]
@@ -569,6 +569,48 @@ class MoodAnalyzer {
         }
 
         return $insights;
+    }
+
+    private function analyzeTimeOfDayPatterns($start_date, $end_date) {
+        $query = "SELECT 
+                    CASE 
+                        WHEN HOUR(date) BETWEEN 5 AND 11 THEN 'Morning'
+                        WHEN HOUR(date) BETWEEN 12 AND 16 THEN 'Afternoon'
+                        WHEN HOUR(date) BETWEEN 17 AND 20 THEN 'Evening'
+                        ELSE 'Night'
+                    END as time_period,
+                    AVG(mood_level) as avg_mood,
+                    COUNT(*) as entry_count
+                  FROM mood_entries
+                  WHERE date BETWEEN ? AND ?
+                  GROUP BY time_period
+                  ORDER BY FIELD(time_period, 'Morning', 'Afternoon', 'Evening', 'Night')";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $time_patterns = [];
+        while ($row = $result->fetch_assoc()) {
+            $time_patterns[$row['time_period']] = [
+                'avg_mood' => round($row['avg_mood'], 1),
+                'entry_count' => $row['entry_count']
+            ];
+        }
+
+        // Ensure all time periods are included
+        $all_periods = ['Morning', 'Afternoon', 'Evening', 'Night'];
+        foreach ($all_periods as $period) {
+            if (!isset($time_patterns[$period])) {
+                $time_patterns[$period] = [
+                    'avg_mood' => 0,
+                    'entry_count' => 0
+                ];
+            }
+        }
+
+        return $time_patterns;
     }
 }
 ?> 
