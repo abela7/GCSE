@@ -155,23 +155,23 @@ include '../includes/header.php';
                                 <div class="card-body">
                                     <div class="alert alert-info">
                                         <i class="fas fa-info-circle me-2"></i>
-                                        Click any button below to manually trigger the notification script without waiting for the cron job.
+                                        Click any button below to open the notification script directly in your browser.
                                     </div>
                                     
                                     <div class="d-flex flex-wrap gap-2">
-                                        <a href="?run_script=morning_briefing.php" class="btn btn-primary">
+                                        <a href="../emails/cron/morning_briefing.php" target="_blank" class="btn btn-primary">
                                             <i class="fas fa-sun me-2"></i>Morning Briefing
                                         </a>
-                                        <a href="?run_script=task_notifications.php" class="btn btn-danger">
+                                        <a href="../emails/cron/task_notifications.php" target="_blank" class="btn btn-danger">
                                             <i class="fas fa-tasks me-2"></i>Task Notifications
                                         </a>
-                                        <a href="?run_script=habit_notifications.php" class="btn btn-warning">
+                                        <a href="../emails/cron/habit_notifications.php" target="_blank" class="btn btn-warning">
                                             <i class="fas fa-sync-alt me-2"></i>Habit Notifications
                                         </a>
-                                        <a href="?run_script=vocabulary_notifications.php" class="btn btn-info">
+                                        <a href="../emails/cron/vocabulary_notifications.php" target="_blank" class="btn btn-info">
                                             <i class="fas fa-book me-2"></i>Vocabulary Notifications
                                         </a>
-                                        <a href="?run_script=mood_notifications.php" class="btn btn-secondary">
+                                        <a href="../emails/cron/mood_notifications.php" target="_blank" class="btn btn-secondary">
                                             <i class="fas fa-smile me-2"></i>Mood Notifications
                                         </a>
                                     </div>
