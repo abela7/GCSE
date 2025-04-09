@@ -115,17 +115,17 @@ if ($tracking_result->num_rows > 0 && !isset($_GET['test'])) {
 $messages = [
     'mood_midday' => [
         'greeting' => 'Midday Check-in',
-        'message' => 'How is your day going so far? Take a moment to reflect on your current mood and record it.',
+        'message' => 'Time for my midday mood check-in. How am I feeling so far today? Taking a moment to reflect on my current state helps me be more mindful.',
         'period' => 'midday'
     ],
     'mood_evening' => [
         'greeting' => 'Evening Check-in',
-        'message' => 'As the day winds down, how are you feeling? Your mood track helps identify patterns and improve your well-being.',
+        'message' => 'As the day winds down, I should check how I\'m feeling. Recording my mood now helps me identify patterns and improve my well-being.',
         'period' => 'evening'
     ],
     'mood_night' => [
         'greeting' => 'Night Check-in',
-        'message' => 'Before you end your day, take a moment to record how you\'re feeling. This helps track your emotional patterns over time.',
+        'message' => 'Before I end my day, I need to take a moment to record how I am feeling. This helps track my emotional patterns over time.',
         'period' => 'night'
     ]
 ];
@@ -182,7 +182,7 @@ try {
     
     // Content
     $mail->isHTML(true);
-    $mail->Subject = "How are you feeling? - " . $time_greeting;
+    $mail->Subject = "Reminder: How am I feeling? - " . $time_greeting;
     $mail->Body = $emailContent;
     $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
     

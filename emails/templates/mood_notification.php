@@ -102,17 +102,17 @@ class MoodNotification extends EmailTemplate {
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>How are you feeling right now?</h1>
+                    <h1>How am I feeling right now?</h1>
                     <div class="time">' . htmlspecialchars($data['time_greeting']) . '</div>
                 </div>
                 
                 <div class="section">
                     <p class="message">
                         ' . htmlspecialchars($data['message']) . '<br><br>
-                        Take a moment to record your current mood.
+                        I should take a moment to record my current mood.
                     </p>
                     
-                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Record Your Mood</a>
+                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Record My Mood</a>
                 </div>
                 
                 <div class="footer">
