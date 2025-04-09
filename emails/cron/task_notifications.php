@@ -35,15 +35,17 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Expand the window even more to catch tasks within a 20-minute window of current time
+// Set up precise time windows for notifications
 $current_time = date('H:i:s');
+$three_min_future = date('H:i:s', strtotime("+3 minutes"));
 $today = date('Y-m-d');
 
 error_log("Current date: {$today}");
 error_log("Current time: {$current_time}");
+error_log("3-minute future window: {$three_min_future}");
 
-// MAJOR CHANGE: Completely bypass the time window checks and just get pending tasks for today
-// Limit to 2 tasks per run to avoid notification flooding
+// Modified query to only get tasks due right now or within the next 3 minutes
+// Limit to 1 task per run to prevent multiple notifications
 $tasks_query = "
     SELECT 
         t.id, 
@@ -64,15 +66,16 @@ $tasks_query = "
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
+        AND t.due_time BETWEEN ? AND ?
         AND tnt.id IS NULL
     ORDER BY 
         t.due_time ASC, 
         FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 2
+    LIMIT 1
 ";
 
 // Log the actual SQL before executing
-error_log("SQL Query: " . str_replace(['?', '  '], [$today, ' '], $tasks_query));
+error_log("SQL Query with params: [date={$today}, start_time={$current_time}, end_time={$three_min_future}]");
 
 try {
     $stmt = $conn->prepare($tasks_query);
@@ -81,7 +84,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("s", $today);
+    $stmt->bind_param("sss", $today, $current_time, $three_min_future);
     $stmt->execute();
     
     if ($stmt->error) {
