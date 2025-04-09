@@ -206,37 +206,37 @@ $result = $stmt->get_result();
                         // Get overdue tasks with time difference
                         $overdue_tasks = [];
                         $overdue_query = "
-                            SELECT 
-                                t.id, 
-                                t.title, 
-                                t.description, 
-                                t.priority, 
-                                t.due_date, 
-                                t.due_time,
+        SELECT 
+            t.id, 
+            t.title, 
+            t.description, 
+            t.priority, 
+            t.due_date, 
+            t.due_time,
                                 CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name,
                                 TIMESTAMPDIFF(MINUTE, CONCAT(t.due_date, ' ', t.due_time), NOW()) as minutes_overdue
-                            FROM 
-                                tasks t
-                            LEFT JOIN 
-                                task_categories tc ON t.category_id = tc.id
-                            WHERE 
-                                t.status IN ('pending', 'in_progress')
+        FROM 
+            tasks t
+        LEFT JOIN 
+            task_categories tc ON t.category_id = tc.id
+        WHERE 
+            t.status IN ('pending', 'in_progress')
                                 AND (
                                     (t.due_date < CURDATE()) 
                                     OR 
                                     (t.due_date = CURDATE() AND t.due_time < TIME(DATE_SUB(NOW(), INTERVAL 5 MINUTE)))
                                 )
-                                AND t.id != ?
-                            ORDER BY 
+            AND t.id != ?
+        ORDER BY 
                                 t.due_date ASC, t.due_time ASC
-                            LIMIT 3
+                            LIMIT 5
                         ";
                         
                         $overdue_stmt = $conn->prepare($overdue_query);
                         $overdue_stmt->bind_param("i", $task['id']);
-                        $overdue_stmt->execute();
-                        $overdue_result = $overdue_stmt->get_result();
-                        
+    $overdue_stmt->execute();
+    $overdue_result = $overdue_stmt->get_result();
+    
                         while ($overdue_task = $overdue_result->fetch_assoc()) {
                             // Format the overdue time in a human-readable way
                             $minutes_overdue = $overdue_task['minutes_overdue'];
@@ -254,12 +254,7 @@ $result = $stmt->get_result();
                                 }
                             } else { // More than 24 hours
                                 $days = floor($minutes_overdue / 1440);
-                                $hours = floor(($minutes_overdue % 1440) / 60);
-                                if ($hours > 0) {
-                                    $overdue_text = "You were supposed to do this {$days}d {$hours}h ago";
-                                } else {
-                                    $overdue_text = "You were supposed to do this {$days} days ago";
-                                }
+                                $overdue_text = "You were supposed to do this {$days} days ago";
                             }
                             
                             $overdue_task['overdue_text'] = $overdue_text;
@@ -270,37 +265,37 @@ $result = $stmt->get_result();
                         // Get upcoming tasks with time difference
                         $upcoming_tasks = [];
                         $upcoming_query = "
-                            SELECT 
-                                t.id, 
-                                t.title, 
-                                t.description, 
-                                t.priority, 
-                                t.due_date, 
-                                t.due_time,
+        SELECT 
+            t.id, 
+            t.title, 
+            t.description, 
+            t.priority, 
+            t.due_date, 
+            t.due_time,
                                 CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name,
                                 TIMESTAMPDIFF(MINUTE, NOW(), CONCAT(t.due_date, ' ', t.due_time)) as minutes_until_due
-                            FROM 
-                                tasks t
-                            LEFT JOIN 
-                                task_categories tc ON t.category_id = tc.id
-                            WHERE 
-                                t.status IN ('pending', 'in_progress')
+        FROM 
+            tasks t
+        LEFT JOIN 
+            task_categories tc ON t.category_id = tc.id
+        WHERE 
+            t.status IN ('pending', 'in_progress')
                                 AND (
                                     (t.due_date > CURDATE()) 
                                     OR 
                                     (t.due_date = CURDATE() AND t.due_time > TIME(DATE_ADD(NOW(), INTERVAL 5 MINUTE)))
                                 )
-                                AND t.id != ?
-                            ORDER BY 
+            AND t.id != ?
+        ORDER BY 
                                 t.due_date ASC, t.due_time ASC
-                            LIMIT 3
-                        ";
-                        
+                            LIMIT 5
+    ";
+    
                         $upcoming_stmt = $conn->prepare($upcoming_query);
                         $upcoming_stmt->bind_param("i", $task['id']);
-                        $upcoming_stmt->execute();
-                        $upcoming_result = $upcoming_stmt->get_result();
-                        
+    $upcoming_stmt->execute();
+    $upcoming_result = $upcoming_stmt->get_result();
+    
                         while ($upcoming_task = $upcoming_result->fetch_assoc()) {
                             // Format the upcoming time in a human-readable way
                             $minutes_until_due = $upcoming_task['minutes_until_due'];
@@ -329,48 +324,48 @@ $result = $stmt->get_result();
                             $upcoming_task['upcoming_text'] = $upcoming_text;
                             $upcoming_task['due_time'] = date('h:i A', strtotime($upcoming_task['due_time']));
                             $upcoming_tasks[] = $upcoming_task;
-                        }
+    }
     
-                        // Prepare email data
-                        $emailData = [
-                            'current_task' => $current_task,
-                            'overdue_tasks' => $overdue_tasks,
-                            'upcoming_tasks' => $upcoming_tasks,
-                            'app_url' => $app_url
-                        ];
-                        
+    // Prepare email data
+    $emailData = [
+        'current_task' => $current_task,
+        'overdue_tasks' => $overdue_tasks,
+        'upcoming_tasks' => $upcoming_tasks,
+        'app_url' => $app_url
+    ];
+    
                         $email_sent = false;
                         $email_error = "";
                         
                         // Only actually send if not in debug-only mode
                         if (!isset($_GET['debug_only'])) {
-                            // Generate email content
+    // Generate email content
                             $notification_template = new TaskNotification();
                             $emailContent = $notification_template->generateEmail($emailData);
-                            
-                            // Send email
-                            $mail = new PHPMailer(true);
-                            
-                            try {
-                                // Server settings
-                                $mail->isSMTP();
-                                $mail->Host = SMTP_HOST;
-                                $mail->SMTPAuth = SMTP_AUTH;
-                                $mail->Username = SMTP_USERNAME;
-                                $mail->Password = SMTP_PASSWORD;
-                                $mail->SMTPSecure = SMTP_SECURE;
-                                $mail->Port = SMTP_PORT;
-                                
-                                // Recipients
-                                $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
+    
+    // Send email
+    $mail = new PHPMailer(true);
+    
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = SMTP_AUTH;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port = SMTP_PORT;
+        
+        // Recipients
+        $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
                                 $mail->addAddress(SMTP_USERNAME);
-                                
-                                // Content
-                                $mail->isHTML(true);
+        
+        // Content
+        $mail->isHTML(true);
                                 $mail->Subject = $task['title'] . " is due";
-                                $mail->Body = $emailContent;
-                                $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
-                                
+        $mail->Body = $emailContent;
+        $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
+        
                                 $email_sent = $mail->send();
                                 
                                 if ($email_sent) {
