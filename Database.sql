@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 09, 2025 at 01:13 PM
+-- Generation Time: Apr 09, 2025 at 07:33 PM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -1775,7 +1775,6 @@ CREATE TABLE `tasks` (
   `due_date` date DEFAULT NULL,
   `due_time` time DEFAULT NULL,
   `status` enum('pending','in_progress','completed','not_done','snoozed') DEFAULT 'pending',
-  `notification_sent` tinyint(1) DEFAULT 0,
   `completion_percentage` decimal(5,2) DEFAULT 0.00,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1786,18 +1785,20 @@ CREATE TABLE `tasks` (
 -- Dumping data for table `tasks`
 --
 
-INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `notification_sent`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(107, 0, NULL, 'Miky', 'How', 'one-time', 'high', 0, '2025-04-09', '02:19:18', 'not_done', 0, 0.00, 1, '2025-04-08 08:30:13', '2025-04-09 02:09:31'),
-(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '12:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 03:26:00'),
-(110, 12, NULL, 'Call sara', 'Ask her to Bring the cash', 'one-time', 'medium', 5, '2025-04-09', '13:30:00', 'pending', 0, 0.00, 1, '2025-04-09 03:50:13', '2025-04-09 03:51:04'),
-(111, 12, NULL, 'Call John ', '', 'one-time', 'medium', 10, '2025-04-09', '13:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:51:53', '2025-04-09 03:51:53'),
-(112, 11, NULL, 'Go to Boots', 'Buy Self care Products', 'one-time', 'high', 20, '2025-04-09', '14:30:00', 'pending', 0, 0.00, 1, '2025-04-09 03:55:26', '2025-04-09 03:55:26'),
-(113, 9, NULL, 'Study English', 'Start Studying', 'one-time', 'high', 120, '2025-04-09', '16:00:00', 'pending', 0, 0.00, 1, '2025-04-09 03:58:58', '2025-04-09 03:58:58'),
-(114, 12, NULL, 'Geez Web App project', 'Do it just for 1hr', 'one-time', 'medium', 60, '2025-04-09', '18:00:00', 'pending', 0, 0.00, 1, '2025-04-09 04:02:10', '2025-04-09 04:02:10'),
-(115, 1, NULL, 'Pray', 'Start Easy', 'one-time', 'high', 15, '2025-04-09', '11:40:00', 'pending', 0, 0.00, 1, '2025-04-09 04:03:15', '2025-04-09 04:03:15'),
-(116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'pending', 0, 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 04:04:23'),
-(117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'pending', 0, 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 04:05:30'),
-(118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'pending', 0, 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 12:07:02');
+INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
+(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '18:47:00', 'pending', 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 17:44:06'),
+(110, 12, NULL, 'Call sara', 'Ask her to Bring the cash', 'one-time', 'medium', 5, '2025-04-09', '14:22:56', 'pending', 0.00, 1, '2025-04-09 03:50:13', '2025-04-09 13:52:56'),
+(111, 12, NULL, 'Call John', '', 'one-time', 'medium', 10, '2025-04-09', '15:30:00', 'pending', 0.00, 1, '2025-04-09 03:51:53', '2025-04-09 14:24:20'),
+(112, 11, NULL, 'Go to Boots', 'Buy Self care Products', 'one-time', 'high', 20, '2025-04-09', '15:20:00', 'pending', 0.00, 1, '2025-04-09 03:55:26', '2025-04-09 14:14:49'),
+(113, 9, NULL, 'Study English', 'Start Studying', 'one-time', 'high', 120, '2025-04-09', '16:00:00', 'not_done', 0.00, 1, '2025-04-09 03:58:58', '2025-04-09 16:11:15'),
+(114, 12, NULL, 'Geez Web App project', 'Do it just for 1hr', 'one-time', 'medium', 60, '2025-04-09', '18:00:00', 'pending', 0.00, 1, '2025-04-09 04:02:10', '2025-04-09 04:02:10'),
+(115, 1, NULL, 'Pray', 'Start Easy', 'one-time', 'high', 15, '2025-04-09', '15:52:34', 'pending', 0.00, 1, '2025-04-09 04:03:15', '2025-04-09 13:52:34'),
+(116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'pending', 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 04:04:23'),
+(117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'pending', 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 04:05:30'),
+(118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'pending', 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 12:07:02'),
+(132, 9, NULL, 'Abel', 'sda', 'one-time', 'medium', 20, '2025-04-09', '17:07:00', 'not_done', 0.00, 1, '2025-04-09 16:04:01', '2025-04-09 16:10:28'),
+(133, 9, NULL, 'Good Lesson', 'Wow', 'one-time', 'medium', 20, '2025-04-09', '18:53:00', 'pending', 0.00, 1, '2025-04-09 16:10:53', '2025-04-09 17:51:58'),
+(134, 9, NULL, 'Not Yet', '2112', 'one-time', 'medium', 20, '2025-04-09', '18:40:00', 'pending', 0.00, 1, '2025-04-09 16:31:06', '2025-04-09 17:38:26');
 
 -- --------------------------------------------------------
 
@@ -1865,6 +1866,45 @@ CREATE TABLE `task_instances` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `task_notification_tracking`
+--
+
+CREATE TABLE `task_notification_tracking` (
+  `id` int(11) NOT NULL,
+  `task_id` int(11) NOT NULL,
+  `notification_type` enum('due','reminder','habit') NOT NULL DEFAULT 'due',
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `task_notification_tracking`
+--
+
+INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, `sent_at`) VALUES
+(8, 0, '', '2025-04-09 17:50:25'),
+(9, 0, '', '2025-04-09 17:50:28'),
+(11, 0, '', '2025-04-09 17:54:32'),
+(13, 0, '', '2025-04-09 18:12:30'),
+(14, 0, '', '2025-04-09 18:12:33'),
+(15, 0, '', '2025-04-09 18:18:35'),
+(16, 0, '', '2025-04-09 18:18:38'),
+(17, 0, '', '2025-04-09 18:24:20'),
+(18, 0, '', '2025-04-09 18:24:29'),
+(19, 0, '', '2025-04-09 18:33:01'),
+(20, 0, '', '2025-04-09 18:33:04'),
+(6, 109, 'due', '2025-04-09 17:45:39'),
+(7, 116, 'due', '2025-04-09 17:47:07'),
+(12, 117, 'due', '2025-04-09 17:57:05'),
+(1, 133, 'due', '2025-04-09 17:07:07'),
+(2, 133, 'due', '2025-04-09 17:13:07'),
+(3, 133, 'due', '2025-04-09 17:20:09'),
+(4, 133, 'due', '2025-04-09 17:29:05'),
+(10, 133, 'due', '2025-04-09 17:52:06'),
+(5, 134, 'due', '2025-04-09 17:39:06');
 
 -- --------------------------------------------------------
 
@@ -2204,6 +2244,13 @@ ALTER TABLE `task_categories`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `task_notification_tracking`
+--
+ALTER TABLE `task_notification_tracking`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_task_notification` (`task_id`,`notification_type`,`sent_at`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -2289,13 +2336,19 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135;
 
 --
 -- AUTO_INCREMENT for table `task_categories`
 --
 ALTER TABLE `task_categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `task_notification_tracking`
+--
+ALTER TABLE `task_notification_tracking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Constraints for dumped tables

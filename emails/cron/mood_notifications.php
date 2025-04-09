@@ -176,9 +176,6 @@ try {
     $unique_id = time() . '.' . mt_rand() . '@abel.abuneteklehaymanot.org';
     $mail->MessageID = '<mood.' . $notification_to_send['type'] . '.' . $unique_id . '>';
     
-    // Add Date header with current date and time
-    $mail->addCustomHeader('Date', date('r'));
-    
     // Add DKIM signing headers
     $mail->DKIM_domain = 'abel.abuneteklehaymanot.org';
     $mail->DKIM_selector = 'email';  // Create this selector in your DNS
