@@ -1,11 +1,15 @@
 <?php
 /**
- * Task Notification Script - SUPER SIMPLE VERSION
- * Gets tasks due in the next 3 minutes and sends notifications
+ * Task Notification Script - MANUAL TIME COMPARISON VERSION
+ * Gets tasks due today and manually checks their due time
  * Runs every minute via cron
  */
 
-// Basic error logging
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 error_log("==== TASK NOTIFICATION SCRIPT STARTED ====");
 error_log("Script running at: " . date('Y-m-d H:i:s'));
 
@@ -33,16 +37,17 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time and the 3-minute future window
-$current_time = date('H:i:s');
-$three_min_future = date('H:i:s', strtotime("+3 minutes"));
+// Get current time info - ensure we use the EXACT same format as the database (HH:MM:SS)
+$now = time(); // Current unix timestamp
 $today = date('Y-m-d');
+$current_time = date('H:i:s'); // Format: 17:07:00
+$current_time_plus_3 = date('H:i:s', strtotime('+3 minutes'));
 
 error_log("Current date: {$today}");
-error_log("Current time: {$current_time}");
-error_log("3-min future window: {$three_min_future}");
+error_log("Current time (HH:MM:SS): {$current_time}");
+error_log("Current time + 3min: {$current_time_plus_3}");
 
-// Simple query: Get tasks due in the next 3 minutes
+// Get tasks due today with explicit SQL time comparison
 $query = "
     SELECT 
         t.id, 
@@ -53,7 +58,8 @@ $query = "
         t.category_id,
         t.due_date, 
         t.due_time,
-        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
+        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name,
+        TIME_TO_SEC(TIMEDIFF(t.due_time, ?)) as seconds_until_due
     FROM 
         tasks t
     LEFT JOIN 
@@ -61,23 +67,20 @@ $query = "
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
-        AND t.due_time BETWEEN ? AND ?
     ORDER BY 
-        t.due_time ASC,
-        FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 5
+        ABS(TIME_TO_SEC(TIMEDIFF(t.due_time, ?))) ASC
 ";
 
 try {
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sss", $today, $current_time, $three_min_future);
+    $stmt->bind_param("sss", $current_time, $today, $current_time);
     $stmt->execute();
     $result = $stmt->get_result();
     
-    error_log("Found " . $result->num_rows . " tasks due in the next 3 minutes");
+    error_log("Found " . $result->num_rows . " tasks due today");
     
     if ($result->num_rows === 0) {
-        error_log("No tasks due in the next 3 minutes. Exiting.");
+        error_log("No tasks due today. Exiting.");
         exit;
     }
 } catch (Exception $e) {
@@ -85,9 +88,53 @@ try {
     exit;
 }
 
-// Process each task found
-while ($current_task = $result->fetch_assoc()) {
-    error_log("Sending notification for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
+// Array to collect tasks that are due now or in the next 3 minutes
+$due_tasks = [];
+
+// Process each task found and manually check the time
+while ($task = $result->fetch_assoc()) {
+    // The seconds_until_due field contains the time difference calculated by MySQL
+    $seconds_until_due = $task['seconds_until_due'];
+    $minutes_until_due = round($seconds_until_due / 60);
+    
+    // Also calculate using PHP for verification
+    $db_time_parts = explode(':', $task['due_time']);
+    $task_seconds = ($db_time_parts[0] * 3600) + ($db_time_parts[1] * 60) + $db_time_parts[2];
+    
+    $current_parts = explode(':', $current_time);
+    $current_seconds = ($current_parts[0] * 3600) + ($current_parts[1] * 60) + $current_parts[2];
+    
+    $seconds_diff = $task_seconds - $current_seconds;
+    if ($seconds_diff < -43200) { // Handle time wrapping (e.g. 23:59 vs 00:01)
+        $seconds_diff += 86400;
+    } elseif ($seconds_diff > 43200) {
+        $seconds_diff -= 86400;
+    }
+    
+    $minutes_diff = round($seconds_diff / 60);
+    
+    // Debug log each task's time difference
+    error_log("Task #{$task['id']}: \"{$task['title']}\" due at {$task['due_time']} - MySQL: {$minutes_until_due} min, PHP: {$minutes_diff} min");
+    
+    // If task is due now or in the next 3 minutes
+    if (($minutes_diff >= 0 && $minutes_diff <= 3) || ($minutes_until_due >= 0 && $minutes_until_due <= 3)) {
+        error_log("✅ Task #{$task['id']} is due within 3 minutes - will send notification");
+        $due_tasks[] = $task;
+    } else {
+        error_log("⏭ Task #{$task['id']} is not due in the next 3 minutes - skipping");
+    }
+}
+
+if (empty($due_tasks)) {
+    error_log("No tasks due in the next 3 minutes. Exiting.");
+    exit;
+}
+
+error_log("Found " . count($due_tasks) . " tasks due in the next 3 minutes");
+
+// Now process each due task
+foreach ($due_tasks as $current_task) {
+    error_log("Processing notification for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
@@ -129,13 +176,13 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Send the email
         if (!$mail->send()) {
-            error_log("Email could not be sent: " . $mail->ErrorInfo);
+            error_log("ERROR: Email could not be sent: " . $mail->ErrorInfo);
             continue;
         }
         
-        error_log("Email sent successfully for task ID {$current_task['id']}");
+        error_log("SUCCESS: Email sent for task ID {$current_task['id']}");
         
-        // Record in tracking table for history
+        // Record in tracking table
         $tracking_query = "
             INSERT INTO task_notification_tracking (task_id, notification_type, sent_at)
             VALUES (?, 'due', NOW())
@@ -146,6 +193,7 @@ while ($current_task = $result->fetch_assoc()) {
             $tracking_stmt->bind_param("i", $current_task['id']);
             $tracking_stmt->execute();
             $tracking_stmt->close();
+            error_log("Tracking record inserted for task ID {$current_task['id']}");
         }
         
     } catch (Exception $e) {
@@ -154,5 +202,6 @@ while ($current_task = $result->fetch_assoc()) {
 }
 
 $conn->close();
-error_log("Task notification check completed");
+error_log("Task notification check completed at " . date('Y-m-d H:i:s'));
+error_log("==== TASK NOTIFICATION SCRIPT ENDED ====");
 ?> 
