@@ -137,7 +137,7 @@ class TaskNotification extends EmailTemplate {
                     text-align: center;
                     padding: 15px;
                     font-size: 12px;
-                    color: #888;
+                    color: rgb(168, 142, 64);
                     border-top: 1px solid #333;
                 }
                 .app-name {
