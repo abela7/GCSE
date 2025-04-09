@@ -1,11 +1,11 @@
 <?php
 /**
- * Task Notification Script - FINAL SIMPLIFIED VERSION
- * This script checks for tasks due today and sends notification emails
+ * Task Notification Script - STRICT TIME VERSION
+ * This script ONLY sends notifications for tasks due RIGHT NOW (within 1 minute)
  * It should be run by a cron job every minute
  */
 
-// Enable extremely verbose error logging
+// Enable error logging
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -39,25 +39,21 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time info in various formats for robust time matching
-$current_full_time = date('H:i:s');
+// Get current time info for STRICT time matching
+$current_time = date('H:i:s');
 $current_hour_minute = date('H:i');
-$current_time_mysql = date('H:i:s');
-$five_min_before = date('H:i:s', strtotime("-5 minutes"));
-$five_min_after = date('H:i:s', strtotime("+5 minutes"));
+$one_min_before = date('H:i:s', strtotime("-1 minute"));
+$one_min_after = date('H:i:s', strtotime("+1 minute"));
 $today = date('Y-m-d');
 $now_timestamp = time();
 
 error_log("Current date: {$today}");
-error_log("Current time (full): {$current_full_time}");
-error_log("Current time (H:i): {$current_hour_minute}");
-error_log("5-min window: {$five_min_before} to {$five_min_after}");
-error_log("Current UNIX timestamp: {$now_timestamp}");
+error_log("Current time: {$current_time}");
+error_log("Strict time window: {$one_min_before} to {$one_min_after}");
 
-// First, let's check the database to see ALL pending tasks with their due times
+// Log all pending tasks to help with debugging
 $all_tasks_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE status IN ('pending', 'in_progress') ORDER BY due_date, due_time";
 $all_tasks_result = $conn->query($all_tasks_query);
-
 error_log("=== DEBUG: ALL PENDING TASKS IN DATABASE ===");
 if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
     while($row = $all_tasks_result->fetch_assoc()) {
@@ -71,10 +67,9 @@ if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
     error_log("No pending tasks found in database at all!");
 }
 
-// Completely overhauled approach - Multiple parallel methods to find tasks:
-
-// 1. METHOD 1: Get tasks due within a 5-minute window of current time
-$window_query = "
+// STRICT METHOD: Get ONLY tasks due RIGHT NOW (±1 minute window)
+// No fallbacks, no exceptions - only send notifications for tasks due right now
+$strict_query = "
     SELECT 
         t.id, 
         t.title, 
@@ -102,162 +97,55 @@ $window_query = "
     LIMIT 1
 ";
 
-try {
-    $window_stmt = $conn->prepare($window_query);
-    if (!$window_stmt) {
-        error_log("PREPARE ERROR (window query): " . $conn->error);
-    } else {
-        $window_stmt->bind_param("sssss", $today, $five_min_before, $five_min_after, $current_hour_minute, $current_time_mysql);
-        $window_stmt->execute();
-        
-        if ($window_stmt->error) {
-            error_log("EXECUTE ERROR (window query): " . $window_stmt->error);
-        } else {
-            $window_result = $window_stmt->get_result();
-            error_log("Window query executed. Found " . $window_result->num_rows . " tasks due in ±5 minute window.");
-            
-            if ($window_result->num_rows > 0) {
-                error_log("SUCCESS: Found a task in the time window! Sending notification...");
-                $result = $window_result;
-                $method_used = "Time window (±5 min)";
-                goto send_notification;
-            }
-        }
-    }
-} catch (Exception $e) {
-    error_log("ERROR in window query: " . $e->getMessage());
-}
-
-// 2. METHOD 2: Get any task due today that hasn't been notified recently
-$recent_query = "
-    SELECT 
-        t.id, 
-        t.title, 
-        t.description, 
-        t.priority, 
-        t.estimated_duration,
-        t.category_id,
-        t.due_date, 
-        t.due_time,
-        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
-    FROM 
-        tasks t
-    LEFT JOIN 
-        task_categories tc ON t.category_id = tc.id
-    LEFT JOIN 
-        task_notification_tracking tnt ON t.id = tnt.task_id AND tnt.notification_type = 'due' 
-                                      AND tnt.sent_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
-    WHERE 
-        t.status IN ('pending', 'in_progress') 
-        AND t.due_date = ?
-        AND tnt.id IS NULL
-    ORDER BY 
-        t.due_time ASC,
-        FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 1
-";
+error_log("Executing STRICT time query with params: today={$today}, window={$one_min_before} to {$one_min_after}, hour:min={$current_hour_minute}");
 
 try {
-    $recent_stmt = $conn->prepare($recent_query);
-    if (!$recent_stmt) {
-        error_log("PREPARE ERROR (recent query): " . $conn->error);
-    } else {
-        $recent_stmt->bind_param("s", $today);
-        $recent_stmt->execute();
-        
-        if ($recent_stmt->error) {
-            error_log("EXECUTE ERROR (recent query): " . $recent_stmt->error);
-        } else {
-            $recent_result = $recent_stmt->get_result();
-            error_log("Recent tasks query executed. Found " . $recent_result->num_rows . " tasks due today not recently notified.");
-            
-            if ($recent_result->num_rows > 0) {
-                error_log("SUCCESS: Found a task due today not recently notified! Sending notification...");
-                $result = $recent_result;
-                $method_used = "Not recently notified";
-                goto send_notification;
-            }
-        }
+    $strict_stmt = $conn->prepare($strict_query);
+    if (!$strict_stmt) {
+        error_log("PREPARE ERROR: " . $conn->error);
+        exit;
+    }
+    
+    $strict_stmt->bind_param("sssss", $today, $one_min_before, $one_min_after, $current_hour_minute, $current_time);
+    $strict_stmt->execute();
+    
+    if ($strict_stmt->error) {
+        error_log("EXECUTE ERROR: " . $strict_stmt->error);
+        exit;
+    }
+    
+    $result = $strict_stmt->get_result();
+    error_log("Query executed successfully. Found " . $result->num_rows . " tasks due RIGHT NOW.");
+    
+    if ($result->num_rows === 0) {
+        error_log("No tasks due RIGHT NOW. Exiting without sending any notifications.");
+        exit;
     }
 } catch (Exception $e) {
-    error_log("ERROR in recent query: " . $e->getMessage());
-}
-
-// 3. METHOD 3: LAST RESORT - Get ANY pending task due today that is closest to now
-$any_query = "
-    SELECT 
-        t.id, 
-        t.title, 
-        t.description, 
-        t.priority, 
-        t.estimated_duration,
-        t.category_id,
-        t.due_date, 
-        t.due_time,
-        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
-    FROM 
-        tasks t
-    LEFT JOIN 
-        task_categories tc ON t.category_id = tc.id
-    WHERE 
-        t.status IN ('pending', 'in_progress') 
-        AND t.due_date = ?
-    ORDER BY 
-        ABS(TIME_TO_SEC(TIMEDIFF(t.due_time, ?))) ASC,
-        FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 1
-";
-
-try {
-    $any_stmt = $conn->prepare($any_query);
-    if (!$any_stmt) {
-        error_log("PREPARE ERROR (any query): " . $conn->error);
-    } else {
-        $any_stmt->bind_param("ss", $today, $current_time_mysql);
-        $any_stmt->execute();
-        
-        if ($any_stmt->error) {
-            error_log("EXECUTE ERROR (any query): " . $any_stmt->error);
-        } else {
-            $any_result = $any_stmt->get_result();
-            error_log("Any task query executed. Found " . $any_result->num_rows . " tasks due today.");
-            
-            if ($any_result->num_rows > 0) {
-                error_log("SUCCESS: Found a task due today (last resort)! Sending notification...");
-                $result = $any_result;
-                $method_used = "Any task (last resort)";
-                goto send_notification;
-            } else {
-                error_log("No tasks found for today at all. Nothing to notify about.");
-                exit;
-            }
-        }
-    }
-} catch (Exception $e) {
-    error_log("ERROR in any task query: " . $e->getMessage());
+    error_log("SQL ERROR: " . $e->getMessage());
     exit;
 }
 
-// LABEL FOR NOTIFICATION PROCESSING
-send_notification:
-
-// Process each task found
+// Process each task found (should be at most 1)
 while ($current_task = $result->fetch_assoc()) {
-    // Log task found
-    error_log("SENDING NOTIFICATION for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
-    error_log("Method used to find task: {$method_used}");
-    
-    // Convert original due time to timestamp for comparison
+    // Convert due time to timestamp for verification
     $task_timestamp = strtotime($current_task['due_date'] . ' ' . $current_task['due_time']);
     $time_diff = $task_timestamp - $now_timestamp;
     $minutes_diff = round($time_diff / 60);
     
-    error_log("Task due in {$minutes_diff} minutes from now");
+    // Double-check that this task is actually due right now
+    if (abs($minutes_diff) > 2) {
+        error_log("⚠️ SKIPPING task #{$current_task['id']} - Due time {$current_task['due_time']} is not within 2 minutes of current time ({$minutes_diff} minutes away)");
+        continue;
+    }
+    
+    error_log("✅ SENDING NOTIFICATION for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
+    error_log("Task is due RIGHT NOW ({$minutes_diff} minutes from current time)");
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
     
-    // Send just the current task without additional data
+    // Prepare email data (just the current task)
     $emailData = [
         'current_task' => $current_task,
         'overdue_tasks' => [],
@@ -282,7 +170,7 @@ while ($current_task = $result->fetch_assoc()) {
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         
-        // Enable debugging
+        // Set debugging level
         $mail->SMTPDebug = 2;
         $mail->Debugoutput = function($str, $level) {
             error_log("SMTP Debug: $str");
@@ -292,7 +180,7 @@ while ($current_task = $result->fetch_assoc()) {
         $mail->XMailer = 'GCSE Study App Mailer';
         $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
         $mail->addCustomHeader('Precedence', 'bulk');
-        $mail->addCustomHeader('X-Priority', '3');
+        $mail->addCustomHeader('X-Priority', '1'); // Higher priority
         $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
         
         // Recipients
@@ -301,16 +189,7 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        
-        // Subject line varies based on how close the task is to due time
-        if ($minutes_diff < 0) {
-            $mail->Subject = "⚠️ OVERDUE TASK: " . $current_task['title'];
-        } elseif ($minutes_diff < 5) {
-            $mail->Subject = "⏰ TASK DUE NOW: " . $current_task['title'];
-        } else {
-            $mail->Subject = "📌 TASK REMINDER: " . $current_task['title'] . " (due in " . $minutes_diff . " min)";
-        }
-        
+        $mail->Subject = "⏰ TASK DUE NOW: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
@@ -331,11 +210,7 @@ while ($current_task = $result->fetch_assoc()) {
         $tracking_stmt = $conn->prepare($tracking_query);
         if ($tracking_stmt) {
             $tracking_stmt->bind_param("i", $current_task['id']);
-            if ($tracking_stmt->execute()) {
-                error_log("Tracking record inserted with ID: " . $conn->insert_id);
-            } else {
-                error_log("Error inserting tracking record: " . $tracking_stmt->error);
-            }
+            $tracking_stmt->execute();
             $tracking_stmt->close();
         }
         
