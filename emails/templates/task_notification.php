@@ -195,13 +195,13 @@ class TaskNotification extends EmailTemplate {
                     </div>
                 </div>
                 
-                ' . (count($data['upcoming_tasks']) > 0 ? '
+                ' . (isset($data['upcoming_tasks']) && count($data['upcoming_tasks']) > 0 ? '
                 <div class="section">
-                    <div class="section-title">Overdue Tasks Today</div>
+                    <div class="section-title">Upcoming Tasks Today</div>
                     ' . $this->renderTaskList($data['upcoming_tasks']) . '
                 </div>' : '') . '
                 
-                ' . (count($data['overdue_tasks']) > 0 ? '
+                ' . (isset($data['overdue_tasks']) && count($data['overdue_tasks']) > 0 ? '
                 <div class="section">
                     <div class="section-title">Overdue Tasks</div>
                     ' . $this->renderTaskList($data['overdue_tasks'], 'overdue') . '

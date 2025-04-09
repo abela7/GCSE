@@ -43,6 +43,16 @@ $testData = [
             'due_time' => '08:00 PM',
             'estimated_duration' => '20'
         ]
+    ],
+    'overdue_tasks' => [
+        [
+            'id' => 4,
+            'title' => 'Chemistry Homework',
+            'description' => 'Complete exercises from Chapter 3: Chemical Bonds',
+            'priority' => 'high',
+            'due_time' => 'Yesterday at 03:00 PM',
+            'estimated_duration' => '40'
+        ]
     ]
 ];
 
