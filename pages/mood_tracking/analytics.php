@@ -341,17 +341,7 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
                             ?>
                         </div>
                     <div class="stat-value"><?php echo number_format($avg_mood, 1); ?></div>
-                    <div class="stat-label">Average Mood</div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
-                <div class="analytics-card stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-value"><?php echo $stats['total_entries']; ?></div>
-                    <div class="stat-label">Total Entries</div>
+                    <div class="stat-label">How I Feel</div>
                 </div>
             </div>
             
@@ -359,26 +349,62 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
                 <div class="analytics-card stat-card">
                     <div class="stat-icon">
                         <?php
-                        $most_common_mood = $stats['most_common_mood'];
-                        if ($most_common_mood == 5) echo '😄';
-                        else if ($most_common_mood == 4) echo '🙂';
-                        else if ($most_common_mood == 3) echo '😐';
-                        else if ($most_common_mood == 2) echo '😕';
-                        else echo '😢';
+                        $mood_trend = 0;
+                        if (count($mood_over_time) > 1) {
+                            $first_mood = $mood_over_time[0]['avg_mood'];
+                            $last_mood = $mood_over_time[count($mood_over_time)-1]['avg_mood'];
+                            $mood_trend = $last_mood - $first_mood;
+                        }
+                        if ($mood_trend > 0.5) echo '📈';
+                        else if ($mood_trend < -0.5) echo '📉';
+                        else echo '➡️';
                         ?>
                     </div>
-                    <div class="stat-value"><?php echo $most_common_mood; ?>/5</div>
-                    <div class="stat-label">Most Common Mood</div>
+                    <div class="stat-value"><?php echo $mood_trend > 0 ? '+' . number_format($mood_trend, 1) : number_format($mood_trend, 1); ?></div>
+                    <div class="stat-label">Mood Trend</div>
                 </div>
             </div>
             
             <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
                 <div class="analytics-card stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-tags"></i>
+                        <?php
+                        $best_time = '';
+                        $best_mood = 0;
+                        foreach ($mood_by_time as $time) {
+                            if ($time['avg_mood'] > $best_mood) {
+                                $best_mood = $time['avg_mood'];
+                                $best_time = $time['time_of_day'];
+                            }
+                        }
+                        if ($best_time === 'Morning') echo '🌅';
+                        else if ($best_time === 'Afternoon') echo '☀️';
+                        else if ($best_time === 'Evening') echo '🌆';
+                        else echo '🌙';
+                        ?>
                     </div>
-                    <div class="stat-value"><?php echo count($stats['top_tags']); ?></div>
-                    <div class="stat-label">Tags Used</div>
+                    <div class="stat-value"><?php echo $best_time; ?></div>
+                    <div class="stat-label">Best Time of Day</div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6 mb-4 mb-md-0">
+                <div class="analytics-card stat-card">
+                    <div class="stat-icon">
+                        <?php
+                        $best_tag = '';
+                        $best_tag_mood = 0;
+                        foreach ($stats['top_tags'] as $tag) {
+                            if ($tag['avg_mood'] > $best_tag_mood) {
+                                $best_tag_mood = $tag['avg_mood'];
+                                $best_tag = $tag['name'];
+                            }
+                        }
+                        echo '🏷️';
+                        ?>
+                    </div>
+                    <div class="stat-value"><?php echo $best_tag ?: 'N/A'; ?></div>
+                    <div class="stat-label">Most Positive Activity</div>
                 </div>
             </div>
         </div>
@@ -732,22 +758,24 @@ function initCharts() {
     
     // Mood by Time of Day Chart
     const moodByTimeCtx = document.getElementById('moodByTimeChart').getContext('2d');
+    const moodByTimeData = <?php echo json_encode($mood_by_time); ?>;
+
     new Chart(moodByTimeCtx, {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($times); ?>,
+            labels: moodByTimeData.map(item => item.time_of_day),
             datasets: [{
                 label: 'How I Feel',
-                data: <?php echo json_encode($time_avg_moods); ?>,
-                backgroundColor: function(context) {
-                    const value = context.raw;
-                    if (value >= 4.5) return '#2E7D32';
-                    if (value >= 3.5) return '#4CAF50';
-                    if (value >= 2.5) return '#FFC107';
-                    if (value >= 1.5) return '#FF9800';
-                    return '#F44336';
-                },
-                borderWidth: 0
+                data: moodByTimeData.map(item => item.avg_mood),
+                backgroundColor: moodByTimeData.map(item => {
+                    const mood = item.avg_mood;
+                    if (mood >= 4.5) return chartColors.blue;
+                    else if (mood >= 3.5) return chartColors.green;
+                    else if (mood >= 2.5) return chartColors.yellow;
+                    else if (mood >= 1.5) return chartColors.orange;
+                    else return chartColors.red;
+                }),
+                borderWidth: 1
             }]
         },
         options: {
@@ -758,20 +786,13 @@ function initCharts() {
                     beginAtZero: true,
                     max: 5,
                     ticks: {
-                        stepSize: 1,
                         callback: function(value) {
-                            const emojis = ['😢', '😕', '😐', '🙂', '😊'];
-                            const index = value - 1;
-                            return index >= 0 && index < 5 ? emojis[index] : '';
+                            const emojis = ['😢', '😕', '😐', '🙂', '😄'];
+                            return emojis[Math.floor(value) - 1] || '';
                         },
                         font: {
                             size: 20
                         }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
                     }
                 }
             },
@@ -779,13 +800,9 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const value = context.raw;
-                            const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(value) - 1] || '';
-                            let timeStatus = '';
-                            if (value >= 4) timeStatus = '✨ Peak Time';
-                            else if (value <= 2) timeStatus = '⚠️ Low Time';
-                            else timeStatus = '➖ Neutral Time';
-                            return [`${context.label}: ${emoji} (${value.toFixed(1)})`, timeStatus];
+                            const moodValue = context.raw;
+                            const emoji = ['😢', '😕', '😐', '🙂', '😄'][Math.floor(moodValue) - 1] || '';
+                            return `Mood: ${emoji} (${moodValue.toFixed(1)})`;
                         }
                     }
                 },
@@ -796,25 +813,19 @@ function initCharts() {
         }
     });
     
-    <?php if (!empty($mood_by_tag)): ?>
     // Mood by Tag Chart
     const moodByTagCtx = document.getElementById('moodByTagChart').getContext('2d');
+    const moodByTagData = <?php echo json_encode($mood_by_tag); ?>;
+
     new Chart(moodByTagCtx, {
         type: 'bar',
         data: {
-            labels: <?php echo json_encode($tag_names); ?>,
+            labels: moodByTagData.map(item => item.tag_name),
             datasets: [{
                 label: 'Impact on Mood',
-                data: <?php echo json_encode($tag_avg_moods); ?>,
-                backgroundColor: function(context) {
-                    const value = context.raw;
-                    if (value >= 4.5) return '#2E7D32';
-                    if (value >= 3.5) return '#4CAF50';
-                    if (value >= 2.5) return '#FFC107';
-                    if (value >= 1.5) return '#FF9800';
-                    return '#F44336';
-                },
-                borderWidth: 0
+                data: moodByTagData.map(item => item.avg_mood),
+                backgroundColor: moodByTagData.map(item => item.color),
+                borderWidth: 1
             }]
         },
         options: {
@@ -825,13 +836,10 @@ function initCharts() {
                 x: {
                     beginAtZero: true,
                     max: 5,
-                    position: 'bottom',
                     ticks: {
-                        stepSize: 1,
                         callback: function(value) {
-                            const emojis = ['😢', '😕', '😐', '🙂', '😊'];
-                            const index = value - 1;
-                            return index >= 0 && index < 5 ? emojis[index] : '';
+                            const emojis = ['😢', '😕', '😐', '🙂', '😄'];
+                            return emojis[Math.floor(value) - 1] || '';
                         },
                         font: {
                             size: 20
@@ -843,15 +851,15 @@ function initCharts() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            const value = context.raw;
-                            const emoji = ['😢', '😕', '😐', '🙂', '😊'][Math.floor(value) - 1] || '';
+                            const moodValue = context.raw;
+                            const emoji = ['😢', '😕', '😐', '🙂', '😄'][Math.floor(moodValue) - 1] || '';
                             let impact = '';
-                            if (value >= 4) impact = '🌟 Makes you feel great!';
-                            else if (value >= 3.5) impact = '✨ Positive influence';
-                            else if (value <= 2) impact = '⚠️ Negatively affects you';
-                            else if (value <= 2.5) impact = '😕 Slightly brings you down';
-                            else impact = '➖ Neutral impact';
-                            return [`${context.label}: ${emoji} (${value.toFixed(1)})`, impact];
+                            if (moodValue >= 4.5) impact = 'Greatly improves mood';
+                            else if (moodValue >= 3.5) impact = 'Positively affects mood';
+                            else if (moodValue >= 2.5) impact = 'Neutral impact';
+                            else if (moodValue >= 1.5) impact = 'Slightly lowers mood';
+                            else impact = 'Negatively affects mood';
+                            return `${impact}: ${emoji} (${moodValue.toFixed(1)})`;
                         }
                     }
                 },
@@ -861,7 +869,6 @@ function initCharts() {
             }
         }
     });
-    <?php endif; ?>
 }
 
 // Improve mobile experience
