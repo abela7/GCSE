@@ -1,6 +1,9 @@
 <?php
-require_once '../includes/auth_check.php';
-require_once '../config/db_connect.php';
+// Set page title
+$page_title = "Notification System";
+
+// Include database connection
+require_once '../includes/db_connect.php';
 require_once '../config/email_config.php';
 
 // Process template edits if submitted
@@ -107,7 +110,7 @@ $current_template = isset($_GET['template']) && array_key_exists($_GET['template
 
 $template_content = file_get_contents($template_files[$current_template]);
 
-// Include common header
+// Include header
 include '../includes/header.php';
 ?>
 
@@ -227,7 +230,7 @@ include '../includes/header.php';
                         </div>
                     </div>
                 </div>
-            </div>
+                        </div>
                         </div>
                     </div>
 
@@ -307,7 +310,7 @@ include '../includes/header.php';
                     <?php if ($update_error): ?>
                         <div class="alert alert-danger">
                             <?= $update_error ?>
-                        </div>
+                    </div>
                     <?php endif; ?>
                     
                     <form method="post" id="template-form">
@@ -328,7 +331,7 @@ include '../includes/header.php';
                         <div class="mb-3">
                             <label for="template_content" class="form-label">Template Code</label>
                             <textarea class="form-control" id="template_content" name="template_content" rows="20" style="font-family: monospace;"><?= htmlspecialchars($template_content) ?></textarea>
-                        </div>
+                            </div>
                         
                         <div class="d-flex justify-content-between">
                             <button type="submit" name="save_template" class="btn btn-primary">
@@ -357,5 +360,6 @@ include '../includes/header.php';
 </script>
 
 <?php
+// Include footer
 include '../includes/footer.php';
 ?> 
