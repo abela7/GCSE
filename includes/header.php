@@ -1,8 +1,27 @@
 <?php
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
+// Authentication Check: Ensure user is logged in before proceeding.
+// This MUST be included at the very top of any user-facing page's header.
+require_once __DIR__ . '/auth_check.php'; 
+
+// Start session if not already started (auth_check handles this, but good practice)
+if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Include database connection and functions
+require_once 'db_connect.php';
+require_once 'functions.php';
+
+// Get user information if available (though auth_check ensures they are logged in)
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Guest';
+
+// Fetch page title - default if not set
+$page_title = isset($page_title) ? $page_title : 'AMHA-SLASSIE';
+
+// Determine active page for navigation highlighting
+$current_page = basename($_SERVER['PHP_SELF']);
+
+// TODO: Add logic to fetch user-specific settings like theme if needed
 
 // Get current page for navigation highlighting
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -328,6 +347,13 @@ require_once 'db_connect.php';
                         <li class="nav-item">
                             <a class="nav-link <?php echo $current_page == 'mood_tracker.php' ? 'active' : ''; ?>" href="/pages/mood_tracking/index.php">
                                 <i class="fas fa-smile me-1"></i> Moods
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto me-2"> 
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout.php">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout (<?php echo htmlspecialchars($username); ?>)
                             </a>
                         </li>
                     </ul>
