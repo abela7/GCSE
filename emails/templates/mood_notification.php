@@ -49,7 +49,7 @@ class MoodNotification extends EmailTemplate {
                 }
                 .section {
                     margin: 0;
-                    padding: 25px;
+                    padding: 35px;
                     text-align: center;
                 }
                 .message {
@@ -57,68 +57,18 @@ class MoodNotification extends EmailTemplate {
                     margin-bottom: 30px;
                     line-height: 1.5;
                 }
-                .mood-buttons {
-                    display: flex;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                    margin-bottom: 25px;
-                }
-                .mood-button {
-                    display: inline-block;
-                    width: 95px;
-                    text-align: center;
-                    padding: 12px 5px;
-                    border-radius: 50px;
-                    color: white;
-                    font-weight: bold;
-                    text-decoration: none;
-                    font-size: 14px;
-                }
-                .mood-awesome {
-                    background-color: #4CAF50;
-                }
-                .mood-good {
-                    background-color: #8BC34A;
-                }
-                .mood-okay {
-                    background-color: #FFC107;
-                }
-                .mood-meh {
-                    background-color: #FF9800;
-                }
-                .mood-bad {
-                    background-color: #F44336;
-                }
-                .mood-awful {
-                    background-color: #9C27B0;
-                }
                 .action-button {
                     display: inline-block;
                     color: white;
-                    padding: 15px 30px;
+                    padding: 18px 35px;
                     text-decoration: none;
                     border-radius: 6px;
                     font-weight: 600;
                     text-align: center;
-                    background-color: #2196F3;
-                    margin-top: 25px;
-                    font-size: 16px;
+                    background-color: #43a047;
+                    font-size: 18px;
                     border: none;
-                }
-                .divider {
-                    margin: 20px 0;
-                    border-top: 1px solid #333;
-                    text-align: center;
-                    position: relative;
-                }
-                .divider-text {
-                    position: relative;
-                    top: -10px;
-                    background: #1e1e1e;
-                    padding: 0 15px;
-                    color: #888;
-                    font-size: 14px;
+                    margin-top: 15px;
                 }
                 .footer {
                     text-align: center;
@@ -142,9 +92,9 @@ class MoodNotification extends EmailTemplate {
                     .message {
                         font-size: 16px;
                     }
-                    .mood-button {
-                        width: 80px;
-                        font-size: 12px;
+                    .action-button {
+                        padding: 15px 30px;
+                        font-size: 16px;
                     }
                 }
             </style>
@@ -158,23 +108,11 @@ class MoodNotification extends EmailTemplate {
                 
                 <div class="section">
                     <p class="message">
-                        ' . htmlspecialchars($data['message']) . '
+                        ' . htmlspecialchars($data['message']) . '<br><br>
+                        Take a moment to record your current mood.
                     </p>
                     
-                    <div class="mood-buttons">
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=5&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-awesome">Awesome</a>
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=4&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-good">Good</a>
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=3&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-okay">Okay</a>
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=2&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-meh">Meh</a>
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=1&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-bad">Bad</a>
-                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=0&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-awful">Awful</a>
-                    </div>
-                    
-                    <div class="divider">
-                        <span class="divider-text">OR</span>
-                    </div>
-                    
-                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Full Mood Entry</a>
+                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Record Your Mood</a>
                 </div>
                 
                 <div class="footer">
@@ -185,7 +123,6 @@ class MoodNotification extends EmailTemplate {
                     </p>
                     <p>This email was sent from AMHA-SLASSIE</p>
                     <p>© ' . date('Y') . ' Amha-SELASIE. All rights reserved.</p>
-                    <p><a href="{unsubscribe_link}" style="color: #888; text-decoration: underline;">Unsubscribe</a> from these notifications</p>
                 </div>
             </div>
         </body>

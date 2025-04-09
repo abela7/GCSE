@@ -170,6 +170,16 @@ try {
     $mail->Encoding = 'base64';
     $mail->XMailer = ' ';  // Hide PHPMailer version
     
+    // Add DKIM signing headers
+    $mail->DKIM_domain = 'abel.abuneteklehaymanot.org';
+    $mail->DKIM_selector = 'email';  // Create this selector in your DNS
+    $mail->DKIM_identity = $mail->From;
+    
+    // Add additional headers to improve deliverability
+    $mail->addCustomHeader('List-Unsubscribe', '<mailto:' . EMAIL_REPLY_TO . '?subject=Unsubscribe>');
+    $mail->addCustomHeader('Precedence', 'bulk');
+    $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+    
     // Content
     $mail->isHTML(true);
     $mail->Subject = "How are you feeling? - " . $time_greeting;
