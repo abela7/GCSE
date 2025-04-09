@@ -1,7 +1,7 @@
 <?php
 /**
- * Task Notification Script
- * This script checks for tasks that are due soon and sends notification emails
+ * Task Notification Script - SIMPLIFIED VERSION
+ * This script checks for tasks due exactly at the current time and sends notification emails
  * It should be run by a cron job every minute
  */
 
@@ -35,18 +35,15 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time with a small buffer (1 minute before and after)
-$current_time = date('H:i:s');
-$one_min_before = date('H:i:s', strtotime("-1 minute"));
-$one_min_after = date('H:i:s', strtotime("+1 minute"));
+// Get current time 
+$current_time_rounded = date('H:i:00'); // Round to the current minute
 $today = date('Y-m-d');
 
 error_log("Current date: {$today}");
-error_log("Current time: {$current_time}");
-error_log("Time window: {$one_min_before} to {$one_min_after}");
+error_log("Current time (rounded to minute): {$current_time_rounded}");
 
-// Simplified query to get tasks due now (±1 minute window)
-// REMOVED the notification tracking check to allow resending
+// Ultra-simplified query to get tasks due exactly at the current minute
+// No time window calculations, no tracking table checks
 $tasks_query = "
     SELECT 
         t.id, 
@@ -65,15 +62,15 @@ $tasks_query = "
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
-        AND t.due_time BETWEEN ? AND ?
+        AND t.due_time LIKE ?
     ORDER BY 
-        t.due_time ASC, 
         FIELD(t.priority, 'high', 'medium', 'low')
     LIMIT 5
 ";
 
-// Log the query parameters
-error_log("SQL Query with params: [date={$today}, start_time={$one_min_before}, end_time={$one_min_after}]");
+// Match exactly the hour and minute, regardless of seconds
+$time_pattern = date('H:i') . '%';
+error_log("SQL Query with params: [date={$today}, time_pattern={$time_pattern}]");
 
 try {
     $stmt = $conn->prepare($tasks_query);
@@ -82,7 +79,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("sss", $today, $one_min_before, $one_min_after);
+    $stmt->bind_param("ss", $today, $time_pattern);
     $stmt->execute();
     
     if ($stmt->error) {
@@ -96,19 +93,17 @@ try {
     if ($result->num_rows === 0) {
         error_log("No due tasks found for notification. Exiting.");
         
-        // DEBUG: Show tasks with times close to current time
-        $debug_window_start = date('H:i:s', strtotime("-10 minutes"));
-        $debug_window_end = date('H:i:s', strtotime("+10 minutes"));
-        $debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' AND due_time BETWEEN '{$debug_window_start}' AND '{$debug_window_end}' ORDER BY due_time";
+        // DEBUG: Show all tasks due today
+        $debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' ORDER BY due_time";
         $debug_result = $conn->query($debug_query);
         
         if ($debug_result && $debug_result->num_rows > 0) {
-            error_log("Tasks with times near current time (±10 min):");
+            error_log("All tasks due today:");
             while($row = $debug_result->fetch_assoc()) {
                 error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']}");
             }
         } else {
-            error_log("No tasks found with times near current time");
+            error_log("No tasks found for today");
         }
         
         exit;
@@ -126,90 +121,11 @@ while ($current_task = $result->fetch_assoc()) {
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
     
-    // Get other tasks for today
-    $upcoming_tasks_query = "
-        SELECT 
-            t.id, 
-            t.title, 
-            t.description, 
-            t.priority, 
-            t.estimated_duration,
-            t.category_id,
-            t.due_date, 
-            t.due_time,
-            CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
-        FROM 
-            tasks t
-        LEFT JOIN 
-            task_categories tc ON t.category_id = tc.id
-        WHERE 
-            t.status IN ('pending', 'in_progress')
-            AND t.due_date = ?
-            AND t.due_time > ?
-            AND t.id != ?
-        ORDER BY 
-            t.due_time ASC, 
-            FIELD(t.priority, 'high', 'medium', 'low')
-        LIMIT 3
-    ";
-    
-    $upcoming_stmt = $conn->prepare($upcoming_tasks_query);
-    $upcoming_stmt->bind_param("ssi", $today, $current_time, $current_task['id']);
-    $upcoming_stmt->execute();
-    $upcoming_result = $upcoming_stmt->get_result();
-    
-    $upcoming_tasks = [];
-    while ($task = $upcoming_result->fetch_assoc()) {
-        $task['due_time'] = date('h:i A', strtotime($task['due_time']));
-        $upcoming_tasks[] = $task;
-    }
-    
-    // Get overdue tasks
-    $overdue_tasks_query = "
-        SELECT 
-            t.id, 
-            t.title, 
-            t.description, 
-            t.priority, 
-            t.estimated_duration,
-            t.category_id,
-            t.due_date, 
-            t.due_time,
-            CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
-        FROM 
-            tasks t
-        LEFT JOIN 
-            task_categories tc ON t.category_id = tc.id
-        WHERE 
-            t.status IN ('pending', 'in_progress')
-            AND ((t.due_date < ? OR (t.due_date = ? AND t.due_time < ?)))
-            AND t.id != ?
-        ORDER BY 
-            t.due_date ASC, 
-            t.due_time ASC, 
-            FIELD(t.priority, 'high', 'medium', 'low')
-        LIMIT 3
-    ";
-    
-    $overdue_stmt = $conn->prepare($overdue_tasks_query);
-    $current_time_only = date('H:i:s');
-    $overdue_stmt->bind_param("sssi", $today, $today, $current_time_only, $current_task['id']);
-    $overdue_stmt->execute();
-    $overdue_result = $overdue_stmt->get_result();
-    
-    $overdue_tasks = [];
-    while ($task = $overdue_result->fetch_assoc()) {
-        $task['due_time'] = $task['due_date'] != $today 
-            ? date('M j, Y', strtotime($task['due_date'])) . ' at ' . date('h:i A', strtotime($task['due_time']))
-            : date('h:i A', strtotime($task['due_time']));
-        $overdue_tasks[] = $task;
-    }
-    
-    // Prepare email data
+    // Send just the current task without additional data
     $emailData = [
         'current_task' => $current_task,
-        'overdue_tasks' => $overdue_tasks,
-        'upcoming_tasks' => $upcoming_tasks,
+        'overdue_tasks' => [],
+        'upcoming_tasks' => [],
         'app_url' => $app_url
     ];
     
@@ -240,7 +156,7 @@ while ($current_task = $result->fetch_assoc()) {
         $mail->XMailer = 'GCSE Study App Mailer';
         $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
         $mail->addCustomHeader('Precedence', 'bulk');
-        $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+        $mail->addCustomHeader('X-Priority', '3');
         $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
         
         // Recipients
@@ -249,7 +165,7 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Task Due Now: " . $current_task['title'];
+        $mail->Subject = "⏰ Task Due Now: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
