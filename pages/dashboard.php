@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../includes/auth_check.php';
+
 // Set page title
 $page_title = "Dashboard";
 
@@ -65,7 +67,7 @@ $habits_result = $conn->query($habits_query);
 $habits_stats = $habits_result ? $habits_result->fetch_assoc() : ['total_habits' => 0, 'completed_today' => 0];
 
 // Include header
-include '../includes/header.php';
+include_once __DIR__ . '/../../includes/header.php';
 
 // Define the accent color
 $accent_color = "#cdaf56";

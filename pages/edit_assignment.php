@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/../../includes/auth_check.php';
+
 ob_start(); // Start output buffering
 require_once '../config/db_connect.php';
-include '../includes/header.php';
+include_once __DIR__ . '/../../includes/header.php';
 
 if (!isset($_GET['id'])) {
     header('Location: assignments.php');

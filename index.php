@@ -1,5 +1,5 @@
 <?php
-// Redirect to dashboard
-header('Location: pages/dashboard.php');
-exit;
-?>
+require_once __DIR__ . '/includes/auth_check.php'; 
+
+// Basic redirection or content placeholder
+echo "Main Application Page - Logged In";

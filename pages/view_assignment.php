@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/../../includes/auth_check.php';
+
 // Start the session and buffer
 session_start();
 ob_start();
 
 require_once '../config/db_connect.php';
-include '../includes/header.php';
+include_once __DIR__ . '/../../includes/header.php';
 
 // Handle form submission before any output
 $redirect = false;
