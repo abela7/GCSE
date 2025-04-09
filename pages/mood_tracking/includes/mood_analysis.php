@@ -14,6 +14,10 @@ class MoodAnalyzer {
         $this->conn = $conn;
     }
 
+    public function getMoodScale() {
+        return $this->mood_scale;
+    }
+
     public function analyzeMoodPatterns($start_date, $end_date) {
         $analysis = [
             'daily' => $this->analyzeDailyMood($start_date, $end_date),

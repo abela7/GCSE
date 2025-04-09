@@ -201,7 +201,8 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                             <div class="mood-emoji">
                                 <?php 
                                 $mood_level = $analysis['insights']['daily']['mood'];
-                                echo $analyzer->mood_scale[$mood_level]['emoji'];
+                                $mood_scale = $analyzer->getMoodScale();
+                                echo $mood_scale[$mood_level]['emoji'];
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">Today's Mood: <?php echo $analysis['insights']['daily']['mood']; ?></h3>
@@ -253,7 +254,8 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                             <div class="mood-emoji">
                                 <?php 
                                 $mood_level = $analysis['insights']['weekly']['mood'];
-                                echo $analyzer->mood_scale[$mood_level]['emoji'];
+                                $mood_scale = $analyzer->getMoodScale();
+                                echo $mood_scale[$mood_level]['emoji'];
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">This Week's Mood: <?php echo $analysis['insights']['weekly']['mood']; ?></h3>
@@ -305,7 +307,8 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                             <div class="mood-emoji">
                                 <?php 
                                 $mood_level = $analysis['insights']['monthly']['mood'];
-                                echo $analyzer->mood_scale[$mood_level]['emoji'];
+                                $mood_scale = $analyzer->getMoodScale();
+                                echo $mood_scale[$mood_level]['emoji'];
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">This Month's Mood: <?php echo $analysis['insights']['monthly']['mood']; ?></h3>
