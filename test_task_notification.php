@@ -179,7 +179,7 @@ if (isset($_POST['send_test']) && isset($_POST['task_id'])) {
             
             // Recipients
             $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-            $mail->addAddress(SMTP_USERNAME); // Sending to user's email
+            $mail->addAddress('Abelgoytom77@gmail.com'); // Send to Abel's Gmail
             
             // Content
             $mail->isHTML(true);
@@ -191,7 +191,7 @@ if (isset($_POST['send_test']) && isset($_POST['task_id'])) {
             $mail->send();
             echo '<div class="alert alert-success">
                     <h4 class="alert-heading">Success!</h4>
-                    <p>Test task notification email sent successfully! Please check your inbox at ' . SMTP_USERNAME . '</p>
+                    <p>Test task notification email sent successfully! Please check your inbox at Abelgoytom77@gmail.com</p>
                     <hr>
                     <p class="mb-0">If you don\'t see the email, please check your spam folder.</p>
                   </div>';

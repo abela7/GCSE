@@ -215,7 +215,7 @@ while ($current_habit = $result->fetch_assoc()) {
         
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-        $mail->addAddress(SMTP_USERNAME); // Sending to user's email
+        $mail->addAddress('Abelgoytom77@gmail.com'); // Send to Abel's Gmail
         
         // Content
         $mail->isHTML(true);
