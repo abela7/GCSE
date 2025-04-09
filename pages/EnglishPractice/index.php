@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../includes/auth_check.php';
+
 // GCSE/pages/EnglishPractice/index.php
 session_start();
 require_once __DIR__ . '/../../includes/db_connect.php';
