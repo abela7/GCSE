@@ -1,7 +1,7 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/auth_check.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/db_connect.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/config/email_config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_check.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/config/email_config.php';
 
 // Process template edits if submitted
 $template_updated = false;
@@ -13,9 +13,9 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
     
     // Validate template file path
     $allowed_templates = [
-        'task_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/task_notification.php',
-        'habit_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/habit_notification.php',
-        'morning_briefing.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/morning_briefing.php'
+        'task_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/task_notification.php',
+        'habit_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/habit_notification.php',
+        'morning_briefing.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/morning_briefing.php'
     ];
     
     if (array_key_exists($template_file, $allowed_templates)) {
@@ -43,18 +43,15 @@ if (isset($_POST['trigger_notification']) && isset($_POST['notification_type']))
     try {
         switch ($notification_type) {
             case 'task':
-                // Execute the task notification script
-                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/cron/task_notifications.php 2>&1');
+                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/emails/cron/task_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'habit':
-                // Execute the habit notification script
-                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/cron/habit_notifications.php 2>&1');
+                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/emails/cron/habit_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'morning':
-                // Execute the morning briefing script
-                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/cron/morning_briefing.php 2>&1');
+                $output = shell_exec('php ' . $_SERVER['DOCUMENT_ROOT'] . '/emails/cron/morning_briefing.php 2>&1');
                 $notification_sent = true;
                 break;
             default:
@@ -99,9 +96,9 @@ $morning_cron_active = strpos($cron_output, 'morning_briefing.php') !== false;
 
 // Template management - load template files
 $template_files = [
-    'task_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/task_notification.php',
-    'habit_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/habit_notification.php',
-    'morning_briefing.php' => $_SERVER['DOCUMENT_ROOT'] . '/GCSE/emails/templates/morning_briefing.php'
+    'task_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/task_notification.php',
+    'habit_notification.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/habit_notification.php',
+    'morning_briefing.php' => $_SERVER['DOCUMENT_ROOT'] . '/emails/templates/morning_briefing.php'
 ];
 
 $current_template = isset($_GET['template']) && array_key_exists($_GET['template'], $template_files) 
@@ -111,7 +108,7 @@ $current_template = isset($_GET['template']) && array_key_exists($_GET['template
 $template_content = file_get_contents($template_files[$current_template]);
 
 // Include common header
-require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
 
 <div class="container-fluid">
@@ -160,8 +157,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
                                     <small class="text-muted">Last checked: <?= date('Y-m-d H:i:s') ?></small>
                                 </div>
                             </div>
-                        </div>
-                        
+                    </div>
+
                         <div class="col-md-4">
                             <div class="card h-100">
                                 <div class="card-header bg-warning text-dark">
@@ -204,8 +201,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
                             <div class="card h-100">
                                 <div class="card-header bg-success text-white">
                                     <h5><i class="fas fa-cog me-2"></i>Configuration</h5>
-                                </div>
-                                <div class="card-body">
+                        </div>
+                        <div class="card-body">
                                     <h6>Email Settings</h6>
                                     <ul class="list-group mb-3">
                                         <li class="list-group-item">
@@ -231,9 +228,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
+                        </div>
+                    </div>
+
     <div class="row">
         <div class="col-md-7">
             <div class="card">
@@ -292,15 +289,15 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
                         </div>
                     <?php endif; ?>
                 </div>
-            </div>
-        </div>
-        
+                        </div>
+                    </div>
+
         <div class="col-md-5">
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h3 class="card-title"><i class="fas fa-envelope me-2"></i>Email Template Manager</h3>
-                </div>
-                <div class="card-body">
+                        </div>
+                        <div class="card-body">
                     <?php if ($template_updated): ?>
                         <div class="alert alert-success">
                             <strong>Success!</strong> Template updated successfully.
@@ -360,5 +357,5 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/header.php';
 </script>
 
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/GCSE/includes/footer.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php';
 ?> 
