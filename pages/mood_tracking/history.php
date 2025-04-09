@@ -43,6 +43,8 @@ $all_tags = getMoodTags();
 .filter-card {
     position: sticky;
     top: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 /* Entry Card */
