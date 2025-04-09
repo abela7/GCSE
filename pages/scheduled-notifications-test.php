@@ -39,22 +39,26 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
 // Manually trigger notification if requested
 $notification_sent = false;
 $trigger_error = '';
+$output = '';
 
 if (isset($_POST['trigger_notification']) && isset($_POST['notification_type'])) {
     $notification_type = $_POST['notification_type'];
     
     try {
+        // Get the absolute path for more reliable execution
+        $base_path = realpath(__DIR__ . '/..');
+        
         switch ($notification_type) {
             case 'task':
-                $output = shell_exec('php ../emails/cron/task_notifications.php 2>&1');
+                $output = shell_exec('php ' . $base_path . '/emails/cron/task_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'habit':
-                $output = shell_exec('php ../emails/cron/habit_notifications.php 2>&1');
+                $output = shell_exec('php ' . $base_path . '/emails/cron/habit_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'morning':
-                $output = shell_exec('php ../emails/cron/morning_briefing.php 2>&1');
+                $output = shell_exec('php ' . $base_path . '/emails/cron/morning_briefing.php 2>&1');
                 $notification_sent = true;
                 break;
             default:
@@ -91,8 +95,8 @@ while ($row = $result->fetch_assoc()) {
     $notifications[] = $row;
 }
 
-// Fetch cron job status
-$cron_output = shell_exec('crontab -l');
+// Fetch cron job status - using direct command instead of caching
+$cron_output = shell_exec('crontab -l 2>&1');
 $task_cron_active = strpos($cron_output, 'task_notifications.php') !== false;
 $habit_cron_active = strpos($cron_output, 'habit_notifications.php') !== false;
 $morning_cron_active = strpos($cron_output, 'morning_briefing.php') !== false;
@@ -123,7 +127,7 @@ include '../includes/header.php';
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header bg-info text-white">
                                     <h5><i class="fas fa-clock me-2"></i>Cron Job Status</h5>
@@ -160,9 +164,9 @@ include '../includes/header.php';
                                     <small class="text-muted">Last checked: <?= date('Y-m-d H:i:s') ?></small>
                                 </div>
                             </div>
-                    </div>
+                        </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header bg-warning text-dark">
                                     <h5><i class="fas fa-paper-plane me-2"></i>Trigger Notifications</h5>
@@ -171,6 +175,7 @@ include '../includes/header.php';
                                     <?php if ($notification_sent): ?>
                                         <div class="alert alert-success">
                                             <strong>Success!</strong> Notification script executed.
+                                            <pre class="mt-2 border p-2 bg-light" style="max-height: 200px; overflow-y: auto;"><?= htmlspecialchars($output) ?></pre>
                                         </div>
                                     <?php endif; ?>
                                     
@@ -200,12 +205,12 @@ include '../includes/header.php';
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-12 mt-3">
                             <div class="card h-100">
                                 <div class="card-header bg-success text-white">
                                     <h5><i class="fas fa-cog me-2"></i>Configuration</h5>
-                        </div>
-                        <div class="card-body">
+                                </div>
+                                <div class="card-body">
                                     <h6>Email Settings</h6>
                                     <ul class="list-group mb-3">
                                         <li class="list-group-item">
@@ -230,12 +235,12 @@ include '../includes/header.php';
                         </div>
                     </div>
                 </div>
-                        </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
-        <div class="col-md-7">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-dark text-white">
                     <h3 class="card-title"><i class="fas fa-history me-2"></i>Notification History</h3>
@@ -261,7 +266,7 @@ include '../includes/header.php';
                                         <tr>
                                             <td><?= $notification['id'] ?></td>
                                             <td>
-                                                <?php if ($notification['task_title']): ?>
+                                                <?php if (isset($notification['task_title']) && $notification['task_title']): ?>
                                                     <?= htmlspecialchars($notification['task_title']) ?>
                                                 <?php else: ?>
                                                     <span class="text-muted">ID: <?= $notification['task_id'] ?></span>
@@ -292,71 +297,16 @@ include '../includes/header.php';
                         </div>
                     <?php endif; ?>
                 </div>
-                        </div>
-                    </div>
-
-        <div class="col-md-5">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title"><i class="fas fa-envelope me-2"></i>Email Template Manager</h3>
-                        </div>
-                        <div class="card-body">
-                    <?php if ($template_updated): ?>
-                        <div class="alert alert-success">
-                            <strong>Success!</strong> Template updated successfully.
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($update_error): ?>
-                        <div class="alert alert-danger">
-                            <?= $update_error ?>
-                    </div>
-                    <?php endif; ?>
-                    
-                    <form method="post" id="template-form">
-                        <div class="mb-3">
-                            <label for="template_file" class="form-label">Select Template</label>
-                            <select class="form-select" id="template_file" name="template_file" onchange="changeTemplate(this.value)">
-                                <option value="task_notification.php" <?= $current_template == 'task_notification.php' ? 'selected' : '' ?>>
-                                    Task Notification
-                                </option>
-                                <option value="habit_notification.php" <?= $current_template == 'habit_notification.php' ? 'selected' : '' ?>>
-                                    Habit Notification
-                                </option>
-                                <option value="morning_briefing.php" <?= $current_template == 'morning_briefing.php' ? 'selected' : '' ?>>
-                                    Morning Briefing
-                                </option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="template_content" class="form-label">Template Code</label>
-                            <textarea class="form-control" id="template_content" name="template_content" rows="20" style="font-family: monospace;"><?= htmlspecialchars($template_content) ?></textarea>
-                            </div>
-                        
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" name="save_template" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> Save Template
-                            </button>
-                            
-                            <a href="test_task_notification.php" class="btn btn-info" target="_blank">
-                                <i class="fas fa-vial me-1"></i> Test Task Email
-                            </a>
-                            
-                            <a href="test_habit_notification.php" class="btn btn-info" target="_blank">
-                                <i class="fas fa-vial me-1"></i> Test Habit Email
-                            </a>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function changeTemplate(template) {
-        window.location.href = 'scheduled-notifications-test.php?template=' + template;
-    }
+    // Refresh page every 5 minutes to keep cron status up-to-date
+    setTimeout(function() {
+        window.location.reload();
+    }, 300000); // 5 minutes
 </script>
 
 <?php
