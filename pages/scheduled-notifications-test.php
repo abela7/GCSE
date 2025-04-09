@@ -36,6 +36,22 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
     }
 }
 
+// Send test notification if requested
+$test_sent = false;
+$test_error = '';
+$test_output = '';
+
+if (isset($_POST['send_test_notification'])) {
+    try {
+        // Get the absolute path for more reliable execution
+        $base_path = realpath(__DIR__ . '/..');
+        $test_output = shell_exec('php ' . $base_path . '/test_task_notification.php 2>&1');
+        $test_sent = true;
+    } catch (Exception $e) {
+        $test_error = "Error sending test notification: " . $e->getMessage();
+    }
+}
+
 // Manually trigger notification if requested
 $notification_sent = false;
 $trigger_error = '';
@@ -127,7 +143,7 @@ include '../includes/header.php';
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card h-100">
                                 <div class="card-header bg-info text-white">
                                     <h5><i class="fas fa-clock me-2"></i>Cron Job Status</h5>
@@ -166,7 +182,7 @@ include '../includes/header.php';
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card h-100">
                                 <div class="card-header bg-warning text-dark">
                                     <h5><i class="fas fa-paper-plane me-2"></i>Trigger Notifications</h5>
@@ -201,6 +217,49 @@ include '../includes/header.php';
                                 </div>
                                 <div class="card-footer">
                                     <small class="text-muted">This will manually execute the notification script</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">
+                                    <h5><i class="fas fa-vial me-2"></i>Test Notifications</h5>
+                                </div>
+                                <div class="card-body">
+                                    <?php if ($test_sent): ?>
+                                        <div class="alert alert-success">
+                                            <strong>Success!</strong> Test notification sent.
+                                            <pre class="mt-2 border p-2 bg-light" style="max-height: 200px; overflow-y: auto;"><?= htmlspecialchars($test_output) ?></pre>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($test_error): ?>
+                                        <div class="alert alert-danger">
+                                            <?= $test_error ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>
+                                    <form method="post">
+                                        <button type="submit" name="send_test_notification" class="btn btn-primary w-100">
+                                            <i class="fas fa-envelope me-1"></i> Send Test Task Email
+                                        </button>
+                                    </form>
+                                    
+                                    <hr>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <a href="../test_task_notification.php" target="_blank" class="btn btn-outline-secondary">
+                                            <i class="fas fa-external-link-alt me-1"></i> View Test Script
+                                        </a>
+                                        <a href="../test_habit_notification.php" target="_blank" class="btn btn-outline-secondary">
+                                            <i class="fas fa-external-link-alt me-1"></i> View Habit Test Script
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">These test emails contain sample data</small>
                                 </div>
                             </div>
                         </div>
