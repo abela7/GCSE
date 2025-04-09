@@ -116,25 +116,30 @@ $messages = [
     'mood_midday' => [
         'greeting' => 'Midday Check-in',
         'message' => 'How is your day going so far? Take a moment to reflect on your current mood and record it.',
+        'period' => 'midday'
     ],
     'mood_evening' => [
         'greeting' => 'Evening Check-in',
         'message' => 'As the day winds down, how are you feeling? Your mood track helps identify patterns and improve your well-being.',
+        'period' => 'evening'
     ],
     'mood_night' => [
         'greeting' => 'Night Check-in',
         'message' => 'Before you end your day, take a moment to record how you\'re feeling. This helps track your emotional patterns over time.',
+        'period' => 'night'
     ]
 ];
 
 // Get appropriate message for current notification
 $time_greeting = $messages[$notification_to_send['type']]['greeting'];
 $message = $messages[$notification_to_send['type']]['message'];
+$period = $messages[$notification_to_send['type']]['period'];
 
 // Prepare email data
 $emailData = [
     'time_greeting' => $time_greeting,
     'message' => $message,
+    'period' => $period,
     'app_url' => $app_url
 ];
 

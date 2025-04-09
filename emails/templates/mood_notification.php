@@ -57,6 +57,42 @@ class MoodNotification extends EmailTemplate {
                     margin-bottom: 30px;
                     line-height: 1.5;
                 }
+                .mood-buttons {
+                    display: flex;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    margin-bottom: 25px;
+                }
+                .mood-button {
+                    display: inline-block;
+                    width: 95px;
+                    text-align: center;
+                    padding: 12px 5px;
+                    border-radius: 50px;
+                    color: white;
+                    font-weight: bold;
+                    text-decoration: none;
+                    font-size: 14px;
+                }
+                .mood-awesome {
+                    background-color: #4CAF50;
+                }
+                .mood-good {
+                    background-color: #8BC34A;
+                }
+                .mood-okay {
+                    background-color: #FFC107;
+                }
+                .mood-meh {
+                    background-color: #FF9800;
+                }
+                .mood-bad {
+                    background-color: #F44336;
+                }
+                .mood-awful {
+                    background-color: #9C27B0;
+                }
                 .action-button {
                     display: inline-block;
                     color: white;
@@ -65,10 +101,24 @@ class MoodNotification extends EmailTemplate {
                     border-radius: 6px;
                     font-weight: 600;
                     text-align: center;
-                    background-color: #43a047;
-                    margin-top: 15px;
+                    background-color: #2196F3;
+                    margin-top: 25px;
                     font-size: 16px;
                     border: none;
+                }
+                .divider {
+                    margin: 20px 0;
+                    border-top: 1px solid #333;
+                    text-align: center;
+                    position: relative;
+                }
+                .divider-text {
+                    position: relative;
+                    top: -10px;
+                    background: #1e1e1e;
+                    padding: 0 15px;
+                    color: #888;
+                    font-size: 14px;
                 }
                 .footer {
                     text-align: center;
@@ -92,6 +142,10 @@ class MoodNotification extends EmailTemplate {
                     .message {
                         font-size: 16px;
                     }
+                    .mood-button {
+                        width: 80px;
+                        font-size: 12px;
+                    }
                 }
             </style>
         </head>
@@ -107,7 +161,20 @@ class MoodNotification extends EmailTemplate {
                         ' . htmlspecialchars($data['message']) . '
                     </p>
                     
-                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Record Your Feeling</a>
+                    <div class="mood-buttons">
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=5&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-awesome">Awesome</a>
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=4&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-good">Good</a>
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=3&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-okay">Okay</a>
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=2&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-meh">Meh</a>
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=1&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-bad">Bad</a>
+                        <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/quick_entry.php?mood=0&period=' . htmlspecialchars($data['period']) . '&time=' . date('H:i') . '" class="mood-button mood-awful">Awful</a>
+                    </div>
+                    
+                    <div class="divider">
+                        <span class="divider-text">OR</span>
+                    </div>
+                    
+                    <a href="' . htmlspecialchars($data['app_url']) . '/pages/mood_tracking/entry.php" class="action-button">Full Mood Entry</a>
                 </div>
                 
                 <div class="footer">
