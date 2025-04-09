@@ -113,8 +113,8 @@ function formatDate($date) {
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4 class="card-title mb-1"><?php echo htmlspecialchars($subsection['subsection_name']); ?></h4>
-                            <p class="text-muted mb-0"><?php echo htmlspecialchars($subsection['subsection_description']); ?></p>
+                            <h4 class="card-title mb-1"><?php echo htmlspecialchars($subsection['name']); ?></h4>
+                            <p class="text-muted mb-0"><?php echo htmlspecialchars($subsection['description']); ?></p>
                         </div>
                         <button onclick="cleanupDuplicates()" class="btn btn-outline-secondary btn-sm">
                             <i class="fas fa-broom me-1"></i>Clean Up Duplicates
