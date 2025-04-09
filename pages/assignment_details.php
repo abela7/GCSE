@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_check.php';
-
 $page_title = "Assignment Details";
-include_once __DIR__ . '/../../includes/header.php';
+include '../includes/header.php';
 include '../config/db_connect.php';
 
 if (!isset($_GET['id'])) {

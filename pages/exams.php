@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_check.php';
-
 // Set page title
 $page_title = "Exams";
 
@@ -43,7 +41,7 @@ $exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color
 $exams_result = $conn->query($exams_query);
 
 // Include header
-include_once __DIR__ . '/../../includes/header.php';
+include '../includes/header.php';
 ?>
 
 <style>

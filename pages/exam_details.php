@@ -9,9 +9,6 @@ $page_title = "Exam Details";
 // Include database connection
 require_once '../config/db_connect.php';
 
-// Include auth check
-require_once __DIR__ . '/../../includes/auth_check.php';
-
 // Function to adjust color brightness
 function adjustBrightness($hex, $steps) {
     // Remove # if present
@@ -56,7 +53,7 @@ if ($exam_result && $exam_result->num_rows > 0) {
 }
 
 // Include header
-include_once __DIR__ . '/../../includes/header.php';
+include '../includes/header.php';
 
 // Set timezone to London
 date_default_timezone_set('Europe/London');

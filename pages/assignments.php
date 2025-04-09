@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_check.php';
-
 require_once '../config/db_connect.php';
-include_once __DIR__ . '/../../includes/header.php';
+include '../includes/header.php';
 
 // Function to calculate days remaining
 function getDaysRemaining($due_date) {
