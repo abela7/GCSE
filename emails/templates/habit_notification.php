@@ -190,8 +190,14 @@ class HabitNotification extends EmailTemplate {
                 
                 ' . (count($data['upcoming_tasks']) > 0 ? '
                 <div class="section">
-                    <div class="section-title">Other Habits Today</div>
+                    <div class="section-title">Coming Up Next</div>
                     ' . $this->renderHabitList($data['upcoming_tasks']) . '
+                </div>' : '') . '
+                
+                ' . (isset($data['completed_tasks']) && count($data['completed_tasks']) > 0 ? '
+                <div class="section">
+                    <div class="section-title">Already Completed Today</div>
+                    ' . $this->renderHabitList($data['completed_tasks']) . '
                 </div>' : '') . '
                 
                 <div class="footer">
@@ -215,6 +221,8 @@ class HabitNotification extends EmailTemplate {
                         Priority: ' . ucfirst(htmlspecialchars($habit['priority'])) . '
                     </div>
                     ' . (isset($habit['due_time']) && $habit['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($habit['due_time']) . '</div>' : '') . '
+                    ' . (isset($habit['completed_text']) ? '<div class="habit-detail-item" style="color: #4a90e2;"><strong>' . htmlspecialchars($habit['completed_text']) . '</strong></div>' : '') . '
+                    ' . (isset($habit['upcoming_text']) ? '<div class="habit-detail-item" style="color: #4caf50;"><strong>' . htmlspecialchars($habit['upcoming_text']) . '</strong></div>' : '') . '
                     ' . (isset($habit['estimated_duration']) && $habit['estimated_duration'] ? '<div class="habit-detail-item">' . htmlspecialchars($habit['estimated_duration']) . '</div>' : '') . '
                 </div>
             </div>';

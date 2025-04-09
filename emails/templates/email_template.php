@@ -136,8 +136,13 @@ class EmailTemplate {
                     '.$content.'
                 </div>
                 <div class="footer">
-                    <p>This email was sent from Amha-Silassie Study App</p>
-                    <p>© '.date('Y').' Amha-Silassie. All rights reserved.</p>
+                    <p>ኃይልን በሚሰጠኝ በክርስቶስ ሁሉን እችላለሁ </br>
+                    ፊልጵስዩስ 4:13
+                    </br>
+                    
+                    </p>
+                    <p>This email was sent from AMHA-SLASSIE</p>
+                    <p>© '.date('Y').' Amha-SELASIE. All rights reserved.</p>
                     <p><a href="{unsubscribe_link}">Unsubscribe</a> from these notifications</p>
                 </div>
             </div>
