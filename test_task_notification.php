@@ -5,9 +5,10 @@
  */
 
 // Include required files
-require_once __DIR__ . '/../config/email_config.php';
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/templates/task_notification.php';
+require_once __DIR__ . '/config/email_config.php';
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/includes/db_connect.php';
+require_once __DIR__ . '/emails/templates/task_notification.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
