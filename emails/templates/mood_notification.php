@@ -103,7 +103,7 @@ class MoodNotification extends EmailTemplate {
             <div class="container">
                 <div class="header">
                     <h1>How am I feeling right now?</h1>
-                    <div class="time">' . htmlspecialchars($data['time_greeting']) . '</div>
+                    <div class="time">' . htmlspecialchars($data['time_greeting']) . ' - ' . htmlspecialchars($data['exact_datetime']) . '</div>
                 </div>
                 
                 <div class="section">

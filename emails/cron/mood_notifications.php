@@ -136,10 +136,12 @@ $message = $messages[$notification_to_send['type']]['message'];
 $period = $messages[$notification_to_send['type']]['period'];
 
 // Prepare email data
+$exact_datetime = date('F j, Y, g:i A');
 $emailData = [
     'time_greeting' => $time_greeting,
     'message' => $message,
     'period' => $period,
+    'exact_datetime' => $exact_datetime,
     'app_url' => $app_url
 ];
 
@@ -170,6 +172,13 @@ try {
     $mail->Encoding = 'base64';
     $mail->XMailer = ' ';  // Hide PHPMailer version
     
+    // Create unique Message-ID with timestamp to ensure new email each time
+    $unique_id = time() . '.' . mt_rand() . '@abel.abuneteklehaymanot.org';
+    $mail->MessageID = '<mood.' . $notification_to_send['type'] . '.' . $unique_id . '>';
+    
+    // Add Date header with current date and time
+    $mail->addCustomHeader('Date', date('r'));
+    
     // Add DKIM signing headers
     $mail->DKIM_domain = 'abel.abuneteklehaymanot.org';
     $mail->DKIM_selector = 'email';  // Create this selector in your DNS
@@ -182,7 +191,7 @@ try {
     
     // Content
     $mail->isHTML(true);
-    $mail->Subject = "Reminder: How am I feeling? - " . $time_greeting;
+    $mail->Subject = "Reminder: How am I feeling? - " . $time_greeting . " (" . date('F j, g:i A') . ")";
     $mail->Body = $emailContent;
     $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
     
