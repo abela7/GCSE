@@ -36,10 +36,27 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
     }
 }
 
-// Handle history deletion if requested
+// Handle individual notification deletion
 $delete_success = false;
 $delete_error = '';
 
+if (isset($_POST['delete_notification']) && isset($_POST['notification_id'])) {
+    $notification_id = intval($_POST['notification_id']);
+    try {
+        $delete_query = "DELETE FROM task_notification_tracking WHERE id = ?";
+        $stmt = $conn->prepare($delete_query);
+        $stmt->bind_param("i", $notification_id);
+        if ($stmt->execute()) {
+            $delete_success = true;
+        } else {
+            $delete_error = "Error deleting notification: " . $conn->error;
+        }
+    } catch (Exception $e) {
+        $delete_error = "Error deleting notification: " . $e->getMessage();
+    }
+}
+
+// Handle history deletion if requested
 if (isset($_POST['delete_history'])) {
     try {
         $delete_query = "TRUNCATE TABLE task_notification_tracking";
@@ -114,8 +131,13 @@ if (isset($_POST['trigger_notification']) && isset($_POST['notification_type']))
     }
 }
 
+// Set fixed limit for initial display
+$limit = 5;
+if (isset($_GET['load_more'])) {
+    $limit = 5 + (intval($_GET['load_more']) * 10);
+}
+
 // Fetch notification history - initially just 5
-$limit = isset($_GET['limit']) ? intval($_GET['limit']) : 5;
 $notifications_query = "
     SELECT 
         tnt.id,
@@ -196,7 +218,7 @@ include '../includes/header.php';
                                 <div class="card-body">
                                     <?php if ($delete_success): ?>
                                         <div class="alert alert-success">
-                                            Notification history has been successfully cleared.
+                                            Notification record has been successfully deleted.
                                         </div>
                                     <?php endif; ?>
                                     
@@ -219,6 +241,7 @@ include '../includes/header.php';
                                                         <th>Task/Habit</th>
                                                         <th>Type</th>
                                                         <th>Sent At</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -250,6 +273,14 @@ include '../includes/header.php';
                                                                 <span class="badge <?= $badge_class ?>"><?= $notification['notification_type'] ?></span>
                                                             </td>
                                                             <td><?= $notification['sent_at'] ?></td>
+                                                            <td>
+                                                                <form method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this notification record?');">
+                                                                    <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
+                                                                    <button type="submit" name="delete_notification" class="btn btn-sm btn-outline-danger" title="Delete Record">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </td>
                                                         </tr>
                                                     <?php endforeach; ?>
                                                 </tbody>
@@ -258,7 +289,8 @@ include '../includes/header.php';
                                         
                                         <?php if ($total_count > $limit): ?>
                                             <div class="text-center mt-3">
-                                                <a href="?limit=<?= $limit + 10 ?>" class="btn btn-outline-primary">
+                                                <?php $load_more_count = isset($_GET['load_more']) ? intval($_GET['load_more']) + 1 : 1; ?>
+                                                <a href="?load_more=<?= $load_more_count ?>" class="btn btn-outline-primary">
                                                     <i class="fas fa-sync me-1"></i> Load More History (showing <?= count($notifications) ?> of <?= $total_count ?>)
                                                 </a>
                                             </div>
@@ -449,10 +481,14 @@ include '../includes/header.php';
 
 <script>
     // Refresh page every 5 minutes to keep cron status up-to-date
-    // But preserve the limit parameter
+    // But preserve the load_more parameter
     setTimeout(function() {
-        const currentLimit = new URLSearchParams(window.location.search).get('limit') || 5;
-        window.location.href = window.location.pathname + '?limit=' + currentLimit;
+        const currentLoadMore = new URLSearchParams(window.location.search).get('load_more') || '';
+        let newUrl = window.location.pathname;
+        if (currentLoadMore) {
+            newUrl += '?load_more=' + currentLoadMore;
+        }
+        window.location.href = newUrl;
     }, 300000); // 5 minutes
 </script>
 
