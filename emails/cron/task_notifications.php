@@ -2,7 +2,7 @@
 /**
  * Task Notification Script
  * This script checks for tasks that are due soon and sends notification emails
- * It should be run by a cron job every 5-15 minutes
+ * It should be run by a cron job every minute
  */
 
 // Enable verbose error logging
@@ -35,18 +35,18 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Set up time windows for notifications with a wider range
+// Get current time with a small buffer (1 minute before and after)
 $current_time = date('H:i:s');
-$one_min_ago = date('H:i:s', strtotime("-1 minute")); // Check tasks due in the last minute
-$five_min_future = date('H:i:s', strtotime("+5 minutes")); // Check tasks due in the next 5 minutes
+$one_min_before = date('H:i:s', strtotime("-1 minute"));
+$one_min_after = date('H:i:s', strtotime("+1 minute"));
 $today = date('Y-m-d');
 
 error_log("Current date: {$today}");
 error_log("Current time: {$current_time}");
-error_log("Checking for tasks due between {$one_min_ago} and {$five_min_future}");
+error_log("Time window: {$one_min_before} to {$one_min_after}");
 
-// Modified query to check for tasks due in a wider window
-// Limit to 1 task per run to prevent multiple notifications
+// Simplified query to get tasks due now (±1 minute window)
+// REMOVED the notification tracking check to allow resending
 $tasks_query = "
     SELECT 
         t.id, 
@@ -62,21 +62,18 @@ $tasks_query = "
         tasks t
     LEFT JOIN 
         task_categories tc ON t.category_id = tc.id
-    LEFT JOIN 
-        task_notification_tracking tnt ON t.id = tnt.task_id AND tnt.notification_type = 'due'
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
         AND t.due_time BETWEEN ? AND ?
-        AND tnt.id IS NULL
     ORDER BY 
         t.due_time ASC, 
         FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 1
+    LIMIT 5
 ";
 
-// Log the actual SQL before executing
-error_log("SQL Query with params: [date={$today}, start_time={$one_min_ago}, end_time={$five_min_future}]");
+// Log the query parameters
+error_log("SQL Query with params: [date={$today}, start_time={$one_min_before}, end_time={$one_min_after}]");
 
 try {
     $stmt = $conn->prepare($tasks_query);
@@ -85,7 +82,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("sss", $today, $one_min_ago, $five_min_future);
+    $stmt->bind_param("sss", $today, $one_min_before, $one_min_after);
     $stmt->execute();
     
     if ($stmt->error) {
@@ -99,17 +96,19 @@ try {
     if ($result->num_rows === 0) {
         error_log("No due tasks found for notification. Exiting.");
         
-        // DEBUG: List all tasks to see if we're missing something
-        $all_tasks_query = "SELECT id, title, due_date, due_time, status FROM tasks ORDER BY due_date DESC, due_time ASC LIMIT 10";
-        $all_tasks_result = $conn->query($all_tasks_query);
+        // DEBUG: Show tasks with times close to current time
+        $debug_window_start = date('H:i:s', strtotime("-10 minutes"));
+        $debug_window_end = date('H:i:s', strtotime("+10 minutes"));
+        $debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' AND due_time BETWEEN '{$debug_window_start}' AND '{$debug_window_end}' ORDER BY due_time";
+        $debug_result = $conn->query($debug_query);
         
-        if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
-            error_log("Recent tasks in database:");
-            while($row = $all_tasks_result->fetch_assoc()) {
+        if ($debug_result && $debug_result->num_rows > 0) {
+            error_log("Tasks with times near current time (±10 min):");
+            while($row = $debug_result->fetch_assoc()) {
                 error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']}");
             }
         } else {
-            error_log("No tasks found in database at all!");
+            error_log("No tasks found with times near current time");
         }
         
         exit;
@@ -126,6 +125,44 @@ while ($current_task = $result->fetch_assoc()) {
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
+    
+    // Get other tasks for today
+    $upcoming_tasks_query = "
+        SELECT 
+            t.id, 
+            t.title, 
+            t.description, 
+            t.priority, 
+            t.estimated_duration,
+            t.category_id,
+            t.due_date, 
+            t.due_time,
+            CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
+        FROM 
+            tasks t
+        LEFT JOIN 
+            task_categories tc ON t.category_id = tc.id
+        WHERE 
+            t.status IN ('pending', 'in_progress')
+            AND t.due_date = ?
+            AND t.due_time > ?
+            AND t.id != ?
+        ORDER BY 
+            t.due_time ASC, 
+            FIELD(t.priority, 'high', 'medium', 'low')
+        LIMIT 3
+    ";
+    
+    $upcoming_stmt = $conn->prepare($upcoming_tasks_query);
+    $upcoming_stmt->bind_param("ssi", $today, $current_time, $current_task['id']);
+    $upcoming_stmt->execute();
+    $upcoming_result = $upcoming_stmt->get_result();
+    
+    $upcoming_tasks = [];
+    while ($task = $upcoming_result->fetch_assoc()) {
+        $task['due_time'] = date('h:i A', strtotime($task['due_time']));
+        $upcoming_tasks[] = $task;
+    }
     
     // Get overdue tasks
     $overdue_tasks_query = "
@@ -151,7 +188,7 @@ while ($current_task = $result->fetch_assoc()) {
             t.due_date ASC, 
             t.due_time ASC, 
             FIELD(t.priority, 'high', 'medium', 'low')
-        LIMIT 5
+        LIMIT 3
     ";
     
     $overdue_stmt = $conn->prepare($overdue_tasks_query);
@@ -167,45 +204,6 @@ while ($current_task = $result->fetch_assoc()) {
             : date('h:i A', strtotime($task['due_time']));
         $overdue_tasks[] = $task;
     }
-    error_log("Found " . count($overdue_tasks) . " overdue tasks");
-    
-    // Get other tasks for today
-    $upcoming_tasks_query = "
-        SELECT 
-            t.id, 
-            t.title, 
-            t.description, 
-            t.priority, 
-            t.estimated_duration,
-            t.category_id,
-            t.due_date, 
-            t.due_time,
-            CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
-        FROM 
-            tasks t
-        LEFT JOIN 
-            task_categories tc ON t.category_id = tc.id
-        WHERE 
-            t.status IN ('pending', 'in_progress')
-            AND t.due_date = ?
-            AND t.id != ?
-        ORDER BY 
-            t.due_time ASC, 
-            FIELD(t.priority, 'high', 'medium', 'low')
-        LIMIT 5
-    ";
-    
-    $upcoming_stmt = $conn->prepare($upcoming_tasks_query);
-    $upcoming_stmt->bind_param("si", $today, $current_task['id']);
-    $upcoming_stmt->execute();
-    $upcoming_result = $upcoming_stmt->get_result();
-    
-    $upcoming_tasks = [];
-    while ($task = $upcoming_result->fetch_assoc()) {
-        $task['due_time'] = date('h:i A', strtotime($task['due_time']));
-        $upcoming_tasks[] = $task;
-    }
-    error_log("Found " . count($upcoming_tasks) . " upcoming tasks");
     
     // Prepare email data
     $emailData = [
@@ -218,7 +216,6 @@ while ($current_task = $result->fetch_assoc()) {
     // Generate email content
     $notification = new TaskNotification();
     $emailContent = $notification->generateEmail($emailData);
-    error_log("Email content generated successfully");
     
     // Send email
     $mail = new PHPMailer(true);
@@ -248,67 +245,32 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-        $mail->addAddress(SMTP_USERNAME); // Use SMTP_USERNAME instead of hardcoded email address
-        error_log("Sending email to: " . SMTP_USERNAME);
+        $mail->addAddress(SMTP_USERNAME);
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "⏰ Task Due Now: " . $current_task['title'];
+        $mail->Subject = "Task Due Now: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
         // Send the email
         if (!$mail->send()) {
             error_log("Email could not be sent: " . $mail->ErrorInfo);
-            continue; // Skip to next task if email fails
+            continue;
         }
         
         error_log("Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
         
-        // Record that notification has been sent - moved after successful email sending
-        error_log("Updating notification tracking for task ID: " . $current_task['id']);
-        
-        // Check if task_notification_tracking table exists
-        $table_check = $conn->query("SHOW TABLES LIKE 'task_notification_tracking'");
-        if ($table_check->num_rows == 0) {
-            error_log("ERROR: task_notification_tracking table does not exist");
-            
-            // Try to create the table
-            $create_table_sql = "
-                CREATE TABLE IF NOT EXISTS task_notification_tracking (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    task_id INT NOT NULL,
-                    notification_type VARCHAR(50) NOT NULL,
-                    sent_at DATETIME NOT NULL,
-                    INDEX (task_id),
-                    INDEX (notification_type)
-                )
-            ";
-            
-            if ($conn->query($create_table_sql)) {
-                error_log("Created task_notification_tracking table");
-            } else {
-                error_log("Failed to create table: " . $conn->error);
-            }
-        } else {
-            error_log("task_notification_tracking table exists");
-        }
-        
+        // Still record in tracking table, but just for history
         $tracking_query = "
             INSERT INTO task_notification_tracking (task_id, notification_type, sent_at)
             VALUES (?, 'due', NOW())
         ";
         
         $tracking_stmt = $conn->prepare($tracking_query);
-        if (!$tracking_stmt) {
-            error_log("ERROR preparing tracking statement: " . $conn->error);
-        } else {
+        if ($tracking_stmt) {
             $tracking_stmt->bind_param("i", $current_task['id']);
-            if ($tracking_stmt->execute()) {
-                error_log("Tracking record inserted successfully with ID: " . $conn->insert_id);
-            } else {
-                error_log("ERROR inserting tracking record: " . $tracking_stmt->error);
-            }
+            $tracking_stmt->execute();
             $tracking_stmt->close();
         }
         
