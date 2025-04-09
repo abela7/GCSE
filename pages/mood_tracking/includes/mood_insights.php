@@ -640,7 +640,7 @@ function analyzeCommonFactors($entries) {
     
     arsort($factors);
     return array_slice($factors, 0, 3, true);
-}
+} 
 
 // This include file displays the pattern analysis sections
 // It's used across different time periods (daily, weekly, monthly)
