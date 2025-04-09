@@ -1,7 +1,7 @@
 <?php
 /**
- * Task Notification Script - SIMPLIFIED VERSION
- * This script checks for tasks due exactly at the current time and sends notification emails
+ * Task Notification Script - ULTRA SIMPLIFIED VERSION
+ * This script checks for tasks due today and sends notification emails regardless of exact timing
  * It should be run by a cron job every minute
  */
 
@@ -35,15 +35,30 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Get current time 
-$current_time_rounded = date('H:i:00'); // Round to the current minute
+// Get current time info
+$current_full_time = date('H:i:s');
+$current_hour_minute = date('H:i');
 $today = date('Y-m-d');
 
 error_log("Current date: {$today}");
-error_log("Current time (rounded to minute): {$current_time_rounded}");
+error_log("Current full time: {$current_full_time}");
+error_log("Current hour:minute: {$current_hour_minute}");
 
-// Ultra-simplified query to get tasks due exactly at the current minute
-// No time window calculations, no tracking table checks
+// First, let's check the database to see ALL pending tasks with their due times
+$all_tasks_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE status IN ('pending', 'in_progress') ORDER BY due_date, due_time";
+$all_tasks_result = $conn->query($all_tasks_query);
+
+error_log("=== DEBUG: ALL PENDING TASKS IN DATABASE ===");
+if ($all_tasks_result && $all_tasks_result->num_rows > 0) {
+    while($row = $all_tasks_result->fetch_assoc()) {
+        error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']}");
+    }
+} else {
+    error_log("No pending tasks found in database at all!");
+}
+
+// ULTRA-simplified query - Get ALL tasks due today that haven't been notified in the last hour
+// This is a fallback approach to ensure notifications are sent
 $tasks_query = "
     SELECT 
         t.id, 
@@ -59,18 +74,20 @@ $tasks_query = "
         tasks t
     LEFT JOIN 
         task_categories tc ON t.category_id = tc.id
+    LEFT JOIN 
+        task_notification_tracking tnt ON t.id = tnt.task_id AND tnt.notification_type = 'due' 
+                                      AND tnt.sent_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
     WHERE 
         t.status IN ('pending', 'in_progress') 
         AND t.due_date = ?
-        AND t.due_time LIKE ?
+        AND tnt.id IS NULL
     ORDER BY 
+        t.due_time ASC,
         FIELD(t.priority, 'high', 'medium', 'low')
-    LIMIT 5
+    LIMIT 1
 ";
 
-// Match exactly the hour and minute, regardless of seconds
-$time_pattern = date('H:i') . '%';
-error_log("SQL Query with params: [date={$today}, time_pattern={$time_pattern}]");
+error_log("SQL Query for today's tasks with params: [date={$today}]");
 
 try {
     $stmt = $conn->prepare($tasks_query);
@@ -79,7 +96,7 @@ try {
         exit;
     }
     
-    $stmt->bind_param("ss", $today, $time_pattern);
+    $stmt->bind_param("s", $today);
     $stmt->execute();
     
     if ($stmt->error) {
@@ -91,22 +108,47 @@ try {
     error_log("Query executed successfully. Found " . $result->num_rows . " tasks due for notification.");
     
     if ($result->num_rows === 0) {
-        error_log("No due tasks found for notification. Exiting.");
+        error_log("No tasks found that need notification. Checking for exact time matches now...");
         
-        // DEBUG: Show all tasks due today
-        $debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' ORDER BY due_time";
-        $debug_result = $conn->query($debug_query);
+        // Try a different approach - exact time matching based on hour:minute
+        $exact_time_query = "
+            SELECT 
+                t.id, 
+                t.title, 
+                t.description, 
+                t.priority, 
+                t.estimated_duration,
+                t.category_id,
+                t.due_date, 
+                t.due_time,
+                CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
+            FROM 
+                tasks t
+            LEFT JOIN 
+                task_categories tc ON t.category_id = tc.id
+            WHERE 
+                t.status IN ('pending', 'in_progress') 
+                AND t.due_date = ?
+                AND SUBSTRING(t.due_time, 1, 5) = ?
+            ORDER BY 
+                FIELD(t.priority, 'high', 'medium', 'low')
+            LIMIT 1
+        ";
         
-        if ($debug_result && $debug_result->num_rows > 0) {
-            error_log("All tasks due today:");
-            while($row = $debug_result->fetch_assoc()) {
-                error_log("Task #{$row['id']}: {$row['title']} - Due: {$row['due_date']} {$row['due_time']} - Status: {$row['status']}");
-            }
+        $exact_stmt = $conn->prepare($exact_time_query);
+        $exact_stmt->bind_param("ss", $today, $current_hour_minute);
+        $exact_stmt->execute();
+        $exact_result = $exact_stmt->get_result();
+        
+        error_log("Exact time query executed. Found " . $exact_result->num_rows . " tasks matching current time " . $current_hour_minute);
+        
+        if ($exact_result->num_rows > 0) {
+            $result = $exact_result;
+            error_log("Found task with exact time match. Proceeding with notification.");
         } else {
-            error_log("No tasks found for today");
+            error_log("No tasks found with exact time match. Exiting.");
+            exit;
         }
-        
-        exit;
     }
 } catch (Exception $e) {
     error_log("SQL ERROR: " . $e->getMessage());
@@ -116,7 +158,7 @@ try {
 // Process each task found
 while ($current_task = $result->fetch_assoc()) {
     // Log task found
-    error_log("Processing notification for task: {$current_task['id']} - {$current_task['title']} due at {$current_task['due_time']}");
+    error_log("SENDING NOTIFICATION for task: {$current_task['id']} - {$current_task['title']} due at {$current_task['due_time']}");
     
     // Format task time for display
     $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
@@ -165,7 +207,7 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "⏰ Task Due Now: " . $current_task['title'];
+        $mail->Subject = "⏰ TASK DUE: " . $current_task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
@@ -175,7 +217,7 @@ while ($current_task = $result->fetch_assoc()) {
             continue;
         }
         
-        error_log("Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
+        error_log("✅ Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
         
         // Still record in tracking table, but just for history
         $tracking_query = "
