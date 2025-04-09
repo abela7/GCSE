@@ -326,7 +326,7 @@ require_once 'db_connect.php';
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?php echo $current_page == 'mood_tracker.php' ? 'active' : ''; ?>" href="/pages/mood_tracker.php">
+                            <a class="nav-link <?php echo $current_page == 'mood_tracker.php' ? 'active' : ''; ?>" href="/pages/mood_tracking/index.php">
                                 <i class="fas fa-smile me-1"></i> Moods
                             </a>
                         </li>
