@@ -12,7 +12,7 @@ class TaskNotification extends EmailTemplate {
             <title>Task Reminder</title>
             <style>
                 body {
-                    font-family: Arial, sans-serif;
+                    font-family: "Segoe UI", Arial, sans-serif;
                     line-height: 1.6;
                     color: #333;
                     margin: 0;
@@ -22,32 +22,38 @@ class TaskNotification extends EmailTemplate {
                 .container {
                     max-width: 600px;
                     margin: 0 auto;
-                    padding: 20px;
+                    padding: 0;
                     background-color: #ffffff;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                 }
                 .header {
                     background-color: rgb(168, 142, 64);
                     color: white;
-                    padding: 25px 20px;
+                    padding: 30px 20px;
                     text-align: center;
-                    border-radius: 10px 10px 0 0;
                 }
                 .header h1 {
                     margin: 0;
-                    font-size: 24px;
+                    font-size: 26px;
                     font-weight: 600;
+                    letter-spacing: 0.5px;
                 }
                 .task-time {
                     font-size: 18px;
                     margin-top: 10px;
-                    opacity: 0.9;
                     font-weight: bold;
+                    color: rgba(255, 255, 255, 0.9);
+                    display: inline-block;
+                    padding: 5px 15px;
+                    background-color: rgba(0, 0, 0, 0.2);
+                    border-radius: 20px;
+                    margin-top: 15px;
                 }
                 .section {
-                    margin: 25px 0;
-                    padding: 0 20px;
+                    margin: 25px 0 0 0;
+                    padding: 0 25px 25px 25px;
                 }
                 .section-title {
                     font-size: 20px;
@@ -56,6 +62,16 @@ class TaskNotification extends EmailTemplate {
                     margin-bottom: 15px;
                     padding-bottom: 10px;
                     border-bottom: 2px solid #f1f3f5;
+                    position: relative;
+                }
+                .section-title:after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    bottom: -2px;
+                    width: 50px;
+                    height: 2px;
+                    background-color: rgb(168, 142, 64);
                 }
                 .task-card {
                     background-color: #f8f9fa;
@@ -64,16 +80,37 @@ class TaskNotification extends EmailTemplate {
                     padding: 15px;
                     margin-bottom: 15px;
                     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                }
+                .task-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
                 .task-card.current {
-                    background-color: #e8f4fd;
-                    border-left: 4px solid #1e88e5;
-                    border-radius: 8px;
+                    background-color: rgba(238, 246, 255, 0.8);
+                    border-left: 4px solid rgb(168, 142, 64);
+                    border-radius: 10px;
                     padding: 20px;
-                    margin-bottom: 20px;
+                    margin: 0 0 25px 0;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+                    position: relative;
+                }
+                .task-card.current:before {
+                    content: "NOW DUE";
+                    position: absolute;
+                    top: -10px;
+                    right: 20px;
+                    background-color: rgb(168, 142, 64);
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 }
                 .task-card.overdue {
                     border-left-color: #e53935;
+                    background-color: rgba(255, 240, 240, 0.5);
                 }
                 .task-title {
                     font-size: 18px;
@@ -82,17 +119,30 @@ class TaskNotification extends EmailTemplate {
                     color: #2d3436;
                 }
                 .task-card.current .task-title {
-                    font-size: 20px;
+                    font-size: 22px;
+                    color: #1a1a1a;
                 }
                 .task-description {
                     font-size: 15px;
-                    margin: 8px 0;
+                    margin: 10px 0;
                     color: #555;
+                    line-height: 1.5;
                 }
                 .task-details {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
                     font-size: 14px;
                     color: #666;
-                    margin-top: 8px;
+                    margin-top: 15px;
+                    align-items: center;
+                }
+                .task-detail-item {
+                    display: inline-flex;
+                    align-items: center;
+                    background: rgba(0,0,0,0.05);
+                    padding: 5px 10px;
+                    border-radius: 4px;
                 }
                 .priority-high {
                     color: #e53935;
@@ -104,19 +154,22 @@ class TaskNotification extends EmailTemplate {
                 .priority-low {
                     color: #43a047;
                 }
+                .action-buttons {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 20px;
+                    flex-wrap: wrap;
+                }
                 .action-button {
                     display: inline-block;
-                    background-color: #4a90e2;
                     color: white;
                     padding: 10px 20px;
                     text-decoration: none;
-                    border-radius: 5px;
+                    border-radius: 6px;
                     font-weight: 600;
-                    margin-top: 15px;
-                    margin-right: 10px;
-                }
-                .action-button:hover {
-                    background-color: #357abd;
+                    text-align: center;
+                    transition: background-color 0.2s ease;
+                    min-width: 120px;
                 }
                 .complete-button {
                     background-color: #43a047;
@@ -124,12 +177,28 @@ class TaskNotification extends EmailTemplate {
                 .complete-button:hover {
                     background-color: #388e3c;
                 }
+                .view-button {
+                    background-color: rgb(168, 142, 64);
+                }
+                .view-button:hover {
+                    background-color: rgb(148, 122, 44);
+                }
                 .footer {
                     text-align: center;
                     padding: 20px;
                     font-size: 12px;
                     color: #666;
-                    border-top: 1px solid #e0e0e0;
+                    background-color: #f9f9f9;
+                    border-top: 1px solid #eee;
+                }
+                .app-name {
+                    font-weight: bold;
+                    color: rgb(168, 142, 64);
+                }
+                .divider {
+                    height: 1px;
+                    background-color: #eee;
+                    margin: 15px 0;
                 }
                 @media only screen and (max-width: 600px) {
                     .container {
@@ -138,6 +207,13 @@ class TaskNotification extends EmailTemplate {
                     }
                     .header {
                         border-radius: 0;
+                        padding: 20px 15px;
+                    }
+                    .action-buttons {
+                        flex-direction: column;
+                    }
+                    .action-button {
+                        width: 100%;
                     }
                 }
             </style>
@@ -151,18 +227,18 @@ class TaskNotification extends EmailTemplate {
                 
                 <div class="section">
                     <div class="task-card current">
-                        <div class="task-title">Time to Complete: ' . htmlspecialchars($data['current_task']['title']) . '</div>
+                        <div class="task-title">It\'s time to complete: ' . htmlspecialchars($data['current_task']['title']) . '</div>
                         ' . ($data['current_task']['description'] ? '<div class="task-description">' . htmlspecialchars($data['current_task']['description']) . '</div>' : '') . '
                         <div class="task-details">
-                            <span class="priority-' . htmlspecialchars($data['current_task']['priority']) . '">
+                            <div class="task-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
                                 Priority: ' . ucfirst(htmlspecialchars($data['current_task']['priority'])) . '
-                            </span>
-                            ' . ($data['current_task']['estimated_duration'] ? ' | Duration: ' . htmlspecialchars($data['current_task']['estimated_duration']) . ' min' : '') . '
-                            ' . ($data['current_task']['category_name'] ? ' | Category: ' . htmlspecialchars($data['current_task']['category_name']) : '') . '
+                            </div>
+                            ' . ($data['current_task']['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($data['current_task']['estimated_duration']) . ' min</div>' : '') . '
+                            ' . ($data['current_task']['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
                         </div>
-                        <div>
-                            <a href="' . htmlspecialchars($data['app_url']) . '/task_manager.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button complete-button">Mark Complete</a>
-                            <a href="' . htmlspecialchars($data['app_url']) . '/task_manager.php?task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button">View Details</a>
+                        <div class="action-buttons">
+                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button complete-button">Mark Complete</a>
+                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button view-button">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -180,7 +256,8 @@ class TaskNotification extends EmailTemplate {
                 </div>' : '') . '
                 
                 <div class="footer">
-                    <p>This is an automated notification from Amha-Silassie Study App</p>
+                    <p>This is an automated notification from <span class="app-name">Amha-Silassie Study App</span></p>
+                    <div class="divider"></div>
                     <p>© ' . date('Y') . ' Amha-Silassie. All rights reserved.</p>
                 </div>
             </div>
@@ -196,12 +273,12 @@ class TaskNotification extends EmailTemplate {
                 <div class="task-title">' . htmlspecialchars($task['title']) . '</div>
                 ' . ($task['description'] ? '<div class="task-description">' . htmlspecialchars($task['description']) . '</div>' : '') . '
                 <div class="task-details">
-                    <span class="priority-' . htmlspecialchars($task['priority']) . '">
+                    <div class="task-detail-item priority-' . htmlspecialchars($task['priority']) . '">
                         Priority: ' . ucfirst(htmlspecialchars($task['priority'])) . '
-                    </span>
-                    ' . ($task['due_time'] ? ' | Due: ' . htmlspecialchars($task['due_time']) : '') . '
-                    ' . ($task['estimated_duration'] ? ' | Duration: ' . htmlspecialchars($task['estimated_duration']) . ' min' : '') . '
-                    ' . ($task['category_name'] ? ' | Category: ' . htmlspecialchars($task['category_name']) : '') . '
+                    </div>
+                    ' . ($task['due_time'] ? '<div class="task-detail-item">Due: ' . htmlspecialchars($task['due_time']) . '</div>' : '') . '
+                    ' . ($task['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($task['estimated_duration']) . ' min</div>' : '') . '
+                    ' . ($task['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($task['category_name']) . '</div>' : '') . '
                 </div>
             </div>';
         }
