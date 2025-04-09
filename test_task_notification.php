@@ -16,6 +16,70 @@ use PHPMailer\PHPMailer\Exception;
 // Application URL for links in emails
 $app_url = 'http://abel.abuneteklehaymanot.org';
 
+// Test data
+$testData = [
+    'current_task' => [
+        'id' => 1,
+        'title' => 'Complete Math Assignment',
+        'description' => 'Solve problems from Chapter 5: Quadratic Equations',
+        'priority' => 'high',
+        'due_time' => '04:00 PM',
+        'estimated_duration' => '45'
+    ],
+    'upcoming_tasks' => [
+        [
+            'id' => 2,
+            'title' => 'Physics Lab Report',
+            'description' => 'Write up the results from today\'s experiment',
+            'priority' => 'medium',
+            'due_time' => '06:00 PM',
+            'estimated_duration' => '30'
+        ],
+        [
+            'id' => 3,
+            'title' => 'English Essay Review',
+            'description' => 'Final proofreading of Shakespeare analysis',
+            'priority' => 'low',
+            'due_time' => '08:00 PM',
+            'estimated_duration' => '20'
+        ]
+    ]
+];
+
+// Create instance of TaskNotification
+$notification = new TaskNotification();
+
+// Generate email content
+$emailContent = $notification->generateEmail($testData);
+
+// Create PHPMailer instance
+$mail = new PHPMailer(true);
+
+try {
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host = SMTP_HOST;
+    $mail->SMTPAuth = true;
+    $mail->Username = SMTP_USERNAME;
+    $mail->Password = SMTP_PASSWORD;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port = SMTP_PORT;
+
+    // Recipients
+    $mail->setFrom(SMTP_USERNAME, 'Amha-Silassie Study App');
+    $mail->addAddress('Abelgoytom77@gmail.com');
+
+    // Content
+    $mail->isHTML(true);
+    $mail->Subject = 'Task Due Now: ' . $testData['current_task']['title'];
+    $mail->Body = $emailContent;
+
+    $mail->send();
+    echo 'Test task notification email sent successfully!';
+} catch (Exception $e) {
+    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+}
+
 // Add basic styling
 echo '<!DOCTYPE html>
 <html>
