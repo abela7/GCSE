@@ -281,103 +281,302 @@ function analyzeTimePatterns($entries) {
  * @param array $mood_patterns Mood pattern analysis
  * @param array $tag_analysis Tag correlation analysis
  * @param array $time_patterns Time pattern analysis
- * @return array Generated insights
+ * @return array Generated insights with categories and recommendations
  */
 function generateInsights($mood_patterns, $tag_analysis, $time_patterns) {
-    $insights = [];
+    $insights = [
+        'summary' => [],
+        'patterns' => [],
+        'recommendations' => [],
+        'positive_factors' => [],
+        'areas_for_improvement' => []
+    ];
     
-    // Overall mood trend
-    $insights['trend'] = generateTrendInsight($mood_patterns);
+    // Overall mood summary
+    $avg_mood = $mood_patterns['average'];
+    $insights['summary'][] = generateMoodSummary($avg_mood, $mood_patterns['trend']);
     
-    // Tag-based insights
-    $insights['tags'] = generateTagInsights($tag_analysis);
+    // Pattern recognition
+    $insights['patterns'] = array_merge(
+        generateTrendPatterns($mood_patterns),
+        generateTimeBasedPatterns($time_patterns),
+        generateTagPatterns($tag_analysis)
+    );
     
-    // Time-based insights
-    $insights['time'] = generateTimeInsights($time_patterns);
+    // Generate specific recommendations
+    $insights['recommendations'] = generateRecommendations(
+        $mood_patterns,
+        $tag_analysis,
+        $time_patterns
+    );
     
-    // Consistency insights
-    $insights['consistency'] = generateConsistencyInsight($mood_patterns);
+    // Identify positive factors
+    $insights['positive_factors'] = identifyPositiveFactors($tag_analysis, $time_patterns);
+    
+    // Areas for improvement
+    $insights['areas_for_improvement'] = identifyAreasForImprovement(
+        $mood_patterns,
+        $tag_analysis,
+        $time_patterns
+    );
     
     return $insights;
 }
 
 /**
- * Generate trend insight
+ * Generate mood summary based on average mood and trend
+ * 
+ * @param float $avg_mood Average mood value
+ * @param string $trend Mood trend
+ * @return string Detailed mood summary
+ */
+function generateMoodSummary($avg_mood, $trend) {
+    $summary = "Your overall mood has been ";
+    
+    if ($avg_mood >= 4.5) {
+        $summary .= "excellent! 🌟 ";
+    } elseif ($avg_mood >= 3.5) {
+        $summary .= "good! 😊 ";
+    } elseif ($avg_mood >= 2.5) {
+        $summary .= "moderate. 😐 ";
+    } elseif ($avg_mood >= 1.5) {
+        $summary .= "somewhat low. 😔 ";
+    } else {
+        $summary .= "quite low. 😢 ";
+    }
+    
+    switch ($trend) {
+        case 'improving':
+            $summary .= "There's a positive trend in your mood, showing improvement over time.";
+            break;
+        case 'declining':
+            $summary .= "There's been a slight decline in your mood recently.";
+            break;
+        case 'stable':
+            $summary .= "Your mood has been relatively stable.";
+            break;
+        case 'variable':
+            $summary .= "Your mood has shown some variability.";
+            break;
+    }
+    
+    return $summary;
+}
+
+/**
+ * Generate detailed trend patterns
  * 
  * @param array $mood_patterns Mood pattern analysis
- * @return string Trend insight
+ * @return array Trend patterns
  */
-function generateTrendInsight($mood_patterns) {
-    $trend = $mood_patterns['trend'];
+function generateTrendPatterns($mood_patterns) {
+    $patterns = [];
+    
+    // Analyze weekly patterns
+    if (isset($mood_patterns['weekly_pattern'])) {
+        $best_day = array_search(max($mood_patterns['weekly_pattern']), $mood_patterns['weekly_pattern']);
+        $worst_day = array_search(min($mood_patterns['weekly_pattern']), $mood_patterns['weekly_pattern']);
+        
+        $patterns[] = "Your mood tends to be highest on {$best_day}s.";
+        $patterns[] = "You might want to plan engaging activities for {$worst_day}s to boost your mood.";
+    }
+    
+    // Analyze mood stability
     $volatility = $mood_patterns['volatility'];
-    
-    if ($trend === 'improving') {
-        return "Your mood has been improving over time, showing positive progress.";
-    } elseif ($trend === 'declining') {
-        return "Your mood has been declining, which might need attention.";
-    } else {
-        return "Your mood has been relatively stable.";
+    if ($volatility > 2) {
+        $patterns[] = "Your mood shows significant variation. Consider tracking potential triggers for these changes.";
+    } elseif ($volatility < 0.5) {
+        $patterns[] = "Your mood is very stable, which can be positive but might also indicate emotional numbness if persistent.";
     }
+    
+    return $patterns;
 }
 
 /**
- * Generate tag-based insights
- * 
- * @param array $tag_analysis Tag correlation analysis
- * @return array Tag insights
- */
-function generateTagInsights($tag_analysis) {
-    $insights = [];
-    
-    foreach ($tag_analysis as $tag => $data) {
-        if ($data['avg_mood'] >= 4) {
-            $insights[] = "You feel great when engaging with {$tag} activities.";
-        } elseif ($data['avg_mood'] <= 2) {
-            $insights[] = "{$tag} activities tend to lower your mood.";
-        }
-    }
-    
-    return $insights;
-}
-
-/**
- * Generate time-based insights
+ * Generate time-based patterns
  * 
  * @param array $time_patterns Time pattern analysis
- * @return array Time insights
+ * @return array Time-based patterns
  */
-function generateTimeInsights($time_patterns) {
-    $insights = [];
+function generateTimeBasedPatterns($time_patterns) {
+    $patterns = [];
+    $best_time = '';
+    $worst_time = '';
+    $max_mood = 0;
+    $min_mood = 5;
     
     foreach ($time_patterns as $period => $data) {
         if ($data['count'] > 0) {
-            if ($data['avg_mood'] >= 4) {
-                $insights[] = "You tend to feel best during the {$period}.";
-            } elseif ($data['avg_mood'] <= 2) {
-                $insights[] = "Your mood tends to be lower during the {$period}.";
+            if ($data['avg_mood'] > $max_mood) {
+                $max_mood = $data['avg_mood'];
+                $best_time = $period;
+            }
+            if ($data['avg_mood'] < $min_mood) {
+                $min_mood = $data['avg_mood'];
+                $worst_time = $period;
             }
         }
     }
     
-    return $insights;
+    if ($best_time && $worst_time) {
+        $patterns[] = "Your peak mood typically occurs during the {$best_time}.";
+        $patterns[] = "You might benefit from extra self-care during the {$worst_time}.";
+    }
+    
+    return $patterns;
 }
 
 /**
- * Generate consistency insight
+ * Generate tag-based patterns
+ * 
+ * @param array $tag_analysis Tag correlation analysis
+ * @return array Tag-based patterns
+ */
+function generateTagPatterns($tag_analysis) {
+    $patterns = [];
+    $positive_tags = [];
+    $negative_tags = [];
+    
+    foreach ($tag_analysis as $tag => $data) {
+        if ($data['count'] >= 3) { // Only consider tags with sufficient data
+            if ($data['avg_mood'] >= 4) {
+                $positive_tags[] = $tag;
+            } elseif ($data['avg_mood'] <= 2) {
+                $negative_tags[] = $tag;
+            }
+        }
+    }
+    
+    if (!empty($positive_tags)) {
+        $patterns[] = "Activities involving " . implode(", ", $positive_tags) . " consistently boost your mood.";
+    }
+    if (!empty($negative_tags)) {
+        $patterns[] = "You might want to review your approach to " . implode(", ", $negative_tags) . " as these tend to lower your mood.";
+    }
+    
+    return $patterns;
+}
+
+/**
+ * Generate specific recommendations based on analysis
  * 
  * @param array $mood_patterns Mood pattern analysis
- * @return string Consistency insight
+ * @param array $tag_analysis Tag correlation analysis
+ * @param array $time_patterns Time pattern analysis
+ * @return array Specific recommendations
  */
-function generateConsistencyInsight($mood_patterns) {
-    $consistency = $mood_patterns['consistency'];
+function generateRecommendations($mood_patterns, $tag_analysis, $time_patterns) {
+    $recommendations = [];
     
-    if ($consistency === 'high') {
-        return "Your mood has been very consistent, showing stable emotional patterns.";
-    } elseif ($consistency === 'moderate') {
-        return "Your mood shows moderate variation, which is normal.";
-    } else {
-        return "Your mood shows significant variation, which might indicate external factors affecting your emotional state.";
+    // Time-based recommendations
+    foreach ($time_patterns as $period => $data) {
+        if ($data['count'] > 0 && $data['avg_mood'] <= 2.5) {
+            $recommendations[] = "Consider scheduling uplifting activities during the {$period} to improve your mood during this time.";
+        }
     }
+    
+    // Activity recommendations
+    $positive_activities = [];
+    foreach ($tag_analysis as $tag => $data) {
+        if ($data['count'] >= 3 && $data['avg_mood'] >= 4) {
+            $positive_activities[] = $tag;
+        }
+    }
+    
+    if (!empty($positive_activities)) {
+        $recommendations[] = "Try to incorporate more " . implode(", ", $positive_activities) . " into your routine, as these activities positively impact your mood.";
+    }
+    
+    // Trend-based recommendations
+    if ($mood_patterns['trend'] === 'declining') {
+        $recommendations[] = "Your mood has been declining. Consider reaching out to a friend or professional for support.";
+    }
+    
+    return $recommendations;
+}
+
+/**
+ * Identify positive factors affecting mood
+ * 
+ * @param array $tag_analysis Tag correlation analysis
+ * @param array $time_patterns Time pattern analysis
+ * @return array Positive factors
+ */
+function identifyPositiveFactors($tag_analysis, $time_patterns) {
+    $factors = [];
+    
+    // Identify positive activities
+    foreach ($tag_analysis as $tag => $data) {
+        if ($data['count'] >= 3 && $data['avg_mood'] >= 3.5) {
+            $factors[] = [
+                'type' => 'activity',
+                'name' => $tag,
+                'impact' => round($data['avg_mood'], 1),
+                'frequency' => $data['count']
+            ];
+        }
+    }
+    
+    // Identify positive time periods
+    foreach ($time_patterns as $period => $data) {
+        if ($data['count'] >= 3 && $data['avg_mood'] >= 3.5) {
+            $factors[] = [
+                'type' => 'time_period',
+                'name' => $period,
+                'impact' => round($data['avg_mood'], 1),
+                'frequency' => $data['count']
+            ];
+        }
+    }
+    
+    return $factors;
+}
+
+/**
+ * Identify areas for improvement
+ * 
+ * @param array $mood_patterns Mood pattern analysis
+ * @param array $tag_analysis Tag correlation analysis
+ * @param array $time_patterns Time pattern analysis
+ * @return array Areas for improvement
+ */
+function identifyAreasForImprovement($mood_patterns, $tag_analysis, $time_patterns) {
+    $areas = [];
+    
+    // Check for concerning patterns
+    if ($mood_patterns['volatility'] > 2) {
+        $areas[] = [
+            'type' => 'pattern',
+            'concern' => 'High mood volatility',
+            'suggestion' => 'Consider tracking potential triggers and establishing a more consistent routine'
+        ];
+    }
+    
+    // Identify challenging activities
+    foreach ($tag_analysis as $tag => $data) {
+        if ($data['count'] >= 3 && $data['avg_mood'] <= 2.5) {
+            $areas[] = [
+                'type' => 'activity',
+                'concern' => $tag,
+                'impact' => round($data['avg_mood'], 1),
+                'suggestion' => "Consider seeking support or developing new strategies for handling {$tag}-related situations"
+            ];
+        }
+    }
+    
+    // Identify challenging time periods
+    foreach ($time_patterns as $period => $data) {
+        if ($data['count'] >= 3 && $data['avg_mood'] <= 2.5) {
+            $areas[] = [
+                'type' => 'time_period',
+                'concern' => $period,
+                'impact' => round($data['avg_mood'], 1),
+                'suggestion' => "Try to implement mood-boosting activities during the {$period}"
+            ];
+        }
+    }
+    
+    return $areas;
 }
 
 /**
@@ -440,5 +639,7 @@ function analyzeCommonFactors($entries) {
     }
     
     arsort($factors);
+    return array_slice($factors, 0, 3, true);
+} 
     return array_slice($factors, 0, 3, true);
 } 

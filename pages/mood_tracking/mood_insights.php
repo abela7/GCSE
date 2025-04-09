@@ -225,12 +225,102 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                         <div class="card-body">
                             <h3 class="h4 mb-3">Pattern Analysis</h3>
                             <?php if (!empty($analysis['insights']['patterns'])): ?>
-                                <?php foreach ($analysis['insights']['patterns'] as $pattern): ?>
-                                    <div class="pattern-card">
-                                        <div class="pattern-title"><?php echo $pattern['title']; ?></div>
-                                        <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                <!-- Time Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['time'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Time of Day Patterns</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['time'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <?php 
+                                                    $icon = '';
+                                                    switch($pattern['title']) {
+                                                        case 'Morning': $icon = '🌅'; break;
+                                                        case 'Afternoon': $icon = '☀️'; break;
+                                                        case 'Evening': $icon = '🌆'; break;
+                                                        case 'Night': $icon = '🌙'; break;
+                                                    }
+                                                    echo $icon . ' ' . $pattern['title']; 
+                                                    ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php endif; ?>
+
+                                <!-- Tag Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['tags'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Activity Impact</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['tags'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <i class="fas fa-tag me-2"></i><?php echo $pattern['title']; ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Mood Consistency -->
+                                <?php if (!empty($analysis['insights']['patterns']['consistency'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Mood Consistency</h4>
+                                        <div class="pattern-card">
+                                            <?php 
+                                            $consistency = $analysis['insights']['patterns']['consistency'];
+                                            $icon = '';
+                                            switch($consistency['level']) {
+                                                case 'very_stable': $icon = '🎯'; break;
+                                                case 'stable': $icon = '⚖️'; break;
+                                                case 'moderate': $icon = '🔄'; break;
+                                                case 'volatile': $icon = '📊'; break;
+                                            }
+                                            ?>
+                                            <div class="pattern-title"><?php echo $icon . ' ' . ucfirst(str_replace('_', ' ', $consistency['level'])); ?></div>
+                                            <div class="pattern-description"><?php echo $consistency['description']; ?></div>
+                                            <?php if (!empty($consistency['metrics'])): ?>
+                                                <div class="mt-2 text-white-50">
+                                                    <small>
+                                                        <?php 
+                                                        echo "Stable days: {$consistency['metrics']['stable_days']}/{$consistency['metrics']['total_days']}";
+                                                        if ($consistency['metrics']['mood_swings'] > 0) {
+                                                            echo " • Significant mood changes: {$consistency['metrics']['mood_swings']}";
+                                                        }
+                                                        ?>
+                                                    </small>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Improvement Areas -->
+                                <?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Areas for Improvement</h4>
+                                        <div class="pattern-card">
+                                            <div class="pattern-title"><i class="fas fa-bullseye me-2"></i>Focus Areas</div>
+                                            <div class="pattern-description">
+                                                <ul class="list-unstyled mb-0">
+                                                    <?php foreach ($analysis['insights']['patterns']['improvement_areas']['suggestions'] as $suggestion): ?>
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right me-2"></i><?php echo $suggestion; ?>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Not enough data to analyze patterns yet.</p>
+                                    <p class="small text-muted">Continue tracking your mood to see patterns emerge.</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -280,14 +370,104 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                 <div class="col-md-6">
                     <div class="insight-card">
                         <div class="card-body">
-                            <h3 class="h4 mb-3">Weekly Patterns</h3>
+                            <h3 class="h4 mb-3">Pattern Analysis</h3>
                             <?php if (!empty($analysis['insights']['patterns'])): ?>
-                                <?php foreach ($analysis['insights']['patterns'] as $pattern): ?>
-                                    <div class="pattern-card">
-                                        <div class="pattern-title"><?php echo $pattern['title']; ?></div>
-                                        <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                <!-- Time Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['time'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Time of Day Patterns</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['time'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <?php 
+                                                    $icon = '';
+                                                    switch($pattern['title']) {
+                                                        case 'Morning': $icon = '🌅'; break;
+                                                        case 'Afternoon': $icon = '☀️'; break;
+                                                        case 'Evening': $icon = '🌆'; break;
+                                                        case 'Night': $icon = '🌙'; break;
+                                                    }
+                                                    echo $icon . ' ' . $pattern['title']; 
+                                                    ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php endif; ?>
+
+                                <!-- Tag Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['tags'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Activity Impact</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['tags'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <i class="fas fa-tag me-2"></i><?php echo $pattern['title']; ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Mood Consistency -->
+                                <?php if (!empty($analysis['insights']['patterns']['consistency'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Mood Consistency</h4>
+                                        <div class="pattern-card">
+                                            <?php 
+                                            $consistency = $analysis['insights']['patterns']['consistency'];
+                                            $icon = '';
+                                            switch($consistency['level']) {
+                                                case 'very_stable': $icon = '🎯'; break;
+                                                case 'stable': $icon = '⚖️'; break;
+                                                case 'moderate': $icon = '🔄'; break;
+                                                case 'volatile': $icon = '📊'; break;
+                                            }
+                                            ?>
+                                            <div class="pattern-title"><?php echo $icon . ' ' . ucfirst(str_replace('_', ' ', $consistency['level'])); ?></div>
+                                            <div class="pattern-description"><?php echo $consistency['description']; ?></div>
+                                            <?php if (!empty($consistency['metrics'])): ?>
+                                                <div class="mt-2 text-white-50">
+                                                    <small>
+                                                        <?php 
+                                                        echo "Stable days: {$consistency['metrics']['stable_days']}/{$consistency['metrics']['total_days']}";
+                                                        if ($consistency['metrics']['mood_swings'] > 0) {
+                                                            echo " • Significant mood changes: {$consistency['metrics']['mood_swings']}";
+                                                        }
+                                                        ?>
+                                                    </small>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Improvement Areas -->
+                                <?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Areas for Improvement</h4>
+                                        <div class="pattern-card">
+                                            <div class="pattern-title"><i class="fas fa-bullseye me-2"></i>Focus Areas</div>
+                                            <div class="pattern-description">
+                                                <ul class="list-unstyled mb-0">
+                                                    <?php foreach ($analysis['insights']['patterns']['improvement_areas']['suggestions'] as $suggestion): ?>
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right me-2"></i><?php echo $suggestion; ?>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Not enough data to analyze patterns yet.</p>
+                                    <p class="small text-muted">Continue tracking your mood to see patterns emerge.</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -337,14 +517,104 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                 <div class="col-md-6">
                     <div class="insight-card">
                         <div class="card-body">
-                            <h3 class="h4 mb-3">Monthly Patterns</h3>
+                            <h3 class="h4 mb-3">Pattern Analysis</h3>
                             <?php if (!empty($analysis['insights']['patterns'])): ?>
-                                <?php foreach ($analysis['insights']['patterns'] as $pattern): ?>
-                                    <div class="pattern-card">
-                                        <div class="pattern-title"><?php echo $pattern['title']; ?></div>
-                                        <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                <!-- Time Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['time'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Time of Day Patterns</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['time'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <?php 
+                                                    $icon = '';
+                                                    switch($pattern['title']) {
+                                                        case 'Morning': $icon = '🌅'; break;
+                                                        case 'Afternoon': $icon = '☀️'; break;
+                                                        case 'Evening': $icon = '🌆'; break;
+                                                        case 'Night': $icon = '🌙'; break;
+                                                    }
+                                                    echo $icon . ' ' . $pattern['title']; 
+                                                    ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php endif; ?>
+
+                                <!-- Tag Patterns -->
+                                <?php if (!empty($analysis['insights']['patterns']['tags'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Activity Impact</h4>
+                                        <?php foreach ($analysis['insights']['patterns']['tags'] as $pattern): ?>
+                                            <div class="pattern-card">
+                                                <div class="pattern-title">
+                                                    <i class="fas fa-tag me-2"></i><?php echo $pattern['title']; ?>
+                                                </div>
+                                                <div class="pattern-description"><?php echo $pattern['description']; ?></div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Mood Consistency -->
+                                <?php if (!empty($analysis['insights']['patterns']['consistency'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Mood Consistency</h4>
+                                        <div class="pattern-card">
+                                            <?php 
+                                            $consistency = $analysis['insights']['patterns']['consistency'];
+                                            $icon = '';
+                                            switch($consistency['level']) {
+                                                case 'very_stable': $icon = '🎯'; break;
+                                                case 'stable': $icon = '⚖️'; break;
+                                                case 'moderate': $icon = '🔄'; break;
+                                                case 'volatile': $icon = '📊'; break;
+                                            }
+                                            ?>
+                                            <div class="pattern-title"><?php echo $icon . ' ' . ucfirst(str_replace('_', ' ', $consistency['level'])); ?></div>
+                                            <div class="pattern-description"><?php echo $consistency['description']; ?></div>
+                                            <?php if (!empty($consistency['metrics'])): ?>
+                                                <div class="mt-2 text-white-50">
+                                                    <small>
+                                                        <?php 
+                                                        echo "Stable days: {$consistency['metrics']['stable_days']}/{$consistency['metrics']['total_days']}";
+                                                        if ($consistency['metrics']['mood_swings'] > 0) {
+                                                            echo " • Significant mood changes: {$consistency['metrics']['mood_swings']}";
+                                                        }
+                                                        ?>
+                                                    </small>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Improvement Areas -->
+                                <?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
+                                    <div class="mb-4">
+                                        <h4 class="h5 mb-3">Areas for Improvement</h4>
+                                        <div class="pattern-card">
+                                            <div class="pattern-title"><i class="fas fa-bullseye me-2"></i>Focus Areas</div>
+                                            <div class="pattern-description">
+                                                <ul class="list-unstyled mb-0">
+                                                    <?php foreach ($analysis['insights']['patterns']['improvement_areas']['suggestions'] as $suggestion): ?>
+                                                        <li class="mb-2">
+                                                            <i class="fas fa-arrow-right me-2"></i><?php echo $suggestion; ?>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Not enough data to analyze patterns yet.</p>
+                                    <p class="small text-muted">Continue tracking your mood to see patterns emerge.</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
