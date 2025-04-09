@@ -72,6 +72,17 @@ try {
     margin-top: 1rem;
 }
 
+.time-period-content {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.time-period-content.active {
+    display: block;
+    opacity: 1;
+}
+
 .time-period-selector {
     display: flex;
     gap: 1rem;
@@ -292,7 +303,7 @@ try {
         </div>
 
         <!-- Daily Insights -->
-        <div class="time-period-content" id="daily-insights">
+        <div class="time-period-content active" id="daily-insights">
             <?php if (!empty($analysis['insights']['daily'])): ?>
                 <div class="row">
                     <div class="col">
@@ -335,7 +346,7 @@ try {
 
         <!-- Weekly Insights -->
         <div class="time-period-content" id="weekly-insights" style="display: none;">
-            <?php if (!empty($analysis['insights']['weekly'])): ?>
+            <?php if ($analysis && isset($analysis['insights']['weekly']) && !empty($analysis['insights']['weekly']['mood'])): ?>
                 <div class="row">
                     <div class="col">
                         <div class="insight-card">
@@ -567,13 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const timePeriodBtns = document.querySelectorAll('.time-period-btn');
     const timePeriodContents = document.querySelectorAll('.time-period-content');
 
-    // Clone pattern analysis for monthly view
-    const dailyPatterns = document.querySelector('#daily-insights .col-md-6:last-child .card-body');
-    const monthlyPatterns = document.querySelector('#monthly-patterns');
-    
-    if (dailyPatterns && monthlyPatterns) {
-        monthlyPatterns.innerHTML = dailyPatterns.innerHTML;
-    }
+    // Show daily insights by default
+    document.getElementById('daily-insights').classList.add('active');
 
     timePeriodBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -583,10 +589,18 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
 
             // Hide all content
-            timePeriodContents.forEach(content => content.style.display = 'none');
-            // Show selected content
+            timePeriodContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+
+            // Show selected content with transition
             const period = this.dataset.period;
-            document.getElementById(`${period}-insights`).style.display = 'block';
+            const selectedContent = document.getElementById(`${period}-insights`);
+            selectedContent.style.display = 'block';
+            // Force a reflow to enable the transition
+            selectedContent.offsetHeight;
+            selectedContent.classList.add('active');
         });
     });
 
@@ -620,7 +634,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 // Include footer
-require_once __DIR__ . '/../../includes/footer.php';
-?> 
 require_once __DIR__ . '/../../includes/footer.php';
 ?> 
