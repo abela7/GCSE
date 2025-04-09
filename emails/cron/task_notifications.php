@@ -95,8 +95,8 @@ $query = "
 try {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $today);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$stmt->execute();
+$result = $stmt->get_result();
 
     $task_count = $result->num_rows;
     
@@ -168,25 +168,12 @@ try {
             // Check if task was recently notified (within last 5 minutes)
             $recently_notified = false;
             $last_notified_readable = "Never";
-            $last_notified_time = null;
             
             if (!empty($task['last_notified'])) {
                 $last_notified_time = strtotime($task['last_notified']);
                 $time_since_notification = time() - $last_notified_time;
+                $recently_notified = ($time_since_notification < 300); // 5 minutes = 300 seconds
                 $last_notified_readable = date('h:i:s A', $last_notified_time);
-                
-                // Check if the task due time is AFTER the last notification time
-                // This handles cases where a task is snoozed/rescheduled after being notified
-                $task_datetime = strtotime($task['due_date'] . ' ' . $task['due_time']);
-                
-                if ($task_datetime > $last_notified_time) {
-                    // The task was rescheduled for a later time after the notification
-                    $recently_notified = false;
-                    $last_notified_readable .= " (Task rescheduled since then)";
-                } else {
-                    // Normal case - check if it was notified recently
-                    $recently_notified = ($time_since_notification < 300); // 5 minutes = 300 seconds
-                }
             }
             
             // Determine if notification should be sent
@@ -215,47 +202,47 @@ try {
                             'due_time' => date('h:i A', strtotime($task['due_time'])),
                             'category_name' => $task['category_name']
                         ];
-                        
-                        // Prepare email data
-                        $emailData = [
-                            'current_task' => $current_task,
+    
+    // Prepare email data
+    $emailData = [
+        'current_task' => $current_task,
                             'overdue_tasks' => [],
                             'upcoming_tasks' => [],
-                            'app_url' => $app_url
-                        ];
-                        
+        'app_url' => $app_url
+    ];
+    
                         $email_sent = false;
                         $email_error = "";
                         
                         // Only actually send if not in debug-only mode
                         if (!isset($_GET['debug_only'])) {
-                            // Generate email content
+    // Generate email content
                             $notification_template = new TaskNotification();
                             $emailContent = $notification_template->generateEmail($emailData);
-                            
-                            // Send email
-                            $mail = new PHPMailer(true);
-                            
-                            try {
-                                // Server settings
-                                $mail->isSMTP();
-                                $mail->Host = SMTP_HOST;
-                                $mail->SMTPAuth = SMTP_AUTH;
-                                $mail->Username = SMTP_USERNAME;
-                                $mail->Password = SMTP_PASSWORD;
-                                $mail->SMTPSecure = SMTP_SECURE;
-                                $mail->Port = SMTP_PORT;
-                                
-                                // Recipients
-                                $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
+    
+    // Send email
+    $mail = new PHPMailer(true);
+    
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = SMTP_AUTH;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port = SMTP_PORT;
+        
+        // Recipients
+        $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
                                 $mail->addAddress(SMTP_USERNAME);
-                                
-                                // Content
-                                $mail->isHTML(true);
+        
+        // Content
+        $mail->isHTML(true);
                                 $mail->Subject = "⏰ Task Due Soon: " . $task['title'];
-                                $mail->Body = $emailContent;
-                                $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
-                                
+        $mail->Body = $emailContent;
+        $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
+        
                                 $email_sent = $mail->send();
                                 
                                 if ($email_sent) {
@@ -344,7 +331,7 @@ if (!empty($notifications_sent)) {
 echo "<div class='debug-section'>
     <h2>Recent Notifications Sent</h2>";
 
-$tracking_query = "
+        $tracking_query = "
     SELECT 
         tnt.id,
         tnt.task_id,
