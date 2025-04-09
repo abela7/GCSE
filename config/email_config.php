@@ -12,7 +12,7 @@ define('SMTP_USERNAME', 'admin@abel.abuneteklehaymanot.org');
 define('SMTP_PASSWORD', '2727@2121Abel'); // Add your email password here
 
 // Email Settings
-define('EMAIL_FROM_NAME', 'አምሃ - ሥላሴ 😇');
+define('EMAIL_FROM_NAME', 'AMHA-SLASSIE');
 define('EMAIL_FROM_ADDRESS', 'admin@abel.abuneteklehaymanot.org');
 define('EMAIL_REPLY_TO', 'admin@abel.abuneteklehaymanot.org');
 

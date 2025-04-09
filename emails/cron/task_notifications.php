@@ -358,11 +358,17 @@ $result = $stmt->get_result();
         
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-                                $mail->addAddress(SMTP_USERNAME);
+        $mail->addAddress(SMTP_USERNAME);
+        $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
+        
+        // Anti-spam and deliverability improvements
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
+        $mail->XMailer = ' ';  // Hide PHPMailer version
         
         // Content
         $mail->isHTML(true);
-                                $mail->Subject = $task['title'] . " is due";
+        $mail->Subject = $task['title'] . " is due";
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
