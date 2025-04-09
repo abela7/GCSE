@@ -1,17 +1,12 @@
 <?php
 /**
- * Task Notification Script - MANUAL TIME COMPARISON VERSION
- * Gets tasks due today and manually checks their due time
- * Runs every minute via cron
+ * ULTRA SIMPLE Task Notification Script
+ * NO fancy calculations, just basic string comparison
  */
 
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+// Basic logging
 error_log("==== TASK NOTIFICATION SCRIPT STARTED ====");
-error_log("Script running at: " . date('Y-m-d H:i:s'));
+error_log("Running at: " . date('Y-m-d H:i:s'));
 
 // Include required files
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -24,127 +19,121 @@ use PHPMailer\PHPMailer\Exception;
 
 // Verify database connection
 if ($conn->connect_error) {
-    error_log("DATABASE CONNECTION ERROR: " . $conn->connect_error);
+    error_log("DATABASE ERROR: " . $conn->connect_error);
     exit;
 }
-
-// Application URL for links in emails
-$app_url = 'http://abel.abuneteklehaymanot.org';
 
 // Only proceed if email notifications are enabled
 if (!ENABLE_EMAIL_NOTIFICATIONS) {
-    error_log("Task notifications are disabled in config. Exiting.");
+    error_log("Notifications disabled in config. Exiting.");
     exit;
 }
 
-// Get current time info - ensure we use the EXACT same format as the database (HH:MM:SS)
-$now = time(); // Current unix timestamp
+// Get current time
 $today = date('Y-m-d');
-$current_time = date('H:i:s'); // Format: 17:07:00
-$current_time_plus_3 = date('H:i:s', strtotime('+3 minutes'));
+$now_hour = (int)date('H');
+$now_minute = (int)date('i');
+error_log("Current time: {$now_hour}:{$now_minute}");
 
-error_log("Current date: {$today}");
-error_log("Current time (HH:MM:SS): {$current_time}");
-error_log("Current time + 3min: {$current_time_plus_3}");
+// ULTRA-SIMPLE APPROACH: 
+// Just get ALL tasks due today and manually check time match
+$query = "SELECT * FROM tasks t WHERE t.status IN ('pending', 'in_progress') AND t.due_date = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $today);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Get tasks due today with explicit SQL time comparison
-$query = "
-    SELECT 
-        t.id, 
-        t.title, 
-        t.description, 
-        t.priority, 
-        t.estimated_duration,
-        t.category_id,
-        t.due_date, 
-        t.due_time,
-        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name,
-        TIME_TO_SEC(TIMEDIFF(t.due_time, ?)) as seconds_until_due
-    FROM 
-        tasks t
-    LEFT JOIN 
-        task_categories tc ON t.category_id = tc.id
-    WHERE 
-        t.status IN ('pending', 'in_progress') 
-        AND t.due_date = ?
-    ORDER BY 
-        ABS(TIME_TO_SEC(TIMEDIFF(t.due_time, ?))) ASC
-";
+error_log("Found " . $result->num_rows . " tasks due today");
 
-try {
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("sss", $current_time, $today, $current_time);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    error_log("Found " . $result->num_rows . " tasks due today");
-    
-    if ($result->num_rows === 0) {
-        error_log("No tasks due today. Exiting.");
-        exit;
-    }
-} catch (Exception $e) {
-    error_log("SQL ERROR: " . $e->getMessage());
-    exit;
-}
-
-// Array to collect tasks that are due now or in the next 3 minutes
-$due_tasks = [];
-
-// Process each task found and manually check the time
+// PLAIN MATCHING: Find tasks due in next 3 minutes
+$to_notify = [];
 while ($task = $result->fetch_assoc()) {
-    // The seconds_until_due field contains the time difference calculated by MySQL
-    $seconds_until_due = $task['seconds_until_due'];
-    $minutes_until_due = round($seconds_until_due / 60);
+    // Extract task time components
+    $time_parts = explode(':', $task['due_time']);
+    $task_hour = (int)$time_parts[0];
+    $task_minute = (int)$time_parts[1];
     
-    // Also calculate using PHP for verification
-    $db_time_parts = explode(':', $task['due_time']);
-    $task_seconds = ($db_time_parts[0] * 3600) + ($db_time_parts[1] * 60) + $db_time_parts[2];
+    // Calculate next 3 minutes window 
+    $min_plus_1 = ($now_minute + 1) % 60;
+    $min_plus_2 = ($now_minute + 2) % 60;
+    $min_plus_3 = ($now_minute + 3) % 60;
     
-    $current_parts = explode(':', $current_time);
-    $current_seconds = ($current_parts[0] * 3600) + ($current_parts[1] * 60) + $current_parts[2];
+    // Handle hour rollover
+    $hour_plus_1 = ($min_plus_1 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
+    $hour_plus_2 = ($min_plus_2 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
+    $hour_plus_3 = ($min_plus_3 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
     
-    $seconds_diff = $task_seconds - $current_seconds;
-    if ($seconds_diff < -43200) { // Handle time wrapping (e.g. 23:59 vs 00:01)
-        $seconds_diff += 86400;
-    } elseif ($seconds_diff > 43200) {
-        $seconds_diff -= 86400;
+    // Exact matches for next 3 minutes
+    $is_match = false;
+    
+    // Current minute
+    if ($task_hour == $now_hour && $task_minute == $now_minute) {
+        $is_match = true;
+        error_log("Task #{$task['id']} matches CURRENT minute!");
+    }
+    // 1 minute from now
+    else if ($task_hour == $hour_plus_1 && $task_minute == $min_plus_1) {
+        $is_match = true;
+        error_log("Task #{$task['id']} matches +1 minute!");
+    }
+    // 2 minutes from now
+    else if ($task_hour == $hour_plus_2 && $task_minute == $min_plus_2) {
+        $is_match = true;
+        error_log("Task #{$task['id']} matches +2 minute!");
+    }
+    // 3 minutes from now
+    else if ($task_hour == $hour_plus_3 && $task_minute == $min_plus_3) {
+        $is_match = true;
+        error_log("Task #{$task['id']} matches +3 minute!");
     }
     
-    $minutes_diff = round($seconds_diff / 60);
+    error_log("Task #{$task['id']} - Due: {$task_hour}:{$task_minute} - Match: " . ($is_match ? "YES" : "NO"));
     
-    // Debug log each task's time difference
-    error_log("Task #{$task['id']}: \"{$task['title']}\" due at {$task['due_time']} - MySQL: {$minutes_until_due} min, PHP: {$minutes_diff} min");
-    
-    // If task is due now or in the next 3 minutes
-    if (($minutes_diff >= 0 && $minutes_diff <= 3) || ($minutes_until_due >= 0 && $minutes_until_due <= 3)) {
-        error_log("✅ Task #{$task['id']} is due within 3 minutes - will send notification");
-        $due_tasks[] = $task;
-    } else {
-        error_log("⏭ Task #{$task['id']} is not due in the next 3 minutes - skipping");
+    if ($is_match) {
+        $to_notify[] = $task;
     }
 }
 
-if (empty($due_tasks)) {
-    error_log("No tasks due in the next 3 minutes. Exiting.");
+if (empty($to_notify)) {
+    error_log("No tasks match the exact time window. Exiting.");
     exit;
 }
 
-error_log("Found " . count($due_tasks) . " tasks due in the next 3 minutes");
+error_log("Found " . count($to_notify) . " tasks to notify!");
 
-// Now process each due task
-foreach ($due_tasks as $current_task) {
-    error_log("Processing notification for task: #{$current_task['id']} - \"{$current_task['title']}\" due at {$current_task['due_time']}");
+// Send notifications for matching tasks
+foreach ($to_notify as $task) {
+    error_log("Sending notification for task #{$task['id']} - {$task['title']} due at {$task['due_time']}");
     
-    // Format task time for display
-    $current_task['due_time'] = date('h:i A', strtotime($current_task['due_time']));
+    // Get category name
+    $cat_query = "SELECT name FROM task_categories WHERE id = ? LIMIT 1";
+    $cat_stmt = $conn->prepare($cat_query);
+    $cat_stmt->bind_param("i", $task['category_id']);
+    $cat_stmt->execute();
+    $cat_result = $cat_stmt->get_result();
+    $category_name = ($cat_result && $cat_result->num_rows > 0) 
+        ? $cat_result->fetch_assoc()['name'] 
+        : 'Uncategorized';
+    
+    // Format task for template
+    $current_task = [
+        'id' => $task['id'],
+        'title' => $task['title'],
+        'description' => $task['description'],
+        'priority' => $task['priority'],
+        'estimated_duration' => $task['estimated_duration'],
+        'category_id' => $task['category_id'],
+        'due_date' => $task['due_date'],
+        'due_time' => date('h:i A', strtotime($task['due_time'])),
+        'category_name' => $category_name
+    ];
     
     // Prepare email data
     $emailData = [
         'current_task' => $current_task,
         'overdue_tasks' => [],
         'upcoming_tasks' => [],
-        'app_url' => $app_url
+        'app_url' => 'http://abel.abuneteklehaymanot.org'
     ];
     
     // Generate email content
@@ -170,38 +159,26 @@ foreach ($due_tasks as $current_task) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "⏰ Task Due Soon: " . $current_task['title'];
+        $mail->Subject = "⏰ Task Due Soon: " . $task['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
-        // Send the email
-        if (!$mail->send()) {
-            error_log("ERROR: Email could not be sent: " . $mail->ErrorInfo);
-            continue;
-        }
-        
-        error_log("SUCCESS: Email sent for task ID {$current_task['id']}");
-        
-        // Record in tracking table
-        $tracking_query = "
-            INSERT INTO task_notification_tracking (task_id, notification_type, sent_at)
-            VALUES (?, 'due', NOW())
-        ";
-        
-        $tracking_stmt = $conn->prepare($tracking_query);
-        if ($tracking_stmt) {
-            $tracking_stmt->bind_param("i", $current_task['id']);
+        if ($mail->send()) {
+            error_log("✅ Email sent successfully for task #{$task['id']}");
+            
+            // Record in tracking table
+            $tracking_query = "INSERT INTO task_notification_tracking (task_id, notification_type, sent_at) VALUES (?, 'due', NOW())";
+            $tracking_stmt = $conn->prepare($tracking_query);
+            $tracking_stmt->bind_param("i", $task['id']);
             $tracking_stmt->execute();
-            $tracking_stmt->close();
-            error_log("Tracking record inserted for task ID {$current_task['id']}");
+        } else {
+            error_log("❌ Email error: " . $mail->ErrorInfo);
         }
-        
     } catch (Exception $e) {
-        error_log("PHPMailer Error for task ID {$current_task['id']}: " . $e->getMessage());
+        error_log("PHPMailer error: " . $e->getMessage());
     }
 }
 
 $conn->close();
-error_log("Task notification check completed at " . date('Y-m-d H:i:s'));
 error_log("==== TASK NOTIFICATION SCRIPT ENDED ====");
 ?> 
