@@ -418,6 +418,11 @@ include '../includes/header.php';
                                         <p class="small mb-0">Task notifications are now configured to send exactly when tasks are due (±1 minute) instead of 5 minutes before. Anti-spam measures have also been added to improve delivery rates.</p>
                                     </div>
                                     
+                                    <div class="alert alert-primary mb-3">
+                                        <h6><i class="fas fa-envelope me-1"></i> Recipient Email Updated</h6>
+                                        <p class="small mb-0">Notification emails are now sent to <strong><?= SMTP_USERNAME ?></strong> instead of a hardcoded Gmail address. This matches the test notification settings.</p>
+                                    </div>
+                                    
                                     <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>
                                     <form method="post">
                                         <div class="mb-3">

@@ -120,9 +120,16 @@ try {
             error_log("SMTP Debug: $str");
         };
         
+        // Anti-spam measures
+        $mail->XMailer = 'GCSE Study App Mailer';
+        $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+        $mail->addCustomHeader('Precedence', 'bulk');
+        $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+        $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+        
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-        $mail->addAddress('Abelgoytom77@gmail.com'); // Send to Abel's Gmail
+        $mail->addAddress(SMTP_USERNAME); // Use SMTP_USERNAME instead of hardcoded email address
         
         // Content
         $mail->isHTML(true);
