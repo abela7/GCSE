@@ -5,6 +5,10 @@
  * It should be run by a cron job every 5-15 minutes
  */
 
+// Enable verbose error logging
+error_log("==== TASK NOTIFICATION SCRIPT STARTED ====");
+error_log("Script running at: " . date('Y-m-d H:i:s'));
+
 // Include required files
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../config/email_config.php';
@@ -13,6 +17,14 @@ require_once __DIR__ . '/../templates/task_notification.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
+// Verify database connection
+if ($conn->connect_error) {
+    error_log("DATABASE CONNECTION ERROR: " . $conn->connect_error);
+    exit;
+} else {
+    error_log("Database connection successful");
+}
 
 // Application URL for links in emails
 $app_url = 'http://abel.abuneteklehaymanot.org';
@@ -23,13 +35,14 @@ if (!ENABLE_EMAIL_NOTIFICATIONS) {
     exit;
 }
 
-// Remove the buffer to focus on exact due time
+// Remove the buffer to focus on exact due time - expand the window slightly for testing
 $current_time = date('H:i:s');
-$notification_window_start = date('H:i:s', strtotime("-1 minute")); // Give a small 1-minute window
-$notification_window_end = date('H:i:s', strtotime("+1 minute"));   // to catch tasks due right now
+$notification_window_start = date('H:i:s', strtotime("-5 minute")); // Expand to 5-minute window
+$notification_window_end = date('H:i:s', strtotime("+5 minute"));   // to catch more tasks
 $today = date('Y-m-d');
 
 error_log("Checking for tasks due between {$notification_window_start} and {$notification_window_end} on {$today}");
+error_log("Current time is: {$current_time}");
 
 // Find tasks that are due within the notification window
 $tasks_query = "
@@ -59,14 +72,46 @@ $tasks_query = "
         FIELD(t.priority, 'high', 'medium', 'low')
 ";
 
-$stmt = $conn->prepare($tasks_query);
-$stmt->bind_param("sss", $today, $notification_window_start, $notification_window_end);
-$stmt->execute();
-$result = $stmt->get_result();
+// Log the actual SQL before executing
+error_log("SQL Query: " . str_replace(['?', '  '], [$today, ' '], $tasks_query));
 
-if ($result->num_rows === 0) {
-    error_log("No due tasks found for notification. Exiting.");
+try {
+    $stmt = $conn->prepare($tasks_query);
+    if (!$stmt) {
+        error_log("PREPARE ERROR: " . $conn->error);
+        exit;
+    }
+    
+    $stmt->bind_param("sss", $today, $notification_window_start, $notification_window_end);
+    $stmt->execute();
+    
+    if ($stmt->error) {
+        error_log("EXECUTE ERROR: " . $stmt->error);
+        exit;
+    }
+    
+    $result = $stmt->get_result();
+    error_log("Query executed successfully. Found " . $result->num_rows . " tasks due for notification.");
+    
+    if ($result->num_rows === 0) {
+        error_log("No due tasks found for notification. Exiting.");
+        exit;
+    }
+} catch (Exception $e) {
+    error_log("SQL ERROR: " . $e->getMessage());
     exit;
+}
+
+// DEBUG: Let's query the tasks table directly to check what tasks exist
+$debug_query = "SELECT id, title, due_date, due_time, status FROM tasks WHERE due_date = '{$today}' ORDER BY due_time";
+$debug_result = $conn->query($debug_query);
+if ($debug_result) {
+    error_log("DEBUG - Tasks for today: " . $debug_result->num_rows . " tasks found");
+    while ($row = $debug_result->fetch_assoc()) {
+        error_log("DEBUG - Task ID: {$row['id']}, Title: {$row['title']}, Due: {$row['due_time']}, Status: {$row['status']}");
+    }
+} else {
+    error_log("DEBUG - Failed to query tasks: " . $conn->error);
 }
 
 while ($current_task = $result->fetch_assoc()) {
@@ -116,6 +161,7 @@ while ($current_task = $result->fetch_assoc()) {
             : date('h:i A', strtotime($task['due_time']));
         $overdue_tasks[] = $task;
     }
+    error_log("Found " . count($overdue_tasks) . " overdue tasks");
     
     // Get other tasks for today
     $upcoming_tasks_query = "
@@ -154,6 +200,7 @@ while ($current_task = $result->fetch_assoc()) {
         $task['due_time'] = date('h:i A', strtotime($task['due_time']));
         $upcoming_tasks[] = $task;
     }
+    error_log("Found " . count($upcoming_tasks) . " upcoming tasks");
     
     // Prepare email data
     $emailData = [
@@ -166,6 +213,7 @@ while ($current_task = $result->fetch_assoc()) {
     // Generate email content
     $notification = new TaskNotification();
     $emailContent = $notification->generateEmail($emailData);
+    error_log("Email content generated successfully");
     
     // Send email
     $mail = new PHPMailer(true);
@@ -196,6 +244,7 @@ while ($current_task = $result->fetch_assoc()) {
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress(SMTP_USERNAME); // Use SMTP_USERNAME instead of hardcoded email address
+        error_log("Sending email to: " . SMTP_USERNAME);
         
         // Content
         $mail->isHTML(true);
@@ -205,16 +254,54 @@ while ($current_task = $result->fetch_assoc()) {
         
         // Send the email
         $mail->send();
-        error_log("Task notification email sent for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
+        error_log("Email sent successfully for task ID {$current_task['id']} at " . date('Y-m-d H:i:s'));
         
-        // Record that notification has been sent
+        // Record that notification has been sent - moved after successful email sending
+        error_log("Updating notification tracking for task ID: " . $current_task['id']);
+        
+        // Check if task_notification_tracking table exists
+        $table_check = $conn->query("SHOW TABLES LIKE 'task_notification_tracking'");
+        if ($table_check->num_rows == 0) {
+            error_log("ERROR: task_notification_tracking table does not exist");
+            
+            // Try to create the table
+            $create_table_sql = "
+                CREATE TABLE IF NOT EXISTS task_notification_tracking (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    task_id INT NOT NULL,
+                    notification_type VARCHAR(50) NOT NULL,
+                    sent_at DATETIME NOT NULL,
+                    INDEX (task_id),
+                    INDEX (notification_type)
+                )
+            ";
+            
+            if ($conn->query($create_table_sql)) {
+                error_log("Created task_notification_tracking table");
+            } else {
+                error_log("Failed to create table: " . $conn->error);
+            }
+        } else {
+            error_log("task_notification_tracking table exists");
+        }
+        
         $tracking_query = "
             INSERT INTO task_notification_tracking (task_id, notification_type, sent_at)
             VALUES (?, 'due', NOW())
         ";
+        
         $tracking_stmt = $conn->prepare($tracking_query);
-        $tracking_stmt->bind_param("i", $current_task['id']);
-        $tracking_stmt->execute();
+        if (!$tracking_stmt) {
+            error_log("ERROR preparing tracking statement: " . $conn->error);
+        } else {
+            $tracking_stmt->bind_param("i", $current_task['id']);
+            if ($tracking_stmt->execute()) {
+                error_log("Tracking record inserted successfully with ID: " . $conn->insert_id);
+            } else {
+                error_log("ERROR inserting tracking record: " . $tracking_stmt->error);
+            }
+            $tracking_stmt->close();
+        }
         
     } catch (Exception $e) {
         error_log("PHPMailer Error for task ID {$current_task['id']}: " . $e->getMessage());
@@ -223,4 +310,5 @@ while ($current_task = $result->fetch_assoc()) {
 
 $conn->close();
 error_log("Task notification check completed at " . date('Y-m-d H:i:s'));
+error_log("==== TASK NOTIFICATION SCRIPT ENDED ====");
 ?> 
