@@ -1,5 +1,14 @@
 <?php
 require_once '../../includes/header.php';
+
+// Check if user is logged in
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    // User is not logged in, redirect to login page
+    header("Location: /login.php?redirect=" . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
+
 require_once '../../includes/db_connect.php';  // Database connection
 
 // Set timezone to London
