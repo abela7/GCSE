@@ -200,9 +200,13 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                         <div class="card-body">
                             <div class="mood-emoji">
                                 <?php 
-                                $mood_level = $analysis['insights']['daily']['mood'];
+                                $mood_level = $analysis['insights']['daily']['mood'] ?? null;
                                 $mood_scale = $analyzer->getMoodScale();
-                                echo $mood_scale[$mood_level]['emoji'];
+                                if ($mood_level !== null && isset($mood_scale[$mood_level])) {
+                                    echo $mood_scale[$mood_level]['emoji'];
+                                } else {
+                                    echo '❓'; // Default emoji for unknown mood
+                                }
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">Today's Mood: <?php echo $analysis['insights']['daily']['mood']; ?></h3>
@@ -253,9 +257,13 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                         <div class="card-body">
                             <div class="mood-emoji">
                                 <?php 
-                                $mood_level = $analysis['insights']['weekly']['mood'];
+                                $mood_level = $analysis['insights']['weekly']['mood'] ?? null;
                                 $mood_scale = $analyzer->getMoodScale();
-                                echo $mood_scale[$mood_level]['emoji'];
+                                if ($mood_level !== null && isset($mood_scale[$mood_level])) {
+                                    echo $mood_scale[$mood_level]['emoji'];
+                                } else {
+                                    echo '❓'; // Default emoji for unknown mood
+                                }
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">This Week's Mood: <?php echo $analysis['insights']['weekly']['mood']; ?></h3>
@@ -306,9 +314,13 @@ $analysis = $analyzer->analyzeMoodPatterns($start_date, $end_date);
                         <div class="card-body">
                             <div class="mood-emoji">
                                 <?php 
-                                $mood_level = $analysis['insights']['monthly']['mood'];
+                                $mood_level = $analysis['insights']['monthly']['mood'] ?? null;
                                 $mood_scale = $analyzer->getMoodScale();
-                                echo $mood_scale[$mood_level]['emoji'];
+                                if ($mood_level !== null && isset($mood_scale[$mood_level])) {
+                                    echo $mood_scale[$mood_level]['emoji'];
+                                } else {
+                                    echo '❓'; // Default emoji for unknown mood
+                                }
                                 ?>
                             </div>
                             <h3 class="h4 mb-3">This Month's Mood: <?php echo $analysis['insights']['monthly']['mood']; ?></h3>
