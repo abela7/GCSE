@@ -17,120 +17,77 @@ class TaskNotification extends EmailTemplate {
                     color: #333;
                     margin: 0;
                     padding: 0;
-                    background-color: #f5f5f5;
+                    background-color: #222;
                 }
                 .container {
                     max-width: 600px;
                     margin: 0 auto;
                     padding: 0;
-                    background-color: #ffffff;
-                    border-radius: 12px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    background-color: #1e1e1e;
+                    color: #ffffff;
                 }
                 .header {
                     background-color: rgb(168, 142, 64);
                     color: white;
-                    padding: 25px 20px;
+                    padding: 20px;
                     text-align: center;
                 }
                 .header h1 {
                     margin: 0;
-                    font-size: 24px;
+                    font-size: 22px;
                     font-weight: 600;
-                    letter-spacing: 0.5px;
                     word-break: break-word;
                 }
                 .task-time {
                     font-size: 16px;
                     margin-top: 10px;
-                    font-weight: bold;
-                    color: rgba(255, 255, 255, 0.9);
+                    font-weight: 500;
                     display: inline-block;
                     padding: 5px 15px;
                     background-color: rgba(0, 0, 0, 0.2);
                     border-radius: 20px;
-                    margin-top: 15px;
                 }
                 .section {
-                    margin: 20px 0 0 0;
-                    padding: 0 20px 20px 20px;
+                    margin: 0;
+                    padding: 15px;
                 }
                 .section-title {
                     font-size: 18px;
                     font-weight: 600;
-                    color: #2d3436;
-                    margin-bottom: 15px;
-                    padding-bottom: 10px;
-                    border-bottom: 2px solid #f1f3f5;
-                    position: relative;
-                }
-                .section-title:after {
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    bottom: -2px;
-                    width: 50px;
-                    height: 2px;
-                    background-color: rgb(168, 142, 64);
+                    color: #ffffff;
+                    margin: 10px 0;
+                    padding-bottom: 8px;
+                    border-bottom: 1px solid #333;
                 }
                 .task-card {
-                    background-color: #f8f9fa;
+                    background-color: #2a2a2a;
                     border-left: 4px solid #4a90e2;
                     border-radius: 8px;
                     padding: 15px;
                     margin-bottom: 15px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    word-wrap: break-word;
-                    overflow-wrap: break-word;
-                }
-                .task-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
                 .task-card.current {
-                    background-color: rgba(238, 246, 255, 0.8);
+                    background-color: #222;
                     border-left: 4px solid rgb(168, 142, 64);
-                    border-radius: 10px;
-                    padding: 20px 15px;
-                    margin: 0 0 25px 0;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.07);
-                    position: relative;
-                }
-                .task-card.current:before {
-                    content: "NOW DUE";
-                    position: absolute;
-                    top: -10px;
-                    right: 15px;
-                    background-color: rgb(168, 142, 64);
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-bottom: 15px;
                 }
                 .task-card.overdue {
                     border-left-color: #e53935;
-                    background-color: rgba(255, 240, 240, 0.5);
                 }
                 .task-title {
                     font-size: 18px;
                     font-weight: 600;
-                    margin-bottom: 8px;
-                    color: #2d3436;
+                    margin-bottom: 6px;
+                    color: #ffffff;
                     word-break: break-word;
-                }
-                .task-card.current .task-title {
-                    font-size: 20px;
-                    color: #1a1a1a;
                 }
                 .task-description {
                     font-size: 15px;
-                    margin: 10px 0;
-                    color: #555;
-                    line-height: 1.5;
+                    margin: 8px 0;
+                    color: #ccc;
+                    line-height: 1.4;
                     word-break: break-word;
                 }
                 .task-details {
@@ -138,92 +95,58 @@ class TaskNotification extends EmailTemplate {
                     flex-wrap: wrap;
                     gap: 8px;
                     font-size: 14px;
-                    color: #666;
-                    margin-top: 15px;
-                    align-items: center;
+                    color: #aaa;
+                    margin-top: 12px;
                 }
                 .task-detail-item {
                     display: inline-flex;
                     align-items: center;
-                    background: rgba(0,0,0,0.05);
+                    background: rgba(255,255,255,0.1);
                     padding: 5px 10px;
                     border-radius: 4px;
                     margin-bottom: 5px;
-                    max-width: 100%;
                     box-sizing: border-box;
                     word-break: break-word;
                 }
                 .priority-high {
-                    color: #e53935;
+                    color: #f44336;
                     font-weight: bold;
                 }
                 .priority-medium {
-                    color: #fb8c00;
+                    color: #ff9800;
                 }
                 .priority-low {
-                    color: #43a047;
-                }
-                .action-buttons {
-                    display: flex;
-                    gap: 10px;
-                    margin-top: 20px;
-                    flex-wrap: wrap;
+                    color: #4caf50;
                 }
                 .action-button {
-                    display: inline-block;
+                    display: block;
+                    width: 100%;
                     color: white;
-                    padding: 10px 15px;
+                    padding: 12px;
                     text-decoration: none;
                     border-radius: 6px;
                     font-weight: 600;
                     text-align: center;
-                    transition: background-color 0.2s ease;
-                    min-width: 110px;
-                    font-size: 15px;
-                }
-                .complete-button {
                     background-color: #43a047;
-                }
-                .complete-button:hover {
-                    background-color: #388e3c;
-                }
-                .view-button {
-                    background-color: rgb(168, 142, 64);
-                }
-                .view-button:hover {
-                    background-color: rgb(148, 122, 44);
+                    margin-top: 15px;
+                    font-size: 16px;
+                    border: none;
                 }
                 .footer {
                     text-align: center;
-                    padding: 20px;
+                    padding: 15px;
                     font-size: 12px;
-                    color: #666;
-                    background-color: #f9f9f9;
-                    border-top: 1px solid #eee;
+                    color: #888;
+                    border-top: 1px solid #333;
                 }
                 .app-name {
                     font-weight: bold;
                     color: rgb(168, 142, 64);
                 }
-                .divider {
-                    height: 1px;
-                    background-color: #eee;
-                    margin: 15px 0;
-                }
                 @media only screen and (max-width: 600px) {
                     body {
                         padding: 0;
                         margin: 0;
-                    }
-                    .container {
-                        width: 100%;
-                        max-width: 100%;
-                        border-radius: 0;
-                        margin: 0;
-                    }
-                    .header {
-                        border-radius: 0;
-                        padding: 15px 10px;
                     }
                     .header h1 {
                         font-size: 20px;
@@ -232,50 +155,10 @@ class TaskNotification extends EmailTemplate {
                         font-size: 14px;
                         padding: 4px 12px;
                     }
-                    .section {
-                        padding: 0 12px 15px 12px;
-                        margin: 15px 0 0 0;
-                    }
-                    .section-title {
-                        font-size: 16px;
-                        margin-bottom: 12px;
-                    }
-                    .task-card {
-                        padding: 12px 10px;
-                        margin-bottom: 12px;
-                    }
-                    .task-card.current {
-                        padding: 15px 10px;
-                    }
-                    .task-card.current:before {
-                        font-size: 10px;
-                        padding: 3px 8px;
-                        top: -8px;
-                        right: 10px;
-                    }
                     .task-title {
                         font-size: 16px;
                     }
-                    .task-card.current .task-title {
-                        font-size: 18px;
-                    }
                     .task-description {
-                        font-size: 14px;
-                    }
-                    .task-details {
-                        gap: 6px;
-                        font-size: 13px;
-                    }
-                    .task-detail-item {
-                        padding: 4px 8px;
-                    }
-                    .action-buttons {
-                        flex-direction: column;
-                        gap: 8px;
-                    }
-                    .action-button {
-                        width: 100%;
-                        padding: 12px 10px;
                         font-size: 14px;
                     }
                 }
@@ -299,12 +182,15 @@ class TaskNotification extends EmailTemplate {
                             ' . ($data['current_task']['estimated_duration'] ? '<div class="task-detail-item">Duration: ' . htmlspecialchars($data['current_task']['estimated_duration']) . ' min</div>' : '') . '
                             ' . ($data['current_task']['category_name'] ? '<div class="task-detail-item">Category: ' . htmlspecialchars($data['current_task']['category_name']) . '</div>' : '') . '
                         </div>
-                        <div class="action-buttons">
-                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button complete-button">Mark Complete</a>
-                            <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button view-button">View Details</a>
-                        </div>
+                        <a href="https://abel.abuneteklehaymanot.org/pages/tasks/index.php?action=complete&task_id=' . htmlspecialchars($data['current_task']['id']) . '" class="action-button">Mark Complete</a>
                     </div>
                 </div>
+                
+                ' . (count($data['upcoming_tasks']) > 0 ? '
+                <div class="section">
+                    <div class="section-title">Overdue Tasks Today</div>
+                    ' . $this->renderTaskList($data['upcoming_tasks']) . '
+                </div>' : '') . '
                 
                 ' . (count($data['overdue_tasks']) > 0 ? '
                 <div class="section">
@@ -312,15 +198,8 @@ class TaskNotification extends EmailTemplate {
                     ' . $this->renderTaskList($data['overdue_tasks'], 'overdue') . '
                 </div>' : '') . '
                 
-                ' . (count($data['upcoming_tasks']) > 0 ? '
-                <div class="section">
-                    <div class="section-title">Other Tasks Today</div>
-                    ' . $this->renderTaskList($data['upcoming_tasks']) . '
-                </div>' : '') . '
-                
                 <div class="footer">
                     <p>This is an automated notification from <span class="app-name">Amha-Silassie Study App</span></p>
-                    <div class="divider"></div>
                     <p>© ' . date('Y') . ' Amha-Silassie. All rights reserved.</p>
                 </div>
             </div>
