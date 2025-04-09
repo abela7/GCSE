@@ -36,6 +36,23 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
     }
 }
 
+// Handle history deletion if requested
+$delete_success = false;
+$delete_error = '';
+
+if (isset($_POST['delete_history'])) {
+    try {
+        $delete_query = "TRUNCATE TABLE task_notification_tracking";
+        if ($conn->query($delete_query)) {
+            $delete_success = true;
+        } else {
+            $delete_error = "Error clearing notification history: " . $conn->error;
+        }
+    } catch (Exception $e) {
+        $delete_error = "Error clearing notification history: " . $e->getMessage();
+    }
+}
+
 // Send test notification if requested
 $test_sent = false;
 $test_error = '';
@@ -97,7 +114,8 @@ if (isset($_POST['trigger_notification']) && isset($_POST['notification_type']))
     }
 }
 
-// Fetch notification history
+// Fetch notification history - initially just 5
+$limit = isset($_GET['limit']) ? intval($_GET['limit']) : 5;
 $notifications_query = "
     SELECT 
         tnt.id,
@@ -111,16 +129,25 @@ $notifications_query = "
         tasks t ON tnt.task_id = t.id
     ORDER BY 
         tnt.sent_at DESC
-    LIMIT 50
+    LIMIT ?
 ";
 
 $notifications = [];
 $stmt = $conn->prepare($notifications_query);
+$stmt->bind_param("i", $limit);
 $stmt->execute();
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
     $notifications[] = $row;
+}
+
+// Get total count for pagination
+$count_query = "SELECT COUNT(*) as total FROM task_notification_tracking";
+$total_count = 0;
+$result = $conn->query($count_query);
+if ($row = $result->fetch_assoc()) {
+    $total_count = $row['total'];
 }
 
 // Fetch cron job status - using direct command instead of caching
@@ -154,6 +181,95 @@ include '../includes/header.php';
                     <h3 class="card-title"><i class="fas fa-bell me-2"></i>Notification System Dashboard</h3>
                 </div>
                 <div class="card-body">
+                    <!-- Notification History Section (Moved up) -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Notification History</h5>
+                                    <form method="post" onsubmit="return confirm('Are you sure you want to delete all notification history? This action cannot be undone.');" class="m-0">
+                                        <button type="submit" name="delete_history" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt me-1"></i> Delete All History
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="card-body">
+                                    <?php if ($delete_success): ?>
+                                        <div class="alert alert-success">
+                                            Notification history has been successfully cleared.
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($delete_error): ?>
+                                        <div class="alert alert-danger">
+                                            <?= $delete_error ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (empty($notifications)): ?>
+                                        <div class="alert alert-info">
+                                            No notification records found.
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Task/Habit</th>
+                                                        <th>Type</th>
+                                                        <th>Sent At</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($notifications as $notification): ?>
+                                                        <tr>
+                                                            <td><?= $notification['id'] ?></td>
+                                                            <td>
+                                                                <?php if (isset($notification['task_title']) && $notification['task_title']): ?>
+                                                                    <?= htmlspecialchars($notification['task_title']) ?>
+                                                                <?php else: ?>
+                                                                    <span class="text-muted">ID: <?= $notification['task_id'] ?></span>
+                                                                <?php endif; ?>
+                                                            </td>
+                                                            <td>
+                                                                <?php
+                                                                $badge_class = 'bg-secondary';
+                                                                switch ($notification['notification_type']) {
+                                                                    case 'due':
+                                                                        $badge_class = 'bg-danger';
+                                                                        break;
+                                                                    case 'reminder':
+                                                                        $badge_class = 'bg-warning text-dark';
+                                                                        break;
+                                                                    case 'habit':
+                                                                        $badge_class = 'bg-primary';
+                                                                        break;
+                                                                }
+                                                                ?>
+                                                                <span class="badge <?= $badge_class ?>"><?= $notification['notification_type'] ?></span>
+                                                            </td>
+                                                            <td><?= $notification['sent_at'] ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <?php if ($total_count > $limit): ?>
+                                            <div class="text-center mt-3">
+                                                <a href="?limit=<?= $limit + 10 ?>" class="btn btn-outline-primary">
+                                                    <i class="fas fa-sync me-1"></i> Load More History (showing <?= count($notifications) ?> of <?= $total_count ?>)
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rest of the dashboard cards -->
                     <div class="row">
                         <div class="col-md-4">
                             <div class="card h-100">
@@ -329,74 +445,14 @@ include '../includes/header.php';
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h3 class="card-title"><i class="fas fa-history me-2"></i>Notification History</h3>
-                </div>
-                <div class="card-body">
-                    <?php if (empty($notifications)): ?>
-                        <div class="alert alert-info">
-                            No notification records found.
-                        </div>
-                    <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Task/Habit</th>
-                                        <th>Type</th>
-                                        <th>Sent At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($notifications as $notification): ?>
-                                        <tr>
-                                            <td><?= $notification['id'] ?></td>
-                                            <td>
-                                                <?php if (isset($notification['task_title']) && $notification['task_title']): ?>
-                                                    <?= htmlspecialchars($notification['task_title']) ?>
-                                                <?php else: ?>
-                                                    <span class="text-muted">ID: <?= $notification['task_id'] ?></span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $badge_class = 'bg-secondary';
-                                                switch ($notification['notification_type']) {
-                                                    case 'due':
-                                                        $badge_class = 'bg-danger';
-                                                        break;
-                                                    case 'reminder':
-                                                        $badge_class = 'bg-warning text-dark';
-                                                        break;
-                                                    case 'habit':
-                                                        $badge_class = 'bg-primary';
-                                                        break;
-                                                }
-                                                ?>
-                                                <span class="badge <?= $badge_class ?>"><?= $notification['notification_type'] ?></span>
-                                            </td>
-                                            <td><?= $notification['sent_at'] ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
     // Refresh page every 5 minutes to keep cron status up-to-date
+    // But preserve the limit parameter
     setTimeout(function() {
-        window.location.reload();
+        const currentLimit = new URLSearchParams(window.location.search).get('limit') || 5;
+        window.location.href = window.location.pathname + '?limit=' + currentLimit;
     }, 300000); // 5 minutes
 </script>
 
