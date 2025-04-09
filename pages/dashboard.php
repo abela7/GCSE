@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/../includes/auth_check.php';
-
 // Set page title
 $page_title = "Dashboard";
 
