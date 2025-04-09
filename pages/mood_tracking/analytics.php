@@ -246,6 +246,9 @@ $tag_entry_counts = array_column($mood_by_tag, 'entry_count');
             <p class="text-muted">Visualize and analyze your mood patterns</p>
         </div>
         <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+            <a href="mood_insights.php" class="btn btn-primary me-2">
+                <i class="fas fa-chart-pie me-1"></i>Detailed Insights
+            </a>
             <a href="index.php" class="btn btn-outline-accent">
                 <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
             </a>
