@@ -58,19 +58,32 @@ try {
     // Server settings
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
-    $mail->SMTPAuth = true;
+    $mail->SMTPAuth = SMTP_AUTH;
     $mail->Username = SMTP_USERNAME;
     $mail->Password = SMTP_PASSWORD;
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->SMTPSecure = SMTP_SECURE;
     $mail->Port = SMTP_PORT;
 
-    // Recipients
+    // Anti-spam measures
+    $mail->XMailer = 'GCSE Study App Mailer';
+    $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+    $mail->addCustomHeader('Precedence', 'bulk');
+    $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+    $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+
+    // Make sure subject isn't too spammy
+    $mail->Subject = 'Habit Reminder: Daily Habits';
+
+    // Add a text version to reduce spam score
+    $textContent = strip_tags(str_replace(['<br>', '<p>', '</p>', '<div>', '</div>'], ["\n", "\n", "\n", "\n", "\n"], $emailContent));
+    $mail->AltBody = $textContent;
+
+    // Recipients - only send to the test recipient
     $mail->setFrom(SMTP_USERNAME, 'Amha-Silassie Study App');
-    $mail->addAddress('Abelgoytom77@gmail.com');
+    $mail->addAddress(SMTP_USERNAME);
 
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'Habit Reminder: ' . $testData['current_task']['title'];
     $mail->Body = $emailContent;
 
     $mail->send();

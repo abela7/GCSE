@@ -69,25 +69,38 @@ try {
     // Server settings
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
-    $mail->SMTPAuth = true;
+    $mail->SMTPAuth = SMTP_AUTH;
     $mail->Username = SMTP_USERNAME;
     $mail->Password = SMTP_PASSWORD;
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->SMTPSecure = SMTP_SECURE;
     $mail->Port = SMTP_PORT;
-
-    // Recipients
+    
+    // Anti-spam measures
+    $mail->XMailer = 'GCSE Study App Mailer';
+    $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+    $mail->addCustomHeader('Precedence', 'bulk');
+    $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+    $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+    
+    // Make sure subject isn't too spammy
+    $mail->Subject = 'Task Reminder: ' . substr($testData['current_task']['title'], 0, 40);
+    
+    // Add a text version to reduce spam score
+    $textContent = strip_tags(str_replace(['<br>', '<p>', '</p>', '<div>', '</div>'], ["\n", "\n", "\n", "\n", "\n"], $emailContent));
+    $mail->AltBody = $textContent;
+    
+    // Recipients - only send to the test recipient
     $mail->setFrom(SMTP_USERNAME, 'Amha-Silassie Study App');
-    $mail->addAddress('Abelgoytom77@gmail.com');
-
+    $mail->addAddress(SMTP_USERNAME);
+    
     // Content
     $mail->isHTML(true);
-    $mail->Subject = 'Task Due Now: ' . $testData['current_task']['title'];
     $mail->Body = $emailContent;
-
+    
     $mail->send();
-    echo 'Test task notification email sent successfully!';
+    echo '<div class="alert alert-success mb-4">Test email sent successfully!</div>';
 } catch (Exception $e) {
-    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+    echo '<div class="alert alert-danger mb-4">Message could not be sent. Mailer Error: ' . $mail->ErrorInfo . '</div>';
 }
 
 // Add basic styling
@@ -246,36 +259,33 @@ if (isset($_POST['send_test']) && isset($_POST['task_id'])) {
             $mail->SMTPSecure = SMTP_SECURE;
             $mail->Port = SMTP_PORT;
             
-            // Add custom headers to reduce spam score
+            // Anti-spam measures
             $mail->XMailer = 'GCSE Study App Mailer';
-            $mail->addCustomHeader('X-Application', 'GCSE Study App');
-            $mail->addCustomHeader('X-Domain-ID', 'abel.abuneteklehaymanot.org');
+            $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+            $mail->addCustomHeader('Precedence', 'bulk');
+            $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+            $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
             
-            // Recipients
-            $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
-            $mail->addAddress('Abelgoytom77@gmail.com'); // Send to Abel's Gmail
+            // Make sure subject isn't too spammy
+            $mail->Subject = 'Task Reminder: ' . substr($current_task['title'], 0, 40);
+            
+            // Add a text version to reduce spam score
+            $textContent = strip_tags(str_replace(['<br>', '<p>', '</p>', '<div>', '</div>'], ["\n", "\n", "\n", "\n", "\n"], $emailContent));
+            $mail->AltBody = $textContent;
+            
+            // Recipients - only send to the test recipient
+            $mail->setFrom(SMTP_USERNAME, 'Amha-Silassie Study App');
+            $mail->addAddress(SMTP_USERNAME);
             
             // Content
             $mail->isHTML(true);
-            $mail->Subject = "TEST - Task Due: " . $current_task['title'];
             $mail->Body = $emailContent;
-            $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
             
-            // Send the email
             $mail->send();
-            echo '<div class="alert alert-success">
-                    <h4 class="alert-heading">Success!</h4>
-                    <p>Test task notification email sent successfully! Please check your inbox at Abelgoytom77@gmail.com</p>
-                    <hr>
-                    <p class="mb-0">If you don\'t see the email, please check your spam folder.</p>
-                  </div>';
+            echo '<div class="alert alert-success mb-4">Test email sent successfully!</div>';
             
         } catch (Exception $e) {
-            echo '<div class="alert alert-danger">
-                    <h4 class="alert-heading">Error!</h4>
-                    <p>Email could not be sent. Error details:</p>
-                    <pre>' . $mail->ErrorInfo . '</pre>
-                  </div>';
+            echo '<div class="alert alert-danger mb-4">Message could not be sent. Mailer Error: ' . $mail->ErrorInfo . '</div>';
         }
     }
 }

@@ -45,8 +45,20 @@ if (isset($_POST['send_test_notification'])) {
     try {
         // Get the absolute path for more reliable execution
         $base_path = realpath(__DIR__ . '/..');
-        $test_output = shell_exec('php ' . $base_path . '/test_task_notification.php 2>&1');
+        $notification_type = isset($_POST['test_notification_type']) ? $_POST['test_notification_type'] : 'task';
+        
+        if ($notification_type === 'task') {
+            $test_output = shell_exec('php ' . $base_path . '/test_task_notification.php 2>&1');
+        } else {
+            $test_output = shell_exec('php ' . $base_path . '/test_habit_notification.php 2>&1');
+        }
+        
         $test_sent = true;
+        
+        // Check if there's a spam warning in the output
+        if (strpos($test_output, 'SPAM') !== false) {
+            $test_error = "The email server classified the message as SPAM. Please review the email content and try the anti-spam measures below:";
+        }
     } catch (Exception $e) {
         $test_error = "Error sending test notification: " . $e->getMessage();
     }
@@ -236,14 +248,34 @@ include '../includes/header.php';
                                     
                                     <?php if ($test_error): ?>
                                         <div class="alert alert-danger">
-                                            <?= $test_error ?>
+                                            <strong>Error:</strong> <?= $test_error ?>
+                                            
+                                            <?php if (strpos($test_error, 'SPAM') !== false): ?>
+                                                <hr>
+                                                <h6>Anti-Spam Recommendations:</h6>
+                                                <ol class="small">
+                                                    <li>Avoid using all caps in the subject or body</li>
+                                                    <li>Don't use excessive exclamation marks</li>
+                                                    <li>Ensure there's a plain text version of the email</li>
+                                                    <li>Use a proper From address with a valid domain</li>
+                                                    <li>Consider configuring SPF, DKIM, and DMARC records</li>
+                                                    <li>Add the sending email to your contacts list</li>
+                                                </ol>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
                                     
                                     <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>
                                     <form method="post">
+                                        <div class="mb-3">
+                                            <label for="test_notification_type" class="form-label">Notification Type</label>
+                                            <select class="form-select" id="test_notification_type" name="test_notification_type" required>
+                                                <option value="task">Task Notifications</option>
+                                                <option value="habit">Habit Notifications</option>
+                                            </select>
+                                        </div>
                                         <button type="submit" name="send_test_notification" class="btn btn-primary w-100">
-                                            <i class="fas fa-envelope me-1"></i> Send Test Task Email
+                                            <i class="fas fa-envelope me-1"></i> Send Test Email
                                         </button>
                                     </form>
                                     

@@ -214,8 +214,8 @@ class HabitNotification extends EmailTemplate {
                     <div class="habit-detail-item priority-' . htmlspecialchars($habit['priority']) . '">
                         Priority: ' . ucfirst(htmlspecialchars($habit['priority'])) . '
                     </div>
-                    ' . ($habit['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($habit['due_time']) . '</div>' : '') . '
-                    ' . ($habit['estimated_duration'] ? '<div class="habit-detail-item">' . htmlspecialchars($habit['estimated_duration']) . '</div>' : '') . '
+                    ' . (isset($habit['due_time']) && $habit['due_time'] ? '<div class="habit-detail-item">Due: ' . htmlspecialchars($habit['due_time']) . '</div>' : '') . '
+                    ' . (isset($habit['estimated_duration']) && $habit['estimated_duration'] ? '<div class="habit-detail-item">' . htmlspecialchars($habit['estimated_duration']) . '</div>' : '') . '
                 </div>
             </div>';
         }
