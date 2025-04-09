@@ -1,9 +1,4 @@
 <?php
-require_once __DIR__ . '/../../../includes/auth_check.php';
-
-// Include database connection
-require_once '../../config/db_connect.php';
-
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mood_analysis.php';
 

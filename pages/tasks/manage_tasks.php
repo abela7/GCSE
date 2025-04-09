@@ -2,8 +2,6 @@
 // GCSE/pages/tasks/manage_tasks.php
 // Complete Code - Updated - No Null Coalescing Operator (??)
 
-require_once __DIR__ . '/../../../includes/auth_check.php';
-
 // Set timezone to London
 date_default_timezone_set('Europe/London');
 
