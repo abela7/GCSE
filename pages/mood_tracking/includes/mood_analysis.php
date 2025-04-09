@@ -171,6 +171,45 @@ class MoodAnalyzer {
         return $correlations;
     }
 
+    private function analyzeTagCorrelations($start_date, $end_date) {
+        $query = "SELECT 
+                    t.name as tag_name,
+                    AVG(me.mood_level) as avg_mood,
+                    COUNT(*) as entry_count,
+                    GROUP_CONCAT(DISTINCT me.notes) as notes
+                  FROM mood_entries me
+                  JOIN mood_entry_tags met ON me.id = met.mood_entry_id
+                  JOIN mood_tags t ON met.tag_id = t.id
+                  WHERE me.date BETWEEN ? AND ?
+                  GROUP BY t.name
+                  ORDER BY avg_mood DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $correlations = [];
+        while ($row = $result->fetch_assoc()) {
+            $correlations[$row['tag_name']] = [
+                'avg_mood' => round($row['avg_mood'], 1),
+                'entry_count' => $row['entry_count'],
+                'notes' => explode(',', $row['notes']),
+                'impact' => $this->calculateTagImpact($row['avg_mood'])
+            ];
+        }
+
+        return $correlations;
+    }
+
+    private function calculateTagImpact($avg_mood) {
+        if ($avg_mood >= 4.5) return 'very_positive';
+        if ($avg_mood >= 3.5) return 'positive';
+        if ($avg_mood >= 2.5) return 'neutral';
+        if ($avg_mood >= 1.5) return 'negative';
+        return 'very_negative';
+    }
+
     private function generateInsights($analysis) {
         $insights = [];
 
@@ -232,14 +271,6 @@ class MoodAnalyzer {
         return 'difficult';
     }
 
-    private function calculateTagImpact($avg_mood) {
-        if ($avg_mood >= 4.5) return 'very_positive';
-        if ($avg_mood >= 3.5) return 'positive';
-        if ($avg_mood >= 2.5) return 'neutral';
-        if ($avg_mood >= 1.5) return 'negative';
-        return 'very_negative';
-    }
-
     private function generateDailyDescription($data) {
         $mood = $data['mood_label'];
         $trend = $data['trend'];
@@ -274,7 +305,7 @@ class MoodAnalyzer {
                 'difficult' => "You're having a very difficult day with your mood being significantly impacted."
             ],
             'Very Down' => [
-                'excellent' => "You're having an extremely challenging day, but showing incredible strength.",
+                'excellent' => "You're having an extremely challenging day, but shown incredible strength.",
                 'positive' => "You're having a very difficult day, but maintaining hope for improvement.",
                 'stable' => "You're having a tough day, but shown resilience in the face of challenges.",
                 'challenging' => "You're having an extremely difficult day with your mood being severely affected.",
