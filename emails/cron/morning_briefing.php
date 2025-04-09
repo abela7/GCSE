@@ -121,19 +121,22 @@ try {
         };
         
         // Anti-spam measures
-        $mail->XMailer = 'GCSE Study App Mailer';
+        $mail->XMailer = ' ';  // Hide PHPMailer version
         $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
         $mail->addCustomHeader('Precedence', 'bulk');
-        $mail->addCustomHeader('X-Priority', '3'); // Normal priority
-        $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+        
+        // Create unique Message-ID with timestamp to ensure new email each day
+        $unique_id = time() . '.' . mt_rand() . '@abel.abuneteklehaymanot.org';
+        $mail->MessageID = '<morning.briefing.' . $unique_id . '>';
         
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress(SMTP_USERNAME); // Use SMTP_USERNAME instead of hardcoded email address
+        $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "Goooood Morning Abela! Your Daily Briefing for " . date('l, F j');
+        $mail->Subject = "Goooood Morning Abela! Your Daily Briefing for " . date('l, F j') . " (" . date('g:i A') . ")";
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         

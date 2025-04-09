@@ -229,9 +229,9 @@ $result = $stmt->get_result();
             AND t.id != ?
         ORDER BY 
                                 t.due_date ASC, t.due_time ASC
-                            LIMIT 5
-                        ";
-                        
+        LIMIT 5
+    ";
+    
                         $overdue_stmt = $conn->prepare($overdue_query);
                         $overdue_stmt->bind_param("i", $task['id']);
     $overdue_stmt->execute();
@@ -288,7 +288,7 @@ $result = $stmt->get_result();
             AND t.id != ?
         ORDER BY 
                                 t.due_date ASC, t.due_time ASC
-                            LIMIT 5
+        LIMIT 5
     ";
     
                         $upcoming_stmt = $conn->prepare($upcoming_query);
