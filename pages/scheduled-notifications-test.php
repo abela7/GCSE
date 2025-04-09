@@ -450,6 +450,10 @@ include '../includes/header.php';
                                         <a href="../emails/cron/task_notifications.php" target="_blank" class="btn btn-outline-primary mt-2">
                                             <i class="fas fa-code me-1"></i> Run Task Notification Script Directly
                                         </a>
+                                        
+                                        <a href="../debug_notification_tables.php" target="_blank" class="btn btn-danger mt-2">
+                                            <i class="fas fa-bug me-1"></i> Debug Notification System
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="card-footer">

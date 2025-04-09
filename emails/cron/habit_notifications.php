@@ -5,6 +5,10 @@
  * It should be run by a cron job every 5-15 minutes
  */
 
+// Enable verbose error logging
+error_log("==== HABIT NOTIFICATION SCRIPT STARTED ====");
+error_log("Script running at: " . date('Y-m-d H:i:s'));
+
 // Include required files
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../config/email_config.php';
@@ -13,6 +17,14 @@ require_once __DIR__ . '/../templates/habit_notification.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
+// Verify database connection
+if ($conn->connect_error) {
+    error_log("DATABASE CONNECTION ERROR: " . $conn->connect_error);
+    exit;
+} else {
+    error_log("Database connection successful");
+}
 
 // Application URL for links in emails
 $app_url = 'http://abel.abuneteklehaymanot.org';
@@ -31,6 +43,7 @@ $notification_window_end = date('H:i:s', strtotime("+{$buffer_minutes} minutes")
 $today = date('Y-m-d');
 
 error_log("Checking for habits due between {$notification_window_start} and {$notification_window_end}");
+error_log("Current time is: {$current_time}");
 
 // Find habits that are due within the notification window
 $habits_query = "
@@ -69,14 +82,46 @@ $habits_query = "
         h.target_time ASC
 ";
 
-$stmt = $conn->prepare($habits_query);
-$stmt->bind_param("ssss", $today, $today, $notification_window_start, $notification_window_end);
-$stmt->execute();
-$result = $stmt->get_result();
+// Log the actual SQL before executing
+error_log("SQL Query: " . str_replace(['?', '  '], [$today, ' '], $habits_query));
 
-if ($result->num_rows === 0) {
-    error_log("No due habits found for notification. Exiting.");
+try {
+    $stmt = $conn->prepare($habits_query);
+    if (!$stmt) {
+        error_log("PREPARE ERROR: " . $conn->error);
+        exit;
+    }
+    
+    $stmt->bind_param("ssss", $today, $today, $notification_window_start, $notification_window_end);
+    $stmt->execute();
+    
+    if ($stmt->error) {
+        error_log("EXECUTE ERROR: " . $stmt->error);
+        exit;
+    }
+    
+    $result = $stmt->get_result();
+    error_log("Query executed successfully. Found " . $result->num_rows . " habits due for notification.");
+    
+    if ($result->num_rows === 0) {
+        error_log("No due habits found for notification. Exiting.");
+        exit;
+    }
+} catch (Exception $e) {
+    error_log("SQL ERROR: " . $e->getMessage());
     exit;
+}
+
+// DEBUG: Let's query the habits table directly to check what habits exist
+$debug_query = "SELECT id, name, target_time FROM habits WHERE is_active = 1 ORDER BY target_time";
+$debug_result = $conn->query($debug_query);
+if ($debug_result) {
+    error_log("DEBUG - Active habits: " . $debug_result->num_rows . " habits found");
+    while ($row = $debug_result->fetch_assoc()) {
+        error_log("DEBUG - Habit ID: {$row['id']}, Name: {$row['name']}, Time: {$row['target_time']}");
+    }
+} else {
+    error_log("DEBUG - Failed to query habits: " . $conn->error);
 }
 
 while ($current_habit = $result->fetch_assoc()) {
@@ -131,6 +176,7 @@ while ($current_habit = $result->fetch_assoc()) {
         $habit['estimated_duration'] = 'Completed';
         $completed_habits[] = $habit;
     }
+    error_log("Found " . count($completed_habits) . " completed habits");
     
     // Get pending habits for today
     $pending_habits_query = "
@@ -178,6 +224,7 @@ while ($current_habit = $result->fetch_assoc()) {
         $habit['estimated_duration'] = 'Pending';
         $pending_habits[] = $habit;
     }
+    error_log("Found " . count($pending_habits) . " pending habits");
     
     // Add estimate duration for current habit
     $current_habit['estimated_duration'] = 'Points: +' . $current_habit['points'];
@@ -193,6 +240,7 @@ while ($current_habit = $result->fetch_assoc()) {
     // Generate email content
     $notification = new HabitNotification();
     $emailContent = $notification->generateEmail($emailData);
+    error_log("Email content generated successfully");
     
     // Send email
     $mail = new PHPMailer(true);
@@ -213,9 +261,17 @@ while ($current_habit = $result->fetch_assoc()) {
             error_log("SMTP Debug: $str");
         };
         
+        // Add anti-spam measures if not already in the script
+        $mail->XMailer = 'GCSE Study App Mailer';
+        $mail->addCustomHeader('X-Auto-Response-Suppress', 'OOF, DR, RN, NRN, AutoReply');
+        $mail->addCustomHeader('Precedence', 'bulk');
+        $mail->addCustomHeader('X-Priority', '3'); // Normal priority
+        $mail->addCustomHeader('X-Mailer', 'GCSE-Study-App-PHP-Mailer');
+        
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress(SMTP_USERNAME); // Use SMTP_USERNAME instead of hardcoded email address
+        error_log("Sending email to: " . SMTP_USERNAME);
         
         // Content
         $mail->isHTML(true);
@@ -225,16 +281,54 @@ while ($current_habit = $result->fetch_assoc()) {
         
         // Send the email
         $mail->send();
-        error_log("Habit notification email sent for habit ID {$current_habit['id']} at " . date('Y-m-d H:i:s'));
+        error_log("Email sent successfully for habit ID {$current_habit['id']} at " . date('Y-m-d H:i:s'));
         
-        // Record that notification has been sent
+        // Record that notification has been sent - moved after successful email sending
+        error_log("Updating notification tracking for habit ID: " . $current_habit['id']);
+        
+        // Check if task_notification_tracking table exists
+        $table_check = $conn->query("SHOW TABLES LIKE 'task_notification_tracking'");
+        if ($table_check->num_rows == 0) {
+            error_log("ERROR: task_notification_tracking table does not exist");
+            
+            // Try to create the table
+            $create_table_sql = "
+                CREATE TABLE IF NOT EXISTS task_notification_tracking (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    task_id INT NOT NULL,
+                    notification_type VARCHAR(50) NOT NULL,
+                    sent_at DATETIME NOT NULL,
+                    INDEX (task_id),
+                    INDEX (notification_type)
+                )
+            ";
+            
+            if ($conn->query($create_table_sql)) {
+                error_log("Created task_notification_tracking table");
+            } else {
+                error_log("Failed to create table: " . $conn->error);
+            }
+        } else {
+            error_log("task_notification_tracking table exists");
+        }
+        
         $tracking_query = "
             INSERT INTO task_notification_tracking (task_id, notification_type, sent_at)
             VALUES (?, 'habit', NOW())
         ";
+        
         $tracking_stmt = $conn->prepare($tracking_query);
-        $tracking_stmt->bind_param("i", $current_habit['id']);
-        $tracking_stmt->execute();
+        if (!$tracking_stmt) {
+            error_log("ERROR preparing tracking statement: " . $conn->error);
+        } else {
+            $tracking_stmt->bind_param("i", $current_habit['id']);
+            if ($tracking_stmt->execute()) {
+                error_log("Tracking record inserted successfully with ID: " . $conn->insert_id);
+            } else {
+                error_log("ERROR inserting tracking record: " . $tracking_stmt->error);
+            }
+            $tracking_stmt->close();
+        }
         
     } catch (Exception $e) {
         error_log("PHPMailer Error for habit ID {$current_habit['id']}: " . $e->getMessage());
@@ -243,4 +337,5 @@ while ($current_habit = $result->fetch_assoc()) {
 
 $conn->close();
 error_log("Habit notification check completed at " . date('Y-m-d H:i:s'));
+error_log("==== HABIT NOTIFICATION SCRIPT ENDED ====");
 ?> 
