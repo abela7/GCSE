@@ -1,11 +1,11 @@
 <?php
 /**
- * ULTRA SIMPLE Task Notification Script
- * NO fancy calculations, just basic string comparison
+ * FINAL NUCLEAR OPTION NOTIFICATION SCRIPT
+ * Simply sends notifications for ALL tasks due today, ignoring time
  */
 
 // Basic logging
-error_log("==== TASK NOTIFICATION SCRIPT STARTED ====");
+error_log("==== TASK NOTIFICATION SCRIPT - NUCLEAR OPTION ====");
 error_log("Running at: " . date('Y-m-d H:i:s'));
 
 // Include required files
@@ -17,120 +17,62 @@ require_once __DIR__ . '/../templates/task_notification.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Verify database connection
-if ($conn->connect_error) {
-    error_log("DATABASE ERROR: " . $conn->connect_error);
-    exit;
-}
-
-// Only proceed if email notifications are enabled
-if (!ENABLE_EMAIL_NOTIFICATIONS) {
-    error_log("Notifications disabled in config. Exiting.");
-    exit;
-}
-
-// Get current time
+// Just get today's date
 $today = date('Y-m-d');
-$now_hour = (int)date('H');
-$now_minute = (int)date('i');
-error_log("Current time: {$now_hour}:{$now_minute}");
+error_log("Today's date: {$today}");
 
-// ULTRA-SIMPLE APPROACH: 
-// Just get ALL tasks due today and manually check time match
-$query = "SELECT * FROM tasks t WHERE t.status IN ('pending', 'in_progress') AND t.due_date = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("s", $today);
-$stmt->execute();
-$result = $stmt->get_result();
+// Just get ALL tasks due TODAY, period.
+$query = "
+    SELECT 
+        t.*, 
+        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
+    FROM 
+        tasks t
+    LEFT JOIN 
+        task_categories tc ON t.category_id = tc.id
+    WHERE 
+        t.status IN ('pending', 'in_progress') 
+        AND t.due_date = ?
+        AND NOT EXISTS (
+            SELECT 1 FROM task_notification_tracking tnt 
+            WHERE tnt.task_id = t.id 
+            AND tnt.notification_type = 'due'
+            AND DATE(tnt.sent_at) = ?
+        )
+";
 
-error_log("Found " . $result->num_rows . " tasks due today");
-
-// PLAIN MATCHING: Find tasks due in next 3 minutes
-$to_notify = [];
-while ($task = $result->fetch_assoc()) {
-    // Extract task time components
-    $time_parts = explode(':', $task['due_time']);
-    $task_hour = (int)$time_parts[0];
-    $task_minute = (int)$time_parts[1];
-    
-    // Calculate next 3 minutes window 
-    $min_plus_1 = ($now_minute + 1) % 60;
-    $min_plus_2 = ($now_minute + 2) % 60;
-    $min_plus_3 = ($now_minute + 3) % 60;
-    
-    // Handle hour rollover
-    $hour_plus_1 = ($min_plus_1 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
-    $hour_plus_2 = ($min_plus_2 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
-    $hour_plus_3 = ($min_plus_3 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
-    
-    // Exact matches for next 3 minutes
-    $is_match = false;
-    
-    // Current minute
-    if ($task_hour == $now_hour && $task_minute == $now_minute) {
-        $is_match = true;
-        error_log("Task #{$task['id']} matches CURRENT minute!");
-    }
-    // 1 minute from now
-    else if ($task_hour == $hour_plus_1 && $task_minute == $min_plus_1) {
-        $is_match = true;
-        error_log("Task #{$task['id']} matches +1 minute!");
-    }
-    // 2 minutes from now
-    else if ($task_hour == $hour_plus_2 && $task_minute == $min_plus_2) {
-        $is_match = true;
-        error_log("Task #{$task['id']} matches +2 minute!");
-    }
-    // 3 minutes from now
-    else if ($task_hour == $hour_plus_3 && $task_minute == $min_plus_3) {
-        $is_match = true;
-        error_log("Task #{$task['id']} matches +3 minute!");
+try {
+    $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        error_log("DATABASE ERROR: " . $conn->error);
+        exit;
     }
     
-    error_log("Task #{$task['id']} - Due: {$task_hour}:{$task_minute} - Match: " . ($is_match ? "YES" : "NO"));
+    $stmt->bind_param("ss", $today, $today);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
-    if ($is_match) {
-        $to_notify[] = $task;
+    error_log("Found " . $result->num_rows . " tasks due today that haven't been notified yet");
+    
+    if ($result->num_rows === 0) {
+        error_log("No tasks to notify about today. Exiting.");
+        exit;
     }
-}
-
-if (empty($to_notify)) {
-    error_log("No tasks match the exact time window. Exiting.");
+} catch (Exception $e) {
+    error_log("SQL ERROR: " . $e->getMessage());
     exit;
 }
 
-error_log("Found " . count($to_notify) . " tasks to notify!");
-
-// Send notifications for matching tasks
-foreach ($to_notify as $task) {
+// Send a notification for EACH task due today
+while ($task = $result->fetch_assoc()) {
     error_log("Sending notification for task #{$task['id']} - {$task['title']} due at {$task['due_time']}");
     
-    // Get category name
-    $cat_query = "SELECT name FROM task_categories WHERE id = ? LIMIT 1";
-    $cat_stmt = $conn->prepare($cat_query);
-    $cat_stmt->bind_param("i", $task['category_id']);
-    $cat_stmt->execute();
-    $cat_result = $cat_stmt->get_result();
-    $category_name = ($cat_result && $cat_result->num_rows > 0) 
-        ? $cat_result->fetch_assoc()['name'] 
-        : 'Uncategorized';
-    
     // Format task for template
-    $current_task = [
-        'id' => $task['id'],
-        'title' => $task['title'],
-        'description' => $task['description'],
-        'priority' => $task['priority'],
-        'estimated_duration' => $task['estimated_duration'],
-        'category_id' => $task['category_id'],
-        'due_date' => $task['due_date'],
-        'due_time' => date('h:i A', strtotime($task['due_time'])),
-        'category_name' => $category_name
-    ];
+    $task['due_time'] = date('h:i A', strtotime($task['due_time']));
     
     // Prepare email data
     $emailData = [
-        'current_task' => $current_task,
+        'current_task' => $task,
         'overdue_tasks' => [],
         'upcoming_tasks' => [],
         'app_url' => 'http://abel.abuneteklehaymanot.org'
@@ -153,13 +95,18 @@ foreach ($to_notify as $task) {
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         
+        // Set high priority 
+        $mail->Priority = 1;
+        $mail->AddCustomHeader("X-MSMail-Priority: High");
+        $mail->AddCustomHeader("Importance: High");
+        
         // Recipients
         $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
         $mail->addAddress(SMTP_USERNAME);
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = "⏰ Task Due Soon: " . $task['title'];
+        $mail->Subject = "⚠️ TASK DUE TODAY: " . $task['title'] . " (" . $task['due_time'] . ")";
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         
@@ -177,6 +124,9 @@ foreach ($to_notify as $task) {
     } catch (Exception $e) {
         error_log("PHPMailer error: " . $e->getMessage());
     }
+    
+    // Sleep briefly to avoid flooding the mail server
+    sleep(1);
 }
 
 $conn->close();
