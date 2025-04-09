@@ -6,33 +6,37 @@ $page_title = "Notification System";
 require_once '../includes/db_connect.php';
 require_once '../config/email_config.php';
 
-// Process template edits if submitted
-$template_updated = false;
-$update_error = '';
+// Execute manual notification script if requested
+$script_executed = false;
+$exec_output = '';
+$exec_error = '';
 
-if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset($_POST['template_file'])) {
-    $template_file = $_POST['template_file'];
-    $template_content = $_POST['template_content'];
+if (isset($_GET['run_script']) && !empty($_GET['run_script'])) {
+    // Get the absolute path for more reliable execution
+    $base_path = realpath(__DIR__ . '/..');
+    $script_name = $_GET['run_script'];
     
-    // Validate template file path
-    $allowed_templates = [
-        'task_notification.php' => '../emails/templates/task_notification.php',
-        'habit_notification.php' => '../emails/templates/habit_notification.php',
-        'morning_briefing.php' => '../emails/templates/morning_briefing.php'
+    // Whitelist of allowed scripts
+    $allowed_scripts = [
+        'morning_briefing.php',
+        'task_notifications.php',
+        'habit_notifications.php',
+        'vocabulary_notifications.php',
+        'mood_notifications.php'
     ];
     
-    if (array_key_exists($template_file, $allowed_templates)) {
-        $file_path = $allowed_templates[$template_file];
-        
-        // Write updated template
+    if (in_array($script_name, $allowed_scripts)) {
         try {
-            file_put_contents($file_path, $template_content);
-            $template_updated = true;
+            // Use output buffering to capture any direct script output
+            ob_start();
+            include_once $base_path . '/emails/cron/' . $script_name;
+            $exec_output = ob_get_clean();
+            $script_executed = true;
         } catch (Exception $e) {
-            $update_error = "Error updating template: " . $e->getMessage();
+            $exec_error = "Error executing script: " . $e->getMessage();
         }
     } else {
-        $update_error = "Invalid template file selected";
+        $exec_error = "Invalid script requested";
     }
 }
 
@@ -67,67 +71,6 @@ if (isset($_POST['delete_history'])) {
         }
     } catch (Exception $e) {
         $delete_error = "Error clearing notification history: " . $e->getMessage();
-    }
-}
-
-// Send test notification if requested
-$test_sent = false;
-$test_error = '';
-$test_output = '';
-
-if (isset($_POST['send_test_notification'])) {
-    try {
-        // Get the absolute path for more reliable execution
-        $base_path = realpath(__DIR__ . '/..');
-        $notification_type = isset($_POST['test_notification_type']) ? $_POST['test_notification_type'] : 'task';
-        
-        if ($notification_type === 'task') {
-            $test_output = shell_exec('php ' . $base_path . '/test_task_notification.php 2>&1');
-        } else {
-            $test_output = shell_exec('php ' . $base_path . '/test_habit_notification.php 2>&1');
-        }
-        
-        $test_sent = true;
-        
-        // Check if there's a spam warning in the output
-        if (strpos($test_output, 'SPAM') !== false) {
-            $test_error = "The email server classified the message as SPAM. Please review the email content and try the anti-spam measures below:";
-        }
-    } catch (Exception $e) {
-        $test_error = "Error sending test notification: " . $e->getMessage();
-    }
-}
-
-// Manually trigger notification if requested
-$notification_sent = false;
-$trigger_error = '';
-$output = '';
-
-if (isset($_POST['trigger_notification']) && isset($_POST['notification_type'])) {
-    $notification_type = $_POST['notification_type'];
-    
-    try {
-        // Get the absolute path for more reliable execution
-        $base_path = realpath(__DIR__ . '/..');
-        
-        switch ($notification_type) {
-            case 'task':
-                $output = shell_exec('php ' . $base_path . '/emails/cron/task_notifications.php 2>&1');
-                $notification_sent = true;
-                break;
-            case 'habit':
-                $output = shell_exec('php ' . $base_path . '/emails/cron/habit_notifications.php 2>&1');
-                $notification_sent = true;
-                break;
-            case 'morning':
-                $output = shell_exec('php ' . $base_path . '/emails/cron/morning_briefing.php 2>&1');
-                $notification_sent = true;
-                break;
-            default:
-                $trigger_error = "Invalid notification type";
-        }
-    } catch (Exception $e) {
-        $trigger_error = "Error triggering notification: " . $e->getMessage();
     }
 }
 
@@ -172,25 +115,6 @@ if ($row = $result->fetch_assoc()) {
     $total_count = $row['total'];
 }
 
-// Fetch cron job status - using direct command instead of caching
-$cron_output = shell_exec('crontab -l 2>&1');
-$task_cron_active = strpos($cron_output, 'task_notifications.php') !== false;
-$habit_cron_active = strpos($cron_output, 'habit_notifications.php') !== false;
-$morning_cron_active = strpos($cron_output, 'morning_briefing.php') !== false;
-
-// Template management - load template files
-$template_files = [
-    'task_notification.php' => '../emails/templates/task_notification.php',
-    'habit_notification.php' => '../emails/templates/habit_notification.php',
-    'morning_briefing.php' => '../emails/templates/morning_briefing.php'
-];
-
-$current_template = isset($_GET['template']) && array_key_exists($_GET['template'], $template_files) 
-    ? $_GET['template'] 
-    : 'task_notification.php';
-
-$template_content = file_get_contents($template_files[$current_template]);
-
 // Include header
 include '../includes/header.php';
 ?>
@@ -203,7 +127,60 @@ include '../includes/header.php';
                     <h3 class="card-title"><i class="fas fa-bell me-2"></i>Notification System Dashboard</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Notification History Section (Moved up) -->
+                    <?php if ($script_executed): ?>
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> The notification script "<?= htmlspecialchars($_GET['run_script']) ?>" was executed successfully.
+                        <?php if ($exec_output): ?>
+                        <div class="mt-2">
+                            <p><strong>Output:</strong></p>
+                            <pre class="bg-light p-2 border rounded" style="max-height: 200px; overflow-y: auto;"><?= htmlspecialchars($exec_output) ?></pre>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <?php if ($exec_error): ?>
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> <?= $exec_error ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Run Notifications Manually Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Run Notifications Manually</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Click any button below to manually trigger the notification script without waiting for the cron job.
+                                    </div>
+                                    
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="?run_script=morning_briefing.php" class="btn btn-primary">
+                                            <i class="fas fa-sun me-2"></i>Morning Briefing
+                                        </a>
+                                        <a href="?run_script=task_notifications.php" class="btn btn-danger">
+                                            <i class="fas fa-tasks me-2"></i>Task Notifications
+                                        </a>
+                                        <a href="?run_script=habit_notifications.php" class="btn btn-warning">
+                                            <i class="fas fa-sync-alt me-2"></i>Habit Notifications
+                                        </a>
+                                        <a href="?run_script=vocabulary_notifications.php" class="btn btn-info">
+                                            <i class="fas fa-book me-2"></i>Vocabulary Notifications
+                                        </a>
+                                        <a href="?run_script=mood_notifications.php" class="btn btn-secondary">
+                                            <i class="fas fa-smile me-2"></i>Mood Notifications
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification History Section -->
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <div class="card">
@@ -300,236 +277,11 @@ include '../includes/header.php';
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Rest of the dashboard cards -->
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-info text-white">
-                                    <h5><i class="fas fa-clock me-2"></i>Cron Job Status</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Task Notifications
-                                            <?php if ($task_cron_active): ?>
-                                                <span class="badge bg-success">Active</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger">Not Found</span>
-                                            <?php endif; ?>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Habit Notifications
-                                            <?php if ($habit_cron_active): ?>
-                                                <span class="badge bg-success">Active</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger">Not Found</span>
-                                            <?php endif; ?>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Morning Briefing
-                                            <?php if ($morning_cron_active): ?>
-                                                <span class="badge bg-success">Active</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger">Not Found</span>
-                                            <?php endif; ?>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="card-footer">
-                                    <small class="text-muted">Last checked: <?= date('Y-m-d H:i:s') ?></small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-warning text-dark">
-                                    <h5><i class="fas fa-paper-plane me-2"></i>Trigger Notifications</h5>
-                                </div>
-                                <div class="card-body">
-                                    <?php if ($notification_sent): ?>
-                                        <div class="alert alert-success">
-                                            <strong>Success!</strong> Notification script executed.
-                                            <pre class="mt-2 border p-2 bg-light" style="max-height: 200px; overflow-y: auto;"><?= htmlspecialchars($output) ?></pre>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <?php if ($trigger_error): ?>
-                                        <div class="alert alert-danger">
-                                            <?= $trigger_error ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <form method="post">
-                                        <div class="mb-3">
-                                            <label for="notification_type" class="form-label">Notification Type</label>
-                                            <select class="form-select" id="notification_type" name="notification_type" required>
-                                                <option value="task">Task Notifications</option>
-                                                <option value="habit">Habit Notifications</option>
-                                                <option value="morning">Morning Briefing</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" name="trigger_notification" class="btn btn-warning">
-                                            <i class="fas fa-play-circle me-1"></i> Trigger Now
-                                        </button>
-                                    </form>
-                                </div>
-                                <div class="card-footer">
-                                    <small class="text-muted">This will manually execute the notification script</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-purple text-white" style="background-color: #6f42c1;">
-                                    <h5><i class="fas fa-vial me-2"></i>Test Notifications</h5>
-                                </div>
-                                <div class="card-body">
-                                    <?php if ($test_sent): ?>
-                                        <div class="alert alert-success">
-                                            <strong>Success!</strong> Test notification sent.
-                                            <pre class="mt-2 border p-2 bg-light" style="max-height: 200px; overflow-y: auto;"><?= htmlspecialchars($test_output) ?></pre>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <?php if ($test_error): ?>
-                                        <div class="alert alert-danger">
-                                            <strong>Error:</strong> <?= $test_error ?>
-                                            
-                                            <?php if (strpos($test_error, 'SPAM') !== false): ?>
-                                                <hr>
-                                                <h6>Anti-Spam Recommendations:</h6>
-                                                <ol class="small">
-                                                    <li>Avoid using all caps in the subject or body</li>
-                                                    <li>Don't use excessive exclamation marks</li>
-                                                    <li>Ensure there's a plain text version of the email</li>
-                                                    <li>Use a proper From address with a valid domain</li>
-                                                    <li>Consider configuring SPF, DKIM, and DMARC records</li>
-                                                    <li>Add the sending email to your contacts list</li>
-                                                </ol>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <div class="alert alert-info mb-3">
-                                        <h6><i class="fas fa-info-circle me-1"></i> Notification Timing Update</h6>
-                                        <p class="small mb-0">Task notifications are now configured to send exactly when tasks are due (±1 minute) instead of 5 minutes before. Anti-spam measures have also been added to improve delivery rates.</p>
-                                    </div>
-                                    
-                                    <div class="alert alert-primary mb-3">
-                                        <h6><i class="fas fa-envelope me-1"></i> Recipient Email Updated</h6>
-                                        <p class="small mb-0">Notification emails are now sent to <strong><?= SMTP_USERNAME ?></strong> instead of a hardcoded Gmail address. This matches the test notification settings.</p>
-                                    </div>
-                                    
-                                    <div class="alert alert-warning mb-3">
-                                        <h6><i class="fas fa-tools me-1"></i> Advanced Troubleshooting</h6>
-                                        <p class="small mb-0">If you're experiencing email issues, try these advanced debugging tools:</p>
-                                        <div class="mt-2">
-                                            <a href="../debug_email_connection.php" class="btn btn-sm btn-outline-primary me-2 mb-1">
-                                                <i class="fas fa-plug me-1"></i> Test SMTP Connection
-                                            </a>
-                                            <a href="../force_task_notification.php" class="btn btn-sm btn-outline-danger me-2 mb-1">
-                                                <i class="fas fa-paper-plane me-1"></i> Force Send Notification
-                                            </a>
-                                            <a href="../debug_notification_tables.php" class="btn btn-sm btn-outline-dark mb-1">
-                                                <i class="fas fa-database me-1"></i> Debug Notification System
-                                            </a>
-                                        </div>
-                                    </div>
-                                    
-                                    <p class="text-muted mb-3">Send test notifications with sample data to verify email formatting</p>
-                                    <form method="post">
-                                        <div class="mb-3">
-                                            <label for="test_notification_type" class="form-label">Notification Type</label>
-                                            <select class="form-select" id="test_notification_type" name="test_notification_type" required>
-                                                <option value="task">Task Notifications</option>
-                                                <option value="habit">Habit Notifications</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" name="send_test_notification" class="btn btn-primary w-100">
-                                            <i class="fas fa-envelope me-1"></i> Send Test Email
-                                        </button>
-                                    </form>
-                                    
-                                    <hr>
-                                    
-                                    <div class="d-grid gap-2">
-                                        <a href="../test_task_notification.php" target="_blank" class="btn btn-outline-secondary">
-                                            <i class="fas fa-external-link-alt me-1"></i> View Test Script
-                                        </a>
-                                        <a href="../test_habit_notification.php" target="_blank" class="btn btn-outline-secondary">
-                                            <i class="fas fa-external-link-alt me-1"></i> View Habit Test Script
-                                        </a>
-                                        
-                                        <a href="../emails/cron/task_notifications.php" target="_blank" class="btn btn-outline-primary mt-2">
-                                            <i class="fas fa-code me-1"></i> Run Task Notification Script Directly
-                                        </a>
-                                        
-                                        <a href="../debug_notification_tables.php" target="_blank" class="btn btn-danger mt-2">
-                                            <i class="fas fa-bug me-1"></i> Debug Notification System
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    <small class="text-muted">These test emails contain sample data</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-12 mt-3">
-                            <div class="card h-100">
-                                <div class="card-header bg-success text-white">
-                                    <h5><i class="fas fa-cog me-2"></i>Configuration</h5>
-                                </div>
-                                <div class="card-body">
-                                    <h6>Email Settings</h6>
-                                    <ul class="list-group mb-3">
-                                        <li class="list-group-item">
-                                            <strong>SMTP Host:</strong> <?= SMTP_HOST ?>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <strong>SMTP Port:</strong> <?= SMTP_PORT ?>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <strong>Email From:</strong> <?= EMAIL_FROM_ADDRESS ?>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <strong>Notifications:</strong>
-                                            <?= ENABLE_EMAIL_NOTIFICATIONS ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-danger">Disabled</span>' ?>
-                                        </li>
-                                    </ul>
-                                    <div class="d-flex gap-2">
-                                        <a href="../config/email_config.php" class="btn btn-success btn-sm" target="_blank">
-                                            <i class="fas fa-edit me-1"></i> View Config
-                                        </a>
-                                        <a href="../test_email_delivery.php" class="btn btn-warning btn-sm" target="_blank">
-                                            <i class="fas fa-wrench me-1"></i> Email Diagnostic Tool
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Refresh page every 5 minutes to keep cron status up-to-date
-    // But preserve the load_more parameter
-    setTimeout(function() {
-        const currentLoadMore = new URLSearchParams(window.location.search).get('load_more') || '';
-        let newUrl = window.location.pathname;
-        if (currentLoadMore) {
-            newUrl += '?load_more=' + currentLoadMore;
-        }
-        window.location.href = newUrl;
-    }, 300000); // 5 minutes
-</script>
 
 <?php
 // Include footer
