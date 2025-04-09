@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../includes/auth_check.php';
-require_once __DIR__ . '/../includes/db_connect.php';
-require_once __DIR__ . '/../config/email_config.php';
+require_once '/home/abunetdg/abel.abuneteklehaymanot.org/includes/auth_check.php';
+require_once '/home/abunetdg/abel.abuneteklehaymanot.org/includes/db_connect.php';
+require_once '/home/abunetdg/abel.abuneteklehaymanot.org/config/email_config.php';
 
 // Process template edits if submitted
 $template_updated = false;
@@ -13,9 +13,9 @@ if (isset($_POST['save_template']) && isset($_POST['template_content']) && isset
     
     // Validate template file path
     $allowed_templates = [
-        'task_notification.php' => __DIR__ . '/../emails/templates/task_notification.php',
-        'habit_notification.php' => __DIR__ . '/../emails/templates/habit_notification.php',
-        'morning_briefing.php' => __DIR__ . '/../emails/templates/morning_briefing.php'
+        'task_notification.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/task_notification.php',
+        'habit_notification.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/habit_notification.php',
+        'morning_briefing.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/morning_briefing.php'
     ];
     
     if (array_key_exists($template_file, $allowed_templates)) {
@@ -44,17 +44,17 @@ if (isset($_POST['trigger_notification']) && isset($_POST['notification_type']))
         switch ($notification_type) {
             case 'task':
                 // Execute the task notification script
-                $output = shell_exec('php ' . __DIR__ . '/../emails/cron/task_notifications.php 2>&1');
+                $output = shell_exec('php /home/abunetdg/abel.abuneteklehaymanot.org/emails/cron/task_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'habit':
                 // Execute the habit notification script
-                $output = shell_exec('php ' . __DIR__ . '/../emails/cron/habit_notifications.php 2>&1');
+                $output = shell_exec('php /home/abunetdg/abel.abuneteklehaymanot.org/emails/cron/habit_notifications.php 2>&1');
                 $notification_sent = true;
                 break;
             case 'morning':
                 // Execute the morning briefing script
-                $output = shell_exec('php ' . __DIR__ . '/../emails/cron/morning_briefing.php 2>&1');
+                $output = shell_exec('php /home/abunetdg/abel.abuneteklehaymanot.org/emails/cron/morning_briefing.php 2>&1');
                 $notification_sent = true;
                 break;
             default:
@@ -99,9 +99,9 @@ $morning_cron_active = strpos($cron_output, 'morning_briefing.php') !== false;
 
 // Template management - load template files
 $template_files = [
-    'task_notification.php' => __DIR__ . '/../emails/templates/task_notification.php',
-    'habit_notification.php' => __DIR__ . '/../emails/templates/habit_notification.php',
-    'morning_briefing.php' => __DIR__ . '/../emails/templates/morning_briefing.php'
+    'task_notification.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/task_notification.php',
+    'habit_notification.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/habit_notification.php',
+    'morning_briefing.php' => '/home/abunetdg/abel.abuneteklehaymanot.org/emails/templates/morning_briefing.php'
 ];
 
 $current_template = isset($_GET['template']) && array_key_exists($_GET['template'], $template_files) 
@@ -111,7 +111,7 @@ $current_template = isset($_GET['template']) && array_key_exists($_GET['template
 $template_content = file_get_contents($template_files[$current_template]);
 
 // Include common header
-require_once __DIR__ . '/../includes/header.php';
+require_once '/home/abunetdg/abel.abuneteklehaymanot.org/includes/header.php';
 ?>
 
 <div class="container-fluid">
@@ -360,5 +360,5 @@ require_once __DIR__ . '/../includes/header.php';
 </script>
 
 <?php
-require_once __DIR__ . '/../includes/footer.php';
+require_once '/home/abunetdg/abel.abuneteklehaymanot.org/includes/footer.php';
 ?> 
