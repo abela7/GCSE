@@ -1,7 +1,8 @@
 <?php
 /**
- * Task Notifications Debug Script
- * Shows all tasks due today and their times
+ * Task Notifications Script
+ * Shows all tasks due today and sends notifications for tasks due in the next 3 minutes
+ * Uses tracking table to avoid duplicate notifications
  */
 
 // Set timezone to London time
@@ -14,6 +15,10 @@ header('Content-Type: text/html; charset=utf-8');
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../config/email_config.php';
 require_once __DIR__ . '/../../includes/db_connect.php';
+require_once __DIR__ . '/../templates/task_notification.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 // Verify database connection
 if ($conn->connect_error) {
@@ -25,6 +30,11 @@ $today = date('Y-m-d');
 $now_hour = (int)date('H');
 $now_minute = (int)date('i');
 $current_time = date('H:i:s');
+$current_datetime = date('Y-m-d H:i:s');
+$app_url = 'http://abel.abuneteklehaymanot.org';
+
+// Track if any notifications were sent during this run
+$notifications_sent = [];
 
 // Start HTML output
 echo "<!DOCTYPE html>
@@ -43,17 +53,20 @@ echo "<!DOCTYPE html>
         .overdue { background-color: #f8d7da; }
         .debug-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 10px; background-color: #f8f9fa; }
         .timezone-warning { background-color: #f8d7da; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        .success-section { background-color: #d4edda; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        .notification-sent { background-color: #d4edda; }
+        .notification-skipped { background-color: #f8d7da; }
     </style>
 </head>
 <body>
-    <h1>Task Notification Debug</h1>
+    <h1>Task Notification System</h1>
     
     <div class='debug-section'>
         <h2>Current Time Information</h2>
         <p><strong>Server Date:</strong> " . date('Y-m-d') . "</p>
         <p><strong>Server Time:</strong> " . date('H:i:s') . " (" . date('h:i A') . ")</p>
         <p><strong>PHP Version:</strong> " . phpversion() . "</p>
-        <p><strong>Timezone Setting:</strong> " . date_default_timezone_get() . " (Changed to London time)</p>
+        <p><strong>Timezone Setting:</strong> " . date_default_timezone_get() . "</p>
     </div>";
 
 // Get ALL tasks due today
@@ -67,13 +80,14 @@ $query = "
         t.category_id,
         t.due_date, 
         t.due_time,
-        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name
+        CASE WHEN tc.name IS NOT NULL THEN tc.name ELSE 'Uncategorized' END AS category_name,
+        (SELECT MAX(tnt.sent_at) FROM task_notification_tracking tnt WHERE tnt.task_id = t.id AND tnt.notification_type = 'due') AS last_notified
     FROM 
         tasks t
     LEFT JOIN 
         task_categories tc ON t.category_id = tc.id
     WHERE 
-        t.due_date = ?
+        t.due_date = ? AND t.status IN ('pending', 'in_progress')
     ORDER BY 
         t.due_time ASC
 ";
@@ -100,7 +114,8 @@ try {
                 <th>Priority</th>
                 <th>Status</th>
                 <th>Time Until Due</th>
-                <th>Would Notify?</th>
+                <th>Last Notified</th>
+                <th>Notification Status</th>
             </tr>";
         
         while ($task = $result->fetch_assoc()) {
@@ -120,27 +135,27 @@ try {
             $hour_plus_3 = ($min_plus_3 < $now_minute) ? ($now_hour + 1) % 24 : $now_hour;
             
             // Check if due within next 3 minutes
-            $would_notify = false;
+            $due_within_window = false;
             $notification_reason = "";
             
             // Current minute
             if ($task_hour == $now_hour && $task_minute == $now_minute) {
-                $would_notify = true;
+                $due_within_window = true;
                 $notification_reason = "Due RIGHT NOW";
             }
             // 1 minute from now
             else if ($task_hour == $hour_plus_1 && $task_minute == $min_plus_1) {
-                $would_notify = true;
+                $due_within_window = true;
                 $notification_reason = "Due in 1 minute";
             }
             // 2 minutes from now
             else if ($task_hour == $hour_plus_2 && $task_minute == $min_plus_2) {
-                $would_notify = true;
+                $due_within_window = true;
                 $notification_reason = "Due in 2 minutes";
             }
             // 3 minutes from now
             else if ($task_hour == $hour_plus_3 && $task_minute == $min_plus_3) {
-                $would_notify = true;
+                $due_within_window = true;
                 $notification_reason = "Due in 3 minutes";
             }
             
@@ -150,14 +165,120 @@ try {
             $time_diff_seconds = $task_time - $current_time_seconds;
             $time_diff_minutes = round($time_diff_seconds / 60);
             
+            // Check if task was recently notified (within last 5 minutes)
+            $recently_notified = false;
+            $last_notified_readable = "Never";
+            
+            if (!empty($task['last_notified'])) {
+                $last_notified_time = strtotime($task['last_notified']);
+                $time_since_notification = time() - $last_notified_time;
+                $recently_notified = ($time_since_notification < 300); // 5 minutes = 300 seconds
+                $last_notified_readable = date('h:i:s A', $last_notified_time);
+            }
+            
+            // Determine if notification should be sent
+            $should_notify = $due_within_window && !$recently_notified;
+            
+            // Prepare notification status message
+            $notification_status = "";
+            $row_class = "";
+            
+            if ($due_within_window) {
+                if ($recently_notified) {
+                    $notification_status = "SKIPPED - Already notified at " . $last_notified_readable;
+                    $row_class = "notification-skipped";
+                } else {
+                    // Actually send the notification
+                    if ($due_within_window) {
+                        // Format task for notification
+                        $current_task = [
+                            'id' => $task['id'],
+                            'title' => $task['title'],
+                            'description' => $task['description'],
+                            'priority' => $task['priority'],
+                            'estimated_duration' => null,
+                            'category_id' => $task['category_id'],
+                            'due_date' => $task['due_date'],
+                            'due_time' => date('h:i A', strtotime($task['due_time'])),
+                            'category_name' => $task['category_name']
+                        ];
+                        
+                        // Prepare email data
+                        $emailData = [
+                            'current_task' => $current_task,
+                            'overdue_tasks' => [],
+                            'upcoming_tasks' => [],
+                            'app_url' => $app_url
+                        ];
+                        
+                        $email_sent = false;
+                        $email_error = "";
+                        
+                        // Only actually send if not in debug-only mode
+                        if (!isset($_GET['debug_only'])) {
+                            // Generate email content
+                            $notification_template = new TaskNotification();
+                            $emailContent = $notification_template->generateEmail($emailData);
+                            
+                            // Send email
+                            $mail = new PHPMailer(true);
+                            
+                            try {
+                                // Server settings
+                                $mail->isSMTP();
+                                $mail->Host = SMTP_HOST;
+                                $mail->SMTPAuth = SMTP_AUTH;
+                                $mail->Username = SMTP_USERNAME;
+                                $mail->Password = SMTP_PASSWORD;
+                                $mail->SMTPSecure = SMTP_SECURE;
+                                $mail->Port = SMTP_PORT;
+                                
+                                // Recipients
+                                $mail->setFrom(EMAIL_FROM_ADDRESS, EMAIL_FROM_NAME);
+                                $mail->addAddress(SMTP_USERNAME);
+                                
+                                // Content
+                                $mail->isHTML(true);
+                                $mail->Subject = "⏰ Task Due Soon: " . $task['title'];
+                                $mail->Body = $emailContent;
+                                $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
+                                
+                                $email_sent = $mail->send();
+                                
+                                if ($email_sent) {
+                                    // Record in tracking table
+                                    $tracking_query = "INSERT INTO task_notification_tracking (task_id, notification_type, sent_at) VALUES (?, 'due', NOW())";
+                                    $tracking_stmt = $conn->prepare($tracking_query);
+                                    $tracking_stmt->bind_param("i", $task['id']);
+                                    $tracking_stmt->execute();
+                                    
+                                    $notifications_sent[] = $task['title'];
+                                    $notification_status = "SENT - Notification sent at " . date('h:i:s A');
+                                    $row_class = "notification-sent";
+                                }
+                            } catch (Exception $e) {
+                                $email_error = $e->getMessage();
+                                $notification_status = "ERROR - Failed to send: " . $email_error;
+                            }
+                        } else {
+                            $notification_status = "WOULD SEND - Debug mode enabled";
+                            $row_class = "due-soon";
+                        }
+                    }
+                }
+            } else {
+                $notification_status = "Not due within 3-minute window";
+            }
+            
             // Determine row class based on time
-            $row_class = '';
-            if ($time_diff_minutes < 0) {
-                $row_class = 'overdue';
-            } else if ($time_diff_minutes <= 3) {
-                $row_class = 'due-soon';
-            } else if ($time_diff_minutes == 0) {
-                $row_class = 'current';
+            if (empty($row_class)) {
+                if ($time_diff_minutes < 0) {
+                    $row_class = 'overdue';
+                } else if ($time_diff_minutes <= 3) {
+                    $row_class = 'due-soon';
+                } else if ($time_diff_minutes == 0) {
+                    $row_class = 'current';
+                }
             }
             
             // Format time difference
@@ -178,7 +299,8 @@ try {
                 <td>{$task['priority']}</td>
                 <td>{$task['status']}</td>
                 <td>{$time_diff_display}</td>
-                <td>" . ($would_notify ? "YES - {$notification_reason}" : "NO") . "</td>
+                <td>{$last_notified_readable}</td>
+                <td>{$notification_status}</td>
             </tr>";
         }
         
@@ -193,6 +315,18 @@ try {
     echo "<p style='color:red'>ERROR: " . $e->getMessage() . "</p>";
 }
 
+// Show notifications sent during this run
+if (!empty($notifications_sent)) {
+    echo "<div class='success-section'>
+        <h2>Notifications Sent During This Run</h2>
+        <ul>";
+    foreach ($notifications_sent as $task_title) {
+        echo "<li>Sent notification for: {$task_title}</li>";
+    }
+    echo "</ul>
+    </div>";
+}
+
 // Display recent notifications from tracking table
 echo "<div class='debug-section'>
     <h2>Recent Notifications Sent</h2>";
@@ -203,7 +337,8 @@ $tracking_query = "
         tnt.task_id,
         t.title,
         tnt.notification_type,
-        tnt.sent_at
+        tnt.sent_at,
+        TIMESTAMPDIFF(MINUTE, tnt.sent_at, NOW()) as minutes_ago
     FROM 
         task_notification_tracking tnt
     LEFT JOIN
@@ -224,6 +359,7 @@ try {
                 <th>Task Title</th>
                 <th>Type</th>
                 <th>Sent At</th>
+                <th>Minutes Ago</th>
             </tr>";
         
         while ($row = $tracking_result->fetch_assoc()) {
@@ -233,6 +369,7 @@ try {
                 <td>{$row['title']}</td>
                 <td>{$row['notification_type']}</td>
                 <td>{$row['sent_at']}</td>
+                <td>{$row['minutes_ago']}</td>
             </tr>";
         }
         
@@ -247,21 +384,17 @@ try {
 echo "</div>
 
 <div class='debug-section'>
-    <h2>Manual Notification Test</h2>
-    <p>Use this form to send a test notification for a specific task:</p>
-    <form method='post' action='../force_task_notification.php'>
-        <button type='submit'>Go to Manual Notification Tool</button>
-    </form>
+    <h2>Debug Tools</h2>
+    <p>Control how this script runs:</p>
+    <ul>
+        <li><a href='?debug_only=1'>Debug Mode</a> - Shows what would happen without sending emails</li>
+        <li><a href='?'>Normal Mode</a> - Sends actual notifications for tasks due soon</li>
+        <li><a href='../force_task_notification.php'>Force Notification Tool</a> - Manually send a notification</li>
+    </ul>
 </div>
 
 </body>
 </html>";
-
-// Continue with normal script execution for cron
-if (php_sapi_name() == 'cli' || isset($_GET['run_cron'])) {
-    // The rest of the notification script for cron mode
-    // would go here, but we're focusing on debug output for now
-}
 
 $conn->close();
 ?> 
