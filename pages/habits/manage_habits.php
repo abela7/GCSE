@@ -247,6 +247,9 @@ while ($row = $result->fetch_assoc()) {
                         <label class="form-label fw-medium">Target Time</label>
                         <input type="time" class="form-control form-control-lg" name="target_time" id="habit_target_time" required>
                     </div>
+                    
+                    <?php include 'habit_schedule.php'; ?>
+                    
                     <div class="mb-4">
                         <label class="form-label fw-medium">Description</label>
                         <textarea class="form-control" name="description" id="habit_description" rows="3"></textarea>
@@ -544,18 +547,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Edit habit
-function editHabit(id) {
-    // Show loading state
-    document.getElementById('habitModalTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    habitModal.show();
-    
-    // Fetch habit details
-    fetch(`habit_actions.php?action=get&id=${id}`)
+function editHabit(habitId) {
+    // Fetch habit data
+    fetch(`habit_actions.php?action=get&id=${habitId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 const habit = data.habit;
+                
+                // Reset form and set title
+                document.getElementById('habitForm').reset();
                 document.getElementById('habitModalTitle').textContent = 'Edit Habit';
+                
+                // Fill form fields
                 document.getElementById('habit_id').value = habit.id;
                 document.getElementById('habit_name').value = habit.name;
                 document.getElementById('habit_category_id').value = habit.category_id;
@@ -563,15 +567,51 @@ function editHabit(id) {
                 document.getElementById('habit_target_time').value = habit.target_time;
                 document.getElementById('habit_description').value = habit.description || '';
                 document.getElementById('habit_is_active').checked = habit.is_active == 1;
+                
+                // Get schedule information
+                if (habit.scheduled_days && habit.scheduled_days.length > 0) {
+                    // Specific days schedule
+                    document.getElementById('schedule_specific_days').checked = true;
+                    
+                    // Check the appropriate day checkboxes
+                    habit.scheduled_days.forEach(day => {
+                        document.getElementById(`day_${day}`).checked = true;
+                    });
+                    
+                    // Show the specific days panel
+                    document.getElementById('specific_days_options').classList.remove('d-none');
+                    document.getElementById('frequency_options').classList.add('d-none');
+                } else if (habit.times_per_week) {
+                    // Frequency-based schedule
+                    document.getElementById('schedule_frequency').checked = true;
+                    
+                    // Set frequency options
+                    document.getElementById('times_per_week').value = habit.times_per_week;
+                    document.getElementById('week_starts_on').value = habit.week_starts_on || 0;
+                    
+                    // Show the frequency panel
+                    document.getElementById('frequency_options').classList.remove('d-none');
+                    document.getElementById('specific_days_options').classList.add('d-none');
+                } else {
+                    // Daily schedule (default)
+                    document.getElementById('schedule_daily').checked = true;
+                    document.getElementById('specific_days_options').classList.add('d-none');
+                    document.getElementById('frequency_options').classList.add('d-none');
+                }
+                
+                // Update category icon
+                updateCategoryIcon();
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('habitModal'));
+                modal.show();
             } else {
-                alert('Error loading habit details');
-                habitModal.hide();
+                alert('Error loading habit data: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error loading habit details');
-            habitModal.hide();
+            alert('An error occurred while loading habit data');
         });
 }
 

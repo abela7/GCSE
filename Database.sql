@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 09, 2025 at 07:33 PM
+-- Generation Time: Apr 10, 2025 at 08:40 PM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -521,7 +521,8 @@ CREATE TABLE `eng_topic_progress` (
 --
 
 INSERT INTO `eng_topic_progress` (`id`, `topic_id`, `status`, `total_time_spent`, `confidence_level`, `last_studied`, `completion_date`, `notes`) VALUES
-(1, 36, 'completed', 0, 5, '2025-04-08 03:07:47', '2025-04-08 03:07:47', '');
+(1, 36, 'completed', 0, 5, '2025-04-08 03:07:47', '2025-04-08 03:07:47', ''),
+(0, 10, 'in_progress', 0, 3, '2025-04-09 20:42:54', NULL, '');
 
 -- --------------------------------------------------------
 
@@ -649,7 +650,24 @@ CREATE TABLE `habits` (
 
 INSERT INTO `habits` (`id`, `category_id`, `point_rule_id`, `name`, `description`, `icon`, `target_time`, `current_points`, `total_completions`, `total_procrastinated`, `total_skips`, `current_streak`, `longest_streak`, `success_rate`, `is_active`, `created_at`, `updated_at`) VALUES
 (21, 1, 3, 'Morning Prayer', 'ተግተን እንፀልይ ወደ ፈተና እንዳንገባ!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-08 05:45:56', '2025-04-08 05:45:56'),
-(22, 3, 2, 'Use Meloxline', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', -7, 0, 0, 1, 0, 0, 0.00, 1, '2025-04-08 05:47:04', '2025-04-09 03:52:40');
+(22, 3, 2, 'Meloxline Moring Time', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', -7, 0, 0, 1, 0, 0, 0.00, 1, '2025-04-08 05:47:04', '2025-04-10 03:06:10'),
+(24, 3, 2, 'Meloxline Night Time', 'Do Not Give Up!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:38:02', '2025-04-10 02:38:02'),
+(25, 1, 2, 'Sigdet', 'የጦር መሳሪያህን አጥብቀህ ያዝ!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:39:03', '2025-04-10 02:39:03'),
+(26, 10, 1, '50x Push Up', 'Small change matters!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:40:50', '2025-04-10 02:41:03'),
+(27, 1, 3, 'Read Bible', 'ለማመን ማወቅ ያስፈልጋል፣ እውቀትም እምነትን ይጨምራል!', 'fas fa-check-circle', '23:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:42:36', '2025-04-10 02:42:36'),
+(28, 1, 1, 'No Eating With Out Praying', 'ምግብን የሰጠህን አምላክ ሳታመሰግን አትብላ!', 'fas fa-check-circle', '12:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:46:51', '2025-04-10 02:46:51'),
+(29, 10, 1, 'No Toxic Gossip', 'ሃሜትን አስወግድ', 'fas fa-check-circle', '15:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:47:48', '2025-04-10 02:48:07'),
+(30, 10, 2, 'No Procrastination', 'ያለህ ጊዜ ዛሬ ነው፣ ለዛውም አሁን! Today or Never!', 'fas fa-check-circle', '10:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:49:30', '2025-04-10 02:49:30'),
+(31, 10, 2, 'Avoid Over Using Social Media', 'Do Not Waste Your Time!', 'fas fa-check-circle', '14:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:50:34', '2025-04-10 02:52:17'),
+(32, 7, 2, 'No Junk Food', 'You are what you eat!', 'fas fa-check-circle', '23:30:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:53:21', '2025-04-10 02:53:21'),
+(33, 7, 1, 'No Soda Dring', 'You are what you eat!', 'fas fa-check-circle', '23:15:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:54:16', '2025-04-10 02:54:16'),
+(34, 3, 2, 'No Skipping Self-Care', 'Keep Cool!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:55:11', '2025-04-10 02:55:11'),
+(35, 10, 1, 'Avoid Unnecessary Shame', 'No Need To Be Shameful!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:56:36', '2025-04-10 02:57:04'),
+(36, 5, 2, 'No Unnecessary Expense', 'እያለህ ካልሆነ፤ ከሌለህ የለህም!', 'fas fa-check-circle', '23:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:58:09', '2025-04-10 02:58:09'),
+(37, 10, 1, 'Over Thinking | Worry', 'ስለ አንዳች ጉዳይ አትጨነቁ!', 'fas fa-check-circle', '23:58:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:59:15', '2025-04-10 02:59:15'),
+(38, 8, 2, 'Get 7hr Sleep', 'Sleep is the golden chain that ties health and our bodies together.', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:01:06', '2025-04-10 03:05:26'),
+(39, 2, 2, 'Studying | Reading', 'መማር ያስከብራል!', 'fas fa-check-circle', '11:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:02:59', '2025-04-10 03:02:59'),
+(40, 12, 1, 'Read Min 5 Pages', 'ማንበብ ሙሉ ሰው ያደርጋል!', 'fas fa-check-circle', '01:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:04:36', '2025-04-10 03:04:36');
 
 -- --------------------------------------------------------
 
@@ -707,6 +725,20 @@ CREATE TABLE `habit_completions` (
 
 INSERT INTO `habit_completions` (`id`, `habit_id`, `completion_date`, `completion_time`, `status`, `reason`, `points_earned`, `notes`, `created_at`) VALUES
 (5, 22, '2025-04-09', '04:52:40', 'skipped', 'Being stressed', -7, 'Stressed and can\'t manage my time yet', '2025-04-09 03:52:40');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habit_frequency`
+--
+
+CREATE TABLE `habit_frequency` (
+  `id` int(11) NOT NULL,
+  `habit_id` int(11) NOT NULL,
+  `times_per_week` tinyint(1) NOT NULL COMMENT 'Number of times per week',
+  `week_starts_on` tinyint(1) DEFAULT 0 COMMENT '0=Sunday, 1=Monday, etc.',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -782,6 +814,19 @@ INSERT INTO `habit_reasons` (`id`, `reason_text`, `is_default`, `created_at`) VA
 (6, 'Chatting with people', 1, '2025-04-02 02:07:26'),
 (7, 'Super busy', 1, '2025-04-02 02:07:26'),
 (8, 'Tired of this habit', 1, '2025-04-02 02:07:26');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `habit_schedule`
+--
+
+CREATE TABLE `habit_schedule` (
+  `id` int(11) NOT NULL,
+  `habit_id` int(11) NOT NULL,
+  `day_of_week` tinyint(1) NOT NULL COMMENT '0=Sunday, 1=Monday, ..., 6=Saturday',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1026,62 +1071,9 @@ CREATE TABLE `mood_entries` (
 --
 
 INSERT INTO `mood_entries` (`id`, `date`, `mood_level`, `notes`, `created_at`, `updated_at`) VALUES
-(2, '2025-04-08 20:10:00', 1, 'I don\'t now what to do man!', '2025-04-08 20:11:12', '2025-04-08 21:40:45'),
-(3, '2025-04-08 21:13:49', 1, 'Oh crap', '2025-04-08 21:13:49', '2025-04-08 21:13:49'),
-(4, '2025-05-23 00:00:00', 5, 'AMAZING!', '2025-04-08 21:48:39', '2025-04-08 21:48:39'),
-(5, '2025-04-02 00:13:34', 5, 'Amazing morning! Completed workout and meditation.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(6, '2025-04-02 00:13:34', 2, 'Received disappointing news at work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(7, '2025-04-02 00:13:34', 1, 'Massive project setback, feeling overwhelmed.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(8, '2025-04-02 00:13:34', 4, 'Evening chat with family lifted spirits significantly.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(9, '2025-04-03 00:13:34', 2, 'Woke up with terrible headache.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(10, '2025-04-03 00:13:34', 1, 'Had to cancel important meeting due to health.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(11, '2025-04-03 00:13:34', 3, 'Medicine started working, feeling better.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(12, '2025-04-03 00:13:34', 5, 'Evening meditation session was transformative!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(13, '2025-04-04 00:13:34', 4, 'Productive morning, cleared inbox.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(14, '2025-04-04 00:13:34', 1, 'Major argument with team member.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(15, '2025-04-04 00:13:34', 2, 'Still stressed about work conflict.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(16, '2025-04-04 00:13:34', 5, 'Resolution reached! Great teamwork.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(17, '2025-04-05 00:13:34', 3, 'Standard morning routine.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(18, '2025-04-05 00:13:34', 5, 'Surprise lunch with old friends!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(19, '2025-04-05 00:13:34', 5, 'Got promoted! Incredible news!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(20, '2025-04-05 00:13:34', 4, 'Celebration dinner with family.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(21, '2025-04-06 00:13:34', 1, 'Insomnia hit hard, barely slept.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(22, '2025-04-06 00:13:34', 2, 'Struggling to focus at work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(23, '2025-04-06 00:13:34', 4, 'Afternoon nap helped recover.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(24, '2025-04-06 00:13:34', 5, 'Evening exercise session was amazing!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(25, '2025-04-07 00:13:34', 2, 'Technology issues derailing work.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(26, '2025-04-07 00:13:34', 1, 'Lost important file, panic mode.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(27, '2025-04-07 00:13:34', 3, 'IT helped recover everything.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(28, '2025-04-07 00:13:34', 5, 'Found even better solution!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(29, '2025-04-08 00:13:34', 4, 'Morning meditation and exercise.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(30, '2025-04-08 00:13:34', 2, 'Difficult client meeting.', '2025-04-08 23:13:34', '2025-04-08 23:58:09'),
-(31, '2025-04-08 00:13:34', 1, 'Project deadline stress mounting.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(32, '2025-04-08 00:13:34', 5, 'Successfully submitted project!', '2025-04-08 23:13:34', '2025-04-08 23:59:30'),
-(33, '2025-04-09 00:00:00', 3, 'Regular start to the day.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(34, '2025-04-09 00:00:00', 5, 'Breakthrough in morning meeting!', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(35, '2025-04-09 00:00:00', 2, 'Post-lunch energy crash.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(36, '2025-04-09 00:00:00', 4, 'Productive afternoon session.', '2025-04-08 23:13:34', '2025-04-08 23:13:34'),
-(37, '2025-04-09 07:30:00', 4, 'Morning workout was great! Feeling energized.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(38, '2025-04-09 14:15:00', 2, 'Struggling with work deadlines. Need to focus.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(39, '2025-04-09 19:45:00', 3, 'Evening meditation helped calm my mind.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(40, '2025-04-08 06:45:00', 1, 'Terrible sleep last night, feeling exhausted.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(41, '2025-04-08 15:30:00', 5, 'Productive work session! Got everything done.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(42, '2025-04-08 20:00:00', 4, 'Nice family dinner, feeling content.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(43, '2025-04-07 08:15:00', 3, 'Regular morning, nothing special.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(44, '2025-04-07 13:00:00', 4, 'Good progress at work today.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(45, '2025-04-07 22:30:00', 2, 'Feeling a bit anxious about tomorrow\'s meeting.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(46, '2025-04-06 06:30:00', 5, 'Early morning exercise and meditation!', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(47, '2025-04-06 16:45:00', 2, 'Work stress is building up.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(48, '2025-04-06 18:30:00', 3, 'Evening walk helped clear my mind.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(49, '2025-04-05 07:00:00', 1, 'Insomnia last night, rough morning.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(50, '2025-04-05 12:30:00', 3, 'Getting better after lunch break.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(51, '2025-04-05 17:15:00', 4, 'Productive afternoon, feeling accomplished.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(52, '2025-04-04 09:00:00', 2, 'Monday morning blues hitting hard.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(53, '2025-04-04 14:45:00', 5, 'Great team meeting and productive work session!', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(54, '2025-04-04 21:00:00', 3, 'Tired but satisfied with today\'s work.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(55, '2025-04-03 08:45:00', 4, 'Weekend morning, feeling relaxed.', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(56, '2025-04-03 13:30:00', 5, 'Amazing social lunch with friends!', '2025-04-08 23:52:04', '2025-04-08 23:52:04'),
-(57, '2025-04-03 20:15:00', 3, 'Quiet evening at home.', '2025-04-08 23:52:04', '2025-04-08 23:52:04');
+(58, '2025-04-10 05:26:00', 5, 'I heard that I can take IELTS exam instead of GCSE English \r\n I finished my web app development', '2025-04-10 04:27:42', '2025-04-10 16:31:08'),
+(59, '2025-04-10 17:26:00', 5, 'I slept 10 hours for the first time in 10 years!!!!!!!!!! \r\nThe magnesium tablet is working!', '2025-04-10 16:29:31', '2025-04-10 16:31:22'),
+(60, '2025-04-10 18:05:00', 4, 'Exited to progress...', '2025-04-10 17:07:04', '2025-04-10 17:07:04');
 
 -- --------------------------------------------------------
 
@@ -1114,62 +1106,8 @@ CREATE TABLE `mood_entry_tags` (
 --
 
 INSERT INTO `mood_entry_tags` (`id`, `mood_entry_id`, `tag_id`, `created_at`) VALUES
-(4, 3, 4, '2025-04-08 21:13:49'),
-(6, 2, 4, '2025-04-08 21:40:45'),
-(7, 4, 4, '2025-04-08 21:48:39'),
-(8, 5, 7, '2025-04-08 23:19:53'),
-(9, 5, 10, '2025-04-08 23:19:53'),
-(10, 5, 5, '2025-04-08 23:19:53'),
-(11, 6, 5, '2025-04-08 23:19:53'),
-(12, 7, 5, '2025-04-08 23:19:53'),
-(13, 8, 2, '2025-04-08 23:19:53'),
-(14, 9, 1, '2025-04-08 23:19:53'),
-(15, 10, 1, '2025-04-08 23:19:53'),
-(16, 10, 5, '2025-04-08 23:19:53'),
-(17, 11, 1, '2025-04-08 23:19:53'),
-(18, 11, 5, '2025-04-08 23:19:53'),
-(19, 12, 10, '2025-04-08 23:19:53'),
-(20, 13, 11, '2025-04-08 23:19:53'),
-(21, 15, 5, '2025-04-08 23:19:53'),
-(22, 16, 5, '2025-04-08 23:19:53'),
-(23, 18, 8, '2025-04-08 23:19:53'),
-(24, 20, 2, '2025-04-08 23:19:53'),
-(25, 21, 9, '2025-04-08 23:19:53'),
-(26, 22, 5, '2025-04-08 23:19:53'),
-(27, 24, 7, '2025-04-08 23:19:53'),
-(28, 25, 5, '2025-04-08 23:19:53'),
-(29, 29, 7, '2025-04-08 23:19:53'),
-(30, 29, 10, '2025-04-08 23:19:53'),
-(32, 31, 5, '2025-04-08 23:19:53'),
-(34, 34, 5, '2025-04-08 23:19:53'),
-(35, 36, 11, '2025-04-08 23:19:53'),
-(39, 57, 7, '2025-04-08 23:52:04'),
-(40, 56, 5, '2025-04-08 23:52:04'),
-(41, 56, 11, '2025-04-08 23:52:04'),
-(42, 55, 10, '2025-04-08 23:52:04'),
-(43, 54, 9, '2025-04-08 23:52:04'),
-(44, 53, 5, '2025-04-08 23:52:04'),
-(45, 53, 11, '2025-04-08 23:52:04'),
-(46, 52, 2, '2025-04-08 23:52:04'),
-(47, 51, 5, '2025-04-08 23:52:04'),
-(48, 50, 5, '2025-04-08 23:52:04'),
-(49, 50, 11, '2025-04-08 23:52:04'),
-(50, 49, 7, '2025-04-08 23:52:04'),
-(51, 49, 10, '2025-04-08 23:52:04'),
-(52, 48, 5, '2025-04-08 23:52:04'),
-(53, 47, 7, '2025-04-08 23:52:04'),
-(54, 46, 9, '2025-04-08 23:52:04'),
-(55, 45, 5, '2025-04-08 23:52:04'),
-(56, 44, 11, '2025-04-08 23:52:04'),
-(57, 43, 5, '2025-04-08 23:52:04'),
-(58, 42, 5, '2025-04-08 23:52:04'),
-(59, 42, 11, '2025-04-08 23:52:04'),
-(60, 41, 5, '2025-04-08 23:52:04'),
-(61, 40, 1, '2025-04-08 23:52:04'),
-(62, 39, 8, '2025-04-08 23:52:04'),
-(63, 38, 1, '2025-04-08 23:52:04'),
-(64, 30, 1, '2025-04-08 23:58:09'),
-(65, 32, 7, '2025-04-08 23:59:30');
+(68, 58, 4, '2025-04-10 16:31:08'),
+(69, 59, 9, '2025-04-10 16:31:22');
 
 -- --------------------------------------------------------
 
@@ -1198,7 +1136,7 @@ INSERT INTO `mood_factors` (`id`, `name`, `description`, `is_positive`, `created
 (6, 'Tired', 'Feeling fatigued or exhausted', 0, '2025-04-08 17:41:36'),
 (7, 'Anxious', 'Feeling worried about exams or performance', 0, '2025-04-08 17:41:36'),
 (8, 'Distracted', 'Having trouble focusing on studies', 0, '2025-04-08 17:41:36'),
-(9, 'Excited', 'Feeling enthusiastic about learning', 1, '2025-04-08 17:41:36'),
+(9, 'Excited', 'Feeling enthusiastic something', 1, '2025-04-08 17:41:36'),
 (10, 'Frustrated', 'Feeling stuck or unable to progress', 0, '2025-04-08 17:41:36'),
 (11, 'Satisfied', 'Feeling content with progress made', 1, '2025-04-08 17:41:36'),
 (12, 'Overwhelmed', 'Feeling there is too much to learn', 0, '2025-04-08 17:41:36');
@@ -1225,14 +1163,12 @@ INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
 (1, 'Health', 'Personal', '#6f42c1', '2025-04-08 18:26:18'),
 (2, 'Family', 'Personal', '#17a2b8', '2025-04-08 18:26:18'),
 (3, 'Relationship', 'Personal', '#dc3545', '2025-04-08 18:26:18'),
-(4, 'School', 'Academic', '#007bff', '2025-04-08 18:26:18'),
+(4, 'Studying ', 'Academic', '#007bff', '2025-04-08 18:26:18'),
 (5, 'Work', 'Professional', '#fd7e14', '2025-04-08 18:26:18'),
 (6, 'Spiritual Life', 'Spiritual', '#28a745', '2025-04-08 22:17:12'),
 (7, 'Exercise', NULL, '#2196F3', '2025-04-08 23:13:34'),
 (8, 'Social', NULL, '#9C27B0', '2025-04-08 23:13:34'),
-(9, 'Sleep', NULL, '#795548', '2025-04-08 23:13:34'),
-(10, 'Meditation', NULL, '#FF9800', '2025-04-08 23:13:34'),
-(11, 'Productivity', NULL, '#009688', '2025-04-08 23:13:34');
+(9, 'Sleep', NULL, '#795548', '2025-04-08 23:13:34');
 
 -- --------------------------------------------------------
 
@@ -1786,19 +1722,27 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `description`, `task_type`, `priority`, `estimated_duration`, `due_date`, `due_time`, `status`, `completion_percentage`, `is_active`, `created_at`, `updated_at`) VALUES
-(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '18:47:00', 'pending', 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 17:44:06'),
-(110, 12, NULL, 'Call sara', 'Ask her to Bring the cash', 'one-time', 'medium', 5, '2025-04-09', '14:22:56', 'pending', 0.00, 1, '2025-04-09 03:50:13', '2025-04-09 13:52:56'),
-(111, 12, NULL, 'Call John', '', 'one-time', 'medium', 10, '2025-04-09', '15:30:00', 'pending', 0.00, 1, '2025-04-09 03:51:53', '2025-04-09 14:24:20'),
-(112, 11, NULL, 'Go to Boots', 'Buy Self care Products', 'one-time', 'high', 20, '2025-04-09', '15:20:00', 'pending', 0.00, 1, '2025-04-09 03:55:26', '2025-04-09 14:14:49'),
+(109, 9, NULL, 'Start Studying ', 'Maths ', 'one-time', 'medium', 120, '2025-04-09', '18:47:00', 'not_done', 0.00, 1, '2025-04-09 03:26:00', '2025-04-09 23:08:32'),
+(110, 12, NULL, 'Call sara', 'Ask her to Bring the cash', 'one-time', 'medium', 5, '2025-04-09', '14:22:56', 'not_done', 0.00, 1, '2025-04-09 03:50:13', '2025-04-09 23:08:15'),
+(111, 12, NULL, 'Call John', '', 'one-time', 'medium', 10, '2025-04-09', '15:30:00', 'not_done', 0.00, 1, '2025-04-09 03:51:53', '2025-04-09 23:08:22'),
+(112, 11, NULL, 'Go to Boots', 'Buy Self care Products', 'one-time', 'high', 20, '2025-04-09', '15:20:00', 'not_done', 0.00, 1, '2025-04-09 03:55:26', '2025-04-09 23:08:20'),
 (113, 9, NULL, 'Study English', 'Start Studying', 'one-time', 'high', 120, '2025-04-09', '16:00:00', 'not_done', 0.00, 1, '2025-04-09 03:58:58', '2025-04-09 16:11:15'),
-(114, 12, NULL, 'Geez Web App project', 'Do it just for 1hr', 'one-time', 'medium', 60, '2025-04-09', '18:00:00', 'pending', 0.00, 1, '2025-04-09 04:02:10', '2025-04-09 04:02:10'),
-(115, 1, NULL, 'Pray', 'Start Easy', 'one-time', 'high', 15, '2025-04-09', '15:52:34', 'pending', 0.00, 1, '2025-04-09 04:03:15', '2025-04-09 13:52:34'),
-(116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'pending', 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 04:04:23'),
-(117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'pending', 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 04:05:30'),
-(118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'pending', 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 12:07:02'),
-(132, 9, NULL, 'Abel', 'sda', 'one-time', 'medium', 20, '2025-04-09', '17:07:00', 'not_done', 0.00, 1, '2025-04-09 16:04:01', '2025-04-09 16:10:28'),
-(133, 9, NULL, 'Good Lesson', 'Wow', 'one-time', 'medium', 20, '2025-04-09', '18:53:00', 'pending', 0.00, 1, '2025-04-09 16:10:53', '2025-04-09 17:51:58'),
-(134, 9, NULL, 'Not Yet', '2112', 'one-time', 'medium', 20, '2025-04-09', '18:40:00', 'pending', 0.00, 1, '2025-04-09 16:31:06', '2025-04-09 17:38:26');
+(114, 12, NULL, 'Geez Web App project', 'Do it just for 1hr', 'one-time', 'medium', 60, '2025-04-09', '18:00:00', 'completed', 0.00, 1, '2025-04-09 04:02:10', '2025-04-09 23:08:29'),
+(115, 1, NULL, 'Pray', 'Start Easy', 'one-time', 'high', 15, '2025-04-09', '15:52:34', 'not_done', 0.00, 1, '2025-04-09 04:03:15', '2025-04-09 23:08:25'),
+(116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'not_done', 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 23:08:34'),
+(117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'not_done', 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 23:08:40'),
+(118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'completed', 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 23:08:52'),
+(137, 1, NULL, 'Morning prayer ', 'ተግተን እንጸልይ ወደፈተና እንዳንገባ', 'one-time', 'high', 25, '2025-04-10', '11:00:00', 'pending', 0.00, 1, '2025-04-10 02:09:48', '2025-04-10 02:09:48'),
+(138, 11, NULL, 'Do laundry  ', 'Prepare clothes for friday ', 'one-time', 'medium', 10, '2025-04-10', '11:45:00', 'pending', 0.00, 1, '2025-04-10 02:14:57', '2025-04-10 02:14:57'),
+(139, 9, NULL, 'Study Access Course ', 'Start assignment ', 'one-time', 'high', 180, '2025-04-10', '12:00:00', 'pending', 0.00, 1, '2025-04-10 02:16:38', '2025-04-10 02:16:38'),
+(140, 11, NULL, 'Go to Boots', 'Buy some cosmo', 'one-time', 'high', 30, '2025-04-10', '15:00:00', 'pending', 0.00, 1, '2025-04-10 02:18:37', '2025-04-10 02:19:04'),
+(141, 12, NULL, 'Call Sara', 'Ask about the cash', 'one-time', 'medium', 5, '2025-04-10', '14:50:00', 'pending', 0.00, 1, '2025-04-10 02:23:16', '2025-04-10 02:23:16'),
+(142, 12, NULL, 'Call Johnny ', 'Ask About the Equib', 'one-time', 'medium', 10, '2025-04-10', '15:10:00', 'pending', 0.00, 1, '2025-04-10 02:23:51', '2025-04-10 02:23:51'),
+(143, 4, NULL, 'Study Maths', 'Start Today!', 'one-time', 'high', 120, '2025-04-10', '16:00:00', 'pending', 0.00, 1, '2025-04-10 02:24:41', '2025-04-10 02:24:59'),
+(144, 10, NULL, 'Geez web app', 'Improve some features', 'one-time', 'low', 60, '2025-04-10', '18:00:00', 'pending', 0.00, 1, '2025-04-10 02:26:14', '2025-04-10 02:26:52'),
+(145, 9, NULL, 'Continue Maths', 'Maths. . .', 'one-time', 'high', 120, '2025-04-10', '20:00:00', 'pending', 0.00, 1, '2025-04-10 02:28:18', '2025-04-10 02:28:18'),
+(146, 9, NULL, 'Review English', 'Structure study', 'one-time', 'high', 60, '2025-04-10', '23:00:00', 'pending', 0.00, 1, '2025-04-10 02:28:56', '2025-04-10 02:28:56'),
+(147, 20, NULL, 'call gashye', 'Make time for family', 'one-time', 'high', 15, '2025-04-10', '15:30:00', 'pending', 0.00, 1, '2025-04-10 02:34:40', '2025-04-10 02:34:56');
 
 -- --------------------------------------------------------
 
@@ -1823,14 +1767,15 @@ CREATE TABLE `task_categories` (
 --
 
 INSERT INTO `task_categories` (`id`, `name`, `description`, `icon`, `color`, `display_order`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Spiritual Life', 'Religious and spiritual activities', 'fas fa-pray', '#e6d305', 1, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
-(2, 'Self-Development', 'Personal growth and learning', 'fas fa-brain', '#9370DB', 2, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
+(1, 'Spiritual Life', 'Religious and spiritual activities', 'fas fa-pray fa-2x', '#f5d714', 1, 1, '2025-04-02 19:13:35', '2025-04-10 02:33:15'),
+(2, 'Self-Development', 'Personal growth and learning', 'fas fa-chart-line', '#9370db', 2, 1, '2025-04-02 19:13:35', '2025-04-10 02:19:59'),
 (3, 'Productivity', 'Task management and planning', 'fas fa-tasks', '#4682B4', 3, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (4, 'Study', 'Academic work and revision', 'fas fa-book-reader', '#1E90FF', 4, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (9, 'Education', 'General educational activities', 'fas fa-school', '#4169E1', 9, 1, '2025-04-02 19:13:35', '2025-04-02 19:13:35'),
 (10, 'Uncategorized', NULL, 'fas fa-folder', '#6c757d', 0, 1, '2025-04-02 23:56:40', '2025-04-02 23:56:40'),
-(11, 'Self Care', NULL, 'fas fa-heart', '#c70000', 0, 1, '2025-04-08 09:18:13', '2025-04-09 03:57:33'),
-(12, 'Social Life', NULL, 'fas fa-users', '#277a7a', 0, 1, '2025-04-09 03:25:12', '2025-04-09 03:57:05');
+(11, 'Self Care', NULL, 'fas fa-calendar', '#0077b3', 0, 1, '2025-04-08 09:18:13', '2025-04-10 02:21:13'),
+(12, 'Social Life', NULL, 'fas fa-users', '#277a7a', 0, 1, '2025-04-09 03:25:12', '2025-04-09 03:57:05'),
+(20, 'Family', NULL, 'fas fa-heart', '#e0b000', 0, 1, '2025-04-10 02:30:20', '2025-04-10 02:30:20');
 
 -- --------------------------------------------------------
 
@@ -1885,26 +1830,30 @@ CREATE TABLE `task_notification_tracking` (
 --
 
 INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, `sent_at`) VALUES
-(8, 0, '', '2025-04-09 17:50:25'),
-(9, 0, '', '2025-04-09 17:50:28'),
-(11, 0, '', '2025-04-09 17:54:32'),
-(13, 0, '', '2025-04-09 18:12:30'),
-(14, 0, '', '2025-04-09 18:12:33'),
-(15, 0, '', '2025-04-09 18:18:35'),
-(16, 0, '', '2025-04-09 18:18:38'),
-(17, 0, '', '2025-04-09 18:24:20'),
-(18, 0, '', '2025-04-09 18:24:29'),
-(19, 0, '', '2025-04-09 18:33:01'),
-(20, 0, '', '2025-04-09 18:33:04'),
-(6, 109, 'due', '2025-04-09 17:45:39'),
-(7, 116, 'due', '2025-04-09 17:47:07'),
-(12, 117, 'due', '2025-04-09 17:57:05'),
-(1, 133, 'due', '2025-04-09 17:07:07'),
-(2, 133, 'due', '2025-04-09 17:13:07'),
-(3, 133, 'due', '2025-04-09 17:20:09'),
-(4, 133, 'due', '2025-04-09 17:29:05'),
-(10, 133, 'due', '2025-04-09 17:52:06'),
-(5, 134, 'due', '2025-04-09 17:39:06');
+(3, 0, '', '2025-04-09 22:50:13'),
+(7, 0, '', '2025-04-10 08:00:16'),
+(14, 0, '', '2025-04-10 11:00:14'),
+(23, 0, '', '2025-04-10 17:00:10'),
+(5, 22, 'habit', '2025-04-10 07:47:11'),
+(2, 23, 'habit', '2025-04-09 21:08:07'),
+(6, 26, 'habit', '2025-04-10 07:57:12'),
+(13, 28, 'habit', '2025-04-10 10:57:08'),
+(18, 29, 'habit', '2025-04-10 13:57:16'),
+(8, 30, 'habit', '2025-04-10 08:57:08'),
+(15, 31, 'habit', '2025-04-10 12:57:10'),
+(11, 39, 'habit', '2025-04-10 10:47:09'),
+(4, 118, 'due', '2025-04-09 22:52:07'),
+(1, 136, 'due', '2025-04-09 21:06:10'),
+(9, 137, 'due', '2025-04-10 09:57:10'),
+(10, 138, 'due', '2025-04-10 10:42:08'),
+(12, 139, 'due', '2025-04-10 10:57:08'),
+(17, 140, 'due', '2025-04-10 13:57:12'),
+(16, 141, 'due', '2025-04-10 13:47:09'),
+(19, 142, 'due', '2025-04-10 14:07:09'),
+(21, 143, 'due', '2025-04-10 14:57:07'),
+(22, 144, 'due', '2025-04-10 16:57:08'),
+(24, 145, 'due', '2025-04-10 18:57:07'),
+(20, 147, 'due', '2025-04-10 14:27:08');
 
 -- --------------------------------------------------------
 
@@ -2129,6 +2078,27 @@ CREATE TABLE `units` (
 INSERT INTO `units` (`id`, `unit_code`, `unit_name`, `description`, `credits`, `is_graded`, `created_at`) VALUES
 (7, 'UNIT001', 'AI and Machine Learning', 'Introduction to AI, Machine Learning and Deep Learning', 20, 1, '2025-04-01 17:40:06');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password_hash` varchar(255) NOT NULL COMMENT 'Stores hashed password, NEVER plain text',
+  `last_login` datetime DEFAULT NULL COMMENT 'Optional: Track last login time',
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password_hash`, `last_login`, `created_at`) VALUES
+(1, 'AmhaSlassie', '$2y$10$qPdHr2KTy1cr2yFjHk/DieVCwDFswzAg7Jdp6EwERRYCnIUqUDarm', '2025-04-10 17:30:15', '2025-04-09 19:01:49');
+
 --
 -- Indexes for dumped tables
 --
@@ -2155,12 +2125,27 @@ ALTER TABLE `habit_completions`
   ADD KEY `date_index` (`completion_date`);
 
 --
+-- Indexes for table `habit_frequency`
+--
+ALTER TABLE `habit_frequency`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `habit_id_unique` (`habit_id`);
+
+--
 -- Indexes for table `habit_progress`
 --
 ALTER TABLE `habit_progress`
   ADD PRIMARY KEY (`id`),
   ADD KEY `habit_id_index` (`habit_id`),
   ADD KEY `date_index` (`date`);
+
+--
+-- Indexes for table `habit_schedule`
+--
+ALTER TABLE `habit_schedule`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `habit_day_unique` (`habit_id`,`day_of_week`),
+  ADD KEY `habit_id_idx` (`habit_id`);
 
 --
 -- Indexes for table `mood_entries`
@@ -2251,6 +2236,13 @@ ALTER TABLE `task_notification_tracking`
   ADD UNIQUE KEY `unique_task_notification` (`task_id`,`notification_type`,`sent_at`);
 
 --
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -2258,19 +2250,25 @@ ALTER TABLE `task_notification_tracking`
 -- AUTO_INCREMENT for table `favorite_practice_items`
 --
 ALTER TABLE `favorite_practice_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `habits`
 --
 ALTER TABLE `habits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `habit_completions`
 --
 ALTER TABLE `habit_completions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `habit_frequency`
+--
+ALTER TABLE `habit_frequency`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `habit_progress`
@@ -2279,10 +2277,16 @@ ALTER TABLE `habit_progress`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `habit_schedule`
+--
+ALTER TABLE `habit_schedule`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `mood_entries`
 --
 ALTER TABLE `mood_entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `mood_entry_factors`
@@ -2294,7 +2298,7 @@ ALTER TABLE `mood_entry_factors`
 -- AUTO_INCREMENT for table `mood_entry_tags`
 --
 ALTER TABLE `mood_entry_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `mood_factors`
@@ -2336,19 +2340,25 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=135;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
 
 --
 -- AUTO_INCREMENT for table `task_categories`
 --
 ALTER TABLE `task_categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `task_notification_tracking`
 --
 ALTER TABLE `task_notification_tracking`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
