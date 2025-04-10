@@ -361,22 +361,6 @@ $accent_color = "#cdaf56";
     </div>
     
     <div class="row mb-4">
-        <!-- Study Planner -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h5>Study Planner</h5>
-                    <p>Plan your study sessions, track your progress, and manage your time effectively.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="sessions.php" class="btn btn-sm btn-outline-accent">Open Planner</a>
-                </div>
-            </div>
-        </div>
-        
         <!-- Task Manager -->
         <div class="col-md-4 col-sm-6 mb-4">
             <div class="card feature-card">
