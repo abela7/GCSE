@@ -1074,51 +1074,12 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
             td.addEventListener('click', function() {
                 const date = this.getAttribute('data-date');
                 if (!date) return;
-
-                const habitsForDay = [];
                 
-                if (selectedHabit !== 'all') {
-                    // Single habit view
-                    const key = selectedHabit + '_' + date;
-                    if (habitData[key]) {
-                        habitsForDay.push({
-                            name: habitData[key].habit_name,
-                            status: habitData[key].status,
-                            time: habitData[key].time,
-                            notes: habitData[key].notes,
-                            reason: habitData[key].reason
-                        });
-                    }
-                } else {
-                    // All habits view
-                    Object.entries(allHabits).forEach(([habitId, habit]) => {
-                        // Check category filter
-                        if (selectedCategory === 'all' || habit.category_id == selectedCategory) {
-                            const key = habitId + '_' + date;
-                            if (habitData[key]) {
-                                habitsForDay.push({
-                                    name: habitData[key].habit_name,
-                                    status: habitData[key].status,
-                                    time: habitData[key].time,
-                                    notes: habitData[key].notes,
-                                    reason: habitData[key].reason
-                                });
-                            }
-                        }
-                    });
-                }
-
-                if (habitsForDay.length > 0) {
-                    showHabitDetails(date, habitsForDay);
-                } else {
-                    showHabitDetails(date, [{
-                        name: selectedHabit !== 'all' ? allHabits[selectedHabit].name : 'No habits',
-                        status: 'No data',
-                        time: '-',
-                        notes: 'No completion data for this day',
-                        reason: 'No completion data for this day'
-                    }]);
-                }
+                // Extract the day number from the date string
+                const dayNumber = parseInt(date.split('-')[2]);
+                
+                // Call our new modal function instead of the old showHabitDetails function
+                showDayModal(date, dayNumber);
             });
         });
     });
