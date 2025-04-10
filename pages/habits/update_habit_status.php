@@ -1,118 +1,118 @@
 <?php
-// Include database connection
-include '../../includes/db_connect.php';
+require_once '../../includes/db_connect.php';
+require_once '../../functions/habit_calculations.php';
 
-// Start session
-session_start();
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Initialize response array
-$response = ['success' => false, 'message' => ''];
-
-// Check if required parameters are provided
-if (!isset($_POST['habit_id']) || !isset($_POST['status'])) {
-    $response['message'] = 'Missing required parameters';
-    echo json_encode($response);
-    exit;
+// Debug log function
+function debug_log($message, $data = null) {
+    $log = date('Y-m-d H:i:s') . " - " . $message;
+    if ($data !== null) {
+        $log .= " - Data: " . print_r($data, true);
+    }
+    error_log($log);
 }
 
-$habit_id = $_POST['habit_id'];
-$status = $_POST['status'];
-$current_date = date('Y-m-d');
+// Set timezone to London
+date_default_timezone_set('Europe/London');
 
-// Validate status
-if ($status !== 'completed' && $status !== 'procrastinated') {
-    $response['message'] = 'Invalid status';
-    echo json_encode($response);
+// Get POST data
+$habit_id = $_POST['habit_id'] ?? null;
+$status = $_POST['status'] ?? null;
+$action = $_POST['action'] ?? null;
+$scroll_position = $_POST['scroll_position'] ?? 0;
+$reason_id = $_POST['reason_id'] ?? null;
+$notes = $_POST['notes'] ?? null;
+
+debug_log("Received POST data", $_POST);
+
+if (!$habit_id) {
+    debug_log("No habit_id provided");
+    header('Location: index.php?scroll_to=' . $scroll_position . '&error=no_habit_id');
     exit;
 }
-
-// Check if habit belongs to the user
-$check_query = "SELECT h.id, h.point_rule_id FROM habits h WHERE h.id = ?";
-$check_stmt = $conn->prepare($check_query);
-$check_stmt->bind_param("i", $habit_id);
-$check_stmt->execute();
-$check_result = $check_stmt->get_result();
-
-if ($check_result->num_rows === 0) {
-    $response['message'] = 'Habit not found';
-    echo json_encode($response);
-    exit;
-}
-
-// Get point rule information
-$habit_data = $check_result->fetch_assoc();
-$point_rule_id = $habit_data['point_rule_id'];
-
-// Get points from point rule
-$points_query = "SELECT completion_points, procrastinated_points FROM habit_point_rules WHERE id = ?";
-$points_stmt = $conn->prepare($points_query);
-$points_stmt->bind_param("i", $point_rule_id);
-$points_stmt->execute();
-$points_result = $points_stmt->get_result();
-$points_data = $points_result->fetch_assoc();
-
-$completion_points = $points_data['completion_points'];
-$procrastinated_points = $points_data['procrastinated_points'];
-
-// Begin transaction
-$conn->begin_transaction();
 
 try {
-    // Check if a record already exists for today
-    $check_completion = "SELECT id, status FROM habit_completions 
-                         WHERE habit_id = ? AND completion_date = ?";
-    $check_comp_stmt = $conn->prepare($check_completion);
-    $check_comp_stmt->bind_param("is", $habit_id, $current_date);
-    $check_comp_stmt->execute();
-    $completion_result = $check_comp_stmt->get_result();
-    
-    if ($completion_result->num_rows > 0) {
-        // Update existing record
-        $completion_data = $completion_result->fetch_assoc();
-        $completion_id = $completion_data['id'];
-        $old_status = $completion_data['status'];
+    // Handle reset action
+    if ($action === 'reset') {
+        debug_log("Processing reset action for habit_id: " . $habit_id);
         
-        $update_query = "UPDATE habit_completions 
-                         SET status = ?, updated_at = NOW() 
-                         WHERE id = ?";
-        $update_stmt = $conn->prepare($update_query);
-        $update_stmt->bind_param("si", $status, $completion_id);
-        $update_stmt->execute();
-    } else {
-        // Insert new record
-        $current_time = date('H:i:s');
-        $insert_query = "INSERT INTO habit_completions 
-                         (habit_id, completion_date, completion_time, status, created_at, updated_at) 
-                         VALUES (?, ?, ?, ?, NOW(), NOW())";
-        $insert_stmt = $conn->prepare($insert_query);
-        $insert_stmt->bind_param("isss", $habit_id, $current_date, $current_time, $status);
-        $insert_stmt->execute();
+        // Delete from habit_completions
+        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = CURDATE()");
+        $stmt->bind_param("i", $habit_id);
+        $stmt->execute();
+        
+        updateHabitStats($habit_id);
+        header("Location: index.php?scroll_to=" . $scroll_position);
+        exit;
     }
-    
-    // Award points to the user
-    $points_to_award = ($status === 'completed') ? $completion_points : $procrastinated_points;
-    
-    // Record points as part of completion
-    $update_points_query = "UPDATE habit_completions SET points_earned = ? 
-                           WHERE habit_id = ? AND completion_date = ?";
-    $points_update_stmt = $conn->prepare($update_points_query);
-    $points_update_stmt->bind_param("dis", $points_to_award, $habit_id, $current_date);
-    $points_update_stmt->execute();
-    
-    // Commit transaction
-    $conn->commit();
-    
-    $response['success'] = true;
-    $response['message'] = ($status === 'completed') ? 'Habit marked as completed' : 'Habit procrastinated';
-    $response['points'] = $points_to_award;
-    
-} catch (Exception $e) {
-    // Roll back transaction on error
-    $conn->rollback();
-    $response['message'] = 'Database error: ' . $e->getMessage();
-}
 
-// Send JSON response
-header('Content-Type: application/json');
-echo json_encode($response);
-exit; 
+    // Handle status updates
+    if (!$status) {
+        debug_log("No status provided");
+        header("Location: index.php?scroll_to=" . $scroll_position . '&error=no_status');
+        exit;
+    }
+
+    debug_log("Processing status update", ['habit_id' => $habit_id, 'status' => $status, 'reason_id' => $reason_id]);
+
+    $conn->begin_transaction();
+
+    try {
+        // Delete any existing completion for today
+        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = CURDATE()");
+        $stmt->bind_param("i", $habit_id);
+        $stmt->execute();
+
+        // Get point rule for this habit
+        $stmt = $conn->prepare("SELECT point_rule_id FROM habits WHERE id = ?");
+        $stmt->bind_param("i", $habit_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $habit = $result->fetch_assoc();
+        
+        // Calculate points
+        $points = calculatePoints($habit['point_rule_id'], $status);
+        
+        debug_log("Calculated points", ['point_rule_id' => $habit['point_rule_id'], 'points' => $points]);
+
+        // Get reason text if reason_id is provided
+        $reason_text = null;
+        if ($reason_id) {
+            $stmt = $conn->prepare("SELECT reason_text FROM habit_reasons WHERE id = ?");
+            $stmt->bind_param("i", $reason_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $reason = $result->fetch_assoc();
+            $reason_text = $reason['reason_text'];
+        }
+
+        // Insert new completion with reason text
+        $stmt = $conn->prepare("INSERT INTO habit_completions 
+                              (habit_id, completion_date, completion_time, status, reason, points_earned, notes) 
+                              VALUES (?, CURDATE(), CURRENT_TIME(), ?, ?, ?, ?)");
+        $stmt->bind_param("issis", $habit_id, $status, $reason_text, $points, $notes);
+        $stmt->execute();
+
+        // Update habit statistics
+        updateHabitStats($habit_id);
+
+        $conn->commit();
+        debug_log("Successfully completed transaction");
+        
+        header("Location: index.php?scroll_to=" . $scroll_position);
+        exit;
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        throw $e;
+    }
+
+} catch (Exception $e) {
+    debug_log("Error occurred: " . $e->getMessage());
+    $error_message = urlencode($e->getMessage());
+    header("Location: index.php?scroll_to=" . $scroll_position . "&error=" . $error_message);
+    exit;
+} 

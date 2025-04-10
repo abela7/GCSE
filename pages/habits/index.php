@@ -7,24 +7,6 @@ date_default_timezone_set('Europe/London');
 
 // Get today's date
 $today = date('Y-m-d');
-$today_day_of_week = date('w'); // 0 (Sunday) to 6 (Saturday)
-
-// Function to get the start and end dates of the current week
-function getWeekBounds($start_day = 0) {
-    $today = date('Y-m-d');
-    $today_day_of_week = date('w');
-    
-    // Calculate days to subtract to get to the start of the week
-    $days_to_start = ($today_day_of_week - $start_day + 7) % 7;
-    
-    $week_start = date('Y-m-d', strtotime("-{$days_to_start} days", strtotime($today)));
-    $week_end = date('Y-m-d', strtotime("+6 days", strtotime($week_start)));
-    
-    return ['start' => $week_start, 'end' => $week_end];
-}
-
-// Get default week bounds
-$default_week_bounds = getWeekBounds(0); // Default starting on Sunday
 
 // Get all habits with their categories and point rules
 $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color, hc.icon as category_icon,
@@ -34,46 +16,14 @@ $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_colo
                  (SELECT completion_time FROM habit_completions 
                   WHERE habit_id = h.id AND completion_date = ?) as completion_time,
                  (SELECT points_earned FROM habit_completions 
-                  WHERE habit_id = h.id AND completion_date = ?) as today_points,
-                 
-                 /* Get weekly frequency data if available */
-                 (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) as times_per_week,
-                 (SELECT hf.week_starts_on FROM habit_frequency hf WHERE hf.habit_id = h.id) as week_starts_on,
-                 
-                 /* Count completions this week for frequency-based habits */
-                 (SELECT COUNT(*) FROM habit_completions hc 
-                  WHERE hc.habit_id = h.id 
-                  AND hc.completion_date BETWEEN ? AND ?
-                  AND hc.status = 'completed') as completions_this_week
-                  
+                  WHERE habit_id = h.id AND completion_date = ?) as today_points
                  FROM habits h
                  LEFT JOIN habit_categories hc ON h.category_id = hc.id
                  LEFT JOIN habit_point_rules hpr ON h.point_rule_id = hpr.id
                  WHERE h.is_active = 1
-                 AND (
-                     /* Daily habits (no schedule entries) */
-                     (NOT EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id) 
-                      AND NOT EXISTS (SELECT 1 FROM habit_frequency hf WHERE hf.habit_id = h.id))
-                     
-                     /* OR specific day habits scheduled for today */
-                     OR EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id AND hs.day_of_week = ?)
-                     
-                     /* OR frequency-based habits that haven't met their weekly quota */
-                     OR (EXISTS (SELECT 1 FROM habit_frequency hf WHERE hf.habit_id = h.id)
-                         AND (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) > 
-                             (SELECT COUNT(*) FROM habit_completions hc 
-                              WHERE hc.habit_id = h.id 
-                              AND hc.completion_date BETWEEN ? AND ?
-                              AND hc.status = 'completed'))
-                 )
                  ORDER BY h.target_time";
 $stmt = $conn->prepare($habits_query);
-$stmt->bind_param("ssssisss", 
-    $today, $today, $today, 
-    $default_week_bounds['start'], $default_week_bounds['end'],
-    $today_day_of_week,
-    $default_week_bounds['start'], $default_week_bounds['end']
-);
+$stmt->bind_param("sss", $today, $today, $today);
 $stmt->execute();
 $habits_result = $stmt->get_result();
 
@@ -141,112 +91,92 @@ while ($habit = $habits_result->fetch_assoc()) {
                 <span>Morning Habits</span>
             </div>
             <div class="d-flex flex-column gap-3">
-                <?php if (count($morning_habits) > 0): ?>
-                    <?php foreach ($morning_habits as $habit): ?>
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0">
-                                        <?php if (!empty($habit['category_icon'])): ?>
-                                            <i class="<?= htmlspecialchars($habit['category_icon']) ?> me-2" 
-                                               style="color: <?= htmlspecialchars($habit['category_color']) ?>"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($habit['name']) ?>
-                                    </h5>
-                                    <div>
-                                        <?php if (!empty($habit['category_name'])): ?>
-                                            <span class="badge rounded-pill" 
-                                                  style="background-color: <?= htmlspecialchars($habit['category_color']) ?>">
-                                                <?= htmlspecialchars($habit['category_name']) ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
+                <?php foreach ($morning_habits as $habit): ?>
+                <div class="card border-0 <?php 
+                    if ($habit['today_status'] === 'completed') echo 'border-success border-2';
+                    else if ($habit['today_status'] === 'procrastinated') echo 'border-warning border-2';
+                    else if ($habit['today_status'] === 'skipped') echo 'border-danger border-2';
+                ?>" data-habit-id="<?php echo $habit['id']; ?>">
+                    <div class="card-body">
+                        <!-- Main Habit Info -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="habit-icon" style="color: <?php echo $habit['category_color']; ?>">
+                                <i class="<?php echo $habit['category_icon']; ?> fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
+                                    <?php echo htmlspecialchars($habit['name']); ?>
+                                </h3>
+                                <div class="text-muted text-truncate" style="font-size: 0.9rem;">
+                                    <?php echo htmlspecialchars($habit['category_name']); ?>
+                                    <span class="mx-2">•</span>
+                                    <span class="fw-medium"><?php echo date('g:i A', strtotime($habit['target_time'])); ?></span>
                                 </div>
-                                
-                                <?php if (!empty($habit['description'])): ?>
-                                    <p class="card-text text-muted mb-3"><?= htmlspecialchars($habit['description']) ?></p>
-                                <?php endif; ?>
-                                
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <i class="fas fa-clock me-1"></i>
-                                        <span class="text-muted">Target Time:</span> 
-                                        <?= date('g:i A', strtotime($habit['target_time'])) ?>
-                                    </div>
-                                    
-                                    <?php if (!empty($habit['times_per_week'])): ?>
-                                        <div>
-                                            <i class="fas fa-calendar-check me-1"></i>
-                                            <span class="badge bg-info">
-                                                <?= $habit['completions_this_week'] ?>/<?= $habit['times_per_week'] ?> times this week
-                                            </span>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                
+                            </div>
+                        </div>
+
+                        <?php if ($habit['today_status']): ?>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="status-area">
                                 <?php 
-                                $status_class = '';
-                                $status_text = 'Not Completed';
-                                $btn_text = 'Mark Complete';
-                                $btn_icon = 'fas fa-check';
-                                
-                                if ($habit['today_status'] == 'completed') {
-                                    $status_class = 'bg-success';
-                                    $status_text = 'Completed';
-                                    $btn_text = 'Completed';
-                                    $btn_icon = 'fas fa-check-double';
-                                } elseif ($habit['today_status'] == 'procrastinated') {
-                                    $status_class = 'bg-warning';
-                                    $status_text = 'Procrastinated';
-                                    $btn_text = 'Mark Complete';
-                                    $btn_icon = 'fas fa-check';
+                                $completion_time = $habit['completion_time'] ? date('g:i A', strtotime($habit['completion_time'])) : date('g:i A');
+                                switch($habit['today_status']) {
+                                    case 'completed':
+                                        echo '<div class="status-message text-success d-flex align-items-center gap-2">
+                                            <i class="fas fa-check-circle"></i>Completed at ' . $completion_time . '</div>';
+                                        break;
+                                    case 'procrastinated':
+                                        echo '<div class="status-message text-warning d-flex align-items-center gap-2">
+                                            <i class="fas fa-clock"></i>Procrastinated at ' . $completion_time . '</div>';
+                                        break;
+                                    case 'skipped':
+                                        echo '<div class="status-message text-danger d-flex align-items-center gap-2">
+                                            <i class="fas fa-times-circle"></i>Skipped at ' . $completion_time . '</div>';
+                                        break;
                                 }
                                 ?>
-                                
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="badge <?= $status_class ?> me-2"><?= $status_text ?></span>
-                                        <?php if (!empty($habit['completion_time'])): ?>
-                                            <small class="text-muted">
-                                                Completed at <?= htmlspecialchars($habit['completion_time']) ?>
-                                            </small>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <div class="d-flex">
-                                        <?php if ($habit['today_status'] != 'completed'): ?>
-                                            <button class="btn btn-sm btn-primary me-2 mark-complete-btn" 
-                                                    data-habit-id="<?= $habit['id'] ?>"
-                                                    data-points="<?= $habit['completion_points'] ?>">
-                                                <i class="<?= $btn_icon ?> me-1"></i> <?= $btn_text ?>
-                                            </button>
-                                            
-                                            <button class="btn btn-sm btn-outline-warning procrastinate-btn"
-                                                    data-habit-id="<?= $habit['id'] ?>"
-                                                    data-points="<?= $habit['procrastinated_points'] ?>">
-                                                <i class="fas fa-clock me-1"></i> Procrastinate
-                                            </button>
-                                        <?php else: ?>
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-plus-circle me-1"></i> 
-                                                <?= $habit['today_points'] ?> points earned
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
                             </div>
+                            <form method="POST" action="update_habit_status.php">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="action" value="reset">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" 
+                                        title="Reset status">
+                                    <i class="fas fa-undo"></i>
+                                    <span class="d-none d-sm-inline">Reset</span>
+                                </button>
+                            </form>
                         </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="card border-0">
-                        <div class="card-body">
-                            <h3 class="mb-1 text-truncate fw-bold">No morning habits found</h3>
-                            <div class="text-muted text-truncate">
-                                It looks like you haven't added any morning habits yet.
-                            </div>
+                        <?php else: ?>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="completed">
+                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-success">
+                                    <i class="fas fa-check"></i>
+                                    <span class="d-none d-sm-inline">Done</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="procrastinated">
+                                <button type="button" class="btn-later btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-warning">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="d-none d-sm-inline">Later</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="skipped">
+                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                    <i class="fas fa-times"></i>
+                                    <span class="d-none d-sm-inline">Skip</span>
+                                </button>
+                            </form>
                         </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -257,112 +187,92 @@ while ($habit = $habits_result->fetch_assoc()) {
                 <span>Evening Habits</span>
             </div>
             <div class="d-flex flex-column gap-3">
-                <?php if (count($evening_habits) > 0): ?>
-                    <?php foreach ($evening_habits as $habit): ?>
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0">
-                                        <?php if (!empty($habit['category_icon'])): ?>
-                                            <i class="<?= htmlspecialchars($habit['category_icon']) ?> me-2" 
-                                               style="color: <?= htmlspecialchars($habit['category_color']) ?>"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($habit['name']) ?>
-                                    </h5>
-                                    <div>
-                                        <?php if (!empty($habit['category_name'])): ?>
-                                            <span class="badge rounded-pill" 
-                                                  style="background-color: <?= htmlspecialchars($habit['category_color']) ?>">
-                                                <?= htmlspecialchars($habit['category_name']) ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
+                <?php foreach ($evening_habits as $habit): ?>
+                <div class="card border-0 <?php 
+                    if ($habit['today_status'] === 'completed') echo 'border-success border-2';
+                    else if ($habit['today_status'] === 'procrastinated') echo 'border-warning border-2';
+                    else if ($habit['today_status'] === 'skipped') echo 'border-danger border-2';
+                ?>" data-habit-id="<?php echo $habit['id']; ?>">
+                    <div class="card-body">
+                        <!-- Main Habit Info -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="habit-icon" style="color: <?php echo $habit['category_color']; ?>">
+                                <i class="<?php echo $habit['category_icon']; ?> fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
+                                    <?php echo htmlspecialchars($habit['name']); ?>
+                                </h3>
+                                <div class="text-muted text-truncate" style="font-size: 0.9rem;">
+                                    <?php echo htmlspecialchars($habit['category_name']); ?>
+                                    <span class="mx-2">•</span>
+                                    <span class="fw-medium"><?php echo date('g:i A', strtotime($habit['target_time'])); ?></span>
                                 </div>
-                                
-                                <?php if (!empty($habit['description'])): ?>
-                                    <p class="card-text text-muted mb-3"><?= htmlspecialchars($habit['description']) ?></p>
-                                <?php endif; ?>
-                                
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <i class="fas fa-clock me-1"></i>
-                                        <span class="text-muted">Target Time:</span> 
-                                        <?= date('g:i A', strtotime($habit['target_time'])) ?>
-                                    </div>
-                                    
-                                    <?php if (!empty($habit['times_per_week'])): ?>
-                                        <div>
-                                            <i class="fas fa-calendar-check me-1"></i>
-                                            <span class="badge bg-info">
-                                                <?= $habit['completions_this_week'] ?>/<?= $habit['times_per_week'] ?> times this week
-                                            </span>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                                
+                            </div>
+                        </div>
+
+                        <?php if ($habit['today_status']): ?>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="status-area">
                                 <?php 
-                                $status_class = '';
-                                $status_text = 'Not Completed';
-                                $btn_text = 'Mark Complete';
-                                $btn_icon = 'fas fa-check';
-                                
-                                if ($habit['today_status'] == 'completed') {
-                                    $status_class = 'bg-success';
-                                    $status_text = 'Completed';
-                                    $btn_text = 'Completed';
-                                    $btn_icon = 'fas fa-check-double';
-                                } elseif ($habit['today_status'] == 'procrastinated') {
-                                    $status_class = 'bg-warning';
-                                    $status_text = 'Procrastinated';
-                                    $btn_text = 'Mark Complete';
-                                    $btn_icon = 'fas fa-check';
+                                $completion_time = $habit['completion_time'] ? date('g:i A', strtotime($habit['completion_time'])) : date('g:i A');
+                                switch($habit['today_status']) {
+                                    case 'completed':
+                                        echo '<div class="status-message text-success d-flex align-items-center gap-2">
+                                            <i class="fas fa-check-circle"></i>Completed at ' . $completion_time . '</div>';
+                                        break;
+                                    case 'procrastinated':
+                                        echo '<div class="status-message text-warning d-flex align-items-center gap-2">
+                                            <i class="fas fa-clock"></i>Procrastinated at ' . $completion_time . '</div>';
+                                        break;
+                                    case 'skipped':
+                                        echo '<div class="status-message text-danger d-flex align-items-center gap-2">
+                                            <i class="fas fa-times-circle"></i>Skipped at ' . $completion_time . '</div>';
+                                        break;
                                 }
                                 ?>
-                                
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="badge <?= $status_class ?> me-2"><?= $status_text ?></span>
-                                        <?php if (!empty($habit['completion_time'])): ?>
-                                            <small class="text-muted">
-                                                Completed at <?= htmlspecialchars($habit['completion_time']) ?>
-                                            </small>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <div class="d-flex">
-                                        <?php if ($habit['today_status'] != 'completed'): ?>
-                                            <button class="btn btn-sm btn-primary me-2 mark-complete-btn" 
-                                                    data-habit-id="<?= $habit['id'] ?>"
-                                                    data-points="<?= $habit['completion_points'] ?>">
-                                                <i class="<?= $btn_icon ?> me-1"></i> <?= $btn_text ?>
-                                            </button>
-                                            
-                                            <button class="btn btn-sm btn-outline-warning procrastinate-btn"
-                                                    data-habit-id="<?= $habit['id'] ?>"
-                                                    data-points="<?= $habit['procrastinated_points'] ?>">
-                                                <i class="fas fa-clock me-1"></i> Procrastinate
-                                            </button>
-                                        <?php else: ?>
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-plus-circle me-1"></i> 
-                                                <?= $habit['today_points'] ?> points earned
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
                             </div>
+                            <form method="POST" action="update_habit_status.php">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="action" value="reset">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" 
+                                        title="Reset status">
+                                    <i class="fas fa-undo"></i>
+                                    <span class="d-none d-sm-inline">Reset</span>
+                                </button>
+                            </form>
                         </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="card border-0">
-                        <div class="card-body">
-                            <h3 class="mb-1 text-truncate fw-bold">No evening habits found</h3>
-                            <div class="text-muted text-truncate">
-                                It looks like you haven't added any evening habits yet.
-                            </div>
+                        <?php else: ?>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="completed">
+                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-success">
+                                    <i class="fas fa-check"></i>
+                                    <span class="d-none d-sm-inline">Done</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="procrastinated">
+                                <button type="button" class="btn-later btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-warning">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="d-none d-sm-inline">Later</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="update_habit_status.php" style="flex: 1;">
+                                <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
+                                <input type="hidden" name="status" value="skipped">
+                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                    <i class="fas fa-times"></i>
+                                    <span class="d-none d-sm-inline">Skip</span>
+                                </button>
+                            </form>
                         </div>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -471,107 +381,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Submit the form
             this.submit();
         });
-    }
-
-    // Mark complete button functionality
-    document.querySelectorAll('.mark-complete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const habitId = this.getAttribute('data-habit-id');
-            const points = this.getAttribute('data-points');
-            
-            fetch('update_habit_status.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `habit_id=${habitId}&status=completed`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success notification
-                    showNotification(`Habit completed! +${points} points`, 'success');
-                    
-                    // Refresh the page after a short delay
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification('Error updating habit status', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Network error updating habit status', 'danger');
-            });
-        });
-    });
-    
-    // Procrastinate button functionality
-    document.querySelectorAll('.procrastinate-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const habitId = this.getAttribute('data-habit-id');
-            const points = this.getAttribute('data-points');
-            
-            fetch('update_habit_status.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `habit_id=${habitId}&status=procrastinated`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success notification
-                    showNotification(`Habit procrastinated. +${points} points`, 'warning');
-                    
-                    // Refresh the page after a short delay
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification('Error updating habit status', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Network error updating habit status', 'danger');
-            });
-        });
-    });
-    
-    // Notification helper function
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.classList.add('toast', 'show', `bg-${type}`, 'text-white');
-        notification.setAttribute('role', 'alert');
-        notification.setAttribute('aria-live', 'assertive');
-        notification.setAttribute('aria-atomic', 'true');
-        
-        notification.innerHTML = `
-            <div class="toast-body">
-                ${message}
-            </div>
-        `;
-        
-        // Add to notification container or create one
-        let container = document.querySelector('.toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.classList.add('toast-container', 'position-fixed', 'bottom-0', 'end-0', 'p-3');
-            document.body.appendChild(container);
-        }
-        
-        container.appendChild(notification);
-        
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
     }
 });
 </script>
