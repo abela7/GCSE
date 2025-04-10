@@ -759,8 +759,15 @@ $accent_color = "#cdaf56";
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Server responded with status:', response.status);
+                    throw new Error('Server response was not ok: ' + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Server response:', data);
                 if (data.success) {
                     // Show success message
                     const alertContainer = document.getElementById('alert-container');
@@ -795,7 +802,7 @@ $accent_color = "#cdaf56";
                 const alertContainer = document.getElementById('alert-container');
                 alertContainer.innerHTML = `
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        An error occurred while adding the task.
+                        An error occurred while adding the task. Error details: ${error.message}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 `;
