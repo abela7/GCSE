@@ -352,14 +352,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Store session ID in a data attribute on the form for redundancy
+            const editForm = document.getElementById('editSessionForm');
+            editForm.setAttribute('data-session-id', sessionId);
+            
+            // Clear form fields before loading new data
+            document.getElementById('editSessionId').value = '';
+            document.getElementById('editSessionSubject').value = '';
+            document.getElementById('editSessionDate').value = '';
+            document.getElementById('editSessionDuration').value = '';
+            document.getElementById('editSessionNotes').value = '';
+            
+            // Show loading indicator in the modal
+            const modalBody = document.querySelector('#editSessionModal .modal-body');
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'editFormLoading';
+            loadingIndicator.className = 'text-center my-3';
+            loadingIndicator.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading session data...</p>';
+            
+            // Insert loading indicator at the beginning of the form
+            editForm.style.display = 'none';
+            modalBody.insertBefore(loadingIndicator, editForm);
+            
+            // Show modal while loading
+            editSessionModal.show();
+            
             // Use absolute path to avoid path resolution issues
             fetch(`../includes/get_session.php?session_id=${sessionId}`)
                 .then(response => {
                     console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
                     return response.json();
                 })
                 .then(data => {
                     console.log('Session data:', data);
+                    
+                    // Remove loading indicator and show form
+                    const loadingElem = document.getElementById('editFormLoading');
+                    if (loadingElem) loadingElem.remove();
+                    editForm.style.display = 'block';
+                    
                     if (data.success) {
                         // Populate form with session data
                         document.getElementById('editSessionId').value = data.session.id;
@@ -367,16 +401,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('editSessionDate').value = data.session.date;
                         document.getElementById('editSessionDuration').value = data.session.duration;
                         document.getElementById('editSessionNotes').value = data.session.notes || '';
-                        
-                        // Show modal
-                        editSessionModal.show();
                     } else {
                         showAlert('Error loading session data: ' + data.message, 'danger');
+                        editSessionModal.hide();
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showAlert('An error occurred while loading the session data.', 'danger');
+                    
+                    // Remove loading indicator
+                    const loadingElem = document.getElementById('editFormLoading');
+                    if (loadingElem) loadingElem.remove();
+                    editForm.style.display = 'block';
+                    
+                    showAlert('An error occurred while loading the session data: ' + error.message, 'danger');
+                    editSessionModal.hide();
                 });
         });
     });
@@ -389,13 +428,40 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             
             const formData = new FormData(this);
+            const sessionId = document.getElementById('editSessionId').value || this.getAttribute('data-session-id');
+            
+            // Add session ID to form data if it's missing
+            if (!formData.has('session_id') || !formData.get('session_id')) {
+                formData.set('session_id', sessionId);
+            }
+            
+            // Validate session ID
+            if (!sessionId) {
+                showAlert('Error: Session ID is missing', 'danger');
+                return;
+            }
+            
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
             
             fetch(this.action, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                
                 if (data.success) {
                     // Show success message
                     showAlert('Study session updated successfully!', 'success');
@@ -415,7 +481,12 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('An error occurred while updating the study session.', 'danger');
+                
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                
+                showAlert('An error occurred while updating the study session: ' + error.message, 'danger');
             });
         });
     }
@@ -427,7 +498,16 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const sessionId = this.getAttribute('data-session-id');
             
+            if (!sessionId) {
+                showAlert('Error: Session ID is missing', 'danger');
+                return;
+            }
+            
             if (confirm('Are you sure you want to delete this study session?')) {
+                // Disable button to prevent multiple clicks
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                
                 fetch('../includes/delete_session.php', {
                     method: 'POST',
                     headers: {
@@ -435,7 +515,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: `session_id=${sessionId}`
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         // Show success message
@@ -449,13 +534,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.location.reload();
                         }, 1000);
                     } else {
+                        // Re-enable button if there's an error
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-trash"></i>';
+                        
                         // Show error message
                         showAlert('Error deleting study session: ' + data.message, 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showAlert('An error occurred while deleting the study session.', 'danger');
+                    
+                    // Re-enable button
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-trash"></i>';
+                    
+                    showAlert('An error occurred while deleting the study session: ' + error.message, 'danger');
                 });
             }
         });
