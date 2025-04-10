@@ -629,7 +629,8 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                 <i class="fas fa-times" style="color: #dc3545;"></i>
                 <span>Skipped</span>
             </div>
-            <!-- NEW FEATURE: Habit Frequency - Add legend for scheduled days -->
+            <!-- NEW FEATURE: Habit Frequency - Only show frequency legend items when a specific habit is selected -->
+            <?php if ($habit_id !== 'all'): ?>
             <div class="legend-item">
                 <i class="fas fa-calendar-day" style="color: #6610f2;"></i>
                 <span>Scheduled Day</span>
@@ -638,6 +639,7 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                 <i class="fas fa-sync-alt" style="color: #17a2b8;"></i>
                 <span>Weekly Frequency</span>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Calendar -->
@@ -700,7 +702,7 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                         $completions_this_week = 0;
                         $weekly_target = 0;
                         
-                        // Only process schedule info if looking at a specific habit or we're showing all habits
+                        // Only process schedule info if looking at a specific habit (not for "All Habits" view)
                         if ($habit_id !== 'all') {
                             // Check if this day is scheduled for the specific habit
                             if (isset($schedule_info[$habit_id])) {
@@ -758,15 +760,8 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                                         $day_statuses[] = $habit_completions[$key];
                                     }
                                     
-                                    // NEW FEATURE: Habit Frequency - Check if this is a scheduled day for any habit
-                                    if (isset($schedule_info[$h['id']])) {
-                                        // Check if it's a specific day schedule
-                                        if (in_array($current_day_of_week, $schedule_info[$h['id']]['scheduled_days'])) {
-                                            $is_scheduled_day = true;
-                                        }
-                                        
-                                        // Note: We don't show frequency info for "All Habits" view as it would be confusing
-                                    }
+                                    // Note: We intentionally DON'T add scheduled-day or frequency-based classes here
+                                    // to avoid visual clutter when viewing all habits
                                 }
                             }
                             
@@ -786,15 +781,15 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                             }
                         }
 
-                        // NEW FEATURE: Habit Frequency - Add scheduled day marker if this is a scheduled day
-                        if ($is_scheduled_day) {
+                        // NEW FEATURE: Habit Frequency - Only add scheduled day marker if this is a specific habit view
+                        if ($is_scheduled_day && $habit_id !== 'all') {
                             $td_classes[] = 'scheduled-day';
                         }
 
                         echo "<td class='" . implode(' ', $td_classes) . "' data-date='" . $current_date_str . "'>";
                         echo "<div class='date'>$day_count</div>";
                         
-                        // NEW FEATURE: Habit Frequency - Add frequency badge if this is a frequency-based habit
+                        // NEW FEATURE: Habit Frequency - Only add frequency badge if this is a specific habit view
                         if ($frequency_info && $habit_id !== 'all') {
                             echo "<div class='frequency-badge'>{$completions_this_week}/{$weekly_target}</div>";
                         }
