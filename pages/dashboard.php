@@ -37,9 +37,9 @@ $subjects_result = $conn->query($subjects_query);
 $exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color 
                 FROM exams e 
                 JOIN subjects s ON e.subject_id = s.id 
-                WHERE e.exam_date > NOW() AND e.exam_date <= DATE_ADD(NOW(), INTERVAL 30 DAY)
+                WHERE e.exam_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY)
                 ORDER BY e.exam_date ASC 
-                LIMIT 3";
+                LIMIT 5";
 $exams_result = $conn->query($exams_query);
 
 // Get recent tasks - fixed query to match existing database structure
@@ -462,7 +462,12 @@ $accent_color = "#cdaf56";
                             <a href="exam_countdown.php" class="btn btn-sm btn-outline-accent">View All Exams</a>
                         </div>
                     <?php else: ?>
-                        <p class="text-muted mb-0">No upcoming exams in the next 30 days.</p>
+                        <p class="text-muted mb-2">No upcoming exams found. You can add your exam schedule here.</p>
+                        <div class="text-center mt-3">
+                            <a href="exams/create.php" class="btn btn-sm btn-accent">
+                                <i class="fas fa-plus me-1"></i> Add an Exam
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>

@@ -1,628 +1,323 @@
 <?php
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Set page title
+$page_title = "Exam Countdown";
+
+// Set breadcrumbs
+$breadcrumbs = [
+    'Dashboard' => 'dashboard.php',
+    'Exam Countdown' => null
+];
+
+// Set page actions
+$page_actions = '
+<a href="exams/create.php" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i> Add Exam
+</a>
+';
 
 // Include database connection
 require_once '../config/db_connect.php';
 
-// Set timezone to London
-date_default_timezone_set('Europe/London');
+// Check if exams table exists, create if not
+$check_table_query = "SHOW TABLES LIKE 'exams'";
+$table_result = $conn->query($check_table_query);
 
-// Hide the page title
-$hide_page_title = true;
+if ($table_result->num_rows == 0) {
+    // Create exams table if it doesn't exist
+    $create_table_query = "CREATE TABLE exams (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        subject_id INT NOT NULL,
+        exam_date DATE NOT NULL,
+        exam_time TIME NOT NULL,
+        description TEXT,
+        location VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (subject_id) REFERENCES subjects(id)
+    )";
+    $conn->query($create_table_query);
+}
 
-// Get all upcoming exams
+// Get all exams ordered by date
 $exams_query = "SELECT e.*, s.name as subject_name, s.color as subject_color 
                 FROM exams e 
                 JOIN subjects s ON e.subject_id = s.id 
-                WHERE e.exam_date > NOW() 
-                ORDER BY e.exam_date ASC";
+                ORDER BY e.exam_date ASC, e.exam_time ASC";
 $exams_result = $conn->query($exams_query);
 
 // Include header
 include '../includes/header.php';
+
+// Define the accent color
+$accent_color = "#cdaf56";
 ?>
 
 <style>
-/* Tab Navigation */
-.nav-container {
-    max-width: 1400px;
-    margin: 1rem auto 0;
-    padding: 0 1rem;
-}
-
-.nav-tabs {
-    display: flex;
-    gap: 0.75rem;
+.exam-card {
     border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
     margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 
-.nav-link {
-    padding: 0.5rem 1.5rem;
-    border-radius: 2rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-    border: none;
-    transition: transform 0.2s ease;
+.exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.nav-link:hover {
-    transform: translateY(-2px);
-}
-
-.nav-link.active.maths-tab {
-    background: #DAA520;
-    color: #333;
-}
-
-.nav-link.active.english-tab {
-    background: #28a745;
-    color: white;
-}
-
-/* Grid Layout */
-.countdown-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.25rem;
+.exam-header {
     padding: 1rem;
-    max-width: 1400px;
-    margin: 0 auto;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: white;
 }
 
-.countdown-card {
-    background: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+.exam-body {
     padding: 1.5rem;
-    transition: transform 0.2s ease;
-    border: 1px solid #ff4444;
-    position: relative;
-}
-
-.countdown-card:hover {
-    transform: translateY(-3px);
-}
-
-/* Header Section */
-.subject-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.subject-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #DAA520;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-}
-
-.subject-badge i {
-    font-size: 0.9rem;
-}
-
-.paper-code {
-    background: #f5f5f5;
-    padding: 0.5rem 1rem;
-    border-radius: 2rem;
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: #666;
 }
 
 .exam-title {
-    font-size: 1.1rem;
-    line-height: 1.4;
-    margin: 1rem 0 1.5rem;
-    color: #333;
+    font-size: 1.2rem;
     font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
 }
 
-/* Countdown Grid */
-.countdown-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.5rem;
-    margin: 1.5rem 0;
-    text-align: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-}
-
-.countdown-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.countdown-value {
-    font-size: 2.25rem;
+.countdown-time {
+    font-size: 2.5rem;
     font-weight: 700;
-    color: #ff4444;
-    line-height: 1;
-    margin-bottom: 0.4rem;
-    font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: #333;
 }
 
 .countdown-label {
-    font-size: 0.7rem;
-    color: #666;
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
+    letter-spacing: 1px;
 }
 
-/* Progress bar section */
-.progress-section {
-    margin: 1.5rem 0;
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.progress-label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.progress-dates {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 0.5rem;
-}
-
-.progress-dates .start-date {
-    color: #666;
-}
-
-.progress-dates .end-date {
-    color: #ff4444;
-}
-
-.progress-bar-container {
-    height: 0.5rem;
-    background: #f5f5f5;
-    border-radius: 1rem;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-bar-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0) 0%, 
-        rgba(255,255,255,0.3) 50%, 
-        rgba(255,255,255,0) 100%);
-    transform: translateX(-100%);
-    animation: shimmer 2s infinite;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #DAA520, #FFD700);
-    border-radius: 1rem;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes shimmer {
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-/* Update English progress bar color */
-#english .progress-bar {
-    background: linear-gradient(90deg, #28a745, #34ce57);
-}
-
-/* Totals Section */
-.totals-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+.exam-details {
     margin-top: 1.5rem;
 }
 
-.total-item {
+.detail-item {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 0.75rem;
 }
 
-.total-item i {
-    color: #666;
-    font-size: 1rem;
-    width: 20px;
+.detail-icon {
+    width: 24px;
+    margin-right: 1rem;
+    color: <?php echo $accent_color; ?>;
 }
 
-.total-item span {
-    color: #333;
-    font-weight: 500;
-    font-size: 0.9rem;
+.detail-text {
+    flex: 1;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .countdown-container {
-        grid-template-columns: 1fr;
-        padding: 1rem;
-    }
+.badge-upcoming {
+    background-color: <?php echo $accent_color; ?>;
+    color: white;
+}
 
-    .countdown-card {
-        padding: 1rem;
-    }
+.badge-today {
+    background-color: #dc3545;
+    color: white;
+}
 
-    .countdown-grid {
-        gap: 0.25rem;
-    }
+.badge-past {
+    background-color: #6c757d;
+    color: white;
+}
 
-    .countdown-value {
-        font-size: clamp(1.75rem, 4vw, 2rem);
-    }
+.no-exams-container {
+    text-align: center;
+    padding: 3rem 0;
+}
 
+.no-exams-icon {
+    font-size: 3rem;
+    color: #e9ecef;
+    margin-bottom: 1rem;
+}
+
+.countdown-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.countdown-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .countdown-time {
+        font-size: 2rem;
+    }
+    
     .countdown-label {
-        font-size: 0.65rem;
-    }
-
-    .exam-title {
-        font-size: 1rem;
-        margin: 0.75rem 0 1.25rem;
-    }
-
-    .total-item {
-        padding: 0.75rem;
-    }
-
-    .total-item span {
-        font-size: 0.85rem;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1200px) {
-    .countdown-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1201px) {
-    .countdown-container {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .countdown-card {
-        background: #ffffff;
-    }
-
-    .exam-title, .paper-code {
-        color: #333;
-    }
-
-    .countdown-label {
-        color: #666;
-    }
-
-    .total-item {
-        background: #f8f9fa;
-    }
-
-    .total-item span, .total-item i {
-        color: #333;
+        font-size: 0.75rem;
     }
 }
 </style>
 
-<div class="nav-container">
-    <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active maths-tab" data-bs-toggle="tab" href="#maths">Mathematics</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link english-tab" data-bs-toggle="tab" href="#english">English</a>
-        </li>
-    </ul>
-</div>
-
-<div class="tab-content">
-    <div class="tab-pane fade show active" id="maths">
-        <div class="countdown-container">
-            <?php
-            if ($exams_result->num_rows > 0) {
-                $exams_result->data_seek(0);
-                while ($exam = $exams_result->fetch_assoc()) {
-                    if ($exam['subject_name'] == 'Math') {
-                        $exam_date = new DateTime($exam['exam_date']);
-                        $now = new DateTime();
-            ?>
-            <div class="countdown-card">
-                <div class="subject-header">
-                    <span class="subject-badge">
-                        <i class="fas fa-calculator"></i>
-                        Mathematics
-                    </span>
-                    <span class="paper-code"><?php echo htmlspecialchars($exam['paper_code']); ?></span>
-                </div>
-                
-                <h2 class="exam-title"><?php echo htmlspecialchars($exam['title']); ?></h2>
-                
-                <div class="countdown-grid">
-                    <div class="countdown-unit">
-                        <span class="countdown-value weeks">-</span>
-                        <span class="countdown-label">Weeks</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value days">-</span>
-                        <span class="countdown-label">Days</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value hours">-</span>
-                        <span class="countdown-label">Hours</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value minutes">-</span>
-                        <span class="countdown-label">Minutes</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value seconds">-</span>
-                        <span class="countdown-label">Seconds</span>
-                    </div>
-                </div>
-                
-                <div class="progress-section">
-                    <div class="progress-header">
-                        <span class="progress-label">Countdown Progress</span>
-                    </div>
-                    <div class="progress-dates">
-                        <span class="start-date">28/03/2025</span>
-                        <span class="end-date"><?php echo $exam_date->format('d/m/Y'); ?></span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" data-start-date="2025-03-28 00:00:00" data-end-date="<?php echo $exam_date->format('Y-m-d H:i:s'); ?>"></div>
-                    </div>
-                </div>
-                
-                <div class="totals-section">
-                    <div class="total-item">
-                        <i class="fas fa-calendar"></i>
-                        <span><?php echo $exam_date->format('l, F j, Y'); ?></span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-clock"></i>
-                        <span><?php echo $exam_date->format('g:i A'); ?></span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-calendar-day"></i>
-                        <span><span class="total-days">-</span> total days</span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-hourglass"></i>
-                        <span><span class="total-hours">-</span> total hours</span>
-                    </div>
-                </div>
-                
-                <div class="exam-datetime" data-exam-date="<?php echo $exam_date->format('Y-m-d H:i:s'); ?>"></div>
-            </div>
-            <?php 
-                    }
-                }
-            } 
-            ?>
+<div class="container py-4">
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?php echo $_SESSION['success']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
     
-    <div class="tab-pane fade" id="english">
-        <div class="countdown-container">
-            <?php
-            if ($exams_result->num_rows > 0) {
-                $exams_result->data_seek(0);
-                while ($exam = $exams_result->fetch_assoc()) {
-                    if ($exam['subject_name'] == 'English') {
-                        $exam_date = new DateTime($exam['exam_date']);
-                        $now = new DateTime();
-            ?>
-            <div class="countdown-card">
-                <div class="subject-header">
-                    <span class="subject-badge">
-                        <i class="fas fa-book"></i>
-                        English
-                    </span>
-                    <span class="paper-code"><?php echo htmlspecialchars($exam['paper_code']); ?></span>
-                </div>
-                
-                <h2 class="exam-title"><?php echo htmlspecialchars($exam['title']); ?></h2>
-                
-                <div class="countdown-grid">
-                    <div class="countdown-unit">
-                        <span class="countdown-value weeks">-</span>
-                        <span class="countdown-label">Weeks</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value days">-</span>
-                        <span class="countdown-label">Days</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value hours">-</span>
-                        <span class="countdown-label">Hours</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value minutes">-</span>
-                        <span class="countdown-label">Minutes</span>
-                    </div>
-                    <div class="countdown-unit">
-                        <span class="countdown-value seconds">-</span>
-                        <span class="countdown-label">Seconds</span>
-                    </div>
-                </div>
-                
-                <div class="progress-section">
-                    <div class="progress-header">
-                        <span class="progress-label">Countdown Progress</span>
-                    </div>
-                    <div class="progress-dates">
-                        <span class="start-date">28/03/2025</span>
-                        <span class="end-date"><?php echo $exam_date->format('d/m/Y'); ?></span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" data-start-date="2025-03-28 00:00:00" data-end-date="<?php echo $exam_date->format('Y-m-d H:i:s'); ?>"></div>
-                    </div>
-                </div>
-                
-                <div class="totals-section">
-                    <div class="total-item">
-                        <i class="fas fa-calendar"></i>
-                        <span><?php echo $exam_date->format('l, F j, Y'); ?></span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-clock"></i>
-                        <span><?php echo $exam_date->format('g:i A'); ?></span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-calendar-day"></i>
-                        <span><span class="total-days">-</span> total days</span>
-                    </div>
-                    <div class="total-item">
-                        <i class="fas fa-hourglass"></i>
-                        <span><span class="total-hours">-</span> total hours</span>
-                    </div>
-                </div>
-                
-                <div class="exam-datetime" data-exam-date="<?php echo $exam_date->format('Y-m-d H:i:s'); ?>"></div>
-            </div>
-            <?php 
-                    }
-                }
-            } 
-            ?>
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo $_SESSION['error']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
-</div>
-
-<script>
-function updateCountdowns() {
-    document.querySelectorAll('.countdown-card').forEach(card => {
-        const dateStr = card.querySelector('.exam-datetime').dataset.examDate;
-        const examDate = new Date(dateStr);
-        const now = new Date();
-        const diff = examDate - now;
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+    
+    <?php if ($exams_result && $exams_result->num_rows > 0): ?>
+        <h4 class="mb-4">Upcoming Exams</h4>
         
-        if (diff > 0) {
-            // Calculate total values
-            const totalMinutes = Math.floor(diff / (1000 * 60));
-            const totalHours = Math.floor(diff / (1000 * 60 * 60));
-            const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+        <div class="row">
+            <?php 
+            $now = new DateTime();
+            $today_date = $now->format('Y-m-d');
             
-            // Calculate display values
-            const weeks = Math.floor(totalDays / 7);
-            const remainingDays = totalDays;
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            // Update main countdown display
-            card.querySelector('.weeks').textContent = weeks;
-            card.querySelector('.days').textContent = remainingDays;
-            card.querySelector('.hours').textContent = padZero(hours);
-            card.querySelector('.minutes').textContent = padZero(minutes);
-            card.querySelector('.seconds').textContent = padZero(seconds);
-            
-            // Update totals
-            const totalDaysSpan = card.querySelector('.total-item .total-days');
-            const totalHoursSpan = card.querySelector('.total-item .total-hours');
-            
-            totalDaysSpan.textContent = totalDays.toLocaleString().replace(/,/g, '');
-            totalHoursSpan.textContent = totalHours.toLocaleString().replace(/,/g, '');
-            
-            // Improved progress bar calculation
-            const progressBar = card.querySelector('.progress-bar');
-            const startDate = new Date(progressBar.dataset.startDate);
-            const endDate = new Date(progressBar.dataset.endDate);
-            const totalDuration = endDate - startDate;
-            const elapsed = now - startDate;
-            
-            // Calculate progress as percentage of time remaining
-            let progress;
-            if (now < startDate) {
-                // If current date is before start date, show 100%
-                progress = 100;
-            } else if (now > endDate) {
-                // If current date is after end date, show 0%
-                progress = 0;
-            } else {
-                // Calculate remaining percentage
-                progress = ((endDate - now) / totalDuration) * 100;
-            }
-            
-            // Ensure progress stays within 0-100 range
-            progress = Math.min(100, Math.max(0, progress));
-            progressBar.style.width = `${progress}%`;
-            
-            // Add data attribute for debugging
-            progressBar.setAttribute('data-progress', progress.toFixed(2) + '%');
-        } else {
-            // If exam date has passed
-            const values = card.querySelectorAll('.countdown-value, .total-days, .total-hours');
-            values.forEach(value => value.textContent = '0');
-            card.querySelector('.progress-bar').style.width = '0%';
-        }
-    });
-}
-
-// Initial update
-updateCountdowns();
-
-// Update every second
-setInterval(updateCountdowns, 1000);
-
-// Add leading zeros function
-function padZero(num) {
-    return num < 10 ? '0' + num : num;
-}
-
-// Add a debug function to check dates
-function debugDates() {
-    document.querySelectorAll('.countdown-card').forEach(card => {
-        const progressBar = card.querySelector('.progress-bar');
-        const startDate = new Date(progressBar.dataset.startDate);
-        const endDate = new Date(progressBar.dataset.endDate);
-        console.log('Start Date:', startDate);
-        console.log('End Date:', endDate);
-        console.log('Current Progress:', progressBar.getAttribute('data-progress'));
-    });
-}
-
-// Call debug function after initial load
-setTimeout(debugDates, 1000);
-</script>
+            while ($exam = $exams_result->fetch_assoc()): 
+                // Create DateTime object for the exam date and time
+                $exam_datetime = new DateTime($exam['exam_date'] . ' ' . $exam['exam_time']);
+                $interval = $now->diff($exam_datetime);
+                
+                // Calculate days, hours, minutes remaining
+                $days_remaining = $interval->format('%a');
+                $hours_remaining = $interval->format('%h');
+                $minutes_remaining = $interval->format('%i');
+                
+                // Set status badge class
+                if ($exam['exam_date'] < $today_date) {
+                    $status_class = "badge-past";
+                    $status_text = "Past";
+                } elseif ($exam['exam_date'] == $today_date) {
+                    $status_class = "badge-today";
+                    $status_text = "Today";
+                } else {
+                    $status_class = "badge-upcoming";
+                    $status_text = "Upcoming";
+                }
+            ?>
+            <div class="col-md-6 col-lg-4">
+                <div class="exam-card">
+                    <div class="exam-header d-flex justify-content-between align-items-center">
+                        <span class="badge me-2" style="background-color: <?php echo $exam['subject_color']; ?>">
+                            <?php echo htmlspecialchars($exam['subject_name']); ?>
+                        </span>
+                        <span class="badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+                    </div>
+                    <div class="exam-body">
+                        <div class="exam-title"><?php echo htmlspecialchars($exam['title']); ?></div>
+                        
+                        <?php if ($exam['exam_date'] >= $today_date): ?>
+                            <div class="countdown-container">
+                                <div class="countdown-item">
+                                    <div class="countdown-time"><?php echo $days_remaining; ?></div>
+                                    <div class="countdown-label">Days</div>
+                                </div>
+                                <div class="countdown-item">
+                                    <div class="countdown-time"><?php echo $hours_remaining; ?></div>
+                                    <div class="countdown-label">Hours</div>
+                                </div>
+                                <div class="countdown-item">
+                                    <div class="countdown-time"><?php echo $minutes_remaining; ?></div>
+                                    <div class="countdown-label">Mins</div>
+                                </div>
+                                <div class="countdown-item">
+                                    <div class="countdown-time">
+                                        <?php echo $interval->invert ? "" : "⏰"; ?>
+                                    </div>
+                                    <div class="countdown-label">Remaining</div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="exam-details">
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="detail-text">
+                                    <?php echo date('l, j F Y', strtotime($exam['exam_date'])); ?>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="detail-text">
+                                    <?php echo date('g:i A', strtotime($exam['exam_time'])); ?>
+                                </div>
+                            </div>
+                            <?php if (!empty($exam['location'])): ?>
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div class="detail-text">
+                                        <?php echo htmlspecialchars($exam['location']); ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($exam['description'])): ?>
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <div class="detail-text">
+                                        <?php echo htmlspecialchars($exam['description']); ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="exams/edit.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline-secondary me-2">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="exams/delete.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('Are you sure you want to delete this exam?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endwhile; ?>
+        </div>
+    <?php else: ?>
+        <div class="no-exams-container">
+            <div class="no-exams-icon">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <h4>No Exams Found</h4>
+            <p class="text-muted mb-4">Add your upcoming exams to keep track of them.</p>
+            <a href="exams/create.php" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add Your First Exam
+            </a>
+        </div>
+    <?php endif; ?>
+</div>
 
 <?php
 include '../includes/footer.php';
