@@ -525,13 +525,41 @@ $accent_color = "#cdaf56";
         </div>
     </div>
 
-    <!-- Mood Tracking Widget -->
+    <!-- Today's Uncompleted Habits -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card feature-card">
-                <div class="card-body text-center">
-                    <h5 class="mb-3"><i class="fas fa-smile me-2" style="color: var(--accent-color);"></i>Mood Tracking</h5>
-                    <a href="mood_tracking/entry.php" class="btn btn-accent">Track your mood</a>
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-check-circle me-2" style="color: var(--accent-color);"></i>Today's Habits</h5>
+                    <?php if ($uncompleted_habits_result && $uncompleted_habits_result->num_rows > 0): ?>
+                        <?php while ($habit = $uncompleted_habits_result->fetch_assoc()): 
+                            $habit_color = !empty($habit['category_color']) ? $habit['category_color'] : $accent_color;
+                        ?>
+                            <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-check-circle" style="color: <?php echo $habit_color; ?>; font-size: 1.5rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0"><?php echo htmlspecialchars($habit['name']); ?></h6>
+                                        <?php if (!empty($habit['category_name'])): ?>
+                                            <span class="badge me-2 mt-1" style="background-color: <?php echo $habit_color; ?>">
+                                                <?php echo htmlspecialchars($habit['category_name']); ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <a href="habits/complete.php?id=<?php echo $habit['id']; ?>&redirect=dashboard" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check me-1"></i> Complete
+                                </a>
+                            </div>
+                        <?php endwhile; ?>
+                        <div class="text-end mt-3">
+                            <a href="habits/index.php" class="btn btn-sm btn-outline-accent">View All Habits</a>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted mb-0">No uncompleted habits today. Great job!</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
