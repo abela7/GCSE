@@ -614,7 +614,7 @@ $accent_color = "#cdaf56";
 <!-- Floating Action Button (FAB) -->
 <div class="fab-container">
     <div class="fab-options" id="fabOptions">
-        <a href="tasks/add_task.php" class="fab-item">
+        <a href="#" class="fab-item" data-bs-toggle="modal" data-bs-target="#addTaskModal">
             <i class="fas fa-plus-circle"></i>
             <span>Add New Task</span>
         </a>
@@ -633,6 +633,84 @@ $accent_color = "#cdaf56";
     </div>
     <div class="fab-button" id="fabButton">
         <i class="fas fa-plus"></i>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="tasks/save_task.php" method="POST" id="addTaskForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="category_id" class="form-label">Category</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <?php
+                                $categories_query = "SELECT * FROM task_categories ORDER BY name";
+                                $categories_result = $conn->query($categories_query);
+                                if ($categories_result) {
+                                    while ($category = $categories_result->fetch_assoc()):
+                                    ?>
+                                    <option value="<?php echo $category['id']; ?>">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                    <?php endwhile;
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" required 
+                                value="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="due_time" class="form-label">Due Time</label>
+                            <input type="time" class="form-control" id="due_time" name="due_time">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="task_type" class="form-label">Task Type</label>
+                            <select class="form-select" id="task_type" name="task_type" required>
+                                <option value="one-time">One-time</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estimated_duration" class="form-label">Estimated Duration (minutes)</label>
+                            <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" min="1" value="30" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div id="alert-container"></div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Task</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -664,6 +742,65 @@ $accent_color = "#cdaf56";
             icon.classList.remove('fa-times');
             icon.classList.add('fa-plus');
         }
+    });
+    
+    // Task form submission handling
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default due date to today
+        document.getElementById('due_date').valueAsDate = new Date();
+        
+        // Handle form submission
+        document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('tasks/save_task.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const alertContainer = document.getElementById('alert-container');
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    
+                    // Close modal after a short delay
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'));
+                        modal.hide();
+                        
+                        // Reload page to show the new task
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    const alertContainer = document.getElementById('alert-container');
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const alertContainer = document.getElementById('alert-container');
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        An error occurred while adding the task.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+            });
+        });
     });
 </script>
 
