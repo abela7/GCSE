@@ -569,32 +569,15 @@ uasort($habit_details, function($a, $b) use ($categories) {
                             <canvas id="completionHistoryChart" height="100"></canvas>
                         </div>
                     </div>
-                    
-                    <!-- Impact on Streak -->
-                    <div class="alert alert-warning">
-                        <h6 class="mb-1"><i class="fas fa-fire-alt"></i> Streak Impact</h6>
-                        <p id="streakImpact" class="mb-0 small"></p>
-                    </div>
-                    
-                    <!-- Suggestions -->
-                    <div class="mt-3">
-                        <h6>Suggestions</h6>
-                        <ul class="small" id="suggestionsList">
-                            <li>Consider reviewing why this habit was skipped</li>
-                            <li>Look for patterns in your skipped habits</li>
-                            <li>Adjust your habit schedule if needed</li>
-                        </ul>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" id="editHabitLink" class="btn btn-primary">Edit Habit</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Procrastination Detail Modal (Similar structure) -->
+    <!-- Procrastination Detail Modal -->
     <div class="modal fade" id="procrastinationDetailModal" tabindex="-1" aria-labelledby="procrastinationDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -633,26 +616,9 @@ uasort($habit_details, function($a, $b) use ($categories) {
                             <canvas id="prCompletionHistoryChart" height="100"></canvas>
                         </div>
                     </div>
-                    
-                    <!-- Impact on Streak -->
-                    <div class="alert alert-warning">
-                        <h6 class="mb-1"><i class="fas fa-fire-alt"></i> Streak Impact</h6>
-                        <p id="prStreakImpact" class="mb-0 small">Procrastinating this habit doesn't break your streak, but it may affect your overall consistency.</p>
-                    </div>
-                    
-                    <!-- Suggestions -->
-                    <div class="mt-3">
-                        <h6>Suggestions</h6>
-                        <ul class="small">
-                            <li>Review why you procrastinated this habit</li>
-                            <li>Consider adjusting the time of day for this habit</li>
-                            <li>Break down the habit into smaller, more manageable steps</li>
-                        </ul>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="#" id="prEditHabitLink" class="btn btn-primary">Edit Habit</a>
                 </div>
             </div>
         </div>
@@ -863,6 +829,35 @@ function updateHabits() {
     }
 }
 
+// Add a function to fetch real completion history data via AJAX
+function fetchHabitHistory(habitId, date, callback) {
+    // Create a form data object to send the request
+    const formData = new FormData();
+    formData.append('habit_id', habitId);
+    formData.append('date', date);
+    
+    // Create and send the AJAX request
+    fetch('fetch_habit_history.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        callback(data);
+    })
+    .catch(error => {
+        console.error('Error fetching habit history:', error);
+        // Fall back to generated data if the AJAX request fails
+        const generatedData = generateCompletionHistoryData(date, 'standard');
+        callback(generatedData);
+    });
+}
+
 // Initialize the habit select on page load
 document.addEventListener('DOMContentLoaded', function() {
     const categoryId = document.querySelector('select[name="category_id"]').value;
@@ -913,21 +908,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalDate').textContent = formattedDate;
             document.getElementById('modalReason').textContent = reason || 'No reason provided';
             document.getElementById('modalNotes').textContent = notes || 'No additional notes';
-            
-            // Format habit type for display - simplified as we only have standard type for now
             document.getElementById('modalHabitType').textContent = 'Standard (Daily)';
             
-            // Set the streak impact message - simplified for standard habits
-            document.getElementById('streakImpact').textContent = 'Skipping this habit breaks your daily streak.';
-            
-            // Set the edit habit link
-            const editLink = document.getElementById('editHabitLink');
-            editLink.href = '../habits/edit_habit.php?id=' + (habitId || '');
-            
-            // Generate dummy completion history data for the chart
-            // In production, this would fetch actual data via AJAX
-            const completionHistory = generateCompletionHistoryData(date, habitType);
-            renderCompletionHistoryChart(completionHistory);
+            // Try to fetch real history data, fall back to generated data if needed
+            if (habitId) {
+                fetchHabitHistory(habitId, date, function(historyData) {
+                    renderCompletionHistoryChart(historyData);
+                });
+            } else {
+                // Fall back to generated data if no habit ID is available
+                const generatedData = generateCompletionHistoryData(date, habitType);
+                renderCompletionHistoryChart(generatedData);
+            }
         });
     }
     
@@ -957,13 +949,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('prModalNotes').textContent = notes || 'No additional notes';
             document.getElementById('prModalHabitType').textContent = 'Standard (Daily)';
             
-            // Set the edit habit link
-            const editLink = document.getElementById('prEditHabitLink');
-            editLink.href = '../habits/edit_habit.php?id=' + (habitId || '');
-            
-            // Generate and render completion history
-            const completionHistory = generateCompletionHistoryData(date, 'standard');
-            renderProcrastinationHistoryChart(completionHistory);
+            // Try to fetch real history data, fall back to generated data if needed
+            if (habitId) {
+                fetchHabitHistory(habitId, date, function(historyData) {
+                    renderProcrastinationHistoryChart(historyData);
+                });
+            } else {
+                // Fall back to generated data if no habit ID is available
+                const generatedData = generateCompletionHistoryData(date, 'standard');
+                renderProcrastinationHistoryChart(generatedData);
+            }
         });
     }
 });
@@ -1044,7 +1039,8 @@ function renderCompletionHistoryChart(historyData) {
             case 'completed': return 'rgba(40, 167, 69, 0.8)';
             case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
             case 'skipped': return 'rgba(220, 53, 69, 0.8)';
-            default: return 'rgba(200, 200, 200, 0.8)';
+            case 'not_tracked': return 'rgba(200, 200, 200, 0.3)';
+            default: return 'rgba(200, 200, 200, 0.3)';
         }
     });
     
@@ -1057,7 +1053,7 @@ function renderCompletionHistoryChart(historyData) {
                 label: 'Completion Status',
                 data: historyData.map(d => 1), // Each day has equal height
                 backgroundColor: statusColors,
-                borderColor: statusColors.map(c => c.replace('0.8', '1')),
+                borderColor: statusColors.map(c => c.replace('0.8', '1').replace('0.3', '0.5')),
                 borderWidth: 1
             }]
         },
@@ -1084,8 +1080,11 @@ function renderCompletionHistoryChart(historyData) {
                     callbacks: {
                         label: function(context) {
                             const index = context.dataIndex;
-                            return historyData[index].status.charAt(0).toUpperCase() + 
-                                   historyData[index].status.slice(1);
+                            const status = historyData[index].status;
+                            if (status === 'not_tracked') {
+                                return 'Not Tracked';
+                            }
+                            return status.charAt(0).toUpperCase() + status.slice(1);
                         }
                     }
                 }
@@ -1110,7 +1109,8 @@ function renderProcrastinationHistoryChart(historyData) {
             case 'completed': return 'rgba(40, 167, 69, 0.8)';
             case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
             case 'skipped': return 'rgba(220, 53, 69, 0.8)';
-            default: return 'rgba(200, 200, 200, 0.8)';
+            case 'not_tracked': return 'rgba(200, 200, 200, 0.3)';
+            default: return 'rgba(200, 200, 200, 0.3)';
         }
     });
     
@@ -1123,7 +1123,7 @@ function renderProcrastinationHistoryChart(historyData) {
                 label: 'Completion Status',
                 data: historyData.map(d => 1), // Each day has equal height
                 backgroundColor: statusColors,
-                borderColor: statusColors.map(c => c.replace('0.8', '1')),
+                borderColor: statusColors.map(c => c.replace('0.8', '1').replace('0.3', '0.5')),
                 borderWidth: 1
             }]
         },
@@ -1150,8 +1150,11 @@ function renderProcrastinationHistoryChart(historyData) {
                     callbacks: {
                         label: function(context) {
                             const index = context.dataIndex;
-                            return historyData[index].status.charAt(0).toUpperCase() + 
-                                   historyData[index].status.slice(1);
+                            const status = historyData[index].status;
+                            if (status === 'not_tracked') {
+                                return 'Not Tracked';
+                            }
+                            return status.charAt(0).toUpperCase() + status.slice(1);
                         }
                     }
                 }
