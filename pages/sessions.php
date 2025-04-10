@@ -345,11 +345,21 @@ document.addEventListener('DOMContentLoaded', function() {
     editSessionBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const sessionId = this.getAttribute('data-session-id');
+            console.log('Edit button clicked for session ID:', sessionId);
             
-            // Fetch session details
+            if (!sessionId) {
+                showAlert('Error: Session ID is missing', 'danger');
+                return;
+            }
+            
+            // Use absolute path to avoid path resolution issues
             fetch(`../includes/get_session.php?session_id=${sessionId}`)
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Session data:', data);
                     if (data.success) {
                         // Populate form with session data
                         document.getElementById('editSessionId').value = data.session.id;
