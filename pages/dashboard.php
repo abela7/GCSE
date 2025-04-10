@@ -700,9 +700,24 @@ $accent_color = "#cdaf56";
                             <label for="estimated_duration" class="form-label">Estimated Duration (minutes)</label>
                             <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" min="1" value="30" required>
                         </div>
+                        <!-- Add a hidden field to indicate this is from the dashboard -->
+                        <input type="hidden" name="from_dashboard" value="1">
+                        <!-- Add a return URL so we can redirect back to the dashboard -->
+                        <input type="hidden" name="return_url" value="/pages/dashboard.php">
                     </div>
                     <div class="mt-4">
-                        <div id="alert-container"></div>
+                        <div id="alert-container">
+                            <?php if (isset($_SESSION['task_message'])): ?>
+                                <div class="alert alert-<?php echo $_SESSION['task_message_type']; ?> alert-dismissible fade show" role="alert">
+                                    <?php echo $_SESSION['task_message']; ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <?php 
+                                    unset($_SESSION['task_message']);
+                                    unset($_SESSION['task_message_type']);
+                                ?>
+                            <?php endif; ?>
+                        </div>
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Add Task</button>
@@ -749,65 +764,7 @@ $accent_color = "#cdaf56";
         // Set default due date to today
         document.getElementById('due_date').valueAsDate = new Date();
         
-        // Handle form submission
-        document.getElementById('addTaskForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            fetch('/pages/tasks/save_task.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    console.error('Server responded with status:', response.status);
-                    throw new Error('Server response was not ok: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Server response:', data);
-                if (data.success) {
-                    // Show success message
-                    const alertContainer = document.getElementById('alert-container');
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            ${data.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `;
-                    
-                    // Close modal after a short delay
-                    setTimeout(() => {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addTaskModal'));
-                        modal.hide();
-                        
-                        // Reload page to show the new task
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    // Show error message
-                    const alertContainer = document.getElementById('alert-container');
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            ${data.message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                const alertContainer = document.getElementById('alert-container');
-                alertContainer.innerHTML = `
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        An error occurred while adding the task. Error details: ${error.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
-            });
-        });
+        // No AJAX submission - letting the form submit normally
     });
 </script>
 
