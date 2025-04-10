@@ -788,18 +788,23 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                         echo "<div class='date'>$day_count</div>";
                         
                         // NEW FEATURE: Habit Frequency - Add scheduled day indicators
-                        foreach ($habit_schedules as $habit_id => $schedule) {
+                        // Get current day of week for schedule checks
+                        $current_day_of_week = $current_date->format('w'); // 0 (Sunday) to 6 (Saturday)
+                        
+                        foreach ($habit_schedules as $h_id => $schedule) {
                             // Skip if habit is filtered out
-                            if ($habit_id !== 'all' && $habit_id != $habit_id && $habit_id !== 'all') continue;
+                            if ($habit_id !== 'all' && $h_id != $habit_id) continue;
+                            if ($category_id !== 'all' && isset($habits[$h_id]) && $habits[$h_id]['category_id'] != $category_id) continue;
                             
-                            if (in_array((int)$day_of_week, $schedule['days'])) {
+                            if (in_array((int)$current_day_of_week, $schedule['days'])) {
                                 echo "<div class='schedule-indicator' title='Scheduled: {$schedule['name']}'></div>";
                                 break; // Only show one indicator per day
                             }
                         }
                         
-                        // Only show habit details for the current month
-                        if ($cell_class !== 'other-month') {
+                        // Only show habit details for the current month (not for other-month cells)
+                        $is_other_month = in_array('other-month', $td_classes);
+                        if (!$is_other_month) {
                             echo "<div class='habit-info'>";
                             
                             // For each habit, check if there's a completion status
