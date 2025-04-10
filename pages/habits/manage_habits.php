@@ -546,6 +546,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Function to update category icon - added to fix the edit issue
+function updateCategoryIcon() {
+    const categorySelect = document.getElementById('habit_category_id');
+    const iconDisplay = document.getElementById('selectedCategoryIcon');
+    
+    if (categorySelect && iconDisplay) {
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        const icon = selectedOption.getAttribute('data-icon');
+        const color = selectedOption.getAttribute('data-color');
+        iconDisplay.className = icon + ' fa-lg';
+        iconDisplay.style.color = color;
+    }
+}
+
 // Edit habit
 function editHabit(habitId) {
     // Fetch habit data

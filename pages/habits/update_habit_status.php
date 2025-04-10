@@ -1,17 +1,12 @@
 <?php
 // Include database connection
-include '../../includes/db_connection.php';
-include '../../includes/session.php';
+include '../../includes/db_connect.php';
+
+// Start session
+session_start();
 
 // Initialize response array
 $response = ['success' => false, 'message' => ''];
-
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    $response['message'] = 'User not logged in';
-    echo json_encode($response);
-    exit;
-}
 
 // Check if required parameters are provided
 if (!isset($_POST['habit_id']) || !isset($_POST['status'])) {
@@ -22,7 +17,6 @@ if (!isset($_POST['habit_id']) || !isset($_POST['status'])) {
 
 $habit_id = $_POST['habit_id'];
 $status = $_POST['status'];
-$user_id = $_SESSION['user_id'];
 $current_date = date('Y-m-d');
 
 // Validate status
@@ -33,20 +27,32 @@ if ($status !== 'completed' && $status !== 'procrastinated') {
 }
 
 // Check if habit belongs to the user
-$check_query = "SELECT h.id, h.points FROM habits h WHERE h.id = ? AND h.user_id = ?";
+$check_query = "SELECT h.id, h.point_rule_id FROM habits h WHERE h.id = ?";
 $check_stmt = $conn->prepare($check_query);
-$check_stmt->bind_param("ii", $habit_id, $user_id);
+$check_stmt->bind_param("i", $habit_id);
 $check_stmt->execute();
 $check_result = $check_stmt->get_result();
 
 if ($check_result->num_rows === 0) {
-    $response['message'] = 'Habit not found or does not belong to user';
+    $response['message'] = 'Habit not found';
     echo json_encode($response);
     exit;
 }
 
+// Get point rule information
 $habit_data = $check_result->fetch_assoc();
-$points = $habit_data['points'];
+$point_rule_id = $habit_data['point_rule_id'];
+
+// Get points from point rule
+$points_query = "SELECT completion_points, procrastinated_points FROM habit_point_rules WHERE id = ?";
+$points_stmt = $conn->prepare($points_query);
+$points_stmt->bind_param("i", $point_rule_id);
+$points_stmt->execute();
+$points_result = $points_stmt->get_result();
+$points_data = $points_result->fetch_assoc();
+
+$completion_points = $points_data['completion_points'];
+$procrastinated_points = $points_data['procrastinated_points'];
 
 // Begin transaction
 $conn->begin_transaction();
@@ -74,21 +80,24 @@ try {
         $update_stmt->execute();
     } else {
         // Insert new record
+        $current_time = date('H:i:s');
         $insert_query = "INSERT INTO habit_completions 
-                         (habit_id, user_id, completion_date, status, created_at, updated_at) 
+                         (habit_id, completion_date, completion_time, status, created_at, updated_at) 
                          VALUES (?, ?, ?, ?, NOW(), NOW())";
         $insert_stmt = $conn->prepare($insert_query);
-        $insert_stmt->bind_param("iiss", $habit_id, $user_id, $current_date, $status);
+        $insert_stmt->bind_param("isss", $habit_id, $current_date, $current_time, $status);
         $insert_stmt->execute();
     }
     
     // Award points to the user
-    $points_to_award = ($status === 'completed') ? $points : ($points / 2);
+    $points_to_award = ($status === 'completed') ? $completion_points : $procrastinated_points;
     
-    $update_points = "UPDATE users SET points = points + ? WHERE id = ?";
-    $points_stmt = $conn->prepare($update_points);
-    $points_stmt->bind_param("di", $points_to_award, $user_id);
-    $points_stmt->execute();
+    // Record points as part of completion
+    $update_points_query = "UPDATE habit_completions SET points_earned = ? 
+                           WHERE habit_id = ? AND completion_date = ?";
+    $points_update_stmt = $conn->prepare($update_points_query);
+    $points_update_stmt->bind_param("dis", $points_to_award, $habit_id, $current_date);
+    $points_update_stmt->execute();
     
     // Commit transaction
     $conn->commit();
