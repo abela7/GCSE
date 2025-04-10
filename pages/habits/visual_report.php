@@ -326,6 +326,235 @@ uasort($category_points, function($a, $b) {
                     </div>
                 </div>
             </div>
+
+            <!-- Category Points Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Points by Category</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW FEATURE: Habit Frequency - Weekly Habits Performance -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Weekly Habit Performance</h5>
+                </div>
+                <div class="card-body">
+                    <?php
+                    // Get frequency-based habits with progress
+                    $frequency_query = "
+                        SELECT 
+                            h.id,
+                            h.name,
+                            hf.times_per_week,
+                            (SELECT COUNT(*) FROM habit_completions hc 
+                             WHERE hc.habit_id = h.id 
+                             AND hc.completion_date BETWEEN ? AND ?
+                             AND hc.status = 'completed') as actual_completions
+                        FROM habits h
+                        JOIN habit_frequency hf ON h.id = hf.habit_id
+                        WHERE h.is_active = 1";
+                    
+                    if ($category_id !== 'all') {
+                        $frequency_query .= " AND h.category_id = ?";
+                        $params = [$start_date, $end_date, $category_id];
+                        $types = "ssi";
+                    } else {
+                        $params = [$start_date, $end_date];
+                        $types = "ss";
+                    }
+                    
+                    $frequency_query .= " ORDER BY h.name";
+                    
+                    $stmt = $conn->prepare($frequency_query);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $frequency_result = $stmt->get_result();
+                    
+                    if ($frequency_result->num_rows > 0):
+                        // Calculate date range in weeks
+                        $start = new DateTime($start_date);
+                        $end = new DateTime($end_date);
+                        $interval = $start->diff($end);
+                        $days = $interval->days + 1;
+                        $weeks = max(1, ceil($days / 7));
+                    ?>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Habit</th>
+                                    <th>Target</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($habit = $frequency_result->fetch_assoc()): 
+                                    $total_expected = $habit['times_per_week'] * $weeks;
+                                    $completion_rate = $total_expected > 0 ? 
+                                        min(100, ($habit['actual_completions'] / $total_expected) * 100) : 0;
+                                    
+                                    // Determine color based on completion rate
+                                    if ($completion_rate >= 90) {
+                                        $color_class = 'bg-success';
+                                    } elseif ($completion_rate >= 70) {
+                                        $color_class = 'bg-info';
+                                    } elseif ($completion_rate >= 50) {
+                                        $color_class = 'bg-warning';
+                                    } else {
+                                        $color_class = 'bg-danger';
+                                    }
+                                ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($habit['name']); ?></td>
+                                    <td><?php echo $habit['times_per_week']; ?> times/week</td>
+                                    <td class="w-50">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress w-100" style="height: 10px;">
+                                                <div class="progress-bar <?php echo $color_class; ?>" role="progressbar" 
+                                                     style="width: <?php echo $completion_rate; ?>%" 
+                                                     aria-valuenow="<?php echo $completion_rate; ?>" 
+                                                     aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="text-nowrap">
+                                                <?php echo $habit['actual_completions']; ?>/<?php echo $total_expected; ?>
+                                                (<?php echo round($completion_rate); ?>%)
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php else: ?>
+                    <div class="alert alert-info">
+                        No frequency-based habits found in this date range.
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Day-Specific Habits Performance -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Day-Specific Habits</h5>
+                </div>
+                <div class="card-body">
+                    <?php
+                    // Get day-specific habits with progress
+                    $specific_days_query = "
+                        SELECT 
+                            h.id,
+                            h.name,
+                            GROUP_CONCAT(hs.day_of_week ORDER BY hs.day_of_week) as scheduled_days,
+                            COUNT(hs.id) as day_count,
+                            (SELECT COUNT(*) FROM habit_completions hc 
+                             WHERE hc.habit_id = h.id 
+                             AND hc.completion_date BETWEEN ? AND ?
+                             AND hc.status = 'completed') as completions
+                        FROM habits h
+                        JOIN habit_schedule hs ON h.id = hs.habit_id
+                        WHERE h.is_active = 1";
+                    
+                    if ($category_id !== 'all') {
+                        $specific_days_query .= " AND h.category_id = ?";
+                        $params = [$start_date, $end_date, $category_id];
+                        $types = "ssi";
+                    } else {
+                        $params = [$start_date, $end_date];
+                        $types = "ss";
+                    }
+                    
+                    $specific_days_query .= " GROUP BY h.id, h.name ORDER BY h.name";
+                    
+                    $stmt = $conn->prepare($specific_days_query);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $specific_days_result = $stmt->get_result();
+                    
+                    if ($specific_days_result->num_rows > 0):
+                        $days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    ?>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Habit</th>
+                                    <th>Scheduled On</th>
+                                    <th>Completions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($habit = $specific_days_result->fetch_assoc()): 
+                                    $day_numbers = explode(',', $habit['scheduled_days']);
+                                    $day_names = array_map(function($day) use ($days_of_week) {
+                                        return $days_of_week[(int)$day];
+                                    }, $day_numbers);
+                                    $day_display = implode(', ', $day_names);
+                                    
+                                    // Calculate expected occurrences in the date range
+                                    $expected = 0;
+                                    $current_date = new DateTime($start_date);
+                                    $end_date_obj = new DateTime($end_date);
+                                    
+                                    while ($current_date <= $end_date_obj) {
+                                        $current_day = $current_date->format('w'); // 0=Sunday, 6=Saturday
+                                        if (in_array($current_day, $day_numbers)) {
+                                            $expected++;
+                                        }
+                                        $current_date->modify('+1 day');
+                                    }
+                                    
+                                    // Calculate completion rate
+                                    $completion_rate = $expected > 0 ? 
+                                        min(100, ($habit['completions'] / $expected) * 100) : 0;
+                                    
+                                    // Determine color based on completion rate
+                                    if ($completion_rate >= 90) {
+                                        $color_class = 'bg-success';
+                                    } elseif ($completion_rate >= 70) {
+                                        $color_class = 'bg-info';
+                                    } elseif ($completion_rate >= 50) {
+                                        $color_class = 'bg-warning';
+                                    } else {
+                                        $color_class = 'bg-danger';
+                                    }
+                                ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($habit['name']); ?></td>
+                                    <td><?php echo $day_display; ?></td>
+                                    <td class="w-50">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress w-100" style="height: 10px;">
+                                                <div class="progress-bar <?php echo $color_class; ?>" role="progressbar" 
+                                                     style="width: <?php echo $completion_rate; ?>%" 
+                                                     aria-valuenow="<?php echo $completion_rate; ?>" 
+                                                     aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <span class="text-nowrap">
+                                                <?php echo $habit['completions']; ?>/<?php echo $expected; ?>
+                                                (<?php echo round($completion_rate); ?>%)
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php else: ?>
+                    <div class="alert alert-info">
+                        No day-specific habits found in this date range.
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         <?php endif; ?>
     </div>
 

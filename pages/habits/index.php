@@ -5,8 +5,26 @@ require_once '../../includes/db_connect.php';  // Database connection
 // Set timezone to London
 date_default_timezone_set('Europe/London');
 
-// Get today's date
+// Get today's date and day of week (0-6, Sunday-Saturday)
 $today = date('Y-m-d');
+$today_day_of_week = date('w'); // 0=Sunday, 1=Monday, etc.
+
+// NEW FEATURE: Habit Frequency - Helper function to get week bounds
+function getWeekBounds($start_day = 0) {
+    $today = date('Y-m-d');
+    $today_day_of_week = date('w');
+    
+    // Calculate days to subtract to get to the start of the week
+    $days_to_start = ($today_day_of_week - $start_day + 7) % 7;
+    
+    $week_start = date('Y-m-d', strtotime("-{$days_to_start} days", strtotime($today)));
+    $week_end = date('Y-m-d', strtotime("+6 days", strtotime($week_start)));
+    
+    return ['start' => $week_start, 'end' => $week_end];
+}
+
+// Default week bounds (Sunday-Saturday)
+$default_week_bounds = getWeekBounds(0);
 
 // Get all habits with their categories and point rules
 $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color, hc.icon as category_icon,
@@ -16,14 +34,52 @@ $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_colo
                  (SELECT completion_time FROM habit_completions 
                   WHERE habit_id = h.id AND completion_date = ?) as completion_time,
                  (SELECT points_earned FROM habit_completions 
-                  WHERE habit_id = h.id AND completion_date = ?) as today_points
+                  WHERE habit_id = h.id AND completion_date = ?) as today_points,
+                 
+                 /* NEW FEATURE: Habit Frequency - Frequency data */
+                 (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) as times_per_week,
+                 (SELECT hf.week_starts_on FROM habit_frequency hf WHERE hf.habit_id = h.id) as week_starts_on,
+                 
+                 /* NEW FEATURE: Habit Frequency - Completions this week for frequency-based habits */
+                 (SELECT COUNT(*) FROM habit_completions hc 
+                  WHERE hc.habit_id = h.id 
+                  AND hc.completion_date BETWEEN ? AND ?
+                  AND hc.status = 'completed') as completions_this_week,
+                  
+                 /* NEW FEATURE: Habit Frequency - Check if scheduled for today */
+                 (SELECT COUNT(*) FROM habit_schedule hs 
+                  WHERE hs.habit_id = h.id AND hs.day_of_week = ?) as is_scheduled_today
+                 
                  FROM habits h
                  LEFT JOIN habit_categories hc ON h.category_id = hc.id
                  LEFT JOIN habit_point_rules hpr ON h.point_rule_id = hpr.id
                  WHERE h.is_active = 1
+                 AND (
+                     /* Daily habits (no schedule entries) */
+                     (NOT EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id) 
+                      AND NOT EXISTS (SELECT 1 FROM habit_frequency hf WHERE hf.habit_id = h.id))
+                      
+                     /* OR specific day habits scheduled for today */
+                     OR EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id AND hs.day_of_week = ?)
+                     
+                     /* OR frequency-based habits that haven't met their weekly quota */
+                     OR (EXISTS (SELECT 1 FROM habit_frequency hf WHERE hf.habit_id = h.id)
+                         AND (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) > 
+                             (SELECT COUNT(*) FROM habit_completions hc 
+                              WHERE hc.habit_id = h.id 
+                              AND hc.completion_date BETWEEN ? AND ?
+                              AND hc.status = 'completed'))
+                 )
                  ORDER BY h.target_time";
+
 $stmt = $conn->prepare($habits_query);
-$stmt->bind_param("sss", $today, $today, $today);
+$stmt->bind_param("sssssssss", 
+    $today, $today, $today, 
+    $default_week_bounds['start'], $default_week_bounds['end'],
+    $today_day_of_week,
+    $today_day_of_week,
+    $default_week_bounds['start'], $default_week_bounds['end']
+);
 $stmt->execute();
 $habits_result = $stmt->get_result();
 
@@ -107,6 +163,33 @@ while ($habit = $habits_result->fetch_assoc()) {
                                 <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
                                     <?php echo htmlspecialchars($habit['name']); ?>
                                 </h3>
+                                
+                                <?php 
+                                // NEW FEATURE: Habit Frequency - Show frequency info if applicable
+                                if (!empty($habit['times_per_week'])): 
+                                    $completions = (int)$habit['completions_this_week'];
+                                    $total = (int)$habit['times_per_week'];
+                                    $percent = min(100, ($completions / $total) * 100);
+                                ?>
+                                <div class="frequency-indicator mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-info" role="progressbar" 
+                                                 style="width: <?php echo $percent; ?>%" 
+                                                 aria-valuenow="<?php echo $percent; ?>" 
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="fw-medium"><?php echo $completions; ?>/<?php echo $total; ?></span> this week
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php elseif (!empty($habit['is_scheduled_today']) && $habit['is_scheduled_today'] > 0): ?>
+                                <div class="schedule-indicator mb-1">
+                                    <span class="badge bg-secondary">Scheduled today</span>
+                                </div>
+                                <?php endif; ?>
+                                
                                 <div class="text-muted text-truncate" style="font-size: 0.9rem;">
                                     <?php echo htmlspecialchars($habit['category_name']); ?>
                                     <span class="mx-2">•</span>
@@ -203,6 +286,33 @@ while ($habit = $habits_result->fetch_assoc()) {
                                 <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
                                     <?php echo htmlspecialchars($habit['name']); ?>
                                 </h3>
+                                
+                                <?php 
+                                // NEW FEATURE: Habit Frequency - Show frequency info if applicable
+                                if (!empty($habit['times_per_week'])): 
+                                    $completions = (int)$habit['completions_this_week'];
+                                    $total = (int)$habit['times_per_week'];
+                                    $percent = min(100, ($completions / $total) * 100);
+                                ?>
+                                <div class="frequency-indicator mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar bg-info" role="progressbar" 
+                                                 style="width: <?php echo $percent; ?>%" 
+                                                 aria-valuenow="<?php echo $percent; ?>" 
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="fw-medium"><?php echo $completions; ?>/<?php echo $total; ?></span> this week
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php elseif (!empty($habit['is_scheduled_today']) && $habit['is_scheduled_today'] > 0): ?>
+                                <div class="schedule-indicator mb-1">
+                                    <span class="badge bg-secondary">Scheduled today</span>
+                                </div>
+                                <?php endif; ?>
+                                
                                 <div class="text-muted text-truncate" style="font-size: 0.9rem;">
                                     <?php echo htmlspecialchars($habit['category_name']); ?>
                                     <span class="mx-2">•</span>
