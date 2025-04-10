@@ -82,6 +82,58 @@ include '../includes/header.php';
     </div>
 </div>
 
+<!-- Edit Session Modal -->
+<div class="modal fade" id="editSessionModal" tabindex="-1" aria-labelledby="editSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSessionModalLabel">Edit Study Session</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSessionForm" action="../includes/edit_session.php" method="post">
+                    <input type="hidden" id="editSessionId" name="session_id">
+                    
+                    <div class="mb-3">
+                        <label for="editSessionSubject" class="form-label">Subject</label>
+                        <select class="form-select" id="editSessionSubject" name="subject_id" required>
+                            <option value="">-- Select Subject --</option>
+                            <?php 
+                            if ($subjects_result->num_rows > 0) {
+                                $subjects_result->data_seek(0);
+                                while ($subject = $subjects_result->fetch_assoc()) {
+                                    echo '<option value="' . $subject['id'] . '">' . htmlspecialchars($subject['name']) . '</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editSessionDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="editSessionDate" name="date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editSessionDuration" class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-control" id="editSessionDuration" name="duration" min="5" max="480" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editSessionNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="editSessionNotes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Alert Container for JavaScript notifications -->
 <div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
 
@@ -227,10 +279,6 @@ include '../includes/header.php';
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <button type="button" class="btn btn-outline-primary edit-session-btn" data-session-id="<?php echo $session['id']; ?>">
-                                            <i class="fas fa-edit"></i
-                                            <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button type="button" class="btn btn-outline-primary edit-session-btn" data-session-id="<?php echo $session['id']; ?>">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-outline-danger delete-session-btn" data-session-id="<?php echo $session['id']; ?>">
@@ -286,6 +334,78 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error:', error);
                 showAlert('An error occurred while adding the study session.', 'danger');
+            });
+        });
+    }
+    
+    // Edit session buttons
+    const editSessionBtns = document.querySelectorAll('.edit-session-btn');
+    const editSessionModal = new bootstrap.Modal(document.getElementById('editSessionModal'));
+    
+    editSessionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sessionId = this.getAttribute('data-session-id');
+            
+            // Fetch session details
+            fetch(`../includes/get_session.php?session_id=${sessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Populate form with session data
+                        document.getElementById('editSessionId').value = data.session.id;
+                        document.getElementById('editSessionSubject').value = data.session.subject_id;
+                        document.getElementById('editSessionDate').value = data.session.date;
+                        document.getElementById('editSessionDuration').value = data.session.duration;
+                        document.getElementById('editSessionNotes').value = data.session.notes || '';
+                        
+                        // Show modal
+                        editSessionModal.show();
+                    } else {
+                        showAlert('Error loading session data: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('An error occurred while loading the session data.', 'danger');
+                });
+        });
+    });
+    
+    // Edit session form submission
+    const editSessionForm = document.getElementById('editSessionForm');
+    
+    if (editSessionForm) {
+        editSessionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showAlert('Study session updated successfully!', 'success');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editSessionModal'));
+                    modal.hide();
+                    
+                    // Reload page to show updated session
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Show error message
+                    showAlert('Error updating study session: ' + data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('An error occurred while updating the study session.', 'danger');
             });
         });
     }
