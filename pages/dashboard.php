@@ -354,81 +354,9 @@ $accent_color = "#cdaf56";
         <?php } ?>
     </div>
 
-    <!-- Main Features Navigation -->
+    <!-- Features -->
     <div class="section-heading">
-        <h4><i class="fas fa-th-large me-2"></i>Main Features</h4>
-        <div class="line"></div>
-    </div>
-    
-    <div class="row mb-4">
-        <!-- Task Manager -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <h5>Task Manager</h5>
-                    <p>Create, organize, and complete tasks to stay on top of your studies and assignments.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="tasks/index.php" class="btn btn-sm btn-outline-accent">Manage Tasks</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Habit Tracker -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h5>Habit Tracker</h5>
-                    <p>Build and maintain productive study habits with daily tracking and streaks.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="habits/index.php" class="btn btn-sm btn-outline-accent">Track Habits</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mood Tracker -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg">
-                        <i class="fas fa-smile"></i>
-                    </div>
-                    <h5>Mood Tracker</h5>
-                    <p>Monitor your emotional well-being and identify patterns to optimize your study performance.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="mood_tracking/entry.php" class="btn btn-sm btn-outline-accent">Track Mood</a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- English Practice -->
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card feature-card">
-                <div class="card-body">
-                    <div class="icon-bg">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h5>English Practice</h5>
-                    <p>Improve your language skills with comprehensive English practice materials and exercises.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="EnglishPractice/index.php" class="btn btn-sm btn-outline-accent">Practice English</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Secondary Features -->
-    <div class="section-heading">
-        <h4><i class="fas fa-tools me-2"></i>Additional Tools</h4>
+        <h4><i class="fas fa-tools me-2"></i>Features</h4>
         <div class="line"></div>
     </div>
     
