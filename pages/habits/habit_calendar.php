@@ -537,6 +537,85 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
             outline: 2px solid #0d6efd;
             outline-offset: 2px;
         }
+        /* NEW FEATURE: Habit Frequency - Styles for scheduled days and frequency indicators */
+        .legend-freq-indicator {
+            width: 20px;
+            height: 4px;
+            background: linear-gradient(to right, #0dcaf0 50%, #e9ecef 50%);
+            border-radius: 2px;
+        }
+        .calendar td .schedule-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 6px 6px 0 0;
+            border-color: #0dcaf0 transparent transparent transparent;
+        }
+        .calendar td .habit-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            padding-top: 10px;
+            font-size: 0.65rem;
+        }
+        .calendar td .habit-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 2px;
+        }
+        .calendar td .frequency-progress {
+            height: 3px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            position: relative;
+            width: 100%;
+            margin-top: 1px;
+            margin-bottom: 1px;
+        }
+        .calendar td .frequency-progress .progress-bar {
+            height: 100%;
+            background-color: #0dcaf0;
+            border-radius: 2px;
+        }
+        
+        /* Tablet and desktop styles */
+        @media (min-width: 768px) {
+            .calendar td .habit-info {
+                padding-top: 12px;
+                font-size: 0.7rem;
+            }
+        }
+        /* NEW FEATURE: Habit Frequency - Styles for modal items */
+        .habit-item {
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+        }
+        .habit-item.scheduled {
+            background-color: rgba(13, 202, 240, 0.1);
+        }
+        .habit-item.frequency {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        .habit-status {
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .habit-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -597,16 +676,25 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
         <!-- Legend -->
         <div class="legend">
             <div class="legend-item">
-                <i class="fas fa-check" style="color: #28a745;"></i>
+                <i class="fas fa-check-circle text-success"></i>
                 <span>Completed</span>
             </div>
             <div class="legend-item">
-                <i class="fas fa-clock" style="color: #ffc107;"></i>
-                <span>Later</span>
+                <i class="fas fa-clock text-warning"></i>
+                <span>Procrastinated</span>
             </div>
             <div class="legend-item">
-                <i class="fas fa-times" style="color: #dc3545;"></i>
+                <i class="fas fa-times-circle text-danger"></i>
                 <span>Skipped</span>
+            </div>
+            <!-- NEW FEATURE: Habit Frequency - Add legend for schedule indicators -->
+            <div class="legend-item">
+                <i class="fas fa-calendar-day text-info"></i>
+                <span>Scheduled Day</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-freq-indicator"></div>
+                <span>Weekly Progress</span>
             </div>
         </div>
 
@@ -698,6 +786,71 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
 
                         echo "<td class='" . implode(' ', $td_classes) . "' data-date='" . $current_date_str . "'>";
                         echo "<div class='date'>$day_count</div>";
+                        
+                        // NEW FEATURE: Habit Frequency - Add scheduled day indicators
+                        foreach ($habit_schedules as $habit_id => $schedule) {
+                            // Skip if habit is filtered out
+                            if ($habit_id !== 'all' && $habit_id != $habit_id && $habit_id !== 'all') continue;
+                            
+                            if (in_array((int)$day_of_week, $schedule['days'])) {
+                                echo "<div class='schedule-indicator' title='Scheduled: {$schedule['name']}'></div>";
+                                break; // Only show one indicator per day
+                            }
+                        }
+                        
+                        // Only show habit details for the current month
+                        if ($cell_class !== 'other-month') {
+                            echo "<div class='habit-info'>";
+                            
+                            // For each habit, check if there's a completion status
+                            foreach ($habits as $id => $habit) {
+                                $key = $id . '_' . $current_date_str;
+                                
+                                // Skip if habit is filtered out
+                                if ($habit_id !== 'all' && $id != $habit_id) continue;
+                                if ($category_id !== 'all' && $habit['category_id'] != $category_id) continue;
+                                
+                                // NEW FEATURE: Habit Frequency - Show frequency progress
+                                if (isset($habit_frequencies[$id])) {
+                                    $freq_info = $habit_frequencies[$id];
+                                    $completions_count = getWeeklyCompletionsCount($id, $all_habit_completions, $current_date_str, $freq_info['week_starts_on']);
+                                    $percent = min(100, ($completions_count / $freq_info['times_per_week']) * 100);
+                                    
+                                    echo "<div class='frequency-progress' title='{$freq_info['name']}: $completions_count/{$freq_info['times_per_week']} this week'>";
+                                    echo "<div class='progress-bar' style='width: $percent%'></div>";
+                                    echo "</div>";
+                                }
+                                
+                                if (isset($habit_completions[$key])) {
+                                    $completion = $habit_completions[$key];
+                                    
+                                    // Show status dot with different colors
+                                    $dot_color = '';
+                                    $status_icon = '';
+                                    switch ($completion['status']) {
+                                        case 'completed':
+                                            $dot_color = '#28a745';
+                                            $status_icon = 'check-circle';
+                                            break;
+                                        case 'procrastinated':
+                                            $dot_color = '#ffc107';
+                                            $status_icon = 'clock';
+                                            break;
+                                        case 'skipped':
+                                            $dot_color = '#dc3545';
+                                            $status_icon = 'times-circle';
+                                            break;
+                                    }
+                                    
+                                    echo "<div title='{$completion['habit_name']}: {$completion['status']}'>";
+                                    echo "<span class='habit-dot' style='background-color: $dot_color;'></span>";
+                                    echo "</div>";
+                                }
+                            }
+                            
+                            echo "</div>"; // End habit-info
+                        }
+                        
                         echo "</td>";
                         
                         $current_date->modify('+1 day');
@@ -730,6 +883,24 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                     </button>
                 </div>
                 <div class="modal-body" id="habitModalBody" role="main">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Detail Modal -->
+    <div class="modal fade" id="dayModal" tabindex="-1" aria-labelledby="dayModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dayModalTitle">Habit Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="dayModalBody">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -961,6 +1132,235 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
             lastClickedCell.focus();
         }
     });
+
+    // NEW FEATURE: Habit Frequency - Helper function to get week number in month
+    function getWeekNumberInMonth($date_str) {
+        $date = new DateTime($date_str);
+        $first_day = new DateTime($date->format('Y-m-01'));
+        $days_diff = $date->diff($first_day)->days;
+        return floor(($days_diff + intval($first_day->format('w'))) / 7) + 1;
+    }
+
+    // NEW FEATURE: Habit Frequency - Helper function to get weekly completions
+    function getWeeklyCompletionsCount($habit_id, $completions, $date_str, $week_starts_on = 0) {
+        $date = new DateTime($date_str);
+        
+        // Get the start of the week
+        $day_of_week = intval($date->format('w')); // 0 (Sunday) to 6 (Saturday)
+        $days_to_start = ($day_of_week - $week_starts_on + 7) % 7;
+        $week_start = (clone $date)->modify("-$days_to_start days")->format('Y-m-d');
+        
+        // Get the end of the week
+        $week_end = (clone $date)->modify("+" . (6 - $days_to_start) . " days")->format('Y-m-d');
+        
+        // Count completions in this week
+        $count = 0;
+        if (isset($completions[$habit_id])) {
+            foreach ($completions[$habit_id] as $completion_date) {
+                if ($completion_date >= $week_start && $completion_date <= $week_end) {
+                    $count++;
+                }
+            }
+        }
+        
+        return $count;
+    }
+
+    // showDayModal function to display habit details for a specific day
+    function showDayModal(date, day) {
+        const modal = document.getElementById('dayModal');
+        const modalTitle = document.getElementById('dayModalTitle');
+        const modalBody = document.getElementById('dayModalBody');
+        
+        // Format the date for display
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        modalTitle.textContent = formattedDate;
+        
+        // Get the habits for this day
+        let habitsHtml = '';
+        
+        <?php
+        // Pass PHP data to JavaScript
+        echo "const habitCompletions = " . json_encode($habit_completions) . ";\n";
+        echo "const habits = " . json_encode($habits) . ";\n";
+        echo "const categories = " . json_encode($categories) . ";\n";
+        // NEW FEATURE: Habit Frequency - Pass schedule and frequency data
+        echo "const habitSchedules = " . json_encode($habit_schedules) . ";\n";
+        echo "const habitFrequencies = " . json_encode($habit_frequencies) . ";\n";
+        echo "const allHabitCompletions = " . json_encode($all_habit_completions) . ";\n";
+        ?>
+        
+        // First show habits that have completions for this day
+        let hasCompletions = false;
+        for (const id in habits) {
+            const habit = habits[id];
+            const key = `${id}_${date}`;
+            
+            if (habitCompletions[key]) {
+                hasCompletions = true;
+                const completion = habitCompletions[key];
+                const category = categories[habit.category_id] || { color: '#6c757d' };
+                
+                let statusClass = '';
+                let statusIcon = '';
+                switch (completion.status) {
+                    case 'completed':
+                        statusClass = 'text-success';
+                        statusIcon = 'check-circle';
+                        break;
+                    case 'procrastinated':
+                        statusClass = 'text-warning';
+                        statusIcon = 'clock';
+                        break;
+                    case 'skipped':
+                        statusClass = 'text-danger';
+                        statusIcon = 'times-circle';
+                        break;
+                }
+                
+                habitsHtml += `
+                    <div class="habit-item">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="habit-icon" style="color: ${category.color}">
+                                    <i class="${category.icon || 'fas fa-check-circle'} fa-lg"></i>
+                                </div>
+                                <h6 class="mb-0">${habit.name}</h6>
+                            </div>
+                            <div class="habit-status ${statusClass}">
+                                <i class="fas fa-${statusIcon}"></i>
+                                ${completion.status}
+                            </div>
+                        </div>
+                        ${completion.time ? `<div class="small text-muted mb-1">Completed at: ${completion.time}</div>` : ''}
+                        ${completion.reason ? `<div class="small text-muted mb-1">Reason: ${completion.reason}</div>` : ''}
+                        ${completion.notes ? `<div class="small text-muted mb-1">Notes: ${completion.notes}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        
+        // NEW FEATURE: Habit Frequency - Show scheduled habits for this day
+        const currentDayOfWeek = new Date(date).getDay(); // 0 (Sunday) to 6 (Saturday)
+        let hasScheduled = false;
+        let scheduledSection = '<h6 class="mt-3 mb-2">Scheduled Habits</h6>';
+        
+        // Show habits that are scheduled for this day of week
+        for (const id in habitSchedules) {
+            const schedule = habitSchedules[id];
+            
+            if (schedule.days.includes(currentDayOfWeek)) {
+                hasScheduled = true;
+                const habit = habits[id] || { name: schedule.name };
+                const category = categories[habit.category_id] || { color: '#6c757d' };
+                
+                // Check if this habit already has a completion
+                const key = `${id}_${date}`;
+                const hasCompletion = habitCompletions[key] !== undefined;
+                
+                if (!hasCompletion) {
+                    scheduledSection += `
+                        <div class="habit-item scheduled">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="habit-icon" style="color: ${category.color}">
+                                    <i class="${category.icon || 'fas fa-check-circle'} fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">${habit.name}</h6>
+                                    <div class="small text-muted">Scheduled for this day</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // NEW FEATURE: Habit Frequency - Show weekly progress for frequency-based habits
+        let hasFrequency = false;
+        let frequencySection = '<h6 class="mt-3 mb-2">Weekly Progress</h6>';
+        
+        for (const id in habitFrequencies) {
+            const freq = habitFrequencies[id];
+            const habit = habits[id] || { name: freq.name };
+            const category = categories[habit.category_id] || { color: '#6c757d' };
+            
+            // Calculate the weekly progress
+            hasFrequency = true;
+            let completionsCount = 0;
+            const weekStartsOn = freq.week_starts_on;
+            
+            // Get date objects for the week
+            const currentDate = new Date(date);
+            const dayOfWeek = currentDate.getDay();
+            const daysToStart = (dayOfWeek - weekStartsOn + 7) % 7;
+            
+            const weekStart = new Date(currentDate);
+            weekStart.setDate(currentDate.getDate() - daysToStart);
+            weekStart.setHours(0, 0, 0, 0);
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            
+            // Count completions in this week
+            if (allHabitCompletions[id]) {
+                for (const completionDate of allHabitCompletions[id]) {
+                    const completionDateObj = new Date(completionDate);
+                    if (completionDateObj >= weekStart && completionDateObj <= weekEnd) {
+                        completionsCount++;
+                    }
+                }
+            }
+            
+            const progressPercent = Math.min(100, (completionsCount / freq.times_per_week) * 100);
+            
+            frequencySection += `
+                <div class="habit-item frequency">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="habit-icon" style="color: ${category.color}">
+                            <i class="${category.icon || 'fas fa-check-circle'} fa-lg"></i>
+                        </div>
+                        <h6 class="mb-0">${habit.name}</h6>
+                    </div>
+                    <div class="progress mb-1" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: ${progressPercent}%" 
+                             aria-valuenow="${progressPercent}" 
+                             aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small text-muted">
+                        ${completionsCount} of ${freq.times_per_week} times this week
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (!hasCompletions && !hasScheduled && !hasFrequency) {
+            habitsHtml = '<div class="alert alert-info">No habits recorded or scheduled for this day.</div>';
+        } else {
+            if (hasCompletions) {
+                habitsHtml = '<h6 class="mb-2">Habit Completions</h6>' + habitsHtml;
+            }
+            if (hasScheduled) {
+                habitsHtml += scheduledSection;
+            }
+            if (hasFrequency) {
+                habitsHtml += frequencySection;
+            }
+        }
+        
+        modalBody.innerHTML = habitsHtml;
+        
+        // Show the modal
+        new bootstrap.Modal(modal).show();
+    }
     </script>
 </body>
 </html>
