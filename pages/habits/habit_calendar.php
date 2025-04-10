@@ -38,7 +38,16 @@ $completions_query = "
         TIME(hc.completion_date) as completion_time,
         hc.status,
         hc.notes,
-        hc.reason
+        hc.reason,
+        /* NEW FEATURE: Habit Frequency - Get schedule information */
+        (SELECT COUNT(*) FROM habit_schedule hs WHERE hs.habit_id = h.id AND hs.day_of_week = WEEKDAY(hc.completion_date) + 1) as is_scheduled_day,
+        (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) as times_per_week,
+        (SELECT hf.week_starts_on FROM habit_frequency hf WHERE hf.habit_id = h.id) as week_starts_on,
+        /* Count completions in the same week for frequency-based habits */
+        (SELECT COUNT(*) FROM habit_completions hc2 
+         WHERE hc2.habit_id = h.id 
+         AND YEARWEEK(hc2.completion_date, 1) = YEARWEEK(hc.completion_date, 1)
+         AND hc2.status = 'completed') as completions_this_week
     FROM habits h
     LEFT JOIN habit_completions hc ON h.id = hc.habit_id 
         AND hc.completion_date BETWEEN ? AND ?
@@ -74,9 +83,72 @@ while ($row = $completions_result->fetch_assoc()) {
             'time' => $row['completion_time'],
             'notes' => $row['notes'],
             'reason' => $row['reason'],
-            'habit_name' => $row['habit_name']
+            'habit_name' => $row['habit_name'],
+            // NEW FEATURE: Habit Frequency - Include schedule information
+            'is_scheduled_day' => $row['is_scheduled_day'] > 0,
+            'times_per_week' => $row['times_per_week'],
+            'week_starts_on' => $row['week_starts_on'],
+            'completions_this_week' => $row['completions_this_week']
         ];
     }
+}
+
+// NEW FEATURE: Habit Frequency - Get schedule information for all habits
+$schedule_info = [];
+
+// Get specific day schedules
+$schedule_query = "
+    SELECT h.id as habit_id, hs.day_of_week
+    FROM habits h
+    JOIN habit_schedule hs ON h.id = hs.habit_id
+    WHERE h.is_active = 1";
+    
+if ($habit_id !== 'all') {
+    $schedule_query .= " AND h.id = " . intval($habit_id);
+}
+
+if ($category_id !== 'all') {
+    $schedule_query .= " AND h.category_id = " . intval($category_id);
+}
+
+$schedule_result = $conn->query($schedule_query);
+while ($row = $schedule_result->fetch_assoc()) {
+    if (!isset($schedule_info[$row['habit_id']])) {
+        $schedule_info[$row['habit_id']] = [
+            'scheduled_days' => [],
+            'times_per_week' => null,
+            'week_starts_on' => 0
+        ];
+    }
+    $schedule_info[$row['habit_id']]['scheduled_days'][] = $row['day_of_week'];
+}
+
+// Get frequency-based schedules
+$frequency_query = "
+    SELECT h.id as habit_id, hf.times_per_week, hf.week_starts_on
+    FROM habits h
+    JOIN habit_frequency hf ON h.id = hf.habit_id
+    WHERE h.is_active = 1";
+    
+if ($habit_id !== 'all') {
+    $frequency_query .= " AND h.id = " . intval($habit_id);
+}
+
+if ($category_id !== 'all') {
+    $frequency_query .= " AND h.category_id = " . intval($category_id);
+}
+
+$frequency_result = $conn->query($frequency_query);
+while ($row = $frequency_result->fetch_assoc()) {
+    if (!isset($schedule_info[$row['habit_id']])) {
+        $schedule_info[$row['habit_id']] = [
+            'scheduled_days' => [],
+            'times_per_week' => null,
+            'week_starts_on' => 0
+        ];
+    }
+    $schedule_info[$row['habit_id']]['times_per_week'] = $row['times_per_week'];
+    $schedule_info[$row['habit_id']]['week_starts_on'] = $row['week_starts_on'];
 }
 
 // Get month name and year for display
@@ -471,6 +543,21 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
             outline: 2px solid #0d6efd;
             outline-offset: 2px;
         }
+        /* NEW FEATURE: Habit Frequency - Style for scheduled days and frequency-based habits */
+        .calendar td.scheduled-day {
+            border-left: 3px solid #6610f2;
+        }
+        .calendar td.frequency-based {
+            border-right: 3px solid #17a2b8;
+        }
+        .frequency-badge {
+            position: absolute;
+            bottom: 2px;
+            left: 3px;
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #17a2b8;
+        }
     </style>
 </head>
 <body>
@@ -542,6 +629,15 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                 <i class="fas fa-times" style="color: #dc3545;"></i>
                 <span>Skipped</span>
             </div>
+            <!-- NEW FEATURE: Habit Frequency - Add legend for scheduled days -->
+            <div class="legend-item">
+                <i class="fas fa-calendar-day" style="color: #6610f2;"></i>
+                <span>Scheduled Day</span>
+            </div>
+            <div class="legend-item">
+                <i class="fas fa-sync-alt" style="color: #17a2b8;"></i>
+                <span>Weekly Frequency</span>
+            </div>
         </div>
 
         <!-- Calendar -->
@@ -590,10 +686,60 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
 
                         $is_current_day = $current_date->format('Y-m-d') === date('Y-m-d');
                         $current_date_str = $current_date->format('Y-m-d');
+                        $current_day_of_week = $current_date->format('w'); // 0=Sunday to 6=Saturday
+                        $current_yearweek = $current_date->format('YW');
                         $td_classes = [];
                         
                         if ($is_current_day) {
                             $td_classes[] = 'current-day';
+                        }
+                        
+                        // NEW FEATURE: Habit Frequency - Check if this is a scheduled day for any habit
+                        $is_scheduled_day = false;
+                        $frequency_info = null;
+                        $completions_this_week = 0;
+                        $weekly_target = 0;
+                        
+                        // Only process schedule info if looking at a specific habit or we're showing all habits
+                        if ($habit_id !== 'all') {
+                            // Check if this day is scheduled for the specific habit
+                            if (isset($schedule_info[$habit_id])) {
+                                // Check if it's a specific day schedule
+                                if (in_array($current_day_of_week, $schedule_info[$habit_id]['scheduled_days'])) {
+                                    $is_scheduled_day = true;
+                                    $td_classes[] = 'scheduled-day';
+                                }
+                                
+                                // Check if it's a frequency-based habit
+                                if ($schedule_info[$habit_id]['times_per_week']) {
+                                    $frequency_info = $schedule_info[$habit_id];
+                                    $td_classes[] = 'frequency-based';
+                                    $weekly_target = $frequency_info['times_per_week'];
+                                    
+                                    // Count completions in the current week
+                                    $week_start_day = $frequency_info['week_starts_on'];
+                                    $days_to_subtract = ($current_day_of_week - $week_start_day + 7) % 7;
+                                    $week_start_date = clone $current_date;
+                                    $week_start_date->modify("-$days_to_subtract days");
+                                    $week_end_date = clone $week_start_date;
+                                    $week_end_date->modify('+6 days');
+                                    
+                                    // Count completions in this week
+                                    $this_week_query = "
+                                        SELECT COUNT(*) as count FROM habit_completions 
+                                        WHERE habit_id = ? 
+                                        AND status = 'completed'
+                                        AND completion_date BETWEEN ? AND ?";
+                                    $stmt = $conn->prepare($this_week_query);
+                                    $week_start_str = $week_start_date->format('Y-m-d');
+                                    $week_end_str = $week_end_date->format('Y-m-d');
+                                    $stmt->bind_param('iss', $habit_id, $week_start_str, $week_end_str);
+                                    $stmt->execute();
+                                    $result = $stmt->get_result();
+                                    $row = $result->fetch_assoc();
+                                    $completions_this_week = $row['count'];
+                                }
+                            }
                         }
 
                         if ($habit_id !== 'all') {
@@ -610,6 +756,16 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                                     $key = $h['id'] . '_' . $current_date_str;
                                     if (isset($habit_completions[$key])) {
                                         $day_statuses[] = $habit_completions[$key];
+                                    }
+                                    
+                                    // NEW FEATURE: Habit Frequency - Check if this is a scheduled day for any habit
+                                    if (isset($schedule_info[$h['id']])) {
+                                        // Check if it's a specific day schedule
+                                        if (in_array($current_day_of_week, $schedule_info[$h['id']]['scheduled_days'])) {
+                                            $is_scheduled_day = true;
+                                        }
+                                        
+                                        // Note: We don't show frequency info for "All Habits" view as it would be confusing
                                     }
                                 }
                             }
@@ -630,8 +786,19 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                             }
                         }
 
+                        // NEW FEATURE: Habit Frequency - Add scheduled day marker if this is a scheduled day
+                        if ($is_scheduled_day) {
+                            $td_classes[] = 'scheduled-day';
+                        }
+
                         echo "<td class='" . implode(' ', $td_classes) . "' data-date='" . $current_date_str . "'>";
                         echo "<div class='date'>$day_count</div>";
+                        
+                        // NEW FEATURE: Habit Frequency - Add frequency badge if this is a frequency-based habit
+                        if ($frequency_info && $habit_id !== 'all') {
+                            echo "<div class='frequency-badge'>{$completions_this_week}/{$weekly_target}</div>";
+                        }
+                        
                         echo "</td>";
                         
                         $current_date->modify('+1 day');
@@ -739,8 +906,34 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
             const hasReason = habit.status !== 'No data' && habit.reason;
             const hasNotes = habit.status !== 'No data' && habit.notes;
             
+            // NEW FEATURE: Habit Frequency - Add schedule info
+            let scheduleInfo = '';
+            if (habit.is_scheduled_day) {
+                scheduleInfo = `<div class="schedule-badge mt-2 mb-2 d-flex align-items-center">
+                    <i class="fas fa-calendar-day me-2" style="color: #6610f2;"></i>
+                    <span>Scheduled for today</span>
+                </div>`;
+            }
+            
+            if (habit.times_per_week) {
+                const progress = Math.min(100, (habit.completions_this_week / habit.times_per_week) * 100);
+                scheduleInfo += `<div class="frequency-info mt-2 mb-2">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-sync-alt me-2" style="color: #17a2b8;"></i>
+                        <span>${habit.completions_this_week}/${habit.times_per_week} times this week</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: ${progress}%" 
+                             aria-valuenow="${progress}" 
+                             aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>`;
+            }
+            
             habitDiv.innerHTML = `
                 <div class="habit-name">${habit.name}</div>
+                ${scheduleInfo}
                 <div class="habit-status ${statusClass}">
                     <span>${statusIcon}</span>
                     <span>${statusText}</span>
@@ -827,6 +1020,7 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
         const allHabits = <?php echo json_encode($habits); ?>;
         const selectedHabit = '<?php echo $habit_id; ?>';
         const selectedCategory = '<?php echo $category_id; ?>';
+        const scheduleInfo = <?php echo json_encode($schedule_info); ?>;
 
         document.querySelectorAll('.calendar td[data-date]').forEach(td => {
             td.addEventListener('click', function() {
@@ -844,7 +1038,69 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                             status: habitData[key].status,
                             time: habitData[key].time,
                             notes: habitData[key].notes,
-                            reason: habitData[key].reason
+                            reason: habitData[key].reason,
+                            // NEW FEATURE: Habit Frequency - Pass schedule info
+                            is_scheduled_day: habitData[key].is_scheduled_day,
+                            times_per_week: habitData[key].times_per_week,
+                            completions_this_week: habitData[key].completions_this_week
+                        });
+                    } else {
+                        // Even if no completion data, check if this is a scheduled day or frequency-based habit
+                        const dateObj = new Date(date);
+                        const dayOfWeek = dateObj.getDay(); // 0-6, Sunday to Saturday
+                        
+                        let isScheduled = false;
+                        let timesPerWeek = null;
+                        let completionsThisWeek = 0;
+                        
+                        // NEW FEATURE: Habit Frequency - Check schedule info
+                        if (scheduleInfo[selectedHabit]) {
+                            const habitSchedule = scheduleInfo[selectedHabit];
+                            
+                            // Check if this is a scheduled day
+                            if (habitSchedule.scheduled_days.includes(dayOfWeek.toString())) {
+                                isScheduled = true;
+                            }
+                            
+                            // Check if this is a frequency-based habit
+                            if (habitSchedule.times_per_week) {
+                                timesPerWeek = habitSchedule.times_per_week;
+                                
+                                // Count completions for the week containing this date
+                                const weekStartDay = habitSchedule.week_starts_on || 0;
+                                const daysSinceWeekStart = (7 + dayOfWeek - weekStartDay) % 7;
+                                const weekStartDate = new Date(dateObj);
+                                weekStartDate.setDate(dateObj.getDate() - daysSinceWeekStart);
+                                
+                                // Count completions for this habit in this week
+                                Object.entries(habitData).forEach(([key, data]) => {
+                                    if (key.startsWith(selectedHabit + '_')) {
+                                        const completionDate = new Date(key.split('_')[1]);
+                                        const completionDayOfWeek = completionDate.getDay();
+                                        const daysSinceWeekStartForCompletion = (7 + completionDayOfWeek - weekStartDay) % 7;
+                                        const completionWeekStartDate = new Date(completionDate);
+                                        completionWeekStartDate.setDate(completionDate.getDate() - daysSinceWeekStartForCompletion);
+                                        
+                                        // If same week and status is completed, count it
+                                        if (weekStartDate.toDateString() === completionWeekStartDate.toDateString() && 
+                                            data.status === 'completed') {
+                                            completionsThisWeek++;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        
+                        habitsForDay.push({
+                            name: allHabits[selectedHabit]?.name || 'Unknown Habit',
+                            status: 'No data',
+                            time: '-',
+                            notes: 'No completion data for this day',
+                            reason: 'No completion data for this day',
+                            // NEW FEATURE: Habit Frequency - Pass schedule info
+                            is_scheduled_day: isScheduled,
+                            times_per_week: timesPerWeek,
+                            completions_this_week: completionsThisWeek
                         });
                     }
                 } else {
@@ -859,7 +1115,11 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                                     status: habitData[key].status,
                                     time: habitData[key].time,
                                     notes: habitData[key].notes,
-                                    reason: habitData[key].reason
+                                    reason: habitData[key].reason,
+                                    // NEW FEATURE: Habit Frequency - Pass schedule info
+                                    is_scheduled_day: habitData[key].is_scheduled_day,
+                                    times_per_week: habitData[key].times_per_week,
+                                    completions_this_week: habitData[key].completions_this_week
                                 });
                             }
                         }
@@ -870,11 +1130,15 @@ $month_name = date('F Y', strtotime("$selected_year-$selected_month-01"));
                     showHabitDetails(date, habitsForDay);
                 } else {
                     showHabitDetails(date, [{
-                        name: selectedHabit !== 'all' ? allHabits[selectedHabit].name : 'No habits',
+                        name: selectedHabit !== 'all' ? allHabits[selectedHabit]?.name || 'Unknown Habit' : 'No habits',
                         status: 'No data',
                         time: '-',
                         notes: 'No completion data for this day',
-                        reason: 'No completion data for this day'
+                        reason: 'No completion data for this day',
+                        // NEW FEATURE: Habit Frequency - Pass empty schedule info
+                        is_scheduled_day: false,
+                        times_per_week: null,
+                        completions_this_week: 0
                     }]);
                 }
             });
