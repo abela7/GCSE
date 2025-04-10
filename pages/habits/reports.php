@@ -448,7 +448,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                         <div class="d-flex flex-column">
                                                                             <div class="d-flex justify-content-between align-items-start">
                                                                                 <span>
-                                                                                    <?php echo htmlspecialchars($procrastination['habit']); ?>
+                                                                                    <?php echo date('M j', strtotime($procrastination['date'])); ?>
                                                                                     <?php 
                                                                                     // Display habit type badge
                                                                                     $badge_class = 'standard';
@@ -462,7 +462,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                                     data-bs-toggle="modal" 
                                                                                     data-bs-target="#procrastinationDetailModal" 
                                                                                     data-date="<?php echo $procrastination['date']; ?>"
-                                                                                    data-habit="<?php echo htmlspecialchars($procrastination['habit']); ?>"
+                                                                                    data-habit="<?php echo htmlspecialchars($habit['name']); ?>"
                                                                                     data-reason="<?php echo htmlspecialchars($procrastination['reason']); ?>"
                                                                                     data-notes="<?php echo htmlspecialchars($procrastination['notes'] ?? ''); ?>"
                                                                                     data-habit-id="<?php echo $procrastination['habit_id']; ?>"
@@ -490,7 +490,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                         <div class="d-flex flex-column">
                                                                             <div class="d-flex justify-content-between align-items-start">
                                                                                 <span>
-                                                                                    <?php echo htmlspecialchars($skip['habit']); ?>
+                                                                                    <?php echo date('M j', strtotime($skip['date'])); ?>
                                                                                     <?php 
                                                                                     // Display habit type badge
                                                                                     $badge_class = 'standard';
@@ -504,7 +504,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                                     data-bs-toggle="modal" 
                                                                                     data-bs-target="#skipDetailModal" 
                                                                                     data-date="<?php echo $skip['date']; ?>"
-                                                                                    data-habit="<?php echo htmlspecialchars($skip['habit']); ?>"
+                                                                                    data-habit="<?php echo htmlspecialchars($habit['name']); ?>"
                                                                                     data-reason="<?php echo htmlspecialchars($skip['reason']); ?>"
                                                                                     data-notes="<?php echo htmlspecialchars($skip['notes'] ?? ''); ?>"
                                                                                     data-habit-id="<?php echo $skip['habit_id']; ?>"
@@ -603,12 +603,52 @@ uasort($habit_details, function($a, $b) use ($categories) {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Similar content structure as skip modal -->
                     <div class="mb-3">
                         <h6>Habit</h6>
                         <p id="prModalHabitName" class="fw-bold"></p>
                     </div>
-                    <!-- Other fields similar to skip modal -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <h6>Date</h6>
+                            <p id="prModalDate"></p>
+                        </div>
+                        <div class="col-6">
+                            <h6>Habit Type</h6>
+                            <p id="prModalHabitType"></p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Reason for Procrastinating</h6>
+                        <p id="prModalReason" class="text-warning"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6>Additional Notes</h6>
+                        <p id="prModalNotes" class="fst-italic"></p>
+                    </div>
+                    
+                    <!-- Completion History Chart -->
+                    <div class="mb-3">
+                        <h6>Completion History (Last 14 Days)</h6>
+                        <div class="history-chart-container">
+                            <canvas id="prCompletionHistoryChart" height="100"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Impact on Streak -->
+                    <div class="alert alert-warning">
+                        <h6 class="mb-1"><i class="fas fa-fire-alt"></i> Streak Impact</h6>
+                        <p id="prStreakImpact" class="mb-0 small">Procrastinating this habit doesn't break your streak, but it may affect your overall consistency.</p>
+                    </div>
+                    
+                    <!-- Suggestions -->
+                    <div class="mt-3">
+                        <h6>Suggestions</h6>
+                        <ul class="small">
+                            <li>Review why you procrastinated this habit</li>
+                            <li>Consider adjusting the time of day for this habit</li>
+                            <li>Break down the habit into smaller, more manageable steps</li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -891,7 +931,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Similar listener for procrastination modal if needed
+    // Initialize procrastination modal
+    const procrastinationDetailModal = document.getElementById('procrastinationDetailModal');
+    if (procrastinationDetailModal) {
+        procrastinationDetailModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const date = button.getAttribute('data-date');
+            const habit = button.getAttribute('data-habit');
+            const reason = button.getAttribute('data-reason');
+            const notes = button.getAttribute('data-notes');
+            const habitId = button.getAttribute('data-habit-id');
+            
+            // Format date for display
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Update modal content
+            document.getElementById('prModalHabitName').textContent = habit;
+            document.getElementById('prModalDate').textContent = formattedDate;
+            document.getElementById('prModalReason').textContent = reason || 'No reason provided';
+            document.getElementById('prModalNotes').textContent = notes || 'No additional notes';
+            document.getElementById('prModalHabitType').textContent = 'Standard (Daily)';
+            
+            // Set the edit habit link
+            const editLink = document.getElementById('prEditHabitLink');
+            editLink.href = '../habits/edit_habit.php?id=' + (habitId || '');
+            
+            // Generate and render completion history
+            const completionHistory = generateCompletionHistoryData(date, 'standard');
+            renderProcrastinationHistoryChart(completionHistory);
+        });
+    }
 });
 
 // Handle form submission
@@ -976,6 +1050,72 @@ function renderCompletionHistoryChart(historyData) {
     
     // Create the chart
     window.completionHistoryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Completion Status',
+                data: historyData.map(d => 1), // Each day has equal height
+                backgroundColor: statusColors,
+                borderColor: statusColors.map(c => c.replace('0.8', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    display: false,
+                    beginAtZero: true,
+                    max: 1
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const index = context.dataIndex;
+                            return historyData[index].status.charAt(0).toUpperCase() + 
+                                   historyData[index].status.slice(1);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Render the procrastination history chart
+function renderProcrastinationHistoryChart(historyData) {
+    const ctx = document.getElementById('prCompletionHistoryChart').getContext('2d');
+    
+    // Clear any existing chart
+    if (window.procrastinationHistoryChart) {
+        window.procrastinationHistoryChart.destroy();
+    }
+    
+    // Prepare data for the chart
+    const labels = historyData.map(d => d.displayDate);
+    const statusColors = historyData.map(d => {
+        switch (d.status) {
+            case 'completed': return 'rgba(40, 167, 69, 0.8)';
+            case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
+            case 'skipped': return 'rgba(220, 53, 69, 0.8)';
+            default: return 'rgba(200, 200, 200, 0.8)';
+        }
+    });
+    
+    // Create the chart
+    window.procrastinationHistoryChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
