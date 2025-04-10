@@ -215,6 +215,73 @@ $accent_color = "#cdaf56";
         font-size: 1.5rem;
     }
 }
+
+/* Floating Action Button */
+.fab-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 999;
+}
+
+.fab-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.fab-button:hover {
+    background-color: var(--accent-color-dark);
+    transform: scale(1.05);
+}
+
+.fab-options {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.fab-options.show {
+    display: flex;
+}
+
+.fab-item {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.fab-item:hover {
+    background-color: var(--bg-light);
+    transform: translateX(-5px);
+}
+
+.fab-item i {
+    margin-right: 0.5rem;
+    color: var(--accent-color);
+    font-size: 1rem;
+}
 </style>
 
 <div class="container-fluid py-4">
@@ -543,6 +610,62 @@ $accent_color = "#cdaf56";
         </div>
     </div>
 </div>
+
+<!-- Floating Action Button (FAB) -->
+<div class="fab-container">
+    <div class="fab-options" id="fabOptions">
+        <a href="tasks/add_task.php" class="fab-item">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add New Task</span>
+        </a>
+        <a href="mood_tracking/entry.php" class="fab-item">
+            <i class="fas fa-smile"></i>
+            <span>Record Mood</span>
+        </a>
+        <a href="tasks/index.php" class="fab-item">
+            <i class="fas fa-tasks"></i>
+            <span>View Tasks</span>
+        </a>
+        <a href="habits/index.php" class="fab-item">
+            <i class="fas fa-check-circle"></i>
+            <span>View Habits</span>
+        </a>
+    </div>
+    <div class="fab-button" id="fabButton">
+        <i class="fas fa-plus"></i>
+    </div>
+</div>
+
+<script>
+    // Toggle FAB options
+    document.getElementById('fabButton').addEventListener('click', function() {
+        const fabOptions = document.getElementById('fabOptions');
+        fabOptions.classList.toggle('show');
+        
+        // Change icon based on state
+        const icon = this.querySelector('i');
+        if (fabOptions.classList.contains('show')) {
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-plus');
+        }
+    });
+    
+    // Close FAB options when clicking outside
+    document.addEventListener('click', function(event) {
+        const fabButton = document.getElementById('fabButton');
+        const fabOptions = document.getElementById('fabOptions');
+        
+        if (!fabButton.contains(event.target) && !fabOptions.contains(event.target) && fabOptions.classList.contains('show')) {
+            fabOptions.classList.remove('show');
+            const icon = fabButton.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-plus');
+        }
+    });
+</script>
 
 <?php
 include '../includes/footer.php';
