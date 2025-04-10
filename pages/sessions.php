@@ -508,20 +508,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.disabled = true;
                 this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                 
+                // Create FormData object instead of using URL encoding directly
+                const formData = new FormData();
+                formData.append('session_id', sessionId);
+                
+                // Log what we're sending
+                console.log('Deleting session with ID:', sessionId);
+                
                 fetch('../includes/delete_session.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `session_id=${sessionId}`
+                    body: formData
                 })
                 .then(response => {
+                    console.log('Delete response status:', response.status);
                     if (!response.ok) {
                         throw new Error(`Server returned ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Delete response data:', data);
                     if (data.success) {
                         // Show success message
                         showAlert('Study session deleted successfully!', 'success');

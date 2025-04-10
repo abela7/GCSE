@@ -5,21 +5,33 @@ require_once '../config/db_connect.php';
 // Set content type to JSON
 header('Content-Type: application/json');
 
+// Debug: Log the incoming request
+error_log("Delete session request: " . json_encode($_POST));
+
 // Check if it's a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); // Method Not Allowed
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method. Expected POST, got ' . $_SERVER['REQUEST_METHOD']]);
     exit;
 }
 
 try {
     // Get and validate input
-    $session_id = isset($_POST['session_id']) ? (int)$_POST['session_id'] : 0;
+    $session_id = isset($_POST['session_id']) ? $_POST['session_id'] : null;
+    
+    // Debug: Log the session ID
+    error_log("Session ID received: " . var_export($session_id, true));
+    
+    // Convert to integer after logging the original value
+    $session_id = (int)$session_id;
+    
+    // Debug: Log the converted session ID
+    error_log("Session ID after conversion: " . $session_id);
 
     // Validate input
     if ($session_id <= 0) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid session ID']);
+        echo json_encode(['success' => false, 'message' => 'Invalid session ID: ' . $_POST['session_id']]);
         exit;
     }
     
@@ -70,6 +82,7 @@ try {
     }
     
 } catch (Exception $e) {
+    error_log("Delete session error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
 } finally {
