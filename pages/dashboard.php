@@ -645,7 +645,7 @@ $accent_color = "#cdaf56";
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="tasks/save_task.php" method="POST" id="addTaskForm">
+                <form action="/pages/tasks/save_task.php" method="POST" id="addTaskForm">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="title" class="form-label">Title</label>
@@ -755,7 +755,7 @@ $accent_color = "#cdaf56";
             
             const formData = new FormData(this);
             
-            fetch('tasks/save_task.php', {
+            fetch('/pages/tasks/save_task.php', {
                 method: 'POST',
                 body: formData
             })
