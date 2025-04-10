@@ -7,80 +7,23 @@ date_default_timezone_set('Europe/London');
 
 // Get today's date
 $today = date('Y-m-d');
-$today_day_of_week = date('w'); // 0 (Sunday) through 6 (Saturday)
-
-// Get week bounds for frequency-based habits
-function getWeekBounds($start_day = 0) {
-    $today = date('Y-m-d');
-    $today_day = date('w');
-    
-    // Calculate days to subtract to get to start of week
-    $days_to_start = ($today_day - $start_day + 7) % 7;
-    
-    $week_start = date('Y-m-d', strtotime("-{$days_to_start} days", strtotime($today)));
-    $week_end = date('Y-m-d', strtotime("+6 days", strtotime($week_start)));
-    
-    return ['start' => $week_start, 'end' => $week_end];
-}
 
 // Get all habits with their categories and point rules
 $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color, hc.icon as category_icon,
-                hpr.name as point_rule_name, hpr.completion_points, hpr.procrastinated_points,
-                
-                -- Get habit completion status
-                (SELECT status FROM habit_completions 
-                 WHERE habit_id = h.id AND completion_date = ?) as today_status,
-                (SELECT completion_time FROM habit_completions 
-                 WHERE habit_id = h.id AND completion_date = ?) as completion_time,
-                (SELECT points_earned FROM habit_completions 
-                 WHERE habit_id = h.id AND completion_date = ?) as today_points,
-                 
-                -- Get frequency data if available
-                (SELECT hf.times_per_week FROM habit_frequency hf WHERE hf.habit_id = h.id) as times_per_week,
-                (SELECT hf.week_starts_on FROM habit_frequency hf WHERE hf.habit_id = h.id) as week_starts_on,
-                
-                -- Count completions this week for frequency-based habits
-                (SELECT COUNT(*) FROM habit_completions hc 
-                 JOIN habit_frequency hf ON h.id = hf.habit_id
-                 WHERE hc.habit_id = h.id 
-                 AND hc.status = 'completed'
-                 AND hc.completion_date BETWEEN 
-                    (SELECT DATE_SUB(CURRENT_DATE, INTERVAL (DAYOFWEEK(CURRENT_DATE) - 1 + 7 - hf.week_starts_on) % 7 DAY))
-                    AND 
-                    (SELECT DATE_ADD(DATE_SUB(CURRENT_DATE, INTERVAL (DAYOFWEEK(CURRENT_DATE) - 1 + 7 - hf.week_starts_on) % 7 DAY), INTERVAL 6 DAY))
-                 ) as completions_this_week
-                 
-                FROM habits h
-                LEFT JOIN habit_categories hc ON h.category_id = hc.id
-                LEFT JOIN habit_point_rules hpr ON h.point_rule_id = hpr.id
-                WHERE h.is_active = 1
-                AND (
-                    -- Daily habits (no schedule entries)
-                    (NOT EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id) 
-                     AND NOT EXISTS (SELECT 1 FROM habit_frequency hf WHERE hf.habit_id = h.id))
-                    
-                    -- OR specific day habits scheduled for today
-                    OR EXISTS (SELECT 1 FROM habit_schedule hs WHERE hs.habit_id = h.id AND hs.day_of_week = ?)
-                    
-                    -- OR frequency-based habits that haven't met their weekly quota
-                    OR EXISTS (
-                        SELECT 1 FROM habit_frequency hf 
-                        WHERE hf.habit_id = h.id
-                        AND hf.times_per_week > (
-                            SELECT COUNT(*) FROM habit_completions hc 
-                            WHERE hc.habit_id = h.id 
-                            AND hc.status = 'completed'
-                            AND hc.completion_date BETWEEN 
-                                (SELECT DATE_SUB(CURRENT_DATE, INTERVAL (DAYOFWEEK(CURRENT_DATE) - 1 + 7 - hf.week_starts_on) % 7 DAY))
-                                AND 
-                                (SELECT DATE_ADD(DATE_SUB(CURRENT_DATE, INTERVAL (DAYOFWEEK(CURRENT_DATE) - 1 + 7 - hf.week_starts_on) % 7 DAY), INTERVAL 6 DAY))
-                        )
-                    )
-                )
-                ORDER BY h.target_time";
-
+                 hpr.name as point_rule_name, hpr.completion_points, hpr.procrastinated_points,
+                 (SELECT status FROM habit_completions 
+                  WHERE habit_id = h.id AND completion_date = ?) as today_status,
+                 (SELECT completion_time FROM habit_completions 
+                  WHERE habit_id = h.id AND completion_date = ?) as completion_time,
+                 (SELECT points_earned FROM habit_completions 
+                  WHERE habit_id = h.id AND completion_date = ?) as today_points
+                 FROM habits h
+                 LEFT JOIN habit_categories hc ON h.category_id = hc.id
+                 LEFT JOIN habit_point_rules hpr ON h.point_rule_id = hpr.id
+                 WHERE h.is_active = 1
+                 ORDER BY h.target_time";
 $stmt = $conn->prepare($habits_query);
-$stmt->bind_param("sssi", $today, $today, $today, $today_day_of_week);
+$stmt->bind_param("sss", $today, $today, $today);
 $stmt->execute();
 $habits_result = $stmt->get_result();
 
@@ -100,182 +43,45 @@ while ($habit = $habits_result->fetch_assoc()) {
         $evening_habits[] = $habit;
     }
 }
-
-// Get selected filter (default to today's habits)
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'today';
-
-// Get time frame (default to today)
-$time_frame = isset($_GET['time']) ? $_GET['time'] : 'today';
-if ($time_frame == 'today') {
-    $date_for_habits = $today;
-} else if ($time_frame == 'yesterday') {
-    $date_for_habits = date('Y-m-d', strtotime('-1 day'));
-} else {
-    $date_for_habits = $today;
-}
-
-// Get the current day of the week (0 = Sunday, 6 = Saturday)
-$today_day_of_week = date('w');
-
-// Retrieve categories for the current user
-$categories_query = "SELECT * FROM categories WHERE user_id = ?";
-$categories_stmt = $conn->prepare($categories_query);
-$categories_stmt->bind_param('i', $user_id);
-$categories_stmt->execute();
-$categories_result = $categories_stmt->get_result();
-
-$categories = [];
-while ($row = $categories_result->fetch_assoc()) {
-    $categories[$row['id']] = $row;
-}
-
-$categories_stmt->close();
-
-// Display greeting based on time of day
-$hour = date('H');
-if ($hour < 12) {
-    $greeting = "Good Morning";
-} elseif ($hour < 18) {
-    $greeting = "Good Afternoon";
-} else {
-    $greeting = "Good Evening";
-}
-
-$user_query = "SELECT username FROM users WHERE id = ?";
-$user_stmt = $conn->prepare($user_query);
-$user_stmt->bind_param('i', $user_id);
-$user_stmt->execute();
-$user_result = $user_stmt->get_result();
-$user = $user_result->fetch_assoc();
-$user_stmt->close();
-
-$username = htmlspecialchars($user['username']);
 ?>
 
-<div class="container-fluid pb-5 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3"><?php echo $greeting; ?>, <?php echo $username; ?>!</h1>
-            <p class="lead">Track your habits and build consistency</p>
-        </div>
-        <a href="manage_habits.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Habit</a>
-    </div>
-
-    <!-- Filter options -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="btn-group" role="group">
-                        <a href="?filter=all" class="btn btn-outline-primary <?php echo $filter == 'all' ? 'active' : ''; ?>">
-                            <i class="bi bi-calendar-range"></i> All Habits
-                        </a>
-                        <a href="?filter=today" class="btn btn-outline-primary <?php echo $filter == 'today' ? 'active' : ''; ?>">
-                            <i class="bi bi-calendar-check"></i> Today's Habits
-                        </a>
-                        <a href="?filter=weekly" class="btn btn-outline-primary <?php echo $filter == 'weekly' ? 'active' : ''; ?>">
-                            <i class="bi bi-calendar-week"></i> Weekly Progress
-                        </a>
-                    </div>
-                </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <div class="btn-group" role="group">
-                        <a href="?filter=<?php echo $filter; ?>&time=yesterday" class="btn btn-sm btn-outline-secondary <?php echo $time_frame == 'yesterday' ? 'active' : ''; ?>">
-                            Yesterday
-                        </a>
-                        <a href="?filter=<?php echo $filter; ?>&time=today" class="btn btn-sm btn-outline-secondary <?php echo $time_frame == 'today' ? 'active' : ''; ?>">
-                            Today
-                        </a>
-                    </div>
-                </div>
+<div class="container-fluid">
+    <!-- Greeting Section -->
+    <div class="greeting-section">
+        <?php
+        $hour = date('H');
+        $greeting = '';
+        $greeting_icon = '';
+        
+        if ($hour >= 5 && $hour < 12) {
+            $greeting = 'Good Morning';
+            $greeting_icon = '<i class="fas fa-sun"></i>';
+        } elseif ($hour >= 12 && $hour < 17) {
+            $greeting = 'Good Afternoon';
+            $greeting_icon = '<i class="fas fa-sun"></i>';
+        } elseif ($hour >= 17 && $hour < 22) {
+            $greeting = 'Good Evening';
+            $greeting_icon = '<i class="fas fa-moon"></i>';
+        } else {
+            $greeting = 'Good Night';
+            $greeting_icon = '<i class="fas fa-moon"></i>';
+        }
+        ?>
+        <div class="greeting-container">
+            <div class="greeting-left">
+                <div class="greeting-icon"><?php echo $greeting_icon; ?></div>
+                <span class="greeting-text"><?php echo $greeting; ?> Abela • <?php echo date('l, j F Y'); ?></span>
+            </div>
+            <div class="greeting-actions">
+                <a href="reports.php" class="action-btn analytics-btn">
+                    <i class="fas fa-chart-line"></i>
+                </a>
+                <a href="manage_habits.php" class="action-btn settings-btn">
+                    <i class="fas fa-cog"></i>
+                </a>
             </div>
         </div>
     </div>
-    
-    <?php
-    // Define habit query based on filter
-    $week_bounds = getWeekBounds(0); // Default to Sunday start
-
-    if ($filter == 'all') {
-        // Show all habits regardless of schedule
-        $habits_query = "SELECT h.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
-            COALESCE(hc.status, 'pending') as status,
-            (SELECT COUNT(*) FROM habit_completions WHERE habit_id = h.id AND status = 'completed' AND completion_date BETWEEN ? AND ?) as week_completed
-            FROM habits h
-            LEFT JOIN categories c ON h.category_id = c.id
-            LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.completion_date = ?
-            WHERE h.user_id = ?
-            ORDER BY h.target_time ASC";
-        $stmt = $conn->prepare($habits_query);
-        $stmt->bind_param('sssi', $week_bounds['start'], $week_bounds['end'], $date_for_habits, $user_id);
-    } elseif ($filter == 'weekly') {
-        // Show all habits with weekly progress
-        $habits_query = "SELECT h.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
-            COALESCE(hc.status, 'pending') as status,
-            (SELECT COUNT(*) FROM habit_completions WHERE habit_id = h.id AND status = 'completed' AND completion_date BETWEEN ? AND ?) as week_completed,
-            (SELECT times_per_week FROM habit_frequency WHERE habit_id = h.id) as times_per_week
-            FROM habits h
-            LEFT JOIN categories c ON h.category_id = c.id
-            LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.completion_date = ?
-            WHERE h.user_id = ?
-            ORDER BY h.target_time ASC";
-        $stmt = $conn->prepare($habits_query);
-        $stmt->bind_param('sssi', $week_bounds['start'], $week_bounds['end'], $date_for_habits, $user_id);
-    } else {
-        // Show only today's habits
-        $habits_query = "SELECT h.*, c.name as category_name, c.color as category_color, c.icon as category_icon,
-            COALESCE(hc.status, 'pending') as status,
-            (SELECT COUNT(*) FROM habit_completions WHERE habit_id = h.id AND status = 'completed' AND completion_date BETWEEN ? AND ?) as week_completed,
-            (SELECT times_per_week FROM habit_frequency WHERE habit_id = h.id) as times_per_week
-            FROM habits h
-            LEFT JOIN categories c ON h.category_id = c.id
-            LEFT JOIN habit_completions hc ON h.id = hc.habit_id AND hc.completion_date = ?
-            WHERE h.user_id = ? AND (
-                /* Daily habits (no schedule entries) */
-                NOT EXISTS (SELECT 1 FROM habit_schedule WHERE habit_id = h.id) 
-                AND NOT EXISTS (SELECT 1 FROM habit_frequency WHERE habit_id = h.id)
-                
-                /* OR habits scheduled for specific days including today */
-                OR EXISTS (SELECT 1 FROM habit_schedule WHERE habit_id = h.id AND day_of_week = ?)
-                
-                /* OR frequency-based habits that haven't met their weekly quota */
-                OR (
-                    EXISTS (SELECT 1 FROM habit_frequency hf WHERE habit_id = h.id)
-                    AND (
-                        SELECT COUNT(*) FROM habit_completions 
-                        WHERE habit_id = h.id 
-                        AND status = 'completed' 
-                        AND completion_date BETWEEN ? AND ?
-                    ) < (
-                        SELECT times_per_week FROM habit_frequency WHERE habit_id = h.id
-                    )
-                )
-            )
-            ORDER BY h.target_time ASC";
-        $stmt = $conn->prepare($habits_query);
-        $stmt->bind_param('sssiiss', $week_bounds['start'], $week_bounds['end'], $date_for_habits, $user_id, $today_day_of_week, $week_bounds['start'], $week_bounds['end']);
-    }
-    
-    $stmt->execute();
-    $habits_result = $stmt->get_result();
-
-    // Separate habits into morning and evening
-    $morning_habits = [];
-    $evening_habits = [];
-    while ($habit = $habits_result->fetch_assoc()) {
-        // Set default icon if none is set
-        if (empty($habit['category_icon'])) {
-            $habit['category_icon'] = 'fas fa-check-circle';
-        }
-        
-        $time = strtotime($habit['target_time']);
-        if ($time < strtotime('12:00:00')) {
-            $morning_habits[] = $habit;
-        } else {
-            $evening_habits[] = $habit;
-        }
-    }
-    ?>
 
     <div class="row g-4">
         <!-- Morning Habits Section -->
@@ -301,47 +107,10 @@ $username = htmlspecialchars($user['username']);
                                 <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
                                     <?php echo htmlspecialchars($habit['name']); ?>
                                 </h3>
-                                
-                                <?php if (isset($habit['times_per_week']) && $habit['times_per_week'] > 0): ?>
-                                <div class="frequency-badge mb-1">
-                                    <span class="badge bg-info">
-                                        <?php echo $habit['completions_this_week'] ?? 0; ?>/<?php echo $habit['times_per_week']; ?> this week
-                                    </span>
-                                </div>
-                                <?php endif; ?>
-                                
                                 <div class="text-muted text-truncate" style="font-size: 0.9rem;">
                                     <?php echo htmlspecialchars($habit['category_name']); ?>
                                     <span class="mx-2">•</span>
                                     <span class="fw-medium"><?php echo date('g:i A', strtotime($habit['target_time'])); ?></span>
-                                    
-                                    <?php
-                                    // Show schedule information
-                                    $showScheduleInfo = false;
-                                    $scheduleText = '';
-                                    
-                                    // For fixed day schedules, query their days
-                                    $days_query = "SELECT day_of_week FROM habit_schedule WHERE habit_id = ? ORDER BY day_of_week";
-                                    $days_stmt = $conn->prepare($days_query);
-                                    $days_stmt->bind_param('i', $habit['id']);
-                                    $days_stmt->execute();
-                                    $days_result = $days_stmt->get_result();
-                                    
-                                    if ($days_result->num_rows > 0) {
-                                        $showScheduleInfo = true;
-                                        $day_names = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
-                                        $days = [];
-                                        while ($day = $days_result->fetch_assoc()) {
-                                            $days[] = $day_names[$day['day_of_week']];
-                                        }
-                                        $scheduleText = implode(', ', $days);
-                                    }
-                                    
-                                    if ($showScheduleInfo):
-                                    ?>
-                                    <span class="mx-2">•</span>
-                                    <span class="schedule-info"><?php echo $scheduleText; ?></span>
-                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -434,47 +203,10 @@ $username = htmlspecialchars($user['username']);
                                 <h3 class="mb-1 text-truncate fw-bold" style="font-size: 1.1rem;">
                                     <?php echo htmlspecialchars($habit['name']); ?>
                                 </h3>
-                                
-                                <?php if (isset($habit['times_per_week']) && $habit['times_per_week'] > 0): ?>
-                                <div class="frequency-badge mb-1">
-                                    <span class="badge bg-info">
-                                        <?php echo $habit['completions_this_week'] ?? 0; ?>/<?php echo $habit['times_per_week']; ?> this week
-                                    </span>
-                                </div>
-                                <?php endif; ?>
-                                
                                 <div class="text-muted text-truncate" style="font-size: 0.9rem;">
                                     <?php echo htmlspecialchars($habit['category_name']); ?>
                                     <span class="mx-2">•</span>
                                     <span class="fw-medium"><?php echo date('g:i A', strtotime($habit['target_time'])); ?></span>
-                                    
-                                    <?php
-                                    // Show schedule information
-                                    $showScheduleInfo = false;
-                                    $scheduleText = '';
-                                    
-                                    // For fixed day schedules, query their days
-                                    $days_query = "SELECT day_of_week FROM habit_schedule WHERE habit_id = ? ORDER BY day_of_week";
-                                    $days_stmt = $conn->prepare($days_query);
-                                    $days_stmt->bind_param('i', $habit['id']);
-                                    $days_stmt->execute();
-                                    $days_result = $days_stmt->get_result();
-                                    
-                                    if ($days_result->num_rows > 0) {
-                                        $showScheduleInfo = true;
-                                        $day_names = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
-                                        $days = [];
-                                        while ($day = $days_result->fetch_assoc()) {
-                                            $days[] = $day_names[$day['day_of_week']];
-                                        }
-                                        $scheduleText = implode(', ', $days);
-                                    }
-                                    
-                                    if ($showScheduleInfo):
-                                    ?>
-                                    <span class="mx-2">•</span>
-                                    <span class="schedule-info"><?php echo $scheduleText; ?></span>
-                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

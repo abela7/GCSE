@@ -247,65 +247,6 @@ while ($row = $result->fetch_assoc()) {
                         <label class="form-label fw-medium">Target Time</label>
                         <input type="time" class="form-control form-control-lg" name="target_time" id="habit_target_time" required>
                     </div>
-                    
-                    <!-- Add Schedule Options -->
-                    <div class="mb-4">
-                        <label class="form-label fw-medium">Schedule Type</label>
-                        <div class="d-flex flex-wrap gap-3 mb-2">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="schedule_type" id="schedule_daily" value="daily" checked>
-                                <label class="form-check-label" for="schedule_daily">Daily</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="schedule_type" id="schedule_specific_days" value="specific_days">
-                                <label class="form-check-label" for="schedule_specific_days">Specific Days</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="schedule_type" id="schedule_frequency" value="frequency">
-                                <label class="form-check-label" for="schedule_frequency">X Times Per Week</label>
-                            </div>
-                        </div>
-                        
-                        <!-- Specific days selection -->
-                        <div id="specific_days_options" class="schedule-panel d-none mb-3">
-                            <div class="small text-muted mb-2">Select which days of the week this habit should occur:</div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <?php
-                                $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                                foreach ($days as $index => $day) {
-                                    echo '<div class="form-check">
-                                            <input type="checkbox" class="form-check-input" name="weekdays[]" id="day_'.$index.'" value="'.$index.'">
-                                            <label class="form-check-label" for="day_'.$index.'">'.$day.'</label>
-                                          </div>';
-                                }
-                                ?>
-                            </div>
-                        </div>
-                        
-                        <!-- Frequency selection -->
-                        <div id="frequency_options" class="schedule-panel d-none">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="times_per_week" class="form-label">Times per week</label>
-                                    <select class="form-select" id="times_per_week" name="times_per_week">
-                                        <?php for ($i = 1; $i <= 6; $i++): ?>
-                                        <option value="<?php echo $i; ?>"><?php echo $i; ?> time<?php echo $i > 1 ? 's' : ''; ?> per week</option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="week_starts_on" class="form-label">Week starts on</label>
-                                    <select class="form-select" id="week_starts_on" name="week_starts_on">
-                                        <option value="0">Sunday</option>
-                                        <option value="1">Monday</option>
-                                        <option value="6">Saturday</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="small text-muted">Habit will be shown until completed the specified number of times each week.</div>
-                        </div>
-                    </div>
-                    
                     <div class="mb-4">
                         <label class="form-label fw-medium">Description</label>
                         <textarea class="form-control" name="description" id="habit_description" rows="3"></textarea>
@@ -584,171 +525,55 @@ let habitModal;
 document.addEventListener('DOMContentLoaded', function() {
     habitModal = new bootstrap.Modal(document.getElementById('habitModal'));
     
-    // Update the category icon when a category is selected
+    // Initialize category icon display
     const categorySelect = document.getElementById('habit_category_id');
-    const selectedIcon = document.getElementById('selectedCategoryIcon');
+    const iconDisplay = document.getElementById('selectedCategoryIcon');
     
-    function updateSelectedCategoryIcon() {
-        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-        const iconClass = selectedOption.getAttribute('data-icon');
-        const iconColor = selectedOption.getAttribute('data-color');
+    if (categorySelect && iconDisplay) {
+        function updateSelectedCategoryIcon() {
+            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+            const icon = selectedOption.getAttribute('data-icon');
+            const color = selectedOption.getAttribute('data-color');
+            iconDisplay.className = icon + ' fa-lg';
+            iconDisplay.style.color = color;
+        }
         
-        selectedIcon.className = iconClass;
-        selectedIcon.style.color = iconColor;
+        categorySelect.addEventListener('change', updateSelectedCategoryIcon);
+        updateSelectedCategoryIcon();
     }
-    
-    categorySelect.addEventListener('change', updateSelectedCategoryIcon);
-    updateSelectedCategoryIcon();
-    
-    // Schedule type toggle
-    const scheduleTypes = document.querySelectorAll('input[name="schedule_type"]');
-    const specificDaysOptions = document.getElementById('specific_days_options');
-    const frequencyOptions = document.getElementById('frequency_options');
-    
-    scheduleTypes.forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Hide all panels first
-            specificDaysOptions.classList.add('d-none');
-            frequencyOptions.classList.add('d-none');
-            
-            // Show the relevant panel based on selection
-            if (this.value === 'specific_days') {
-                specificDaysOptions.classList.remove('d-none');
-            } else if (this.value === 'frequency') {
-                frequencyOptions.classList.remove('d-none');
-            }
-        });
-    });
+});
 
-    // Reset the form when the modal is closed
-    document.getElementById('habitModal').addEventListener('hidden.bs.modal', function() {
-        document.getElementById('habitForm').reset();
-        document.getElementById('habit_id').value = '';
-        document.getElementById('schedule_daily').checked = true;
-        document.querySelectorAll('.schedule-panel').forEach(panel => panel.classList.add('d-none'));
-    });
-
-    // Function to load habit schedule data when editing
-    window.loadHabitSchedule = function(habitId) {
-        fetch(`habit_actions.php?action=get_schedule&id=${habitId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Set schedule type radio button
-                    let scheduleType = 'daily'; // Default
-                    
-                    if (data.specific_days && data.specific_days.length > 0) {
-                        scheduleType = 'specific_days';
-                        // Check the specific day checkboxes
-                        data.specific_days.forEach(day => {
-                            const checkbox = document.getElementById(`day_${day}`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-                    } else if (data.frequency) {
-                        scheduleType = 'frequency';
-                        // Set the frequency values
-                        const timesPerWeekSelect = document.getElementById('times_per_week');
-                        const weekStartsOnSelect = document.getElementById('week_starts_on');
-                        
-                        if (timesPerWeekSelect && data.frequency.times_per_week) {
-                            timesPerWeekSelect.value = data.frequency.times_per_week;
-                        }
-                        
-                        if (weekStartsOnSelect && data.frequency.week_starts_on !== undefined) {
-                            weekStartsOnSelect.value = data.frequency.week_starts_on;
-                        }
-                    }
-                    
-                    // Set the correct radio button
-                    document.getElementById(`schedule_${scheduleType}`).checked = true;
-                    // Trigger change event to show/hide appropriate panels
-                    document.getElementById(`schedule_${scheduleType}`).dispatchEvent(new Event('change'));
-                }
-            })
-            .catch(error => console.error('Error loading habit schedule:', error));
-    };
+// Edit habit
+function editHabit(id) {
+    // Show loading state
+    document.getElementById('habitModalTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    habitModal.show();
     
-    // Extend existing editHabit function to also load schedule data
-    const originalEditHabit = window.editHabit;
-    window.editHabit = function(id) {
-        // Show loading state
-        document.getElementById('habitModalTitle').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        habitModal.show();
-        
-        // Reset form fields
-        document.querySelectorAll('input[name="weekdays[]"]').forEach(checkbox => checkbox.checked = false);
-        document.getElementById('schedule_daily').checked = true;
-        document.getElementById('specific_days_options').classList.add('d-none');
-        document.getElementById('frequency_options').classList.add('d-none');
-        
-        // Fetch habit details
-        fetch(`habit_actions.php?action=get&id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const habit = data.habit;
-                    document.getElementById('habitModalTitle').textContent = 'Edit Habit';
-                    document.getElementById('habit_id').value = habit.id;
-                    document.getElementById('habit_name').value = habit.name;
-                    document.getElementById('habit_category_id').value = habit.category_id;
-                    document.getElementById('habit_point_rule_id').value = habit.point_rule_id;
-                    document.getElementById('habit_target_time').value = habit.target_time;
-                    document.getElementById('habit_description').value = habit.description || '';
-                    document.getElementById('habit_is_active').checked = habit.is_active == 1;
-                    
-                    // After loading basic habit data, load schedule data
-                    fetch(`habit_actions.php?action=get_schedule&id=${id}`)
-                        .then(response => response.json())
-                        .then(scheduleData => {
-                            if (scheduleData.success) {
-                                // Set schedule type radio button
-                                let scheduleType = 'daily'; // Default
-                                
-                                if (scheduleData.specific_days && scheduleData.specific_days.length > 0) {
-                                    scheduleType = 'specific_days';
-                                    // Check the specific day checkboxes
-                                    scheduleData.specific_days.forEach(day => {
-                                        const checkbox = document.getElementById(`day_${day}`);
-                                        if (checkbox) checkbox.checked = true;
-                                    });
-                                } else if (scheduleData.frequency) {
-                                    scheduleType = 'frequency';
-                                    // Set the frequency values
-                                    const timesPerWeekSelect = document.getElementById('times_per_week');
-                                    const weekStartsOnSelect = document.getElementById('week_starts_on');
-                                    
-                                    if (timesPerWeekSelect && scheduleData.frequency.times_per_week) {
-                                        timesPerWeekSelect.value = scheduleData.frequency.times_per_week;
-                                    }
-                                    
-                                    if (weekStartsOnSelect && scheduleData.frequency.week_starts_on !== undefined) {
-                                        weekStartsOnSelect.value = scheduleData.frequency.week_starts_on;
-                                    }
-                                }
-                                
-                                // Set the correct radio button
-                                document.getElementById(`schedule_${scheduleType}`).checked = true;
-                                // Trigger change to show/hide appropriate panels
-                                if (scheduleType === 'specific_days') {
-                                    document.getElementById('specific_days_options').classList.remove('d-none');
-                                } else if (scheduleType === 'frequency') {
-                                    document.getElementById('frequency_options').classList.remove('d-none');
-                                }
-                            }
-                        })
-                        .catch(error => console.error('Error loading habit schedule:', error));
-                } else {
-                    alert('Error loading habit details');
-                    habitModal.hide();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+    // Fetch habit details
+    fetch(`habit_actions.php?action=get&id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const habit = data.habit;
+                document.getElementById('habitModalTitle').textContent = 'Edit Habit';
+                document.getElementById('habit_id').value = habit.id;
+                document.getElementById('habit_name').value = habit.name;
+                document.getElementById('habit_category_id').value = habit.category_id;
+                document.getElementById('habit_point_rule_id').value = habit.point_rule_id;
+                document.getElementById('habit_target_time').value = habit.target_time;
+                document.getElementById('habit_description').value = habit.description || '';
+                document.getElementById('habit_is_active').checked = habit.is_active == 1;
+            } else {
                 alert('Error loading habit details');
                 habitModal.hide();
-            });
-    };
-});
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading habit details');
+            habitModal.hide();
+        });
+}
 
 // Add new habit
 function addHabit() {

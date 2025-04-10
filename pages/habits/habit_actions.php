@@ -114,65 +114,6 @@ if ($action === 'create' || $action === 'update') {
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $stmt->error]);
         }
     }
-
-    // Get the habit ID from insert or from edit
-    $habit_id = isset($_POST['id']) ? intval($_POST['id']) : $conn->insert_id;
-    
-    // Start a transaction for schedule updates
-    $conn->begin_transaction();
-    
-    try {
-        // Clear existing schedule entries
-        $delete_schedule = $conn->prepare("DELETE FROM habit_schedule WHERE habit_id = ?");
-        $delete_schedule->bind_param("i", $habit_id);
-        $delete_schedule->execute();
-        
-        $delete_frequency = $conn->prepare("DELETE FROM habit_frequency WHERE habit_id = ?");
-        $delete_frequency->bind_param("i", $habit_id);
-        $delete_frequency->execute();
-        
-        // Process schedule data based on the selected type
-        if (isset($_POST['schedule_type'])) {
-            switch ($_POST['schedule_type']) {
-                case 'specific_days':
-                    if (isset($_POST['weekdays']) && is_array($_POST['weekdays'])) {
-                        $insert_schedule = $conn->prepare("INSERT INTO habit_schedule (habit_id, day_of_week) VALUES (?, ?)");
-                        
-                        foreach ($_POST['weekdays'] as $day) {
-                            $day = intval($day);
-                            $insert_schedule->bind_param("ii", $habit_id, $day);
-                            $insert_schedule->execute();
-                        }
-                    }
-                    break;
-                    
-                case 'frequency':
-                    if (isset($_POST['times_per_week']) && is_numeric($_POST['times_per_week'])) {
-                        $times_per_week = min(7, max(1, intval($_POST['times_per_week'])));
-                        $week_starts_on = isset($_POST['week_starts_on']) ? intval($_POST['week_starts_on']) : 0;
-                        
-                        $insert_frequency = $conn->prepare("INSERT INTO habit_frequency (habit_id, times_per_week, week_starts_on) VALUES (?, ?, ?)");
-                        $insert_frequency->bind_param("iii", $habit_id, $times_per_week, $week_starts_on);
-                        $insert_frequency->execute();
-                    }
-                    break;
-                
-                // 'daily' is the default - no schedule entries needed
-                case 'daily':
-                default:
-                    // No additional data to save
-                    break;
-            }
-        }
-        
-        // Commit the transaction
-        $conn->commit();
-    } catch (Exception $e) {
-        // Rollback on error
-        $conn->rollback();
-        error_log("Error saving habit schedule: " . $e->getMessage());
-        // Don't exit here, as we still want the original create/update to complete
-    }
     exit;
 }
 
@@ -229,43 +170,6 @@ if ($action === 'toggle_active') {
     } else {
         echo json_encode(['success' => false, 'message' => 'Error toggling habit status']);
     }
-    exit;
-}
-
-// Get habit schedule
-if ($action === 'get_schedule') {
-    if (!isset($_GET['id'])) {
-        echo json_encode(['success' => false, 'message' => 'No habit ID provided']);
-        exit;
-    }
-    
-    $id = intval($_GET['id']);
-    
-    // Check for specific days schedule
-    $specific_days_query = "SELECT day_of_week FROM habit_schedule WHERE habit_id = ? ORDER BY day_of_week";
-    $stmt = $conn->prepare($specific_days_query);
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $specific_days_result = $stmt->get_result();
-    
-    $specific_days = [];
-    while ($day = $specific_days_result->fetch_assoc()) {
-        $specific_days[] = (int)$day['day_of_week'];
-    }
-    
-    // Check for frequency-based schedule
-    $frequency_query = "SELECT times_per_week, week_starts_on FROM habit_frequency WHERE habit_id = ?";
-    $stmt = $conn->prepare($frequency_query);
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $frequency_result = $stmt->get_result();
-    $frequency = $frequency_result->fetch_assoc();
-    
-    echo json_encode([
-        'success' => true,
-        'specific_days' => $specific_days,
-        'frequency' => $frequency
-    ]);
     exit;
 }
 
