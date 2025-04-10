@@ -40,14 +40,7 @@ $completions_query = "
         h.name as habit_name,
         h.category_id,
         h.target_time,
-        h.frequency_type,
-        h.frequency_value,
-        h.weekdays,
-        CASE 
-            WHEN h.frequency_type IS NOT NULL THEN 'frequency'
-            WHEN h.weekdays IS NOT NULL THEN 'days'
-            ELSE 'standard'
-        END as habit_type,
+        'standard' as habit_type,
         hc.completion_date,
         hc.completion_time,
         hc.status,
@@ -100,9 +93,6 @@ while ($row = $completions_result->fetch_assoc()) {
             'category_id' => $row['category_id'],
             'target_time' => $row['target_time'],
             'habit_type' => $row['habit_type'],
-            'frequency_type' => $row['frequency_type'],
-            'frequency_value' => $row['frequency_value'],
-            'weekdays' => $row['weekdays'],
             'completions' => [],
             'procrastinations' => [],
             'skips' => [],
@@ -322,15 +312,11 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                         <span>
                                                                             <?php echo htmlspecialchars($procrastination['habit']); ?>
                                                                             <?php 
-                                                                            // Display habit type badge in smaller form
-                                                                            $badge_class = '';
-                                                                            switch($procrastination['habit_type']) {
-                                                                                case 'frequency': $badge_class = 'frequency'; $badge_text = 'F'; break;
-                                                                                case 'days': $badge_class = 'days'; $badge_text = 'D'; break;
-                                                                                default: $badge_class = 'standard'; $badge_text = 'S';
-                                                                            }
+                                                                            // Display habit type badge
+                                                                            $badge_class = 'standard';
+                                                                            $badge_text = 'Daily';
                                                                             ?>
-                                                                            <span class="habit-badge mini <?php echo $badge_class; ?>" title="<?php echo $procrastination['habit_type']; ?>"><?php echo $badge_text; ?></span>
+                                                                            <span class="habit-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
                                                                         </span>
                                                                     </div>
                                                                     <small class="text-muted"><?php echo htmlspecialchars($procrastination['reason']); ?></small>
@@ -366,15 +352,11 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                         <span>
                                                                             <?php echo htmlspecialchars($skip['habit']); ?>
                                                                             <?php 
-                                                                            // Display habit type badge in smaller form
-                                                                            $badge_class = '';
-                                                                            switch($skip['habit_type']) {
-                                                                                case 'frequency': $badge_class = 'frequency'; $badge_text = 'F'; break;
-                                                                                case 'days': $badge_class = 'days'; $badge_text = 'D'; break;
-                                                                                default: $badge_class = 'standard'; $badge_text = 'S';
-                                                                            }
+                                                                            // Display habit type badge
+                                                                            $badge_class = 'standard';
+                                                                            $badge_text = 'Daily';
                                                                             ?>
-                                                                            <span class="habit-badge mini <?php echo $badge_class; ?>" title="<?php echo $skip['habit_type']; ?>"><?php echo $badge_text; ?></span>
+                                                                            <span class="habit-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
                                                                         </span>
                                                                     </div>
                                                                     <small class="text-muted"><?php echo htmlspecialchars($skip['reason']); ?></small>
@@ -420,29 +402,8 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                 <?php echo htmlspecialchars($habit['name']); ?>
                                                 <?php 
                                                 // Display habit type badge
-                                                $badge_class = '';
-                                                $badge_text = '';
-                                                switch($habit['habit_type']) {
-                                                    case 'frequency':
-                                                        $badge_class = 'frequency';
-                                                        $freq_text = $habit['frequency_value'] . ' ' . ($habit['frequency_value'] > 1 ? 'times' : 'time');
-                                                        switch($habit['frequency_type']) {
-                                                            case 'daily': $freq_text .= '/day'; break;
-                                                            case 'weekly': $freq_text .= '/week'; break;
-                                                            case 'monthly': $freq_text .= '/month'; break;
-                                                        }
-                                                        $badge_text = $freq_text;
-                                                        break;
-                                                    case 'days':
-                                                        $badge_class = 'days';
-                                                        $weekdays = explode(',', $habit['weekdays']);
-                                                        $day_count = count($weekdays);
-                                                        $badge_text = $day_count . ' ' . ($day_count > 1 ? 'days' : 'day') . '/week';
-                                                        break;
-                                                    default:
-                                                        $badge_class = 'standard';
-                                                        $badge_text = 'Daily';
-                                                }
+                                                $badge_class = 'standard';
+                                                $badge_text = 'Daily';
                                                 ?>
                                                 <span class="habit-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
                                             </div>
@@ -489,15 +450,11 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                                 <span>
                                                                                     <?php echo htmlspecialchars($procrastination['habit']); ?>
                                                                                     <?php 
-                                                                                    // Display habit type badge in smaller form
-                                                                                    $badge_class = '';
-                                                                                    switch($procrastination['habit_type']) {
-                                                                                        case 'frequency': $badge_class = 'frequency'; $badge_text = 'F'; break;
-                                                                                        case 'days': $badge_class = 'days'; $badge_text = 'D'; break;
-                                                                                        case 'standard': $badge_class = 'standard'; $badge_text = 'S'; break;
-                                                                                    }
+                                                                                    // Display habit type badge
+                                                                                    $badge_class = 'standard';
+                                                                                    $badge_text = 'Daily';
                                                                                     ?>
-                                                                                    <span class="habit-badge mini <?php echo $badge_class; ?>" title="<?php echo $procrastination['habit_type']; ?>"><?php echo $badge_text; ?></span>
+                                                                                    <span class="habit-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
                                                                                 </span>
                                                                             </div>
                                                                             <small class="text-muted"><?php echo htmlspecialchars($procrastination['reason']); ?></small>
@@ -535,15 +492,11 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                                 <span>
                                                                                     <?php echo htmlspecialchars($skip['habit']); ?>
                                                                                     <?php 
-                                                                                    // Display habit type badge in smaller form
-                                                                                    $badge_class = '';
-                                                                                    switch($skip['habit_type']) {
-                                                                                        case 'frequency': $badge_class = 'frequency'; $badge_text = 'F'; break;
-                                                                                        case 'days': $badge_class = 'days'; $badge_text = 'D'; break;
-                                                                                        case 'standard': $badge_class = 'standard'; $badge_text = 'S'; break;
-                                                                                    }
+                                                                                    // Display habit type badge
+                                                                                    $badge_class = 'standard';
+                                                                                    $badge_text = 'Daily';
                                                                                     ?>
-                                                                                    <span class="habit-badge mini <?php echo $badge_class; ?>" title="<?php echo $skip['habit_type']; ?>"><?php echo $badge_text; ?></span>
+                                                                                    <span class="habit-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
                                                                                 </span>
                                                                             </div>
                                                                             <small class="text-muted"><?php echo htmlspecialchars($skip['reason']); ?></small>
@@ -921,25 +874,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalReason').textContent = reason || 'No reason provided';
             document.getElementById('modalNotes').textContent = notes || 'No additional notes';
             
-            // Format habit type for display
-            let habitTypeDisplay = 'Standard';
-            if (habitType === 'frequency') {
-                habitTypeDisplay = 'Frequency-based';
-            } else if (habitType === 'days') {
-                habitTypeDisplay = 'Day-specific';
-            }
-            document.getElementById('modalHabitType').textContent = habitTypeDisplay;
+            // Format habit type for display - simplified as we only have standard type for now
+            document.getElementById('modalHabitType').textContent = 'Standard (Daily)';
             
-            // Set the streak impact message based on habit type
-            let streakMessage = '';
-            if (habitType === 'frequency') {
-                streakMessage = 'Skipping this frequency-based habit affects your completion rate but not your daily streak.';
-            } else if (habitType === 'days') {
-                streakMessage = 'This day-specific habit was scheduled for today. Skipping it breaks your streak for this habit.';
-            } else {
-                streakMessage = 'Skipping this habit breaks your daily streak.';
-            }
-            document.getElementById('streakImpact').textContent = streakMessage;
+            // Set the streak impact message - simplified for standard habits
+            document.getElementById('streakImpact').textContent = 'Skipping this habit breaks your daily streak.';
             
             // Set the edit habit link
             const editLink = document.getElementById('editHabitLink');
