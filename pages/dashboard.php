@@ -64,6 +64,21 @@ $habits_query = "SELECT COUNT(*) as total_habits,
 $habits_result = $conn->query($habits_query);
 $habits_stats = $habits_result ? $habits_result->fetch_assoc() : ['total_habits' => 0, 'completed_today' => 0];
 
+// Get today's uncompleted habits
+$uncompleted_habits_query = "SELECT h.*, c.name as category_name, c.color as category_color
+                           FROM habits h
+                           LEFT JOIN habit_categories c ON h.category_id = c.id
+                           WHERE h.is_active = 1
+                           AND NOT EXISTS (
+                               SELECT 1 FROM habit_completions hc 
+                               WHERE hc.habit_id = h.id 
+                               AND hc.completion_date = CURDATE() 
+                               AND hc.status = 'completed'
+                           )
+                           ORDER BY h.name ASC
+                           LIMIT 5";
+$uncompleted_habits_result = $conn->query($uncompleted_habits_query);
+
 // Include header
 include '../includes/header.php';
 
