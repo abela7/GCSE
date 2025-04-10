@@ -28,6 +28,62 @@ while ($habit = $habits_result->fetch_assoc()) {
 $first_day = date('Y-m-01', strtotime("$selected_year-$selected_month-01"));
 $last_day = date('Y-m-t', strtotime("$selected_year-$selected_month-01"));
 
+// NEW FEATURE: Habit Frequency - Get schedule information for habits
+// Get specific day schedule information
+$schedule_query = "SELECT 
+    h.id as habit_id, 
+    h.name as habit_name,
+    hs.day_of_week
+    FROM habits h
+    JOIN habit_schedule hs ON h.id = hs.habit_id
+    WHERE h.is_active = 1";
+    
+if ($habit_id !== 'all') {
+    $schedule_query .= " AND h.id = " . intval($habit_id);
+}
+if ($category_id !== 'all') {
+    $schedule_query .= " AND h.category_id = " . intval($category_id);
+}
+
+$schedule_result = $conn->query($schedule_query);
+$habit_schedules = [];
+while ($schedule = $schedule_result->fetch_assoc()) {
+    if (!isset($habit_schedules[$schedule['habit_id']])) {
+        $habit_schedules[$schedule['habit_id']] = [
+            'name' => $schedule['habit_name'],
+            'days' => []
+        ];
+    }
+    $habit_schedules[$schedule['habit_id']]['days'][] = (int)$schedule['day_of_week'];
+}
+
+// Get frequency-based habit information
+$frequency_query = "SELECT 
+    h.id as habit_id, 
+    h.name as habit_name,
+    hf.times_per_week,
+    hf.week_starts_on
+    FROM habits h
+    JOIN habit_frequency hf ON h.id = hf.habit_id
+    WHERE h.is_active = 1";
+    
+if ($habit_id !== 'all') {
+    $frequency_query .= " AND h.id = " . intval($habit_id);
+}
+if ($category_id !== 'all') {
+    $frequency_query .= " AND h.category_id = " . intval($category_id);
+}
+
+$frequency_result = $conn->query($frequency_query);
+$habit_frequencies = [];
+while ($frequency = $frequency_result->fetch_assoc()) {
+    $habit_frequencies[$frequency['habit_id']] = [
+        'name' => $frequency['habit_name'],
+        'times_per_week' => (int)$frequency['times_per_week'],
+        'week_starts_on' => (int)$frequency['week_starts_on']
+    ];
+}
+
 // Fetch habit completion data for the month
 $completions_query = "
     SELECT 
@@ -66,6 +122,8 @@ $completions_result = $stmt->get_result();
 
 // Process completion data
 $habit_completions = [];
+$all_habit_completions = []; // Track all completions by habit and date for frequency calculation
+
 while ($row = $completions_result->fetch_assoc()) {
     if ($row['completion_date']) {
         $key = $row['habit_id'] . '_' . $row['completion_date'];
@@ -76,6 +134,14 @@ while ($row = $completions_result->fetch_assoc()) {
             'reason' => $row['reason'],
             'habit_name' => $row['habit_name']
         ];
+        
+        // NEW FEATURE: Habit Frequency - Track completions for frequency habits
+        if (!isset($all_habit_completions[$row['habit_id']])) {
+            $all_habit_completions[$row['habit_id']] = [];
+        }
+        if ($row['status'] === 'completed') {
+            $all_habit_completions[$row['habit_id']][] = $row['completion_date'];
+        }
     }
 }
 
