@@ -426,6 +426,104 @@ uasort($habit_details, function($a, $b) use ($categories) {
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+
+        <!-- Overall Habit Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Overall Habit Summary</h5>
+                <small class="text-muted"><?php echo date('M j, Y', strtotime($start_date)); ?> - <?php echo date('M j, Y', strtotime($end_date)); ?></small>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Habit</th>
+                                <th>Schedule</th>
+                                <th>Category</th>
+                                <th>Completed</th>
+                                <th>Procrastinated</th>
+                                <th>Skipped</th>
+                                <th>Success Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($habit_details as $habit_id => $habit): ?>
+                                <?php 
+                                    $total_attempts = $habit['total_completions'] + $habit['total_procrastinations'] + $habit['total_skips'];
+                                    $success_rate = $total_attempts > 0 ? ($habit['total_completions'] / $total_attempts) * 100 : 0;
+                                    
+                                    // Get schedule information
+                                    $schedule_type = "Daily";
+                                    $schedule_info = "";
+                                    
+                                    // Check for specific days
+                                    $days_query = "SELECT day_of_week FROM habit_schedule WHERE habit_id = ? ORDER BY day_of_week";
+                                    $days_stmt = $conn->prepare($days_query);
+                                    $days_stmt->bind_param('i', $habit_id);
+                                    $days_stmt->execute();
+                                    $days_result = $days_stmt->get_result();
+                                    
+                                    if ($days_result->num_rows > 0) {
+                                        $schedule_type = "Specific Days";
+                                        $day_names = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
+                                        $days = [];
+                                        while ($day = $days_result->fetch_assoc()) {
+                                            $days[] = $day_names[$day['day_of_week']];
+                                        }
+                                        $schedule_info = implode(', ', $days);
+                                    }
+                                    
+                                    // Check for frequency
+                                    $freq_query = "SELECT times_per_week, week_starts_on FROM habit_frequency WHERE habit_id = ?";
+                                    $freq_stmt = $conn->prepare($freq_query);
+                                    $freq_stmt->bind_param('i', $habit_id);
+                                    $freq_stmt->execute();
+                                    $freq_result = $freq_stmt->get_result();
+                                    
+                                    if ($freq_row = $freq_result->fetch_assoc()) {
+                                        $schedule_type = "Frequency";
+                                        $start_day_names = ['Sunday', 'Monday', 'Saturday'];
+                                        $schedule_info = "{$freq_row['times_per_week']} times/week";
+                                        if (isset($start_day_names[$freq_row['week_starts_on']])) {
+                                            $schedule_info .= " (starts {$start_day_names[$freq_row['week_starts_on']]})";
+                                        }
+                                    }
+                                ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($habit['name']); ?></td>
+                                    <td>
+                                        <span class="badge <?php 
+                                            echo $schedule_type === 'Daily' ? 'bg-primary' : 
+                                                ($schedule_type === 'Specific Days' ? 'bg-info' : 'bg-warning'); 
+                                        ?>">
+                                            <?php echo $schedule_type; ?>
+                                        </span>
+                                        <?php if ($schedule_info): ?>
+                                            <small class="d-block text-muted"><?php echo $schedule_info; ?></small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background-color: <?php echo $categories[$habit['category_id']]['color']; ?>">
+                                            <?php echo htmlspecialchars($categories[$habit['category_id']]['name']); ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-success"><?php echo $habit['total_completions']; ?></td>
+                                    <td class="text-warning"><?php echo $habit['total_procrastinations']; ?></td>
+                                    <td class="text-danger"><?php echo $habit['total_skips']; ?></td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: <?php echo $success_rate; ?>%"></div>
+                                        </div>
+                                        <small><?php echo number_format($success_rate, 1); ?>%</small>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 <style>
