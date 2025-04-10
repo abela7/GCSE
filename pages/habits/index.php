@@ -117,30 +117,6 @@ if ($time_frame == 'today') {
 // Get the current day of the week (0 = Sunday, 6 = Saturday)
 $today_day_of_week = date('w');
 
-// Get week boundaries
-function getWeekBounds($start_day = 0) {
-    // 0 = Sunday, 1 = Monday, 6 = Saturday
-    $today = new DateTime();
-    $day_of_week = (int)$today->format('w');
-    
-    // Calculate the difference between current day and start day
-    $diff = $day_of_week - $start_day;
-    if ($diff < 0) $diff += 7;
-    
-    $week_start = clone $today;
-    $week_start->sub(new DateInterval('P'.$diff.'D'));
-    $week_start->setTime(0, 0, 0);
-    
-    $week_end = clone $week_start;
-    $week_end->add(new DateInterval('P6D'));
-    $week_end->setTime(23, 59, 59);
-    
-    return [
-        'start' => $week_start->format('Y-m-d'),
-        'end' => $week_end->format('Y-m-d')
-    ];
-}
-
 // Retrieve categories for the current user
 $categories_query = "SELECT * FROM categories WHERE user_id = ?";
 $categories_stmt = $conn->prepare($categories_query);
