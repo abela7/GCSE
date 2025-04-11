@@ -857,10 +857,6 @@ $accent_color = "#cdaf56";
         const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
         updateAgeCounter(birthDate);
         
-        // Message indices to hold current message selections
-        let currentMessageIndex1 = -1;
-        let currentMessageIndex2 = -1;
-        
         // Update counter every second
         setInterval(function() {
             updateAgeCounter(birthDate);
@@ -1007,20 +1003,12 @@ $accent_color = "#cdaf56";
                 return Math.floor(Math.random() * messages.length * (messageInterval + 1)) % messages.length;
             };
             
-            // Get two different random indices - only if the 5 second interval has changed
-            const newInterval = messageInterval;
-            if (currentMessageIndex1 === -1 || Math.floor(secondsSinceEpoch / 5) !== Math.floor((secondsSinceEpoch - 1) / 5)) {
-                // It's a new 5-second interval, update the messages
-                let randomIndex1 = getRandomMessageIndex();
-                let randomIndex2 = getRandomMessageIndex();
-                
-                // Make sure the second message is different from the first
-                while (randomIndex2 === randomIndex1) {
-                    randomIndex2 = getRandomMessageIndex();
-                }
-                
-                currentMessageIndex1 = randomIndex1;
-                currentMessageIndex2 = randomIndex2;
+            // Get two different random indices
+            let randomIndex1 = getRandomMessageIndex();
+            let randomIndex2 = getRandomMessageIndex();
+            // Make sure the second message is different from the first
+            while (randomIndex2 === randomIndex1) {
+                randomIndex2 = getRandomMessageIndex();
             }
             
             // Helper function to format messages (separate Bible verses from references)
@@ -1044,8 +1032,8 @@ $accent_color = "#cdaf56";
             const messageElement1 = document.getElementById('motivation-message-primary');
             const messageElement2 = document.getElementById('motivation-message-secondary');
             
-            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex1])}</span>`;
-            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex2])}</span>`;
+            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex1])}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex2])}</span>`;
         }
         
         // Add styles for the motivational messages
