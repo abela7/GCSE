@@ -88,29 +88,6 @@ include '../../includes/header.php';
                 <div class="card-body">
                     <!-- Number Visualizations -->
                     <div class="row mb-4">
-                        <!-- Hours & Minutes Progress -->
-                        <div class="col-md-6 mb-3">
-                            <div class="metric-card">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">Hours</h5>
-                                    <div class="badge bg-accent" id="hours-lived">-</div>
-                                </div>
-                                <div class="progress hours-progress" style="height: 20px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="hours-progress" role="progressbar" style="width: 0"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="metric-card">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">Minutes</h5>
-                                    <div class="badge bg-accent" id="minutes-lived">-</div>
-                                </div>
-                                <div class="progress minutes-progress" style="height: 20px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     
                     <!-- Today's Focus -->
