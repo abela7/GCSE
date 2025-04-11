@@ -480,14 +480,18 @@ include '../../includes/header.php';
                         document.getElementById('heartbeats-minute').textContent = heartbeats;
                         
                         // Update present moment section
-                        document.getElementById('present-second-count').textContent = seconds;
-                        const secondsProgress = (seconds / 60) * 100;
-                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        if (document.getElementById('present-second-count')) {
+                            document.getElementById('present-second-count').textContent = seconds;
+                            const secondsProgress = (seconds / 60) * 100;
+                            document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        }
                         
                         // Update urgent reminder section
-                        document.getElementById('urgent-hours').textContent = formattedHours;
-                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
-                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        if (document.getElementById('urgent-hours')) {
+                            document.getElementById('urgent-hours').textContent = formattedHours;
+                            document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                            document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        }
                         
                         // Rotate through memento mori messages
                         const mementoMessages = [
@@ -1252,14 +1256,18 @@ include '../../includes/header.php';
                         document.getElementById('heartbeats-minute').textContent = heartbeats;
                         
                         // Update present moment section
-                        document.getElementById('present-second-count').textContent = seconds;
-                        const secondsProgress = (seconds / 60) * 100;
-                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        if (document.getElementById('present-second-count')) {
+                            document.getElementById('present-second-count').textContent = seconds;
+                            const secondsProgress = (seconds / 60) * 100;
+                            document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        }
                         
                         // Update urgent reminder section
-                        document.getElementById('urgent-hours').textContent = formattedHours;
-                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
-                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        if (document.getElementById('urgent-hours')) {
+                            document.getElementById('urgent-hours').textContent = formattedHours;
+                            document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                            document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        }
                         
                         // Rotate through memento mori messages
                         const mementoMessages = [
@@ -1399,10 +1407,6 @@ include '../../includes/header.php';
     </div>
 </div>
 
-<?php
-include '../../includes/footer.php';
-close_connection($conn);
-?>
 
 <!-- Metric circles section moved to the bottom of the page -->
 <div class="row mb-4">
@@ -1431,3 +1435,7 @@ close_connection($conn);
         </div>
     </div>
 </div> 
+<?php
+include '../../includes/footer.php';
+close_connection($conn);
+?>
