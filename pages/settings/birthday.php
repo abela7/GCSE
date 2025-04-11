@@ -81,565 +81,7 @@ include '../../includes/header.php';
             
             <?php if ($birthday_data): ?>
             <!-- Life Metrics Visualization -->
-            <div class="card feature-card">
-                <div class="card-header bg-gradient" style="background: linear-gradient(to right, var(--accent-color), var(--accent-color-light));">
-                    <h3 class="mb-0 text-white"><i class="fas fa-hourglass-half me-2"></i>Your Life in Time</h3>
-                </div>
-                <div class="card-body">
-                    <!-- Number Visualizations -->
-                    <div class="row mb-4">
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle years-circle">
-                                <div class="metric-number" id="years-lived">-</div>
-                                <div class="metric-label">Years</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle months-circle">
-                                <div class="metric-number" id="months-lived">-</div>
-                                <div class="metric-label">Months</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle weeks-circle">
-                                <div class="metric-number" id="weeks-lived">-</div>
-                                <div class="metric-label">Weeks</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle days-circle">
-                                <div class="metric-number" id="days-lived">-</div>
-                                <div class="metric-label">Days</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Hours & Minutes Progress -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <div class="metric-card">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">Hours</h5>
-                                    <div class="badge bg-accent" id="hours-lived">-</div>
-                                </div>
-                                <div class="progress hours-progress" style="height: 20px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="hours-progress" role="progressbar" style="width: 0"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="metric-card">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">Minutes</h5>
-                                    <div class="badge bg-accent" id="minutes-lived">-</div>
-                                </div>
-                                <div class="progress minutes-progress" style="height: 20px;">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Today's Focus -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card metric-card today-card">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title mb-3">This Day Is a Gift</h5>
-                                    <div class="time-pulse" id="beating-heart">
-                                        <i class="fas fa-heartbeat"></i>
-                                    </div>
-                                    <div id="today-date" class="display-6 mb-3">-</div>
-                                    <div class="current-moment-box p-3 mb-3">
-                                        <div class="row">
-                                            <div class="col">
-                                                <div class="moment-value" id="today-number">-</div>
-                                                <div class="moment-label">Day of Year</div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="today-hour">-</div>
-                                                <div class="moment-label">Hour of Day</div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="heartbeats-minute">-</div>
-                                                <div class="moment-label">Heartbeats/min</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="memento-mori" class="memento-text">Each moment is precious. Act now.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Urgent Time Reminder -->
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <div class="card metric-card present-moment-card">
-                                <div class="card-body">
-                                    <h5 class="mb-2">The Present Moment</h5>
-                                    <div class="present-moment-container">
-                                        <div class="progress present-moment-progress mb-2">
-                                            <div class="progress-bar present-second-bar" id="present-second-progress" role="progressbar"></div>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <span>Seconds of this minute: <span id="present-second-count">-</span></span>
-                                        </div>
-                                    </div>
-                                    <div class="present-moment-quote mt-3" id="present-quote">This second will never return.</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card metric-card h-100 urgent-reminder-card">
-                                <div class="card-body">
-                                    <h5 class="mb-2">Your Time Is Now</h5>
-                                    <div class="timer-container">
-                                        <div class="d-flex justify-content-center mb-3">
-                                            <div class="time-value-box mx-2">
-                                                <div class="time-value" id="urgent-hours">-</div>
-                                                <div class="time-label">Hours</div>
-                                            </div>
-                                            <div class="time-value-box mx-2">
-                                                <div class="time-value" id="urgent-minutes">-</div>
-                                                <div class="time-label">Minutes</div>
-                                            </div>
-                                            <div class="time-value-box mx-2">
-                                                <div class="time-value" id="urgent-seconds">-</div>
-                                                <div class="time-label">Seconds</div>
-                                            </div>
-                                        </div>
-                                        <div class="urgent-message">
-                                            What if this was all the time you had left?
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             
-            <!-- CSS for visualizations -->
-            <style>
-                .live-counter-wrapper {
-                    background-color: #343a40;
-                    color: white;
-                    border-radius: 10px;
-                    margin-bottom: 15px;
-                }
-                
-                #time-counter {
-                    font-family: 'Courier New', monospace;
-                    letter-spacing: 2px;
-                }
-                
-                .metric-circle {
-                    width: 120px;
-                    height: 120px;
-                    border-radius: 50%;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                    margin: 0 auto;
-                    color: white;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    transition: transform 0.3s;
-                }
-                
-                .metric-circle:hover {
-                    transform: scale(1.05);
-                }
-                
-                .years-circle { background: linear-gradient(135deg, #3498db, #2980b9); }
-                .months-circle { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-                .weeks-circle { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-                .days-circle { background: linear-gradient(135deg, #f39c12, #d35400); }
-                
-                .metric-number {
-                    font-size: 24px;
-                    font-weight: bold;
-                    line-height: 1.2;
-                }
-                
-                .metric-label {
-                    font-size: 14px;
-                    opacity: 0.9;
-                }
-                
-                .metric-card {
-                    padding: 15px;
-                    border-radius: 10px;
-                    background-color: white;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    height: 100%;
-                }
-                
-                .hours-progress .progress-bar {
-                    background-color: #3498db;
-                }
-                
-                .minutes-progress .progress-bar {
-                    background-color: #e74c3c;
-                }
-                
-                /* New styles for urgency-focused metrics */
-                .today-card {
-                    background: linear-gradient(135deg, #2c3e50, #34495e);
-                    color: white;
-                    padding: 20px;
-                }
-                
-                .time-pulse {
-                    font-size: 48px;
-                    color: #e74c3c;
-                    animation: pulse 1s infinite;
-                    margin-bottom: 15px;
-                }
-                
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                    100% { transform: scale(1); }
-                }
-                
-                .current-moment-box {
-                    background-color: rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                }
-                
-                .moment-value {
-                    font-size: 28px;
-                    font-weight: bold;
-                    color: #ecf0f1;
-                }
-                
-                .moment-label {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.7);
-                }
-                
-                .memento-text {
-                    font-size: 18px;
-                    font-style: italic;
-                    margin-top: 15px;
-                    padding: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.2);
-                }
-                
-                .present-moment-card {
-                    background: linear-gradient(135deg, #8e44ad, #9b59b6);
-                    color: white;
-                }
-                
-                .present-moment-progress {
-                    height: 15px;
-                    background-color: rgba(255, 255, 255, 0.2);
-                    border-radius: 5px;
-                    overflow: hidden;
-                }
-                
-                .present-second-bar {
-                    background-color: #f1c40f;
-                    transition: width 0.1s linear;
-                }
-                
-                .present-moment-quote {
-                    font-style: italic;
-                    text-align: center;
-                    padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.2);
-                }
-                
-                .urgent-reminder-card {
-                    background: linear-gradient(135deg, #c0392b, #e74c3c);
-                    color: white;
-                }
-                
-                .time-value-box {
-                    background-color: rgba(0, 0, 0, 0.2);
-                    border-radius: 5px;
-                    padding: 10px 15px;
-                    min-width: 80px;
-                    text-align: center;
-                }
-                
-                .urgent-message {
-                    text-align: center;
-                    font-style: italic;
-                    font-size: 18px;
-                    margin-top: 10px;
-                    padding-top: 10px;
-                    border-top: 1px solid rgba(255, 255, 255, 0.2);
-                }
-                
-                @media (max-width: 767px) {
-                    .metric-circle {
-                        width: 100px;
-                        height: 100px;
-                    }
-                    
-                    .metric-number {
-                        font-size: 20px;
-                    }
-                    
-                    .time-value-box {
-                        min-width: 60px;
-                        padding: 8px 10px;
-                    }
-                    
-                    .moment-value {
-                        font-size: 22px;
-                    }
-                }
-            </style>
-            
-            <!-- JavaScript for calculations and visualizations -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Get birth date
-                    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
-                    
-                    // Update metrics initially
-                    updateLifeMetrics(birthDate);
-                    
-                    // Update every second
-                    setInterval(function() {
-                        updateLifeMetrics(birthDate);
-                    }, 1000);
-                    
-                    // Calculate total sunsets seen
-                    function calculateSunsets(birthDate) {
-                        const now = new Date();
-                        const diffTime = Math.abs(now - birthDate);
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays;
-                    }
-                    
-                    // Update sunset count
-                    const totalSunsets = calculateSunsets(birthDate);
-                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
-                    
-                    // Add clock functionality
-                    function updateClock() {
-                        const now = new Date();
-                        const hours = String(now.getHours()).padStart(2, '0');
-                        const minutes = String(now.getMinutes()).padStart(2, '0');
-                        const seconds = String(now.getSeconds()).padStart(2, '0');
-                        
-                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
-                        
-                        // Update clock hands
-                        const secondHand = document.querySelector('.second-hand');
-                        const minuteHand = document.querySelector('.minute-hand');
-                        const hourHand = document.querySelector('.hour-hand');
-                        
-                        if (secondHand && minuteHand && hourHand) {
-                            const secondsDegrees = ((now.getSeconds() / 60) * 360) + 90; // Add 90 to start from 12 o'clock
-                            const minutesDegrees = ((now.getMinutes() / 60) * 360) + ((now.getSeconds() / 60) * 6) + 90;
-                            const hoursDegrees = ((now.getHours() / 12) * 360) + ((now.getMinutes() / 60) * 30) + 90;
-                            
-                            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
-                            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
-                            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
-                        }
-                    }
-                    
-                    // Update clock initially and then every second
-                    updateClock();
-                    setInterval(updateClock, 1000);
-                    
-                    // Life metrics calculation and visualization
-                    function updateLifeMetrics(birthDate) {
-                        // Get current date/time in London time zone
-                        const now = new Date();
-                        const londonOptions = { timeZone: 'Europe/London' };
-                        
-                        // Get London time components as strings
-                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
-                        // Parse London time back to Date object
-                        const londonTime = new Date(londonTimeStr);
-                        
-                        // Calculate diff in milliseconds
-                        const diffMs = londonTime - birthDate;
-                        
-                        // Calculate various time units
-                        const totalSeconds = Math.floor(diffMs / 1000);
-                        const totalMinutes = Math.floor(totalSeconds / 60);
-                        const totalHours = Math.floor(totalMinutes / 60);
-                        const totalDays = Math.floor(totalHours / 24);
-                        const totalWeeks = Math.floor(totalDays / 7);
-                        const totalMonths = Math.floor(totalDays / 30.4375);
-                        const years = Math.floor(totalDays / 365.25);
-                        
-                        // For time calculations
-                        const hours = Math.floor(totalHours % 24);
-                        const minutes = Math.floor(totalMinutes % 60);
-                        const seconds = Math.floor(totalSeconds % 60);
-                        
-                        // Format with leading zeros
-                        const formattedHours = String(hours).padStart(2, '0');
-                        const formattedMinutes = String(minutes).padStart(2, '0');
-                        const formattedSeconds = String(seconds).padStart(2, '0');
-                        
-                        // Update main metrics
-                        document.getElementById('years-lived').textContent = formatNumber(years);
-                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
-                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
-                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
-                        
-                        // Update hours and minutes with progress
-                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
-                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
-                        
-                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
-                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
-                        
-                        // Update Today's focus section
-                        const currentDate = londonTime.toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        document.getElementById('today-date').textContent = currentDate;
-                        
-                        // Calculate day of year
-                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
-                        const diff = londonTime - startOfYear;
-                        const dayOfYear = Math.floor(diff / 86400000);
-                        document.getElementById('today-number').textContent = dayOfYear;
-                        
-                        // Current hour
-                        document.getElementById('today-hour').textContent = hours;
-                        
-                        // Heartbeats per minute (simulation, average 70-75)
-                        const heartbeats = Math.floor(70 + Math.random() * 5);
-                        document.getElementById('heartbeats-minute').textContent = heartbeats;
-                        
-                        // Update present moment section
-                        document.getElementById('present-second-count').textContent = seconds;
-                        const secondsProgress = (seconds / 60) * 100;
-                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
-                        
-                        // Update urgent reminder section
-                        document.getElementById('urgent-hours').textContent = formattedHours;
-                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
-                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
-                        
-                        // Rotate through memento mori messages
-                        const mementoMessages = [
-                            "Remember, you will die. Use this moment wisely.",
-                            "Every second is precious and unrepeatable.",
-                            "What will you do with the time given to you today?",
-                            "If this was your last day, how would you spend it?",
-                            "Today is a gift. That's why it's called the present.",
-                            "Act now. Tomorrow is not guaranteed."
-                        ];
-                        
-                        // Change message every minute
-                        if (seconds === 0) {
-                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
-                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
-                            
-                            // Present moment quotes that rotate every minute
-                            const presentQuotes = [
-                                "This moment will never come again.",
-                                "Now is all we have.",
-                                "Be present and attentive right now.",
-                                "Each second is irreplaceable.",
-                                "The present moment is your point of power."
-                            ];
-                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
-                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
-                        }
-                        
-                        // Restart hourglass animation every minute
-                        if (seconds === 0) {
-                            const sand = document.querySelector('.sand');
-                            const sandPile = document.querySelector('.sand-pile');
-                            
-                            if (sand && sandPile) {
-                                sand.style.animation = 'none';
-                                sandPile.style.animation = 'none';
-                                
-                                // Trigger reflow
-                                void sand.offsetWidth;
-                                void sandPile.offsetWidth;
-                                
-                                sand.style.animation = 'minuteSandFall 60s linear infinite';
-                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
-                            }
-                        }
-                    }
-                    
-                    // Helper for formatting large numbers with commas
-                    function formatNumber(num) {
-                        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    }
-                    
-                    // Handle Judgment Checklist cookies
-                    function setupJudgmentChecklist() {
-                        const checkboxes = document.querySelectorAll('.judgment-check');
-                        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-                        
-                        // Check if we have saved state for today
-                        const savedDate = getCookie('judgment_date');
-                        
-                        // If it's a new day, clear previous checkboxes
-                        if (savedDate !== today) {
-                            // Clear all checkboxes
-                            checkboxes.forEach(checkbox => {
-                                checkbox.checked = false;
-                            });
-                            
-                            // Set today's date in cookie
-                            setCookie('judgment_date', today, 365);
-                        } else {
-                            // Restore saved state
-                            checkboxes.forEach(checkbox => {
-                                const isChecked = getCookie(`judgment_${checkbox.id}`) === 'true';
-                                checkbox.checked = isChecked;
-                            });
-                        }
-                        
-                        // Add event listeners to save state when checkboxes change
-                        checkboxes.forEach(checkbox => {
-                            checkbox.addEventListener('change', function() {
-                                setCookie(`judgment_${this.id}`, this.checked, 365);
-                            });
-                        });
-                    }
-                    
-                    // Cookie helper functions
-                    function setCookie(name, value, days) {
-                        const d = new Date();
-                        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-                        const expires = "expires=" + d.toUTCString();
-                        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-                    }
-                    
-                    function getCookie(name) {
-                        const cname = name + "=";
-                        const decodedCookie = decodeURIComponent(document.cookie);
-                        const ca = decodedCookie.split(';');
-                        for(let i = 0; i < ca.length; i++) {
-                            let c = ca[i];
-                            while (c.charAt(0) === ' ') {
-                                c = c.substring(1);
-                            }
-                            if (c.indexOf(cname) === 0) {
-                                return c.substring(cname.length, c.length);
-                            }
-                        }
-                        return "";
-                    }
-                    
-                    // Initialize checklist when DOM is loaded
-                    setupJudgmentChecklist();
-                });
-            </script>
             
             <!-- Orthodox Mortality Reminders -->
             <div class="card feature-card mt-4">
@@ -1350,6 +792,566 @@ include '../../includes/header.php';
                     function formatNumber(num) {
                         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     }
+                });
+            </script>
+
+<div class="card feature-card">
+                <div class="card-header bg-gradient" style="background: linear-gradient(to right, var(--accent-color), var(--accent-color-light));">
+                    <h3 class="mb-0 text-white"><i class="fas fa-hourglass-half me-2"></i>Your Life in Time</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Number Visualizations -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle years-circle">
+                                <div class="metric-number" id="years-lived">-</div>
+                                <div class="metric-label">Years</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle months-circle">
+                                <div class="metric-number" id="months-lived">-</div>
+                                <div class="metric-label">Months</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle weeks-circle">
+                                <div class="metric-number" id="weeks-lived">-</div>
+                                <div class="metric-label">Weeks</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle days-circle">
+                                <div class="metric-number" id="days-lived">-</div>
+                                <div class="metric-label">Days</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hours & Minutes Progress -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Hours</h5>
+                                    <div class="badge bg-accent" id="hours-lived">-</div>
+                                </div>
+                                <div class="progress hours-progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="hours-progress" role="progressbar" style="width: 0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Minutes</h5>
+                                    <div class="badge bg-accent" id="minutes-lived">-</div>
+                                </div>
+                                <div class="progress minutes-progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Today's Focus -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card metric-card today-card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title mb-3">This Day Is a Gift</h5>
+                                    <div class="time-pulse" id="beating-heart">
+                                        <i class="fas fa-heartbeat"></i>
+                                    </div>
+                                    <div id="today-date" class="display-6 mb-3">-</div>
+                                    <div class="current-moment-box p-3 mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="moment-value" id="today-number">-</div>
+                                                <div class="moment-label">Day of Year</div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="moment-value" id="today-hour">-</div>
+                                                <div class="moment-label">Hour of Day</div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="moment-value" id="heartbeats-minute">-</div>
+                                                <div class="moment-label">Heartbeats/min</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="memento-mori" class="memento-text">Each moment is precious. Act now.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Urgent Time Reminder -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card metric-card present-moment-card">
+                                <div class="card-body">
+                                    <h5 class="mb-2">The Present Moment</h5>
+                                    <div class="present-moment-container">
+                                        <div class="progress present-moment-progress mb-2">
+                                            <div class="progress-bar present-second-bar" id="present-second-progress" role="progressbar"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Seconds of this minute: <span id="present-second-count">-</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="present-moment-quote mt-3" id="present-quote">This second will never return.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card metric-card h-100 urgent-reminder-card">
+                                <div class="card-body">
+                                    <h5 class="mb-2">Your Time Is Now</h5>
+                                    <div class="timer-container">
+                                        <div class="d-flex justify-content-center mb-3">
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-hours">-</div>
+                                                <div class="time-label">Hours</div>
+                                            </div>
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-minutes">-</div>
+                                                <div class="time-label">Minutes</div>
+                                            </div>
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-seconds">-</div>
+                                                <div class="time-label">Seconds</div>
+                                            </div>
+                                        </div>
+                                        <div class="urgent-message">
+                                            What if this was all the time you had left?
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CSS for visualizations -->
+            <style>
+                .live-counter-wrapper {
+                    background-color: #343a40;
+                    color: white;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
+                }
+                
+                #time-counter {
+                    font-family: 'Courier New', monospace;
+                    letter-spacing: 2px;
+                }
+                
+                .metric-circle {
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0 auto;
+                    color: white;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    transition: transform 0.3s;
+                }
+                
+                .metric-circle:hover {
+                    transform: scale(1.05);
+                }
+                
+                .years-circle { background: linear-gradient(135deg, #3498db, #2980b9); }
+                .months-circle { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+                .weeks-circle { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+                .days-circle { background: linear-gradient(135deg, #f39c12, #d35400); }
+                
+                .metric-number {
+                    font-size: 24px;
+                    font-weight: bold;
+                    line-height: 1.2;
+                }
+                
+                .metric-label {
+                    font-size: 14px;
+                    opacity: 0.9;
+                }
+                
+                .metric-card {
+                    padding: 15px;
+                    border-radius: 10px;
+                    background-color: white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    height: 100%;
+                }
+                
+                .hours-progress .progress-bar {
+                    background-color: #3498db;
+                }
+                
+                .minutes-progress .progress-bar {
+                    background-color: #e74c3c;
+                }
+                
+                /* New styles for urgency-focused metrics */
+                .today-card {
+                    background: linear-gradient(135deg, #2c3e50, #34495e);
+                    color: white;
+                    padding: 20px;
+                }
+                
+                .time-pulse {
+                    font-size: 48px;
+                    color: #e74c3c;
+                    animation: pulse 1s infinite;
+                    margin-bottom: 15px;
+                }
+                
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+                
+                .current-moment-box {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                
+                .moment-value {
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #ecf0f1;
+                }
+                
+                .moment-label {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .memento-text {
+                    font-size: 18px;
+                    font-style: italic;
+                    margin-top: 15px;
+                    padding: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .present-moment-card {
+                    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+                    color: white;
+                }
+                
+                .present-moment-progress {
+                    height: 15px;
+                    background-color: rgba(255, 255, 255, 0.2);
+                    border-radius: 5px;
+                    overflow: hidden;
+                }
+                
+                .present-second-bar {
+                    background-color: #f1c40f;
+                    transition: width 0.1s linear;
+                }
+                
+                .present-moment-quote {
+                    font-style: italic;
+                    text-align: center;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .urgent-reminder-card {
+                    background: linear-gradient(135deg, #c0392b, #e74c3c);
+                    color: white;
+                }
+                
+                .time-value-box {
+                    background-color: rgba(0, 0, 0, 0.2);
+                    border-radius: 5px;
+                    padding: 10px 15px;
+                    min-width: 80px;
+                    text-align: center;
+                }
+                
+                .urgent-message {
+                    text-align: center;
+                    font-style: italic;
+                    font-size: 18px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                @media (max-width: 767px) {
+                    .metric-circle {
+                        width: 100px;
+                        height: 100px;
+                    }
+                    
+                    .metric-number {
+                        font-size: 20px;
+                    }
+                    
+                    .time-value-box {
+                        min-width: 60px;
+                        padding: 8px 10px;
+                    }
+                    
+                    .moment-value {
+                        font-size: 22px;
+                    }
+                }
+            </style>
+            
+            <!-- JavaScript for calculations and visualizations -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Get birth date
+                    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
+                    
+                    // Update metrics initially
+                    updateLifeMetrics(birthDate);
+                    
+                    // Update every second
+                    setInterval(function() {
+                        updateLifeMetrics(birthDate);
+                    }, 1000);
+                    
+                    // Calculate total sunsets seen
+                    function calculateSunsets(birthDate) {
+                        const now = new Date();
+                        const diffTime = Math.abs(now - birthDate);
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays;
+                    }
+                    
+                    // Update sunset count
+                    const totalSunsets = calculateSunsets(birthDate);
+                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
+                    
+                    // Add clock functionality
+                    function updateClock() {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        const seconds = String(now.getSeconds()).padStart(2, '0');
+                        
+                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+                        
+                        // Update clock hands
+                        const secondHand = document.querySelector('.second-hand');
+                        const minuteHand = document.querySelector('.minute-hand');
+                        const hourHand = document.querySelector('.hour-hand');
+                        
+                        if (secondHand && minuteHand && hourHand) {
+                            const secondsDegrees = ((now.getSeconds() / 60) * 360) + 90; // Add 90 to start from 12 o'clock
+                            const minutesDegrees = ((now.getMinutes() / 60) * 360) + ((now.getSeconds() / 60) * 6) + 90;
+                            const hoursDegrees = ((now.getHours() / 12) * 360) + ((now.getMinutes() / 60) * 30) + 90;
+                            
+                            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+                            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
+                            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+                        }
+                    }
+                    
+                    // Update clock initially and then every second
+                    updateClock();
+                    setInterval(updateClock, 1000);
+                    
+                    // Life metrics calculation and visualization
+                    function updateLifeMetrics(birthDate) {
+                        // Get current date/time in London time zone
+                        const now = new Date();
+                        const londonOptions = { timeZone: 'Europe/London' };
+                        
+                        // Get London time components as strings
+                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+                        // Parse London time back to Date object
+                        const londonTime = new Date(londonTimeStr);
+                        
+                        // Calculate diff in milliseconds
+                        const diffMs = londonTime - birthDate;
+                        
+                        // Calculate various time units
+                        const totalSeconds = Math.floor(diffMs / 1000);
+                        const totalMinutes = Math.floor(totalSeconds / 60);
+                        const totalHours = Math.floor(totalMinutes / 60);
+                        const totalDays = Math.floor(totalHours / 24);
+                        const totalWeeks = Math.floor(totalDays / 7);
+                        const totalMonths = Math.floor(totalDays / 30.4375);
+                        const years = Math.floor(totalDays / 365.25);
+                        
+                        // For time calculations
+                        const hours = Math.floor(totalHours % 24);
+                        const minutes = Math.floor(totalMinutes % 60);
+                        const seconds = Math.floor(totalSeconds % 60);
+                        
+                        // Format with leading zeros
+                        const formattedHours = String(hours).padStart(2, '0');
+                        const formattedMinutes = String(minutes).padStart(2, '0');
+                        const formattedSeconds = String(seconds).padStart(2, '0');
+                        
+                        // Update main metrics
+                        document.getElementById('years-lived').textContent = formatNumber(years);
+                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
+                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
+                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
+                        
+                        // Update hours and minutes with progress
+                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
+                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
+                        
+                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
+                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
+                        
+                        // Update Today's focus section
+                        const currentDate = londonTime.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        document.getElementById('today-date').textContent = currentDate;
+                        
+                        // Calculate day of year
+                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
+                        const diff = londonTime - startOfYear;
+                        const dayOfYear = Math.floor(diff / 86400000);
+                        document.getElementById('today-number').textContent = dayOfYear;
+                        
+                        // Current hour
+                        document.getElementById('today-hour').textContent = hours;
+                        
+                        // Heartbeats per minute (simulation, average 70-75)
+                        const heartbeats = Math.floor(70 + Math.random() * 5);
+                        document.getElementById('heartbeats-minute').textContent = heartbeats;
+                        
+                        // Update present moment section
+                        document.getElementById('present-second-count').textContent = seconds;
+                        const secondsProgress = (seconds / 60) * 100;
+                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        
+                        // Update urgent reminder section
+                        document.getElementById('urgent-hours').textContent = formattedHours;
+                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        
+                        // Rotate through memento mori messages
+                        const mementoMessages = [
+                            "Remember, you will die. Use this moment wisely.",
+                            "Every second is precious and unrepeatable.",
+                            "What will you do with the time given to you today?",
+                            "If this was your last day, how would you spend it?",
+                            "Today is a gift. That's why it's called the present.",
+                            "Act now. Tomorrow is not guaranteed."
+                        ];
+                        
+                        // Change message every minute
+                        if (seconds === 0) {
+                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
+                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
+                            
+                            // Present moment quotes that rotate every minute
+                            const presentQuotes = [
+                                "This moment will never come again.",
+                                "Now is all we have.",
+                                "Be present and attentive right now.",
+                                "Each second is irreplaceable.",
+                                "The present moment is your point of power."
+                            ];
+                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
+                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                        }
+                        
+                        // Restart hourglass animation every minute
+                        if (seconds === 0) {
+                            const sand = document.querySelector('.sand');
+                            const sandPile = document.querySelector('.sand-pile');
+                            
+                            if (sand && sandPile) {
+                                sand.style.animation = 'none';
+                                sandPile.style.animation = 'none';
+                                
+                                // Trigger reflow
+                                void sand.offsetWidth;
+                                void sandPile.offsetWidth;
+                                
+                                sand.style.animation = 'minuteSandFall 60s linear infinite';
+                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
+                            }
+                        }
+                    }
+                    
+                    // Helper for formatting large numbers with commas
+                    function formatNumber(num) {
+                        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    }
+                    
+                    // Handle Judgment Checklist cookies
+                    function setupJudgmentChecklist() {
+                        const checkboxes = document.querySelectorAll('.judgment-check');
+                        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+                        
+                        // Check if we have saved state for today
+                        const savedDate = getCookie('judgment_date');
+                        
+                        // If it's a new day, clear previous checkboxes
+                        if (savedDate !== today) {
+                            // Clear all checkboxes
+                            checkboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Set today's date in cookie
+                            setCookie('judgment_date', today, 365);
+                        } else {
+                            // Restore saved state
+                            checkboxes.forEach(checkbox => {
+                                const isChecked = getCookie(`judgment_${checkbox.id}`) === 'true';
+                                checkbox.checked = isChecked;
+                            });
+                        }
+                        
+                        // Add event listeners to save state when checkboxes change
+                        checkboxes.forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                setCookie(`judgment_${this.id}`, this.checked, 365);
+                            });
+                        });
+                    }
+                    
+                    // Cookie helper functions
+                    function setCookie(name, value, days) {
+                        const d = new Date();
+                        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                        const expires = "expires=" + d.toUTCString();
+                        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+                    }
+                    
+                    function getCookie(name) {
+                        const cname = name + "=";
+                        const decodedCookie = decodeURIComponent(document.cookie);
+                        const ca = decodedCookie.split(';');
+                        for(let i = 0; i < ca.length; i++) {
+                            let c = ca[i];
+                            while (c.charAt(0) === ' ') {
+                                c = c.substring(1);
+                            }
+                            if (c.indexOf(cname) === 0) {
+                                return c.substring(cname.length, c.length);
+                            }
+                        }
+                        return "";
+                    }
+                    
+                    // Initialize checklist when DOM is loaded
+                    setupJudgmentChecklist();
                 });
             </script>
             <?php else: ?>
