@@ -862,6 +862,14 @@ $accent_color = "#cdaf56";
             updateAgeCounter(birthDate);
         }, 1000);
         
+        // Initialize motivational messages
+        updateMotivationalMessages();
+        
+        // Update messages every 5 seconds (separate from counter)
+        setInterval(function() {
+            updateMotivationalMessages();
+        }, 5000);
+        
         // Function to update age counter
         function updateAgeCounter(birthDate) {
             // Get current date/time in London time zone
@@ -1009,6 +1017,89 @@ $accent_color = "#cdaf56";
             // Make sure the second message is different from the first
             while (randomIndex2 === randomIndex1) {
                 randomIndex2 = getRandomMessageIndex();
+            }
+            
+            // Helper function to format messages (separate Bible verses from references)
+            const formatMessage = (message) => {
+                // Check if this is a Bible verse by looking for the pattern "Book Chapter:Verse -"
+                const bibleVersePattern = /^([0-9]?\s?[A-Za-z]+\s?[A-Za-z]*\s[0-9]+:[0-9]+)\s-\s(.+)$/;
+                const match = message.match(bibleVersePattern);
+                
+                if (match) {
+                    // This is a Bible verse, format with reference on new line
+                    const reference = match[1]; // The Bible book, chapter and verse
+                    const verseText = match[2]; // The actual verse text
+                    return `${verseText}<br><span class="verse-reference">${reference}</span>`;
+                } else {
+                    // This is a regular quote, return as is
+                    return message;
+                }
+            };
+            
+            // Set messages for the two slides with formatted text
+            const messageElement1 = document.getElementById('motivation-message-primary');
+            const messageElement2 = document.getElementById('motivation-message-secondary');
+            
+            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex1])}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex2])}</span>`;
+        }
+        
+        // Function to update motivational messages - separate from counter updates
+        function updateMotivationalMessages() {
+            // Messages array with Bible verses and inspirational quotes
+            const messages = [
+                // Bible verses
+                "Ephesians 5:16 - Making the most of every opportunity, because the days are evil.",
+                "Psalm 90:12 - Teach us to number our days, that we may gain a heart of wisdom.",
+                "Colossians 4:5 - Be wise in the way you act toward outsiders; make the most of every opportunity.",
+                "Proverbs 27:1 - Do not boast about tomorrow, for you do not know what a day may bring.",
+                "James 4:14 - What is your life? You are a mist that appears for a little while and then vanishes.",
+                "2 Corinthians 6:2 - Now is the time of God's favor, now is the day of salvation.",
+                "Hebrews 3:15 - Today, if you hear his voice, do not harden your hearts.",
+                "Matthew 6:34 - Do not worry about tomorrow, for tomorrow will worry about itself.",
+                "Psalm 118:24 - This is the day the Lord has made; let us rejoice and be glad in it.",
+                "Proverbs 6:4 - Don't put it off; do it now! Don't rest until you do.",
+                "John 9:4 - As long as it is day, we must do the works of him who sent me.",
+                "Ecclesiastes 9:10 - Whatever your hand finds to do, do it with all your might.",
+                "Luke 12:40 - You also must be ready, because the Son of Man will come at an hour you do not expect.",
+                
+                // Inspirational quotes without attribution
+                "Lost time is never found again.",
+                "Time is what we want most, but what we use worst.",
+                "Time waits for no one.",
+                "The way we spend our time defines who we are.",
+                "Either you run the day or the day runs you.",
+                "Time is precious. Waste it wisely.",
+                "You may delay, but time will not.",
+                "Don't wait. The time will never be just right.",
+                "The future depends on what you do today.",
+                "Do it now. Sometimes 'later' becomes 'never'.",
+                "Yesterday is gone. Tomorrow has not yet come. We have only today.",
+                "Act now. There is never any time but now.",
+                "Your life is happening right now: act accordingly.",
+                "Be here now.",
+                "Don't count the days, make the days count.",
+                "Life is available only in the present moment.",
+                "The best time to start was yesterday. The next best time is now.",
+                "One day, or day one. You decide.",
+                "If not now, then when?",
+                "Action is the foundational key to all success.",
+                "Seize the day.",
+                "Live now, procrastinate later.",
+                "Today is the first day of the rest of your life.",
+                "The time for action is now. It's never too late to do something.",
+                "Now is the only time you own.",
+                "You are what you do, not what you'll say you'll do.",
+                "Life is short. Do stuff that matters.",
+                "Someday is not a day of the week."
+            ];
+            
+            // Get two random indices
+            let randomIndex1 = Math.floor(Math.random() * messages.length);
+            let randomIndex2 = Math.floor(Math.random() * messages.length);
+            // Make sure the second message is different from the first
+            while (randomIndex2 === randomIndex1) {
+                randomIndex2 = Math.floor(Math.random() * messages.length);
             }
             
             // Helper function to format messages (separate Bible verses from references)
