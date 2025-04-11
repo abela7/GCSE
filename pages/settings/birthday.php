@@ -88,34 +88,7 @@ include '../../includes/header.php';
                 <div class="card-body">
                     <!-- Number Visualizations -->
                     <div class="row mb-4">
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle years-circle">
-                                <div class="metric-number" id="years-lived">-</div>
-                                <div class="metric-label">Years</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle months-circle">
-                                <div class="metric-number" id="months-lived">-</div>
-                                <div class="metric-label">Months</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle weeks-circle">
-                                <div class="metric-number" id="weeks-lived">-</div>
-                                <div class="metric-label">Weeks</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="metric-circle days-circle">
-                                <div class="metric-number" id="days-lived">-</div>
-                                <div class="metric-label">Days</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Hours & Minutes Progress -->
-                    <div class="row mb-4">
+                        <!-- Hours & Minutes Progress -->
                         <div class="col-md-6 mb-3">
                             <div class="metric-card">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1441,4 +1414,32 @@ include '../../includes/header.php';
 <?php
 include '../../includes/footer.php';
 close_connection($conn);
-?> 
+?>
+
+<!-- Metric circles section moved to the bottom of the page -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="metric-circle years-circle">
+            <div class="metric-number" id="years-lived">-</div>
+            <div class="metric-label">Years</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="metric-circle months-circle">
+            <div class="metric-number" id="months-lived">-</div>
+            <div class="metric-label">Months</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="metric-circle weeks-circle">
+            <div class="metric-number" id="weeks-lived">-</div>
+            <div class="metric-label">Weeks</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="metric-circle days-circle">
+            <div class="metric-number" id="days-lived">-</div>
+            <div class="metric-label">Days</div>
+        </div>
+    </div>
+</div> 

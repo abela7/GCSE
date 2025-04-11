@@ -678,10 +678,10 @@ $accent_color = "#cdaf56";
                 <div class="card-footer">
                     <a href="assignments.php" class="btn btn-sm btn-outline-accent">View Assignments</a>
                 </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 <!-- Floating Action Button (FAB) -->
 <div class="fab-container">
@@ -706,11 +706,11 @@ $accent_color = "#cdaf56";
             <i class="fas fa-hourglass-half"></i>
             <span>TIME!</span>
         </a>
-    </div>
+                                </div>
     <div class="fab-button" id="fabButton">
         <i class="fas fa-plus"></i>
-    </div>
-</div>
+                                </div>
+                            </div>
 
 <!-- Add Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
@@ -763,7 +763,7 @@ $accent_color = "#cdaf56";
                                 <option value="one-time">One-time</option>
                                 <option value="recurring">Recurring</option>
                             </select>
-                        </div>
+                </div>
                         <div class="col-md-6">
                             <label for="priority" class="form-label">Priority</label>
                             <select class="form-select" id="priority" name="priority" required>
@@ -771,16 +771,16 @@ $accent_color = "#cdaf56";
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
                             </select>
-                        </div>
+            </div>
                         <div class="col-md-6">
                             <label for="estimated_duration" class="form-label">Estimated Duration (minutes)</label>
                             <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" min="1" value="30" required>
-                        </div>
+        </div>
                         <!-- Add a hidden field to indicate this is from the dashboard -->
                         <input type="hidden" name="from_dashboard" value="1">
                         <!-- Add a return URL so we can redirect back to the dashboard -->
                         <input type="hidden" name="return_url" value="/pages/dashboard.php">
-                    </div>
+                                </div>
                     <div class="mt-4">
                         <div id="alert-container">
                             <?php if (isset($_SESSION['task_message'])): ?>
@@ -798,7 +798,7 @@ $accent_color = "#cdaf56";
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Add Task</button>
                         </div>
-                    </div>
+                </div>
                 </form>
             </div>
         </div>
