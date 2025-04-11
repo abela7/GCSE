@@ -265,8 +265,113 @@ require_once __DIR__ . '/../../includes/header.php';
     <!-- Header Area -->
     <div class="page-header-controls sticky-top shadow-sm"> <div class="d-flex justify-content-between align-items-center flex-column flex-md-row"> <div class="date-nav d-flex align-items-center me-md-3 mb-3 mb-md-0 order-2 order-md-1"> <a href="?date=<?php echo $prev_date; ?>" class="btn btn-outline-secondary" aria-label="Previous Day"><i class="fas fa-chevron-left"></i></a> <span class="current-date mx-3"><?php echo $display_date_str; ?></span> <a href="?date=<?php echo $next_date; ?>" class="btn btn-outline-secondary" aria-label="Next Day"><i class="fas fa-chevron-right"></i></a> </div> <div class="action-buttons d-flex align-items-center gap-2 order-1 order-md-2 mb-3 mb-md-0"> <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="prepareAddTaskModal()"><i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add</span></button> <a href="categories.php" class="btn btn-outline-secondary" title="Manage Categories"><i class="fas fa-folder"></i></a> <a href="task_list.php" class="btn btn-outline-secondary" title="View All Tasks"><i class="fas fa-list"></i></a> </div> </div> </div>
 
+    <!-- Enhanced Filter Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-filter me-2 text-muted"></i>Task Filters</h5>
+                <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filterSection" aria-expanded="false">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        <div class="collapse" id="filterSection">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filterCategory" class="form-label small">Category</label>
+                        <select class="form-select form-select-sm" id="filterCategory">
+                            <option value="">All Categories</option>
+                            <?php foreach ($categories as $id => $category): ?>
+                                <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterStatus" class="form-label small">Status</label>
+                        <select class="form-select form-select-sm" id="filterStatus">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="snoozed">Snoozed</option>
+                            <option value="not_done">Not Done</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterPriority" class="form-label small">Priority</label>
+                        <select class="form-select form-select-sm" id="filterPriority">
+                            <option value="">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterDuration" class="form-label small">Duration</label>
+                        <select class="form-select form-select-sm" id="filterDuration">
+                            <option value="">Any Duration</option>
+                            <option value="short">Short (< 15 min)</option>
+                            <option value="medium">Medium (15-30 min)</option>
+                            <option value="long">Long (> 30 min)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterType" class="form-label small">Task Type</label>
+                        <select class="form-select form-select-sm" id="filterType">
+                            <option value="">All Types</option>
+                            <option value="one-time">One-time</option>
+                            <option value="recurring">Recurring</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filterTimePeriod" class="form-label small">Time Period</label>
+                        <select class="form-select form-select-sm" id="filterTimePeriod">
+                            <option value="">All Times</option>
+                            <option value="morning">Morning</option>
+                            <option value="evening">Evening</option>
+                            <option value="no_time">No Time Set</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" id="resetFilters" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="fas fa-undo me-1"></i> Reset
+                    </button>
+                    <button type="button" id="applyFilters" class="btn btn-sm btn-primary">
+                        <i class="fas fa-check me-1"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tasks Area -->
-    <div class="row mt-4"> <div class="col-lg-6 mb-4"> <h2 class="section-heading"><i class="fas fa-sun text-warning"></i> Morning Tasks</h2> <?php if (empty($morning_tasks)): ?> <div class="text-center text-muted p-3 bg-light" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md);">No morning tasks scheduled.</div> <?php else: ?> <div class="tasks-list d-flex flex-column gap-3"> <?php foreach ($morning_tasks as $task): ?> <?php include '_task_card.php'; ?> <?php endforeach; ?> </div> <?php endif; ?> </div> <div class="col-lg-6 mb-4"> <h2 class="section-heading"><i class="fas fa-moon text-primary"></i> Evening Tasks</h2> <?php if (empty($evening_tasks)): ?> <div class="text-center text-muted p-3 bg-light" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md);">No evening tasks scheduled.</div> <?php else: ?> <div class="tasks-list d-flex flex-column gap-3"> <?php foreach ($evening_tasks as $task): ?> <?php include '_task_card.php'; ?> <?php endforeach; ?> </div> <?php endif; ?> </div> </div>
+    <div class="row mt-4"> 
+        <div class="col-lg-6 mb-4" id="morning-tasks"> 
+            <h2 class="section-heading"><i class="fas fa-sun text-warning"></i> Morning Tasks</h2> 
+            <?php if (empty($morning_tasks)): ?> 
+                <div class="text-center text-muted p-3 bg-light" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md);">No morning tasks scheduled.</div> 
+            <?php else: ?> 
+                <div class="tasks-list d-flex flex-column gap-3"> 
+                    <?php foreach ($morning_tasks as $task): ?> 
+                        <?php include '_task_card.php'; ?> 
+                    <?php endforeach; ?> 
+                </div> 
+            <?php endif; ?> 
+        </div> 
+        <div class="col-lg-6 mb-4" id="evening-tasks"> 
+            <h2 class="section-heading"><i class="fas fa-moon text-primary"></i> Evening Tasks</h2> 
+            <?php if (empty($evening_tasks)): ?> 
+                <div class="text-center text-muted p-3 bg-light" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md);">No evening tasks scheduled.</div> 
+            <?php else: ?> 
+                <div class="tasks-list d-flex flex-column gap-3"> 
+                    <?php foreach ($evening_tasks as $task): ?> 
+                        <?php include '_task_card.php'; ?> 
+                    <?php endforeach; ?> 
+                </div> 
+            <?php endif; ?> 
+        </div> 
+    </div>
 </div>
 
 <!-- Add/Edit Task Modal -->
@@ -423,6 +528,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Populating modal for edit with data:", <?php echo json_encode($task_to_edit); ?>);
     populateAndShowEditModal(<?php echo json_encode($task_to_edit); ?>);
     <?php endif; ?>
+    
+    // Initialize task filters
+    initializeTaskFilters();
 });
 
 function prepareAddTaskModal() {
@@ -549,6 +657,192 @@ function handleFormValidationAndSubmit(event) {
 }
 
 function confirmAction(event, message) { event.preventDefault(); if (confirm(message)) { window.location.href = event.currentTarget.href; } return false; }
+
+// --- Task Filter Functionality ---
+function initializeTaskFilters() {
+    // Get filter elements
+    const filterCategory = getElement('filterCategory');
+    const filterStatus = getElement('filterStatus');
+    const filterPriority = getElement('filterPriority');
+    const filterDuration = getElement('filterDuration');
+    const filterType = getElement('filterType');
+    const filterTimePeriod = getElement('filterTimePeriod');
+    const resetFiltersBtn = getElement('resetFilters');
+    const applyFiltersBtn = getElement('applyFilters');
+    
+    // Verify elements exist
+    if (!filterCategory || !filterStatus || !filterPriority || 
+        !filterDuration || !filterType || !filterTimePeriod ||
+        !resetFiltersBtn || !applyFiltersBtn) {
+        console.error("One or more filter elements not found");
+        return;
+    }
+    
+    // Apply filters when button is clicked
+    applyFiltersBtn.addEventListener('click', function() {
+        applyTaskFilters();
+    });
+    
+    // Reset filters when button is clicked
+    resetFiltersBtn.addEventListener('click', function() {
+        filterCategory.value = '';
+        filterStatus.value = '';
+        filterPriority.value = '';
+        filterDuration.value = '';
+        filterType.value = '';
+        filterTimePeriod.value = '';
+        
+        // Show all tasks
+        resetTaskVisibility();
+    });
+    
+    // Preselect filters if they're in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('category')) filterCategory.value = urlParams.get('category');
+    if (urlParams.has('status')) filterStatus.value = urlParams.get('status');
+    if (urlParams.has('priority')) filterPriority.value = urlParams.get('priority');
+    if (urlParams.has('duration')) filterDuration.value = urlParams.get('duration');
+    if (urlParams.has('type')) filterType.value = urlParams.get('type');
+    if (urlParams.has('time_period')) filterTimePeriod.value = urlParams.get('time_period');
+    
+    // Initialize the filter section to be visible if any filters are applied
+    if (urlParams.has('category') || urlParams.has('status') || urlParams.has('priority') || 
+        urlParams.has('duration') || urlParams.has('type') || urlParams.has('time_period')) {
+        const filterSection = getElement('filterSection');
+        if (filterSection) {
+            const bsCollapse = new bootstrap.Collapse(filterSection, { toggle: true });
+            applyTaskFilters();
+        }
+    }
+}
+
+function applyTaskFilters() {
+    // Get filter values
+    const categoryValue = getElement('filterCategory').value;
+    const statusValue = getElement('filterStatus').value;
+    const priorityValue = getElement('filterPriority').value;
+    const durationValue = getElement('filterDuration').value;
+    const typeValue = getElement('filterType').value;
+    const timeValue = getElement('filterTimePeriod').value;
+    
+    // Get all task cards
+    const taskCards = document.querySelectorAll('.task-card');
+    
+    // Track if we found any matches
+    let matchesFound = false;
+    
+    // Loop through each task card
+    taskCards.forEach(card => {
+        // Extract data attributes
+        const categoryId = card.getAttribute('data-category-id');
+        const taskStatus = card.getAttribute('data-status');
+        const taskPriority = card.getAttribute('data-priority');
+        const taskDuration = parseInt(card.getAttribute('data-duration') || '0');
+        const taskType = card.getAttribute('data-task-type');
+        const taskTime = card.getAttribute('data-time');
+        
+        // Check if the card matches all selected filters
+        let matchesCategory = categoryValue === '' || categoryId === categoryValue;
+        let matchesStatus = statusValue === '' || taskStatus === statusValue;
+        let matchesPriority = priorityValue === '' || taskPriority === priorityValue;
+        
+        // Duration filter logic
+        let matchesDuration = true;
+        if (durationValue !== '') {
+            if (durationValue === 'short' && taskDuration >= 15) matchesDuration = false;
+            else if (durationValue === 'medium' && (taskDuration < 15 || taskDuration > 30)) matchesDuration = false;
+            else if (durationValue === 'long' && taskDuration <= 30) matchesDuration = false;
+        }
+        
+        let matchesType = typeValue === '' || taskType === typeValue;
+        
+        // Time period filter logic
+        let matchesTimePeriod = true;
+        if (timeValue !== '') {
+            if (timeValue === 'morning' && taskTime !== 'morning') matchesTimePeriod = false;
+            else if (timeValue === 'evening' && taskTime !== 'evening') matchesTimePeriod = false;
+            else if (timeValue === 'no_time' && taskTime !== '') matchesTimePeriod = false;
+        }
+        
+        // Determine if card should be visible
+        const isVisible = matchesCategory && matchesStatus && matchesPriority && 
+                          matchesDuration && matchesType && matchesTimePeriod;
+        
+        // Update visibility
+        card.style.display = isVisible ? '' : 'none';
+        
+        // Track if we found any matches
+        if (isVisible) matchesFound = true;
+    });
+    
+    // Show message for each section if no tasks match
+    updateEmptySectionMessages('morning-tasks', matchesFound);
+    updateEmptySectionMessages('evening-tasks', matchesFound);
+    
+    // Update URL with filter parameters (for sharing/bookmarking)
+    updateURLWithFilters(categoryValue, statusValue, priorityValue, durationValue, typeValue, timeValue);
+}
+
+function resetTaskVisibility() {
+    // Show all tasks
+    const taskCards = document.querySelectorAll('.task-card');
+    taskCards.forEach(card => {
+        card.style.display = '';
+    });
+    
+    // Remove any "no tasks match" messages
+    document.querySelectorAll('.no-matching-tasks').forEach(el => el.remove());
+    
+    // Remove filters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.delete('category');
+    urlParams.delete('status');
+    urlParams.delete('priority');
+    urlParams.delete('duration');
+    urlParams.delete('type');
+    urlParams.delete('time_period');
+    
+    // Get only the date parameter
+    const dateParam = urlParams.has('date') ? `?date=${urlParams.get('date')}` : '';
+    
+    // Update URL without reloading page
+    history.replaceState(null, '', `${window.location.pathname}${dateParam}`);
+}
+
+function updateEmptySectionMessages(sectionId, matchesFound) {
+    const section = getElement(sectionId);
+    if (!section) return;
+    
+    // Remove any existing "no tasks match" messages
+    const existingMsg = section.querySelector('.no-matching-tasks');
+    if (existingMsg) existingMsg.remove();
+    
+    // If no tasks match and there's an empty message, replace it with "no tasks match" message
+    const taskCards = section.querySelectorAll('.task-card:not([style*="display: none"])');
+    if (taskCards.length === 0) {
+        const emptySectionMsg = section.querySelector('.text-center.text-muted');
+        if (emptySectionMsg) {
+            emptySectionMsg.innerHTML = '<div class="no-matching-tasks text-center p-3"><i class="fas fa-filter fa-2x mb-2 text-muted"></i><p>No tasks match your filters</p></div>';
+        }
+    }
+}
+
+function updateURLWithFilters(category, status, priority, duration, type, timePeriod) {
+    // Get the current URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Update or remove filter parameters
+    if (category) urlParams.set('category', category); else urlParams.delete('category');
+    if (status) urlParams.set('status', status); else urlParams.delete('status');
+    if (priority) urlParams.set('priority', priority); else urlParams.delete('priority');
+    if (duration) urlParams.set('duration', duration); else urlParams.delete('duration');
+    if (type) urlParams.set('type', type); else urlParams.delete('type');
+    if (timePeriod) urlParams.set('time_period', timePeriod); else urlParams.delete('time_period');
+    
+    // Update URL without reloading page
+    const newParams = urlParams.toString();
+    history.replaceState(null, '', `${window.location.pathname}${newParams ? '?' + newParams : ''}`);
+}
 </script>
 
 
