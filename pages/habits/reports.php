@@ -288,9 +288,21 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                     <ul class="list-group list-group-flush">
                                                         <?php foreach ($summary['completions'] as $completion): ?>
                                                             <li class="list-group-item py-2">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <span><?php echo htmlspecialchars($completion['habit']); ?></span>
-                                                                    <small class="text-muted"><?php echo date('g:i A', strtotime($completion['time'])); ?></small>
+                                                                <div class="d-flex flex-column">
+                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                        <span><?php echo htmlspecialchars($completion['habit']); ?></span>
+                                                                        <small class="text-muted"><?php echo date('g:i A', strtotime($completion['time'])); ?></small>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
+                                                                            data-bs-toggle="modal" 
+                                                                            data-bs-target="#completionDetailModal" 
+                                                                            data-date="<?php echo $date; ?>"
+                                                                            data-habit="<?php echo htmlspecialchars($completion['habit']); ?>"
+                                                                            data-time="<?php echo $completion['time']; ?>"
+                                                                            data-habit-id="<?php echo $completion['habit_id']; ?>"
+                                                                            data-habit-type="<?php echo htmlspecialchars($completion['habit_type']); ?>">
+                                                                        <i class="fas fa-info-circle"></i> View details
+                                                                    </button>
                                                                 </div>
                                                             </li>
                                                         <?php endforeach; ?>
@@ -424,9 +436,21 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                             <ul class="list-group list-group-flush">
                                                                 <?php foreach ($habit['completions'] as $completion): ?>
                                                                     <li class="list-group-item py-2">
-                                                                        <div class="d-flex justify-content-between align-items-center">
-                                                                            <span><?php echo date('M j', strtotime($completion['date'])); ?></span>
-                                                                            <small class="text-muted"><?php echo date('g:i A', strtotime($completion['time'])); ?></small>
+                                                                        <div class="d-flex flex-column">
+                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                <span><?php echo date('M j', strtotime($completion['date'])); ?></span>
+                                                                                <small class="text-muted"><?php echo date('g:i A', strtotime($completion['time'])); ?></small>
+                                                                            </div>
+                                                                            <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
+                                                                                    data-bs-toggle="modal" 
+                                                                                    data-bs-target="#completionDetailModal" 
+                                                                                    data-date="<?php echo $completion['date']; ?>"
+                                                                                    data-habit="<?php echo htmlspecialchars($habit['name']); ?>"
+                                                                                    data-time="<?php echo $completion['time']; ?>"
+                                                                                    data-habit-id="<?php echo $completion['habit_id']; ?>"
+                                                                                    data-habit-type="<?php echo htmlspecialchars($completion['habit_type']); ?>">
+                                                                                <i class="fas fa-info-circle"></i> View details
+                                                                            </button>
                                                                         </div>
                                                                     </li>
                                                                 <?php endforeach; ?>
@@ -528,6 +552,51 @@ uasort($habit_details, function($a, $b) use ($categories) {
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+    </div>
+
+    <!-- Completion Detail Modal -->
+    <div class="modal fade" id="completionDetailModal" tabindex="-1" aria-labelledby="completionDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="completionDetailModalLabel">Completed Habit Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Habit</h6>
+                        <p id="compModalHabitName" class="fw-bold"></p>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <h6>Date</h6>
+                            <p id="compModalDate"></p>
+                        </div>
+                        <div class="col-6">
+                            <h6>Completion Time</h6>
+                            <p id="compModalTime"></p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h6>Habit Type</h6>
+                            <p id="compModalHabitType"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Completion History Chart -->
+                    <div class="mb-3">
+                        <h6>Completion History (Last 14 Days)</h6>
+                        <div class="history-chart-container">
+                            <canvas id="compCompletionHistoryChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Skip Detail Modal -->
@@ -961,6 +1030,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Initialize completion modal
+    const completionDetailModal = document.getElementById('completionDetailModal');
+    if (completionDetailModal) {
+        completionDetailModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const date = button.getAttribute('data-date');
+            const habit = button.getAttribute('data-habit');
+            const time = button.getAttribute('data-time');
+            const habitId = button.getAttribute('data-habit-id');
+            const habitType = button.getAttribute('data-habit-type') || 'standard';
+            
+            // Format date for display
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Update modal content
+            document.getElementById('compModalHabitName').textContent = habit;
+            document.getElementById('compModalDate').textContent = formattedDate;
+            document.getElementById('compModalTime').textContent = time ? time : 'Not recorded';
+            document.getElementById('compModalHabitType').textContent = 'Standard (Daily)';
+            
+            // Try to fetch real history data, fall back to generated data if needed
+            if (habitId) {
+                fetchHabitHistory(habitId, date, function(historyData) {
+                    renderCompletionHistoryChart('compCompletionHistoryChart', historyData);
+                });
+            } else {
+                // Fall back to generated data if no habit ID is available
+                const generatedData = generateCompletionHistoryData(date, habitType);
+                renderCompletionHistoryChart('compCompletionHistoryChart', generatedData);
+            }
+        });
+    }
 });
 
 // Handle form submission
@@ -1024,12 +1131,18 @@ function generateCompletionHistoryData(skipDate, habitType) {
 }
 
 // Render the completion history chart
-function renderCompletionHistoryChart(historyData) {
-    const ctx = document.getElementById('completionHistoryChart').getContext('2d');
+function renderCompletionHistoryChart(chartId, historyData) {
+    // If chartId is not a string (backward compatibility), use the default
+    if (typeof chartId !== 'string') {
+        historyData = chartId;
+        chartId = 'completionHistoryChart';
+    }
+    
+    const ctx = document.getElementById(chartId).getContext('2d');
     
     // Clear any existing chart
-    if (window.completionHistoryChart) {
-        window.completionHistoryChart.destroy();
+    if (window[chartId + 'Instance']) {
+        window[chartId + 'Instance'].destroy();
     }
     
     // Prepare data for the chart
@@ -1045,7 +1158,7 @@ function renderCompletionHistoryChart(historyData) {
     });
     
     // Create the chart
-    window.completionHistoryChart = new Chart(ctx, {
+    window[chartId + 'Instance'] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
@@ -1095,72 +1208,7 @@ function renderCompletionHistoryChart(historyData) {
 
 // Render the procrastination history chart
 function renderProcrastinationHistoryChart(historyData) {
-    const ctx = document.getElementById('prCompletionHistoryChart').getContext('2d');
-    
-    // Clear any existing chart
-    if (window.procrastinationHistoryChart) {
-        window.procrastinationHistoryChart.destroy();
-    }
-    
-    // Prepare data for the chart
-    const labels = historyData.map(d => d.displayDate);
-    const statusColors = historyData.map(d => {
-        switch (d.status) {
-            case 'completed': return 'rgba(40, 167, 69, 0.8)';
-            case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
-            case 'skipped': return 'rgba(220, 53, 69, 0.8)';
-            case 'not_tracked': return 'rgba(200, 200, 200, 0.3)';
-            default: return 'rgba(200, 200, 200, 0.3)';
-        }
-    });
-    
-    // Create the chart
-    window.procrastinationHistoryChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Completion Status',
-                data: historyData.map(d => 1), // Each day has equal height
-                backgroundColor: statusColors,
-                borderColor: statusColors.map(c => c.replace('0.8', '1').replace('0.3', '0.5')),
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    display: false,
-                    beginAtZero: true,
-                    max: 1
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const index = context.dataIndex;
-                            const status = historyData[index].status;
-                            if (status === 'not_tracked') {
-                                return 'Not Tracked';
-                            }
-                            return status.charAt(0).toUpperCase() + status.slice(1);
-                        }
-                    }
-                }
-            }
-        }
-    });
+    renderCompletionHistoryChart('prCompletionHistoryChart', historyData);
 }
 </script>
 
