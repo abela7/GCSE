@@ -472,9 +472,11 @@ $accent_color = "#cdaf56";
                                                 <div class="total-item">
                                                     <span id="total-days">9310</span> days
                                                 </div>
-                                                <div class="total-item time-counter" colspan="2">
-                                                    <span id="hours">04</span>:<span id="minutes">34</span>:<span id="seconds">06</span>
-                                                </div>
+                                            </div>
+                                            <div class="text-center mt-2">
+                                                <a href="settings/birthday.php" class="btn btn-sm btn-accent">
+                                                    <i class="fas fa-chart-bar me-1"></i> View Detailed Time Report
+                                                </a>
                                             </div>
                                             <div class="card-indicator my-2">
                                                 <span></span>
