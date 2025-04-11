@@ -823,13 +823,39 @@ $accent_color = "#cdaf56";
             // Convert to relevant units
             const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
             
-            let months = (now.getFullYear() - birthDate.getFullYear()) * 12;
-            months -= birthDate.getMonth();
-            months += now.getMonth();
+            // Calculate total months lived
+            let totalMonths = (now.getFullYear() - birthDate.getFullYear()) * 12;
+            totalMonths -= birthDate.getMonth();
+            totalMonths += now.getMonth();
+            
+            // Adjust if we haven't reached the same day of month yet
             if (now.getDate() < birthDate.getDate()) {
-                months--;
+                totalMonths--;
             }
             
+            // Calculate years and remaining months
+            const remainingMonths = totalMonths % 12;
+            
+            // Calculate days since last "month birthday"
+            // Create a date for when the person turned exactly X years and Y months old
+            let monthBirthday;
+            if (birthDate.getDate() > 28) {
+                // Handle edge cases for month end dates (28/29/30/31)
+                // Find the last day of the target month
+                const targetMonth = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? 0 : 1), 0);
+                const lastDayOfMonth = targetMonth.getDate();
+                const birthDay = Math.min(birthDate.getDate(), lastDayOfMonth);
+                
+                monthBirthday = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? -1 : 0), birthDay);
+            } else {
+                // Normal case - use exact day of birth
+                monthBirthday = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? -1 : 0), birthDate.getDate());
+            }
+            
+            // Calculate days since that date
+            const daysSinceMonthBirthday = Math.floor((now - monthBirthday) / (1000 * 60 * 60 * 24));
+            
+            // Other calculations remain the same
             const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             const weeks = Math.floor(totalDays / 7);
             
@@ -838,23 +864,19 @@ $accent_color = "#cdaf56";
             const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
             
-            // Calculate remaining months and days for readable text
-            const remainingMonths = months % 12;
-            const remainingDays = Math.floor((now - new Date(now.getFullYear(), now.getMonth() - remainingMonths, birthDate.getDate())) / (1000 * 60 * 60 * 24));
-            
             // Format with leading zeros
             const formattedHours = hours.toString().padStart(2, '0');
             const formattedMinutes = minutes.toString().padStart(2, '0');
             const formattedSeconds = seconds.toString().padStart(2, '0');
-            const formattedDays = String(remainingDays).padStart(2, '0');
+            const formattedDays = String(daysSinceMonthBirthday).padStart(2, '0');
             
-            // Update first slide: Simple age format
+            // Update first slide: Simple age format with days since last month birthday
             document.getElementById('age-text-simple').textContent = 
                 `${years} years, ${remainingMonths} months, ${formattedDays} days`;
             
             // Update second slide: All totals
             document.getElementById('total-years').textContent = years;
-            document.getElementById('total-months').textContent = months;
+            document.getElementById('total-months').textContent = totalMonths;
             document.getElementById('total-weeks').textContent = weeks;
             document.getElementById('total-days').textContent = totalDays;
             document.getElementById('hours').textContent = formattedHours;
