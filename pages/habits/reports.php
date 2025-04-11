@@ -322,7 +322,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                     <small class="text-muted"><?php echo htmlspecialchars($procrastination['reason']); ?></small>
                                                                     <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
                                                                             data-bs-toggle="modal" 
-                                                                            data-bs-target="#procrastinationDetailModal" 
+                                                                            data-bs-target="#procrastinatedModal" 
                                                                             data-date="<?php echo $date; ?>"
                                                                             data-habit="<?php echo htmlspecialchars($procrastination['habit']); ?>"
                                                                             data-reason="<?php echo htmlspecialchars($procrastination['reason']); ?>"
@@ -362,7 +362,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                     <small class="text-muted"><?php echo htmlspecialchars($skip['reason']); ?></small>
                                                                     <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
                                                                             data-bs-toggle="modal" 
-                                                                            data-bs-target="#skipDetailModal" 
+                                                                            data-bs-target="#skippedModal" 
                                                                             data-date="<?php echo $date; ?>"
                                                                             data-habit="<?php echo htmlspecialchars($skip['habit']); ?>"
                                                                             data-reason="<?php echo htmlspecialchars($skip['reason']); ?>"
@@ -460,7 +460,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                             <small class="text-muted"><?php echo htmlspecialchars($procrastination['reason']); ?></small>
                                                                             <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
                                                                                     data-bs-toggle="modal" 
-                                                                                    data-bs-target="#procrastinationDetailModal" 
+                                                                                    data-bs-target="#procrastinatedModal" 
                                                                                     data-date="<?php echo $procrastination['date']; ?>"
                                                                                     data-habit="<?php echo htmlspecialchars($habit['name']); ?>"
                                                                                     data-reason="<?php echo htmlspecialchars($procrastination['reason']); ?>"
@@ -502,7 +502,7 @@ uasort($habit_details, function($a, $b) use ($categories) {
                                                                             <small class="text-muted"><?php echo htmlspecialchars($skip['reason']); ?></small>
                                                                             <button type="button" class="btn btn-link btn-sm text-muted p-0 mt-1 text-start" 
                                                                                     data-bs-toggle="modal" 
-                                                                                    data-bs-target="#skipDetailModal" 
+                                                                                    data-bs-target="#skippedModal" 
                                                                                     data-date="<?php echo $skip['date']; ?>"
                                                                                     data-habit="<?php echo htmlspecialchars($habit['name']); ?>"
                                                                                     data-reason="<?php echo htmlspecialchars($skip['reason']); ?>"
@@ -530,95 +530,58 @@ uasort($habit_details, function($a, $b) use ($categories) {
         <?php endif; ?>
     </div>
 
-    <!-- Skip Detail Modal -->
-    <div class="modal fade" id="skipDetailModal" tabindex="-1" aria-labelledby="skipDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Procrastinated Habits Modal -->
+    <div class="modal fade" id="procrastinatedModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="skipDetailModalLabel">Skipped Habit Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Procrastinated Habit Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <h6>Habit</h6>
-                        <p id="modalHabitName" class="fw-bold"></p>
+                    <div id="procrastinatedHabitDetails">Loading...</div>
+                    <h6 class="mt-4">Completion History (Last 14 Days)</h6>
+                    <div class="chart-container" style="position: relative; height:200px;">
+                        <canvas id="procrastinatedHabitChart"></canvas>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <h6>Date</h6>
-                            <p id="modalDate"></p>
-                        </div>
-                        <div class="col-6">
-                            <h6>Habit Type</h6>
-                            <p id="modalHabitType"></p>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <h6>Reason for Skipping</h6>
-                        <p id="modalReason" class="text-danger"></p>
-                    </div>
-                    <div class="mb-3">
-                        <h6>Additional Notes</h6>
-                        <p id="modalNotes" class="fst-italic"></p>
-                    </div>
-                    
-                    <!-- Completion History Chart -->
-                    <div class="mb-3">
-                        <h6>Completion History (Last 14 Days)</h6>
-                        <div class="history-chart-container">
-                            <canvas id="completionHistoryChart" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Procrastination Detail Modal -->
-    <div class="modal fade" id="procrastinationDetailModal" tabindex="-1" aria-labelledby="procrastinationDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Skipped Habits Modal -->
+    <div class="modal fade" id="skippedModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="procrastinationDetailModalLabel">Procrastinated Habit Details</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title">Skipped Habit Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <h6>Habit</h6>
-                        <p id="prModalHabitName" class="fw-bold"></p>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <h6>Date</h6>
-                            <p id="prModalDate"></p>
-                        </div>
-                        <div class="col-6">
-                            <h6>Habit Type</h6>
-                            <p id="prModalHabitType"></p>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <h6>Reason for Procrastinating</h6>
-                        <p id="prModalReason" class="text-warning"></p>
-                    </div>
-                    <div class="mb-3">
-                        <h6>Additional Notes</h6>
-                        <p id="prModalNotes" class="fst-italic"></p>
-                    </div>
-                    
-                    <!-- Completion History Chart -->
-                    <div class="mb-3">
-                        <h6>Completion History (Last 14 Days)</h6>
-                        <div class="history-chart-container">
-                            <canvas id="prCompletionHistoryChart" height="100"></canvas>
-                        </div>
+                    <div id="skippedHabitDetails">Loading...</div>
+                    <h6 class="mt-4">Completion History (Last 14 Days)</h6>
+                    <div class="chart-container" style="position: relative; height:200px;">
+                        <canvas id="skippedHabitChart"></canvas>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Habits Modal -->
+    <div class="modal fade" id="completedModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Completed Habit Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="completedHabitDetails">Loading...</div>
+                    <h6 class="mt-4">Completion History (Last 14 Days)</h6>
+                    <div class="chart-container" style="position: relative; height:200px;">
+                        <canvas id="completedHabitChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -829,336 +792,187 @@ function updateHabits() {
     }
 }
 
-// Add a function to fetch real completion history data via AJAX
-function fetchHabitHistory(habitId, date, callback) {
-    // Create a form data object to send the request
-    const formData = new FormData();
-    formData.append('habit_id', habitId);
-    formData.append('date', date);
+// Show procrastinated habit details
+$('.show-procrastinated-details').on('click', function() {
+    const habitId = $(this).data('habit-id');
     
-    // Create and send the AJAX request
-    fetch('fetch_habit_history.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        callback(data);
-    })
-    .catch(error => {
-        console.error('Error fetching habit history:', error);
-        // Fall back to generated data if the AJAX request fails
-        const generatedData = generateCompletionHistoryData(date, 'standard');
-        callback(generatedData);
-    });
-}
-
-// Initialize the habit select on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const categoryId = document.querySelector('select[name="category_id"]').value;
-    const habitSelect = document.getElementById('habitSelect');
+    // Show loading state
+    $('#procrastinatedHabitDetails').html('Loading...');
     
-    // Update visibility of options based on initial category
-    Array.from(habitSelect.options).forEach(option => {
-        if (option.value === 'all') {
-            option.style.display = '';
-            return;
-        }
-        
-        const habitCategory = option.getAttribute('data-category');
-        if (categoryId === '0' || habitCategory === categoryId) {
-            option.style.display = '';
-        } else {
-            option.style.display = 'none';
+    // Fetch details via AJAX
+    $.ajax({
+        url: 'get_habit_details.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            status: 'procrastinated',
+            start_date: '<?php echo $start_date; ?>',
+            end_date: '<?php echo $end_date; ?>'
+        },
+        success: function(response) {
+            $('#procrastinatedHabitDetails').html(response);
+        },
+        error: function() {
+            $('#procrastinatedHabitDetails').html('Error loading details.');
         }
     });
-
-    // Ensure "All Habits" is selected if habit_id is 'all'
-    if (habitSelect.value === 'all') {
-        habitSelect.selectedIndex = 0;
-    }
     
-    // Initialize skip detail modal
-    const skipDetailModal = document.getElementById('skipDetailModal');
-    if (skipDetailModal) {
-        skipDetailModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const date = button.getAttribute('data-date');
-            const habit = button.getAttribute('data-habit');
-            const reason = button.getAttribute('data-reason');
-            const notes = button.getAttribute('data-notes');
-            const habitType = button.getAttribute('data-habit-type');
-            const habitId = button.getAttribute('data-habit-id');
-            
-            // Format date for display
-            const formattedDate = new Date(date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Update modal content
-            document.getElementById('modalHabitName').textContent = habit;
-            document.getElementById('modalDate').textContent = formattedDate;
-            document.getElementById('modalReason').textContent = reason || 'No reason provided';
-            document.getElementById('modalNotes').textContent = notes || 'No additional notes';
-            document.getElementById('modalHabitType').textContent = 'Standard (Daily)';
-            
-            // Try to fetch real history data, fall back to generated data if needed
-            if (habitId) {
-                fetchHabitHistory(habitId, date, function(historyData) {
-                    renderCompletionHistoryChart(historyData);
-                });
-            } else {
-                // Fall back to generated data if no habit ID is available
-                const generatedData = generateCompletionHistoryData(date, habitType);
-                renderCompletionHistoryChart(generatedData);
-            }
-        });
-    }
+    // Get habit history data for chart
+    $.ajax({
+        url: 'get_habit_history.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            days: 14
+        },
+        success: function(response) {
+            const data = JSON.parse(response);
+            renderHabitChart('procrastinatedHabitChart', data);
+        }
+    });
     
-    // Initialize procrastination modal
-    const procrastinationDetailModal = document.getElementById('procrastinationDetailModal');
-    if (procrastinationDetailModal) {
-        procrastinationDetailModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const date = button.getAttribute('data-date');
-            const habit = button.getAttribute('data-habit');
-            const reason = button.getAttribute('data-reason');
-            const notes = button.getAttribute('data-notes');
-            const habitId = button.getAttribute('data-habit-id');
-            
-            // Format date for display
-            const formattedDate = new Date(date).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Update modal content
-            document.getElementById('prModalHabitName').textContent = habit;
-            document.getElementById('prModalDate').textContent = formattedDate;
-            document.getElementById('prModalReason').textContent = reason || 'No reason provided';
-            document.getElementById('prModalNotes').textContent = notes || 'No additional notes';
-            document.getElementById('prModalHabitType').textContent = 'Standard (Daily)';
-            
-            // Try to fetch real history data, fall back to generated data if needed
-            if (habitId) {
-                fetchHabitHistory(habitId, date, function(historyData) {
-                    renderProcrastinationHistoryChart(historyData);
-                });
-            } else {
-                // Fall back to generated data if no habit ID is available
-                const generatedData = generateCompletionHistoryData(date, 'standard');
-                renderProcrastinationHistoryChart(generatedData);
-            }
-        });
-    }
+    // Show modal
+    $('#procrastinatedModal').modal('show');
 });
 
-// Handle form submission
-document.getElementById('filterForm').addEventListener('submit', function(e) {
-    const habitSelect = document.getElementById('habitSelect');
-    const selectedOption = habitSelect.options[habitSelect.selectedIndex];
+// Show skipped habit details
+$('.show-skipped-details').on('click', function() {
+    const habitId = $(this).data('habit-id');
     
-    // If the selected option is hidden, reset to "All Habits"
-    if (selectedOption.style.display === 'none') {
-        habitSelect.value = 'all';
-        habitSelect.selectedIndex = 0;
-    }
-});
-
-// Add click handlers for list items to make them more interactive
-document.querySelectorAll('.list-group-item').forEach(item => {
-    item.addEventListener('mouseenter', function() {
-        this.style.cursor = 'pointer';
-    });
-});
-
-// Generate some sample completion history data
-// In production, this would be replaced with an AJAX call to get real data
-function generateCompletionHistoryData(skipDate, habitType) {
-    const data = [];
-    const skipDateObj = new Date(skipDate);
+    // Show loading state
+    $('#skippedHabitDetails').html('Loading...');
     
-    // Generate data for 14 days before the skip date
-    for (let i = 13; i >= 0; i--) {
-        const currentDate = new Date(skipDateObj);
-        currentDate.setDate(currentDate.getDate() - i);
-        
-        // Format date as YYYY-MM-DD
-        const formattedDate = currentDate.toISOString().split('T')[0];
-        
-        // Generate a random status for the history (for demo purposes)
-        // In production, this would use real data from the server
-        let status;
-        if (formattedDate === skipDate) {
-            status = 'skipped'; // The date we're viewing details for
-        } else {
-            // For demo: generate a weighted random status
-            const rand = Math.random();
-            if (rand < 0.6) {
-                status = 'completed';
-            } else if (rand < 0.8) {
-                status = 'procrastinated';
-            } else {
-                status = 'skipped';
-            }
-        }
-        
-        data.push({
-            date: formattedDate,
-            displayDate: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            status: status
-        });
-    }
-    
-    return data;
-}
-
-// Render the completion history chart
-function renderCompletionHistoryChart(historyData) {
-    const ctx = document.getElementById('completionHistoryChart').getContext('2d');
-    
-    // Clear any existing chart
-    if (window.completionHistoryChart) {
-        window.completionHistoryChart.destroy();
-    }
-    
-    // Prepare data for the chart
-    const labels = historyData.map(d => d.displayDate);
-    const statusColors = historyData.map(d => {
-        switch (d.status) {
-            case 'completed': return 'rgba(40, 167, 69, 0.8)';
-            case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
-            case 'skipped': return 'rgba(220, 53, 69, 0.8)';
-            case 'not_tracked': return 'rgba(200, 200, 200, 0.3)';
-            default: return 'rgba(200, 200, 200, 0.3)';
+    // Fetch details via AJAX
+    $.ajax({
+        url: 'get_habit_details.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            status: 'skipped',
+            start_date: '<?php echo $start_date; ?>',
+            end_date: '<?php echo $end_date; ?>'
+        },
+        success: function(response) {
+            $('#skippedHabitDetails').html(response);
+        },
+        error: function() {
+            $('#skippedHabitDetails').html('Error loading details.');
         }
     });
     
-    // Create the chart
-    window.completionHistoryChart = new Chart(ctx, {
+    // Get habit history data for chart
+    $.ajax({
+        url: 'get_habit_history.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            days: 14
+        },
+        success: function(response) {
+            const data = JSON.parse(response);
+            renderHabitChart('skippedHabitChart', data);
+        }
+    });
+    
+    // Show modal
+    $('#skippedModal').modal('show');
+});
+
+// Show completed habit details
+$('.show-completed-details').on('click', function() {
+    const habitId = $(this).data('habit-id');
+    
+    // Show loading state
+    $('#completedHabitDetails').html('Loading...');
+    
+    // Fetch details via AJAX
+    $.ajax({
+        url: 'get_habit_details.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            status: 'completed',
+            start_date: '<?php echo $start_date; ?>',
+            end_date: '<?php echo $end_date; ?>'
+        },
+        success: function(response) {
+            $('#completedHabitDetails').html(response);
+        },
+        error: function() {
+            $('#completedHabitDetails').html('Error loading details.');
+        }
+    });
+    
+    // Get habit history data for chart
+    $.ajax({
+        url: 'get_habit_history.php',
+        type: 'GET',
+        data: {
+            habit_id: habitId,
+            days: 14
+        },
+        success: function(response) {
+            const data = JSON.parse(response);
+            renderHabitChart('completedHabitChart', data);
+        }
+    });
+    
+    // Show modal
+    $('#completedModal').modal('show');
+});
+
+// Add render function for chart if it doesn't already exist
+function renderHabitChart(canvasId, data) {
+    // Destroy any existing chart
+    if (window.habitCharts && window.habitCharts[canvasId]) {
+        window.habitCharts[canvasId].destroy();
+    }
+    
+    // Initialize habitCharts object if it doesn't exist
+    if (!window.habitCharts) {
+        window.habitCharts = {};
+    }
+    
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    window.habitCharts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
-            datasets: [{
-                label: 'Completion Status',
-                data: historyData.map(d => 1), // Each day has equal height
-                backgroundColor: statusColors,
-                borderColor: statusColors.map(c => c.replace('0.8', '1').replace('0.3', '0.5')),
-                borderWidth: 1
-            }]
+            labels: data.dates,
+            datasets: [
+                {
+                    label: 'Completed',
+                    data: data.completed,
+                    backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Procrastinated',
+                    data: data.procrastinated,
+                    backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Skipped',
+                    data: data.skipped,
+                    backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                }
+            ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
             scales: {
                 y: {
-                    display: false,
                     beginAtZero: true,
-                    max: 1
-                },
-                x: {
-                    grid: {
-                        display: false
+                    ticks: {
+                        stepSize: 1
                     }
                 }
             },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const index = context.dataIndex;
-                            const status = historyData[index].status;
-                            if (status === 'not_tracked') {
-                                return 'Not Tracked';
-                            }
-                            return status.charAt(0).toUpperCase() + status.slice(1);
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Render the procrastination history chart
-function renderProcrastinationHistoryChart(historyData) {
-    const ctx = document.getElementById('prCompletionHistoryChart').getContext('2d');
-    
-    // Clear any existing chart
-    if (window.procrastinationHistoryChart) {
-        window.procrastinationHistoryChart.destroy();
-    }
-    
-    // Prepare data for the chart
-    const labels = historyData.map(d => d.displayDate);
-    const statusColors = historyData.map(d => {
-        switch (d.status) {
-            case 'completed': return 'rgba(40, 167, 69, 0.8)';
-            case 'procrastinated': return 'rgba(255, 193, 7, 0.8)';
-            case 'skipped': return 'rgba(220, 53, 69, 0.8)';
-            case 'not_tracked': return 'rgba(200, 200, 200, 0.3)';
-            default: return 'rgba(200, 200, 200, 0.3)';
-        }
-    });
-    
-    // Create the chart
-    window.procrastinationHistoryChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Completion Status',
-                data: historyData.map(d => 1), // Each day has equal height
-                backgroundColor: statusColors,
-                borderColor: statusColors.map(c => c.replace('0.8', '1').replace('0.3', '0.5')),
-                borderWidth: 1
-            }]
-        },
-        options: {
             responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    display: false,
-                    beginAtZero: true,
-                    max: 1
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const index = context.dataIndex;
-                            const status = historyData[index].status;
-                            if (status === 'not_tracked') {
-                                return 'Not Tracked';
-                            }
-                            return status.charAt(0).toUpperCase() + status.slice(1);
-                        }
-                    }
-                }
-            }
+            maintainAspectRatio: false
         }
     });
 }
