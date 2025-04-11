@@ -188,37 +188,7 @@ include '../../includes/header.php';
                         </div>
                     </div>
                 </div>
-                <!-- Today's Focus -->
-                <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card metric-card today-card">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title mb-3">This Day Is a Gift</h5>
-                                    <div class="time-pulse" id="beating-heart">
-                                        <i class="fas fa-heartbeat"></i>
-                                    </div>
-                                    <div id="today-date" class="display-6 mb-3">-</div>
-                                    <div class="current-moment-box p-3 mb-3">
-                                        <div class="row">
-                                            <div class="col">
-                                                <div class="moment-value" id="today-number">-</div>
-                                                <div class="moment-label">Day of Year</div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="today-hour">-</div>
-                                                <div class="moment-label">Hour of Day</div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="heartbeats-minute">-</div>
-                                                <div class="moment-label">Heartbeats/min</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="memento-mori" class="memento-text">Each moment is precious. Act now.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
             </div>
             
             <!-- CSS for visualizations -->
