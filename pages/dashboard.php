@@ -943,21 +943,88 @@ $accent_color = "#cdaf56";
             document.getElementById('minutes').textContent = formattedMinutes;
             document.getElementById('seconds').textContent = formattedSeconds;
             
-            // Update motivation messages - alternate messages based on time
+            // Update motivation messages with Bible verses and inspirational quotes
             const messages = [
-                "Are you using your time properly?",
-                "Make every day count!",
-                "Today is a gift. That's why it's called the present.",
-                "Focus on what matters most today.",
-                "Your future is created by what you do today.",
-                "Excellence is not a skill. It's an attitude."
+                // Bible verses
+                "Ephesians 5:16 - Making the most of every opportunity, because the days are evil.",
+                "Psalm 90:12 - Teach us to number our days, that we may gain a heart of wisdom.",
+                "Colossians 4:5 - Be wise in the way you act toward outsiders; make the most of every opportunity.",
+                "Proverbs 27:1 - Do not boast about tomorrow, for you do not know what a day may bring.",
+                "James 4:14 - What is your life? You are a mist that appears for a little while and then vanishes.",
+                "2 Corinthians 6:2 - Now is the time of God's favor, now is the day of salvation.",
+                "Hebrews 3:15 - Today, if you hear his voice, do not harden your hearts.",
+                "Matthew 6:34 - Do not worry about tomorrow, for tomorrow will worry about itself.",
+                "Psalm 118:24 - This is the day the Lord has made; let us rejoice and be glad in it.",
+                "Proverbs 6:4 - Don't put it off; do it now! Don't rest until you do.",
+                "John 9:4 - As long as it is day, we must do the works of him who sent me.",
+                "Ecclesiastes 9:10 - Whatever your hand finds to do, do it with all your might.",
+                "Luke 12:40 - You also must be ready, because the Son of Man will come at an hour you do not expect.",
+                
+                // Inspirational quotes without attribution
+                "Lost time is never found again.",
+                "Time is what we want most, but what we use worst.",
+                "Time waits for no one.",
+                "The way we spend our time defines who we are.",
+                "Either you run the day or the day runs you.",
+                "Time is precious. Waste it wisely.",
+                "You may delay, but time will not.",
+                "Don't wait. The time will never be just right.",
+                "The future depends on what you do today.",
+                "Do it now. Sometimes 'later' becomes 'never'.",
+                "Yesterday is gone. Tomorrow has not yet come. We have only today.",
+                "Act now. There is never any time but now.",
+                "Your life is happening right now: act accordingly.",
+                "Be here now.",
+                "Don't count the days, make the days count.",
+                "Life is available only in the present moment.",
+                "The best time to start was yesterday. The next best time is now.",
+                "One day, or day one. You decide.",
+                "If not now, then when?",
+                "Action is the foundational key to all success.",
+                "Seize the day.",
+                "Live now, procrastinate later.",
+                "Today is the first day of the rest of your life.",
+                "The time for action is now. It's never too late to do something.",
+                "Now is the only time you own.",
+                "You are what you do, not what you'll say you'll do.",
+                "Life is short. Do stuff that matters.",
+                "Someday is not a day of the week."
             ];
             
-            // Change message every 10 seconds
-            const messageIndex = Math.floor((londonTime.getTime() / 10000) % messages.length);
-            document.getElementById('motivation-message-primary').textContent = messages[messageIndex];
-            document.getElementById('motivation-message-secondary').textContent = messages[(messageIndex + 1) % messages.length];
+            // Change message every 3 seconds
+            const messageIndex = Math.floor((londonTime.getTime() / 3000) % messages.length);
+            
+            // Set messages for the two slides
+            const messageElement1 = document.getElementById('motivation-message-primary');
+            const messageElement2 = document.getElementById('motivation-message-secondary');
+            
+            messageElement1.innerHTML = `<span class="motivational-text">${messages[messageIndex]}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${messages[(messageIndex + 1) % messages.length]}</span>`;
         }
+        
+        // Add styles for the motivational messages
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+            .motivational-text {
+                font-weight: bold;
+                transition: color 0.5s ease;
+            }
+            
+            /* Different colors for different message types */
+            .motivational-text:nth-of-type(4n+1) {
+                color: #e67e22; /* Orange */
+            }
+            .motivational-text:nth-of-type(4n+2) {
+                color: #3498db; /* Blue */
+            }
+            .motivational-text:nth-of-type(4n+3) {
+                color: #2ecc71; /* Green */
+            }
+            .motivational-text:nth-of-type(4n+4) {
+                color: #9b59b6; /* Purple */
+            }
+        `;
+        document.head.appendChild(styleElement);
         <?php endif; ?>
         
         // Toggle FAB options
