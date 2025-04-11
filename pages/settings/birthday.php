@@ -395,139 +395,42 @@ include '../../includes/header.php';
                 }
             </style>
             
-            <!-- JavaScript for Orthodox reminders -->
+            <!-- JavaScript for calculations and visualizations -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    console.log("DOM Loaded - Initializing birthday metrics");
-                    
                     // Get birth date
                     const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
-                    console.log("Birth date:", birthDate.toString());
                     
-                    // Message rotation variables
-                    let messageIndex = 0;
-                    let quoteIndex = 0;
-                    let lastMinute = -1;
-                    
-                    // Memento Mori messages
-                    const mementoMessages = [
-                        "Remember, you will die. Use this moment wisely.",
-                        "Every second is precious and unrepeatable.",
-                        "What will you do with the time given to you today?",
-                        "If this was your last day, how would you spend it?",
-                        "Today is a gift. That's why it's called the present.",
-                        "Act now. Tomorrow is not guaranteed."
-                    ];
-                    
-                    // Present moment quotes that rotate
-                    const presentQuotes = [
-                        "This moment will never come again.",
-                        "Now is all we have.",
-                        "Be present and attentive right now.",
-                        "Each second is irreplaceable.",
-                        "The present moment is your point of power."
-                    ];
-                    
-                    // Force update all elements immediately
+                    // Update metrics initially
                     updateLifeMetrics(birthDate);
-                    updateClock();
-                    rotateMessages();
                     
-                    // Set interval for metrics update (every second)
-                    const metricInterval = setInterval(function() {
+                    // Update every second
+                    setInterval(function() {
                         updateLifeMetrics(birthDate);
                     }, 1000);
                     
-                    // Set interval for clock update (every second)
-                    const clockInterval = setInterval(function() {
-                        updateClock();
-                    }, 1000);
-                    
-                    // Force message rotation every 30 seconds regardless of timing
-                    const messageInterval = setInterval(function() {
-                        rotateMessages();
-                    }, 30000);
-                    
-                    // Initialize judgement checklist
-                    setupJudgmentChecklist();
-                    
-                    // Force update of sunsets count
-                    updateSunsetCount(birthDate);
-                    
-                    // Rotate messages function
-                    function rotateMessages() {
-                        console.log("Rotating messages");
-                        // Rotate memento mori messages
-                        messageIndex = (messageIndex + 1) % mementoMessages.length;
-                        updateElementText('memento-mori', mementoMessages[messageIndex]);
-                        
-                        // Rotate present moment quotes
-                        quoteIndex = (quoteIndex + 1) % presentQuotes.length;
-                        updateElementText('present-quote', presentQuotes[quoteIndex]);
-                        
-                        // Reset hourglass animation
-                        resetHourglassAnimation();
-                    }
-                    
-                    // Reset hourglass animation
-                    function resetHourglassAnimation() {
-                        console.log("Resetting hourglass animation");
-                        const sand = document.querySelector('.sand');
-                        const sandPile = document.querySelector('.sand-pile');
-                        
-                        if (sand && sandPile) {
-                            sand.style.animation = 'none';
-                            sandPile.style.animation = 'none';
-                            
-                            // Trigger reflow
-                            void sand.offsetWidth;
-                            void sandPile.offsetWidth;
-                            
-                            sand.style.animation = 'minuteSandFall 30s linear infinite';
-                            sandPile.style.animation = 'minuteSandPile 30s linear infinite';
-                        }
+                    // Calculate total sunsets seen
+                    function calculateSunsets(birthDate) {
+                        const now = new Date();
+                        const diffTime = Math.abs(now - birthDate);
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays;
                     }
                     
                     // Update sunset count
-                    function updateSunsetCount(birthDate) {
-                        console.log("Updating sunset count");
-                        // Calculate days since birth
-                        const now = new Date();
-                        const diffTime = Math.abs(now - birthDate);
-                        const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        // Update sunset count display
-                        const sunsetsEl = document.getElementById('sunsets-count');
-                        if (sunsetsEl) {
-                            sunsetsEl.textContent = `You have seen ${formatNumber(totalDays)} sunsets in your life.`;
-                            console.log("Sunset count updated:", totalDays);
-                        } else {
-                            console.log("Sunset element not found");
-                        }
-                    }
+                    const totalSunsets = calculateSunsets(birthDate);
+                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
                     
-                    // Clock update function
+                    // Add clock functionality
                     function updateClock() {
                         const now = new Date();
                         const hours = String(now.getHours()).padStart(2, '0');
                         const minutes = String(now.getMinutes()).padStart(2, '0');
                         const seconds = String(now.getSeconds()).padStart(2, '0');
                         
-                        // Check if minute has changed
-                        if (parseInt(minutes) !== lastMinute) {
-                            lastMinute = parseInt(minutes);
-                            console.log("Minute changed, updating elements");
-                            rotateMessages();
-                        }
+                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
                         
-                        // Update digital clock display
-                        const currentTimeEl = document.getElementById('current-time');
-                        if (currentTimeEl) {
-                            currentTimeEl.textContent = `${hours}:${minutes}:${seconds}`;
-                            console.log("Clock updated:", `${hours}:${minutes}:${seconds}`);
-                        }
-                        
-                        // Update analog clock hands
+                        // Update clock hands
                         const secondHand = document.querySelector('.second-hand');
                         const minuteHand = document.querySelector('.minute-hand');
                         const hourHand = document.querySelector('.hour-hand');
@@ -543,111 +446,131 @@ include '../../includes/header.php';
                         }
                     }
                     
+                    // Update clock initially and then every second
+                    updateClock();
+                    setInterval(updateClock, 1000);
+                    
                     // Life metrics calculation and visualization
                     function updateLifeMetrics(birthDate) {
-                        try {
-                            // Get current date/time
-                            const now = new Date();
+                        // Get current date/time in London time zone
+                        const now = new Date();
+                        const londonOptions = { timeZone: 'Europe/London' };
+                        
+                        // Get London time components as strings
+                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+                        // Parse London time back to Date object
+                        const londonTime = new Date(londonTimeStr);
+                        
+                        // Calculate diff in milliseconds
+                        const diffMs = londonTime - birthDate;
+                        
+                        // Calculate various time units
+                        const totalSeconds = Math.floor(diffMs / 1000);
+                        const totalMinutes = Math.floor(totalSeconds / 60);
+                        const totalHours = Math.floor(totalMinutes / 60);
+                        const totalDays = Math.floor(totalHours / 24);
+                        const totalWeeks = Math.floor(totalDays / 7);
+                        const totalMonths = Math.floor(totalDays / 30.4375);
+                        const years = Math.floor(totalDays / 365.25);
+                        
+                        // For time calculations
+                        const hours = Math.floor(totalHours % 24);
+                        const minutes = Math.floor(totalMinutes % 60);
+                        const seconds = Math.floor(totalSeconds % 60);
+                        
+                        // Format with leading zeros
+                        const formattedHours = String(hours).padStart(2, '0');
+                        const formattedMinutes = String(minutes).padStart(2, '0');
+                        const formattedSeconds = String(seconds).padStart(2, '0');
+                        
+                        // Update main metrics
+                        document.getElementById('years-lived').textContent = formatNumber(years);
+                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
+                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
+                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
+                        
+                        // Update hours and minutes with progress
+                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
+                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
+                        
+                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
+                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
+                        
+                        // Update Today's focus section
+                        const currentDate = londonTime.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        document.getElementById('today-date').textContent = currentDate;
+                        
+                        // Calculate day of year
+                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
+                        const diff = londonTime - startOfYear;
+                        const dayOfYear = Math.floor(diff / 86400000);
+                        document.getElementById('today-number').textContent = dayOfYear;
+                        
+                        // Current hour
+                        document.getElementById('today-hour').textContent = hours;
+                        
+                        // Heartbeats per minute (simulation, average 70-75)
+                        const heartbeats = Math.floor(70 + Math.random() * 5);
+                        document.getElementById('heartbeats-minute').textContent = heartbeats;
+                        
+                        // Update present moment section
+                        document.getElementById('present-second-count').textContent = seconds;
+                        const secondsProgress = (seconds / 60) * 100;
+                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        
+                        // Update urgent reminder section
+                        document.getElementById('urgent-hours').textContent = formattedHours;
+                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        
+                        // Rotate through memento mori messages
+                        const mementoMessages = [
+                            "Remember, you will die. Use this moment wisely.",
+                            "Every second is precious and unrepeatable.",
+                            "What will you do with the time given to you today?",
+                            "If this was your last day, how would you spend it?",
+                            "Today is a gift. That's why it's called the present.",
+                            "Act now. Tomorrow is not guaranteed."
+                        ];
+                        
+                        // Change message every minute
+                        if (seconds === 0) {
+                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
+                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
                             
-                            // Calculate diff in milliseconds
-                            const diffMs = now - birthDate;
+                            // Present moment quotes that rotate every minute
+                            const presentQuotes = [
+                                "This moment will never come again.",
+                                "Now is all we have.",
+                                "Be present and attentive right now.",
+                                "Each second is irreplaceable.",
+                                "The present moment is your point of power."
+                            ];
+                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
+                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                        }
+                        
+                        // Restart hourglass animation every minute
+                        if (seconds === 0) {
+                            const sand = document.querySelector('.sand');
+                            const sandPile = document.querySelector('.sand-pile');
                             
-                            // Calculate various time units
-                            const totalSeconds = Math.floor(diffMs / 1000);
-                            const totalMinutes = Math.floor(totalSeconds / 60);
-                            const totalHours = Math.floor(totalMinutes / 60);
-                            const totalDays = Math.floor(totalHours / 24);
-                            const totalWeeks = Math.floor(totalDays / 7);
-                            const totalMonths = Math.floor(totalDays / 30.4375);
-                            const years = Math.floor(totalDays / 365.25);
-                            
-                            // Update sunset count every time
-                            updateSunsetCount(birthDate);
-                            
-                            // For time calculations
-                            const hours = Math.floor(totalHours % 24);
-                            const minutes = Math.floor(totalMinutes % 60);
-                            const seconds = Math.floor(totalSeconds % 60);
-                            
-                            // Format with leading zeros
-                            const formattedHours = String(hours).padStart(2, '0');
-                            const formattedMinutes = String(minutes).padStart(2, '0');
-                            const formattedSeconds = String(seconds).padStart(2, '0');
-                            
-                            // Debug logs
-                            if (seconds % 10 === 0) {
-                                console.log("Metrics update:", {
-                                    years, totalMonths, totalWeeks, totalDays,
-                                    totalHours, hours, minutes, seconds
-                                });
+                            if (sand && sandPile) {
+                                sand.style.animation = 'none';
+                                sandPile.style.animation = 'none';
+                                
+                                // Trigger reflow
+                                void sand.offsetWidth;
+                                void sandPile.offsetWidth;
+                                
+                                sand.style.animation = 'minuteSandFall 30s linear infinite';
+                                sandPile.style.animation = 'minuteSandPile 30s linear infinite';
                             }
-                            
-                            // Update main metrics
-                            updateElementText('years-lived', formatNumber(years));
-                            updateElementText('months-lived', formatNumber(totalMonths));
-                            updateElementText('weeks-lived', formatNumber(totalWeeks));
-                            updateElementText('days-lived', formatNumber(totalDays));
-                            
-                            // Update hours and minutes with progress
-                            updateElementText('hours-lived', formatNumber(totalHours));
-                            updateElementStyle('hours-progress', 'width', `${(hours/24)*100}%`);
-                            
-                            updateElementText('minutes-lived', formatNumber(totalMinutes));
-                            updateElementStyle('minutes-progress', 'width', `${(minutes/60)*100}%`);
-                            
-                            // Update Today's focus section
-                            const currentDate = now.toLocaleDateString('en-US', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                            });
-                            updateElementText('today-date', currentDate);
-                            
-                            // Calculate day of year
-                            const startOfYear = new Date(now.getFullYear(), 0, 0);
-                            const diff = now - startOfYear;
-                            const dayOfYear = Math.floor(diff / 86400000);
-                            updateElementText('today-number', dayOfYear);
-                            
-                            // Current hour
-                            updateElementText('today-hour', hours);
-                            
-                            // Heartbeats per minute (simulation, average 70-75)
-                            const heartbeats = Math.floor(70 + Math.random() * 5);
-                            updateElementText('heartbeats-minute', heartbeats);
-                            
-                            // Update present moment section
-                            updateElementText('present-second-count', seconds);
-                            const secondsProgress = (seconds / 60) * 100;
-                            updateElementStyle('present-second-progress', 'width', `${secondsProgress}%`);
-                            
-                            // Update urgent reminder section
-                            updateElementText('urgent-hours', formattedHours);
-                            updateElementText('urgent-minutes', formattedMinutes);
-                            updateElementText('urgent-seconds', formattedSeconds);
-                        } catch (error) {
-                            console.error("Error updating metrics:", error);
-                        }
-                    }
-                    
-                    // Helper function to safely update element text content
-                    function updateElementText(id, text) {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.textContent = text;
-                        } else if (seconds % 10 === 0) {
-                            console.warn(`Element with id ${id} not found`);
-                        }
-                    }
-                    
-                    // Helper function to safely update element style
-                    function updateElementStyle(id, property, value) {
-                        const element = document.getElementById(id);
-                        if (element && element.style) {
-                            element.style[property] = value;
-                        } else if (seconds % 10 === 0) {
-                            console.warn(`Element with id ${id} not found or has no style property`);
                         }
                     }
                     
@@ -658,14 +581,7 @@ include '../../includes/header.php';
                     
                     // Handle Judgment Checklist cookies
                     function setupJudgmentChecklist() {
-                        console.log("Setting up judgment checklist");
                         const checkboxes = document.querySelectorAll('.judgment-check');
-                        if (!checkboxes || checkboxes.length === 0) {
-                            console.warn("No judgment checkboxes found");
-                            return;
-                        }
-                        
-                        console.log(`Found ${checkboxes.length} judgment checkboxes`);
                         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
                         
                         // Check if we have saved state for today
@@ -673,7 +589,6 @@ include '../../includes/header.php';
                         
                         // If it's a new day, clear previous checkboxes
                         if (savedDate !== today) {
-                            console.log("New day detected, clearing checkboxes");
                             // Clear all checkboxes
                             checkboxes.forEach(checkbox => {
                                 checkbox.checked = false;
@@ -682,7 +597,6 @@ include '../../includes/header.php';
                             // Set today's date in cookie
                             setCookie('judgment_date', today, 365);
                         } else {
-                            console.log("Same day, restoring checkbox state");
                             // Restore saved state
                             checkboxes.forEach(checkbox => {
                                 const isChecked = getCookie(`judgment_${checkbox.id}`) === 'true';
@@ -693,7 +607,6 @@ include '../../includes/header.php';
                         // Add event listeners to save state when checkboxes change
                         checkboxes.forEach(checkbox => {
                             checkbox.addEventListener('change', function() {
-                                console.log(`Checkbox ${this.id} changed to ${this.checked}`);
                                 setCookie(`judgment_${this.id}`, this.checked, 365);
                             });
                         });
@@ -722,6 +635,9 @@ include '../../includes/header.php';
                         }
                         return "";
                     }
+                    
+                    // Initialize checklist when DOM is loaded
+                    setupJudgmentChecklist();
                 });
             </script>
             
