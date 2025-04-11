@@ -103,8 +103,9 @@ include '../includes/header.php';
     <div class="card-body">
         <!-- Filter Section -->
         <div class="row mb-4 g-3">
-            <div class="col-md-4">
-                <select class="form-select" id="categoryFilter">
+            <div class="col-md-3">
+                <label for="categoryFilter" class="form-label small text-muted mb-1">Category</label>
+                <select class="form-select form-select-sm" id="categoryFilter">
                     <option value="">All Categories</option>
                     <?php 
                     $categories_result->data_seek(0); // Reset pointer
@@ -116,21 +117,78 @@ include '../includes/header.php';
                     <?php endwhile; ?>
                 </select>
             </div>
-            <div class="col-md-4">
-                <select class="form-select" id="statusFilter">
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label small text-muted mb-1">Status</label>
+                <select class="form-select form-select-sm" id="statusFilter">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
+                    <option value="canceled">Canceled</option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <select class="form-select" id="dateFilter">
+            <div class="col-md-3">
+                <label for="dateFilter" class="form-label small text-muted mb-1">Date Range</label>
+                <select class="form-select form-select-sm" id="dateFilter">
                     <option value="">All Dates</option>
                     <option value="today">Today</option>
+                    <option value="tomorrow">Tomorrow</option>
                     <option value="week">This Week</option>
+                    <option value="next_week">Next Week</option>
                     <option value="month">This Month</option>
                     <option value="overdue">Overdue</option>
+                    <option value="no_date">No Due Date</option>
                 </select>
+            </div>
+            <div class="col-md-3">
+                <label for="priorityFilter" class="form-label small text-muted mb-1">Priority</label>
+                <select class="form-select form-select-sm" id="priorityFilter">
+                    <option value="">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="specificDate" class="form-label small text-muted mb-1">Specific Date</label>
+                <input type="date" class="form-control form-control-sm" id="specificDate">
+            </div>
+            <div class="col-md-6">
+                <label for="taskType" class="form-label small text-muted mb-1">Task Type</label>
+                <select class="form-select form-select-sm" id="taskType">
+                    <option value="">All Types</option>
+                    <option value="tasks">Tasks Only</option>
+                    <option value="habits">Habits Only</option>
+                    <option value="combined">Both Tasks & Habits</option>
+                </select>
+            </div>
+            <div class="col-12 d-flex justify-content-end mt-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="clearFilters">
+                    <i class="fas fa-times me-1"></i>Clear Filters
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="applyFilters">
+                    <i class="fas fa-filter me-1"></i>Apply Filters
+                </button>
+            </div>
+        </div>
+        
+        <!-- Daily Habits Section (when taskType is set to 'habits' or 'combined') -->
+        <div id="habitsSection" class="mb-4" style="display: none;">
+            <div class="card border mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Today's Habits</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="habitsContainer">
+                        <!-- Habits will be loaded here dynamically -->
+                        <div class="text-center py-4 habits-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted mt-2">Loading habits...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -153,6 +211,7 @@ include '../includes/header.php';
                             <tr class="task-row <?php echo $task['status'] == 'completed' ? 'completed-task' : ''; ?>" 
                                 data-category="<?php echo $task['category_id']; ?>"
                                 data-status="<?php echo $task['status']; ?>"
+                                data-priority="<?php echo $task['priority']; ?>"
                                 data-due-date="<?php echo $task['due_date']; ?>">
                                 <td>
                                     <div class="form-check">
@@ -196,6 +255,15 @@ include '../includes/header.php';
                         <?php endwhile; ?>
                     </tbody>
                 </table>
+                
+                <!-- No results message (hidden by default, shown by JavaScript) -->
+                <div id="noTasksMessage" class="text-center py-4" style="display: none;">
+                    <i class="fas fa-filter fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No tasks match your current filters.</p>
+                    <button class="btn btn-outline-secondary btn-sm mt-2" id="clearFiltersBtn">
+                        <i class="fas fa-times me-1"></i>Clear All Filters
+                    </button>
+                </div>
             </div>
         <?php else: ?>
             <div class="text-center py-4">
@@ -208,76 +276,306 @@ include '../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Task filtering
+    // Enhanced Task filtering
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
     const dateFilter = document.getElementById('dateFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
+    const specificDate = document.getElementById('specificDate');
+    const taskType = document.getElementById('taskType');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const habitsSection = document.getElementById('habitsSection');
+    const habitsContainer = document.getElementById('habitsContainer');
     const taskRows = document.querySelectorAll('.task-row');
     
-    function filterTasks() {
+    // Initialize datepicker
+    specificDate.valueAsDate = new Date();
+    
+    // Apply filters function - enhanced version
+    function applyFilters() {
         const selectedCategory = categoryFilter.value;
         const selectedStatus = statusFilter.value;
         const selectedDate = dateFilter.value;
+        const selectedPriority = priorityFilter.value;
+        const selectedSpecificDate = specificDate.value ? new Date(specificDate.value) : null;
+        const selectedTaskType = taskType.value;
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        taskRows.forEach(row => {
-            const category = row.dataset.category;
-            const status = row.dataset.status;
-            const dueDate = row.dataset.dueDate;
-            
-            let showRow = true;
-            
-            // Category filter
-            if (selectedCategory && category !== selectedCategory) {
-                showRow = false;
-            }
-            
-            // Status filter
-            if (selectedStatus && status !== selectedStatus) {
-                showRow = false;
-            }
-            
-            // Date filter
-            if (selectedDate && dueDate) {
-                const taskDate = new Date(dueDate);
-                taskDate.setHours(0, 0, 0, 0);
+        // Handle task type selection for habits
+        if (selectedTaskType === 'habits' || selectedTaskType === 'combined') {
+            habitsSection.style.display = 'block';
+            loadHabits(selectedSpecificDate || today);
+        } else {
+            habitsSection.style.display = 'none';
+        }
+        
+        // Hide tasks completely if only habits are selected
+        const tasksTable = document.getElementById('tasksTable');
+        if (tasksTable) {
+            tasksTable.closest('.table-responsive').style.display = 
+                selectedTaskType === 'habits' ? 'none' : 'block';
+        }
+        
+        // Filter tasks
+        if (selectedTaskType !== 'habits') {
+            taskRows.forEach(row => {
+                const category = row.dataset.category;
+                const status = row.dataset.status;
+                const dueDate = row.dataset.dueDate;
+                const priority = row.dataset.priority;
                 
-                switch(selectedDate) {
-                    case 'today':
-                        if (taskDate.getTime() !== today.getTime()) {
-                            showRow = false;
-                        }
-                        break;
-                    case 'week':
-                        const weekStart = new Date(today);
-                        weekStart.setDate(today.getDate() - today.getDay());
-                        const weekEnd = new Date(weekStart);
-                        weekEnd.setDate(weekStart.getDate() + 6);
-                        if (taskDate < weekStart || taskDate > weekEnd) {
-                            showRow = false;
-                        }
-                        break;
-                    case 'month':
-                        if (taskDate.getMonth() !== today.getMonth() || taskDate.getFullYear() !== today.getFullYear()) {
-                            showRow = false;
-                        }
-                        break;
-                    case 'overdue':
-                        if (taskDate >= today || status === 'completed') {
-                            showRow = false;
-                        }
-                        break;
+                let showRow = true;
+                
+                // Category filter
+                if (selectedCategory && category !== selectedCategory) {
+                    showRow = false;
                 }
-            }
+                
+                // Status filter
+                if (selectedStatus && status !== selectedStatus) {
+                    showRow = false;
+                }
+                
+                // Priority filter
+                if (selectedPriority && priority !== selectedPriority) {
+                    showRow = false;
+                }
+                
+                // Specific date has priority over date range filter
+                if (selectedSpecificDate && dueDate) {
+                    const taskDate = new Date(dueDate);
+                    taskDate.setHours(0, 0, 0, 0);
+                    
+                    if (taskDate.getTime() !== selectedSpecificDate.getTime()) {
+                        showRow = false;
+                    }
+                }
+                // Date range filter (only apply if specific date not set)
+                else if (selectedDate && dueDate) {
+                    const taskDate = new Date(dueDate);
+                    taskDate.setHours(0, 0, 0, 0);
+                    
+                    switch(selectedDate) {
+                        case 'today':
+                            if (taskDate.getTime() !== today.getTime()) {
+                                showRow = false;
+                            }
+                            break;
+                        case 'tomorrow':
+                            const tomorrow = new Date(today);
+                            tomorrow.setDate(today.getDate() + 1);
+                            if (taskDate.getTime() !== tomorrow.getTime()) {
+                                showRow = false;
+                            }
+                            break;
+                        case 'week':
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay());
+                            const weekEnd = new Date(weekStart);
+                            weekEnd.setDate(weekStart.getDate() + 6);
+                            if (taskDate < weekStart || taskDate > weekEnd) {
+                                showRow = false;
+                            }
+                            break;
+                        case 'next_week':
+                            const nextWeekStart = new Date(today);
+                            nextWeekStart.setDate(today.getDate() - today.getDay() + 7);
+                            const nextWeekEnd = new Date(nextWeekStart);
+                            nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+                            if (taskDate < nextWeekStart || taskDate > nextWeekEnd) {
+                                showRow = false;
+                            }
+                            break;
+                        case 'month':
+                            if (taskDate.getMonth() !== today.getMonth() || taskDate.getFullYear() !== today.getFullYear()) {
+                                showRow = false;
+                            }
+                            break;
+                        case 'overdue':
+                            if (taskDate >= today || status === 'completed') {
+                                showRow = false;
+                            }
+                            break;
+                        case 'no_date':
+                            showRow = false; // Hide items with due date
+                            break;
+                    }
+                } else if (selectedDate === 'no_date' && dueDate) {
+                    showRow = false; // Hide items with due date when "No Due Date" filter is selected
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
             
-            row.style.display = showRow ? '' : 'none';
+            // Display "no results" message if no tasks are visible
+            const noResultsMessage = document.getElementById('noTasksMessage');
+            if (noResultsMessage) {
+                let visibleTasks = 0;
+                taskRows.forEach(row => {
+                    if (row.style.display !== 'none') visibleTasks++;
+                });
+                
+                noResultsMessage.style.display = visibleTasks > 0 ? 'none' : 'block';
+            }
+        }
+    }
+    
+    // Load habits function
+    function loadHabits(date) {
+        // Format date to YYYY-MM-DD for API
+        const formattedDate = date.toISOString().split('T')[0];
+        
+        // Show loading state
+        habitsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2">Loading habits for ${formattedDate}...</p>
+            </div>
+        `;
+        
+        // Fetch habits for the selected date
+        fetch(`../api/get_habits_for_date.php?date=${formattedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.habits.length > 0) {
+                    let habitsHTML = '';
+                    
+                    data.habits.forEach(habit => {
+                        const isCompleted = habit.status === 'completed';
+                        habitsHTML += `
+                            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between ${isCompleted ? 'bg-light' : ''}">
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check me-3">
+                                        <input class="form-check-input habit-checkbox" type="checkbox" 
+                                               value="${habit.id}" data-date="${formattedDate}" 
+                                               ${isCompleted ? 'checked' : ''}>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 ${isCompleted ? 'text-decoration-line-through text-muted' : ''}">${habit.name}</h6>
+                                        ${habit.category_name ? 
+                                            `<span class="badge" style="background-color: ${habit.category_color || '#cdaf56'}">
+                                                ${habit.category_name}
+                                            </span>` : ''}
+                                    </div>
+                                </div>
+                                ${habit.frequency ? 
+                                    `<span class="badge bg-info">${habit.frequency}</span>` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    habitsContainer.innerHTML = habitsHTML;
+                    
+                    // Add event listeners to habit checkboxes
+                    document.querySelectorAll('.habit-checkbox').forEach(checkbox => {
+                        checkbox.addEventListener('change', handleHabitStatusChange);
+                    });
+                    
+                } else {
+                    habitsContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-day fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No habits found for ${formattedDate}.</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading habits:', error);
+                habitsContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-circle fa-2x text-danger mb-3"></i>
+                        <p class="text-muted">Failed to load habits. Please try again.</p>
+                    </div>
+                `;
+            });
+    }
+    
+    // Handle habit status change
+    function handleHabitStatusChange() {
+        const habitId = this.value;
+        const date = this.dataset.date;
+        const status = this.checked ? 'completed' : 'pending';
+        
+        // Update habit status via API
+        fetch('../pages/habits/update_habit_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `habit_id=${habitId}&date=${date}&status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI
+                const listItem = this.closest('.list-group-item');
+                const habitName = listItem.querySelector('h6');
+                
+                if (status === 'completed') {
+                    listItem.classList.add('bg-light');
+                    habitName.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    listItem.classList.remove('bg-light');
+                    habitName.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+                
+                showAlert('Habit status updated successfully!', 'success');
+            } else {
+                showAlert('Error updating habit status: ' + data.message, 'danger');
+                this.checked = !this.checked;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating habit status.', 'danger');
+            this.checked = !this.checked;
         });
     }
     
-    categoryFilter.addEventListener('change', filterTasks);
-    statusFilter.addEventListener('change', filterTasks);
-    dateFilter.addEventListener('change', filterTasks);
+    // Clear all filters
+    function clearFilters() {
+        categoryFilter.value = '';
+        statusFilter.value = '';
+        dateFilter.value = '';
+        priorityFilter.value = '';
+        specificDate.valueAsDate = new Date();
+        taskType.value = '';
+        
+        applyFilters();
+    }
+    
+    // Event listeners for filters
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', applyFilters);
+    }
+    
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearFilters);
+    }
+    
+    // Connect the clear filters button in the no results message
+    const clearFiltersBtn2 = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn2) {
+        clearFiltersBtn2.addEventListener('click', clearFilters);
+    }
+    
+    // Also allow auto-filtering when specific date changes
+    specificDate.addEventListener('change', function() {
+        if (taskType.value === 'habits' || taskType.value === 'combined') {
+            loadHabits(new Date(this.value));
+        }
+    });
+    
+    // Initialize with current date's habits if task type is preselected
+    if (taskType.value === 'habits' || taskType.value === 'combined') {
+        loadHabits(new Date());
+    }
     
     // Task checkbox handling
     const taskCheckboxes = document.querySelectorAll('.task-checkbox');
