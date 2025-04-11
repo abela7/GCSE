@@ -123,22 +123,33 @@ include '../../includes/header.php';
                                         <i class="fas fa-heartbeat"></i>
                                     </div>
                                     <div id="today-date" class="display-6 mb-3">-</div>
-                                    <div class="current-moment-box p-3 mb-3">
-                                        <div class="row">
-                                            <div class="col">
-                                                <div class="moment-value" id="today-number">-</div>
-                                                <div class="moment-label">Day of Year</div>
+                                    
+                                    <!-- Hours & Minutes Progress -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-card">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="mb-0">Hours</h5>
+                                                    <div class="badge bg-accent" id="hours-lived">-</div>
+                                                </div>
+                                                <div class="progress hours-progress" style="height: 20px;">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="hours-progress" role="progressbar" style="width: 0"></div>
+                                                </div>
                                             </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="today-hour">-</div>
-                                                <div class="moment-label">Hour of Day</div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="moment-value" id="heartbeats-minute">-</div>
-                                                <div class="moment-label">Heartbeats/min</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="metric-card">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <h5 class="mb-0">Minutes</h5>
+                                                    <div class="badge bg-accent" id="minutes-lived">-</div>
+                                                </div>
+                                                <div class="progress minutes-progress" style="height: 20px;">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                     <div id="memento-mori" class="memento-text">Each moment is precious. Act now.</div>
                                 </div>
                             </div>
