@@ -10,8 +10,6 @@ $breadcrumbs = [
 
 // Include database connection
 require_once '../../config/db_connect.php';
-// Include judgment checklist component
-require_once '../../includes/judgment_checklist.php';
 
 // Initialize message variables
 $message = '';
@@ -581,7 +579,65 @@ include '../../includes/header.php';
                         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     }
                     
-                    <?php echo getJudgmentChecklistScript(); ?>
+                    // Handle Judgment Checklist cookies
+                    function setupJudgmentChecklist() {
+                        const checkboxes = document.querySelectorAll('.judgment-check');
+                        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+                        
+                        // Check if we have saved state for today
+                        const savedDate = getCookie('judgment_date');
+                        
+                        // If it's a new day, clear previous checkboxes
+                        if (savedDate !== today) {
+                            // Clear all checkboxes
+                            checkboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Set today's date in cookie
+                            setCookie('judgment_date', today, 365);
+                        } else {
+                            // Restore saved state
+                            checkboxes.forEach(checkbox => {
+                                const isChecked = getCookie(`judgment_${checkbox.id}`) === 'true';
+                                checkbox.checked = isChecked;
+                            });
+                        }
+                        
+                        // Add event listeners to save state when checkboxes change
+                        checkboxes.forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                setCookie(`judgment_${this.id}`, this.checked, 365);
+                            });
+                        });
+                    }
+                    
+                    // Cookie helper functions
+                    function setCookie(name, value, days) {
+                        const d = new Date();
+                        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                        const expires = "expires=" + d.toUTCString();
+                        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+                    }
+                    
+                    function getCookie(name) {
+                        const cname = name + "=";
+                        const decodedCookie = decodeURIComponent(document.cookie);
+                        const ca = decodedCookie.split(';');
+                        for(let i = 0; i < ca.length; i++) {
+                            let c = ca[i];
+                            while (c.charAt(0) === ' ') {
+                                c = c.substring(1);
+                            }
+                            if (c.indexOf(cname) === 0) {
+                                return c.substring(cname.length, c.length);
+                            }
+                        }
+                        return "";
+                    }
+                    
+                    // Initialize checklist when DOM is loaded
+                    setupJudgmentChecklist();
                 });
             </script>
             
@@ -676,7 +732,32 @@ include '../../includes/header.php';
                         <div class="col-md-6 mb-4">
                             <div class="orthodox-reminder checklist-card">
                                 <h4>Daily Judgment Checklist</h4>
-                                <?php echo renderJudgmentChecklist(); ?>
+                                <div class="checklist">
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="prayer" class="judgment-check">
+                                        <label for="prayer">Did you pray with your whole heart today?</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="repentance" class="judgment-check">
+                                        <label for="repentance">Did you repent of your sins today?</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="kindness" class="judgment-check">
+                                        <label for="kindness">Did you show mercy to those in need?</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="forgiveness" class="judgment-check">
+                                        <label for="forgiveness">Did you forgive those who wronged you?</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="fasting" class="judgment-check">
+                                        <label for="fasting">Did you practice self-discipline today?</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="scripture" class="judgment-check">
+                                        <label for="scripture">Did you read Scripture today?</label>
+                                    </div>
+                                </div>
                                 <p class="reminder-text">"If today were your final judgment, how would you answer?"</p>
                             </div>
                         </div>
