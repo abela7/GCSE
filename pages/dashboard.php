@@ -488,14 +488,6 @@ $accent_color = "#cdaf56";
                                 </div>
                             </div>
                             
-                            <div class="px-3 py-2 bg-light d-flex justify-content-between align-items-center">
-                                <div class="small text-muted">
-                                    <i class="fas fa-birthday-cake me-1"></i> Born on <?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?>
-                                </div>
-                                <a href="settings/birthday.php" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit me-1"></i> Edit
-                                </a>
-                            </div>
                             
                             <!-- Custom styles for the counter -->
                             <style>
