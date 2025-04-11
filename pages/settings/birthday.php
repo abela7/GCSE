@@ -466,19 +466,6 @@ include '../../includes/header.php';
                         });
                         document.getElementById('today-date').textContent = currentDate;
                         
-                        // Calculate day of year
-                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
-                        const diff = londonTime - startOfYear;
-                        const dayOfYear = Math.floor(diff / 86400000);
-                        document.getElementById('today-number').textContent = dayOfYear;
-                        
-                        // Current hour
-                        document.getElementById('today-hour').textContent = hours;
-                        
-                        // Heartbeats per minute (simulation, average 70-75)
-                        const heartbeats = Math.floor(70 + Math.random() * 5);
-                        document.getElementById('heartbeats-minute').textContent = heartbeats;
-                        
                         // Update present moment section
                         if (document.getElementById('present-second-count')) {
                             document.getElementById('present-second-count').textContent = seconds;
@@ -517,7 +504,9 @@ include '../../includes/header.php';
                                 "The present moment is your point of power."
                             ];
                             const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
-                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                            if (document.getElementById('present-quote')) {
+                                document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                            }
                         }
                         
                         // Restart hourglass animation every minute
@@ -1242,19 +1231,6 @@ include '../../includes/header.php';
                         });
                         document.getElementById('today-date').textContent = currentDate;
                         
-                        // Calculate day of year
-                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
-                        const diff = londonTime - startOfYear;
-                        const dayOfYear = Math.floor(diff / 86400000);
-                        document.getElementById('today-number').textContent = dayOfYear;
-                        
-                        // Current hour
-                        document.getElementById('today-hour').textContent = hours;
-                        
-                        // Heartbeats per minute (simulation, average 70-75)
-                        const heartbeats = Math.floor(70 + Math.random() * 5);
-                        document.getElementById('heartbeats-minute').textContent = heartbeats;
-                        
                         // Update present moment section
                         if (document.getElementById('present-second-count')) {
                             document.getElementById('present-second-count').textContent = seconds;
@@ -1293,7 +1269,9 @@ include '../../includes/header.php';
                                 "The present moment is your point of power."
                             ];
                             const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
-                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                            if (document.getElementById('present-quote')) {
+                                document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                            }
                         }
                         
                         // Restart hourglass animation every minute
@@ -1407,7 +1385,6 @@ include '../../includes/header.php';
     </div>
 </div>
 
-
 <!-- Metric circles section moved to the bottom of the page -->
 <div class="row mb-4">
     <div class="col-md-3 col-6 mb-3">
@@ -1434,7 +1411,48 @@ include '../../includes/header.php';
             <div class="metric-label">Days</div>
         </div>
     </div>
-</div> 
+</div>
+
+<!-- Present Moment and Time Is Now sections -->
+<div class="row mb-4">
+    <!-- The Present Moment -->
+    <div class="col-md-6 mb-3">
+        <div class="card feature-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-stopwatch me-2"></i> The Present Moment</h5>
+            </div>
+            <div class="card-body">
+                <div id="present-quote" class="mb-3 text-center fst-italic">
+                    This moment will never come again.
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">Seconds</h5>
+                    <div class="badge bg-primary" id="present-second-count">0</div>
+                </div>
+                <div class="progress seconds-progress" style="height: 20px;">
+                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                         id="present-second-progress" role="progressbar" style="width: 0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Your Time Is Now -->
+    <div class="col-md-6 mb-3">
+        <div class="card feature-card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i> Your Time Is Now</h5>
+            </div>
+            <div class="card-body">
+                <div class="current-time-display mb-3 text-center">
+                    <span id="urgent-hours">00</span>:<span id="urgent-minutes">00</span>:<span id="urgent-seconds">00</span>
+                </div>
+                <p class="text-center">Don't postpone your important work. The time to act is now.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php
 include '../../includes/footer.php';
 close_connection($conn);
