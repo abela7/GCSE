@@ -409,6 +409,18 @@ include '../../includes/header.php';
                         updateLifeMetrics(birthDate);
                     }, 1000);
                     
+                    // Calculate total sunsets seen
+                    function calculateSunsets(birthDate) {
+                        const now = new Date();
+                        const diffTime = Math.abs(now - birthDate);
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays;
+                    }
+                    
+                    // Update sunset count
+                    const totalSunsets = calculateSunsets(birthDate);
+                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
+                    
                     // Life metrics calculation and visualization
                     function updateLifeMetrics(birthDate) {
                         // Get current date/time in London time zone
@@ -513,6 +525,24 @@ include '../../includes/header.php';
                             const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
                             document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
                         }
+                        
+                        // Restart hourglass animation every minute
+                        if (seconds === 0) {
+                            const sand = document.querySelector('.sand');
+                            const sandPile = document.querySelector('.sand-pile');
+                            
+                            if (sand && sandPile) {
+                                sand.style.animation = 'none';
+                                sandPile.style.animation = 'none';
+                                
+                                // Trigger reflow
+                                void sand.offsetWidth;
+                                void sandPile.offsetWidth;
+                                
+                                sand.style.animation = 'minuteSandFall 60s linear infinite';
+                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
+                            }
+                        }
                     }
                     
                     // Helper for formatting large numbers with commas
@@ -538,7 +568,6 @@ include '../../includes/header.php';
                                         <div class="candle-flame"></div>
                                     </div>
                                 </div>
-                                <h4>Memento Mori</h4>
                                 <p class="reminder-text">"Death may come at any moment. Is your soul ready now?"</p>
                             </div>
                         </div>
@@ -557,7 +586,6 @@ include '../../includes/header.php';
                                         </div>
                                     </div>
                                 </div>
-                                <h4>Running Sand</h4>
                                 <p class="reminder-text">"You don't know how much sand remains. Act now."</p>
                             </div>
                         </div>
@@ -593,21 +621,8 @@ include '../../includes/header.php';
                                         </div>
                                     </div>
                                 </div>
-                                <h4>Orthodox Vigil Lamp</h4>
-                                <p class="reminder-text">"Life is short and uncertain. Keep your lamp burning bright today."</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Heartbeat Line -->
-                        <div class="col-md-6 mb-4">
-                            <div class="orthodox-reminder heartbeat-card">
-                                <div class="heartbeat-wrapper">
-                                    <svg id="heartbeat-svg" viewBox="0 0 600 120" preserveAspectRatio="none">
-                                        <path class="heartbeat-line" d="M0,60 L0,60" stroke="#e74c3c" stroke-width="2" fill="none" />
-                                    </svg>
-                                </div>
-                                <h4>Heartbeat</h4>
-                                <p class="reminder-text">"Every heartbeat is a gift from God. Use it wisely."</p>
+                                <h4>Life is short and uncertain</h4>
+                                <p class="reminder-text">"Keep your lamp burning bright today."</p>
                             </div>
                         </div>
                         
@@ -630,6 +645,7 @@ include '../../includes/header.php';
                                     <div class="horizon"></div>
                                 </div>
                                 <h4>Final Sunset</h4>
+                                <p id="sunsets-count" class="sunset-count"></p>
                                 <p class="reminder-text">"Today's sunset may be your last. Act with eternity in mind."</p>
                             </div>
                         </div>
@@ -641,22 +657,38 @@ include '../../includes/header.php';
                                 <div class="checklist">
                                     <div class="checklist-item">
                                         <input type="checkbox" id="prayer" class="judgment-check">
-                                        <label for="prayer">Prayer</label>
+                                        <label for="prayer">Prayer & Time with God</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="repentance" class="judgment-check">
-                                        <label for="repentance">Repentance</label>
+                                        <label for="repentance">Repentance & Confession</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="kindness" class="judgment-check">
-                                        <label for="kindness">Kindness</label>
+                                        <label for="kindness">Acts of Mercy & Almsgiving</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="forgiveness" class="judgment-check">
-                                        <label for="forgiveness">Forgiveness</label>
+                                        <label for="forgiveness">Forgiveness of Others</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="fasting" class="judgment-check">
+                                        <label for="fasting">Fasting & Self-Discipline</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="scripture" class="judgment-check">
+                                        <label for="scripture">Scripture Reading</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="humility" class="judgment-check">
+                                        <label for="humility">Humility & Obedience</label>
+                                    </div>
+                                    <div class="checklist-item">
+                                        <input type="checkbox" id="love" class="judgment-check">
+                                        <label for="love">Love for God & Neighbor</label>
                                     </div>
                                 </div>
-                                <p class="reminder-text">"If today were your final day, how many boxes could you check?"</p>
+                                <p class="reminder-text">"If today were your final judgment, how many boxes could you check?"</p>
                             </div>
                         </div>
                     </div>
@@ -794,7 +826,7 @@ include '../../includes/header.php';
                     position: absolute;
                     top: 10%;
                     left: 10%;
-                    animation: sandFall 20s linear infinite;
+                    animation: minuteSandFall 60s linear infinite;
                     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 60%, 0% 100%);
                 }
                 
@@ -806,15 +838,15 @@ include '../../includes/header.php';
                     bottom: 5px;
                     left: 25%;
                     border-radius: 50%;
-                    animation: sandPile 20s linear infinite;
+                    animation: minuteSandPile 60s linear infinite;
                 }
                 
-                @keyframes sandFall {
+                @keyframes minuteSandFall {
                     0% { height: 80%; }
                     100% { height: 0%; }
                 }
                 
-                @keyframes sandPile {
+                @keyframes minuteSandPile {
                     0% { height: 5%; }
                     100% { height: 65%; }
                 }
@@ -938,39 +970,6 @@ include '../../includes/header.php';
                     box-shadow: 0 0 20px rgba(255, 157, 0, 0.9);
                 }
                 
-                /* Heartbeat */
-                .heartbeat-card {
-                    background: linear-gradient(to bottom, #2c3e50, #1a1a1a);
-                    color: #fff;
-                    padding-bottom: 10px;
-                }
-                
-                .heartbeat-card h4 {
-                    color: #fff;
-                    border-color: #4a4a4a;
-                }
-                
-                .heartbeat-wrapper {
-                    width: 100%;
-                    height: 120px;
-                    position: relative;
-                    background: rgba(0, 0, 0, 0.2);
-                    border-radius: 5px;
-                    margin-bottom: 10px;
-                }
-                
-                .heartbeat-line {
-                    stroke-dasharray: 600;
-                    stroke-dashoffset: 600;
-                    animation: heartbeatDraw 3s linear forwards infinite;
-                }
-                
-                @keyframes heartbeatDraw {
-                    to {
-                        stroke-dashoffset: 0;
-                    }
-                }
-                
                 /* Ripple of Eternity */
                 .ripple-card {
                     background: linear-gradient(to bottom, #2c3e50, #1a1a1a);
@@ -1059,6 +1058,12 @@ include '../../includes/header.php';
                     border-radius: 50% 50% 0 0 / 10px;
                 }
                 
+                .sunset-count {
+                    font-size: 18px;
+                    margin: 10px 0 5px;
+                    color: #fff;
+                }
+                
                 @keyframes sunset {
                     0% { transform: translateX(-50%) translateY(-25px); opacity: 1; }
                     50% { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -1078,12 +1083,14 @@ include '../../includes/header.php';
                 
                 .checklist {
                     text-align: left;
-                    max-width: 200px;
+                    max-width: 300px;
                     margin: 0 auto 15px;
+                    max-height: 250px;
+                    overflow-y: auto;
                 }
                 
                 .checklist-item {
-                    margin-bottom: 15px;
+                    margin-bottom: 12px;
                     display: flex;
                     align-items: center;
                 }
@@ -1094,114 +1101,173 @@ include '../../includes/header.php';
                     height: 20px;
                     cursor: pointer;
                 }
+                
+                @media (max-width: 767px) {
+                    .checklist {
+                        max-width: 100%;
+                        padding: 0 10px;
+                    }
+                    
+                    .checklist-item label {
+                        font-size: 14px;
+                    }
+                }
             </style>
             
             <!-- JavaScript for Orthodox reminders -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Previous updateLifeMetrics and other code...
+                    // Get birth date
+                    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
                     
-                    // Clock animation
-                    function updateClock() {
+                    // Update metrics initially
+                    updateLifeMetrics(birthDate);
+                    
+                    // Update every second
+                    setInterval(function() {
+                        updateLifeMetrics(birthDate);
+                    }, 1000);
+                    
+                    // Calculate total sunsets seen
+                    function calculateSunsets(birthDate) {
                         const now = new Date();
-                        const seconds = now.getSeconds();
-                        const minutes = now.getMinutes();
-                        const hours = now.getHours();
-                        
-                        const secondsDegrees = (seconds / 60) * 360 + 90;
-                        const minutesDegrees = (minutes / 60) * 360 + 90;
-                        const hoursDegrees = (hours / 12) * 360 + ((minutes / 60) * 30) + 90;
-                        
-                        document.querySelector('.second-hand').style.transform = `rotate(${secondsDegrees}deg)`;
-                        document.querySelector('.minute-hand').style.transform = `rotate(${minutesDegrees}deg)`;
-                        document.querySelector('.hour-hand').style.transform = `rotate(${hoursDegrees}deg)`;
-                        
-                        // Update time display
-                        document.getElementById('current-time').textContent = 
-                            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        const diffTime = Math.abs(now - birthDate);
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays;
                     }
                     
-                    setInterval(updateClock, 1000);
-                    updateClock(); // Initialize clock
+                    // Update sunset count
+                    const totalSunsets = calculateSunsets(birthDate);
+                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
                     
-                    // Heartbeat animation
-                    function updateHeartbeat() {
-                        const heartbeatSvg = document.getElementById('heartbeat-svg');
-                        if (!heartbeatSvg) return;
+                    // Life metrics calculation and visualization
+                    function updateLifeMetrics(birthDate) {
+                        // Get current date/time in London time zone
+                        const now = new Date();
+                        const londonOptions = { timeZone: 'Europe/London' };
                         
-                        const heartbeatLine = heartbeatSvg.querySelector('.heartbeat-line');
-                        if (!heartbeatLine) return;
+                        // Get London time components as strings
+                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+                        // Parse London time back to Date object
+                        const londonTime = new Date(londonTimeStr);
                         
-                        // Create ECG pattern with occasional irregularity
-                        let pathData = "M0,60 ";
-                        const svgWidth = 600;
-                        const irregularity = Math.random() > 0.85;
+                        // Calculate diff in milliseconds
+                        const diffMs = londonTime - birthDate;
                         
-                        for (let i = 0; i < svgWidth; i += 40) {
-                            if (irregularity && i > svgWidth / 2 && i < svgWidth / 2 + 80) {
-                                // Create irregular pattern (pause or erratic)
-                                pathData += `L${i},60 ${i+5},60 ${i+10},60 `;
-                                i += 20; // Skip ahead
-                            } else {
-                                // Normal heartbeat pattern
-                                pathData += `L${i},60 ${i+10},20 ${i+15},100 ${i+20},60 `;
+                        // Calculate various time units
+                        const totalSeconds = Math.floor(diffMs / 1000);
+                        const totalMinutes = Math.floor(totalSeconds / 60);
+                        const totalHours = Math.floor(totalMinutes / 60);
+                        const totalDays = Math.floor(totalHours / 24);
+                        const totalWeeks = Math.floor(totalDays / 7);
+                        const totalMonths = Math.floor(totalDays / 30.4375);
+                        const years = Math.floor(totalDays / 365.25);
+                        
+                        // For time calculations
+                        const hours = Math.floor(totalHours % 24);
+                        const minutes = Math.floor(totalMinutes % 60);
+                        const seconds = Math.floor(totalSeconds % 60);
+                        
+                        // Format with leading zeros
+                        const formattedHours = String(hours).padStart(2, '0');
+                        const formattedMinutes = String(minutes).padStart(2, '0');
+                        const formattedSeconds = String(seconds).padStart(2, '0');
+                        
+                        // Update main metrics
+                        document.getElementById('years-lived').textContent = formatNumber(years);
+                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
+                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
+                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
+                        
+                        // Update hours and minutes with progress
+                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
+                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
+                        
+                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
+                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
+                        
+                        // Update Today's focus section
+                        const currentDate = londonTime.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        document.getElementById('today-date').textContent = currentDate;
+                        
+                        // Calculate day of year
+                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
+                        const diff = londonTime - startOfYear;
+                        const dayOfYear = Math.floor(diff / 86400000);
+                        document.getElementById('today-number').textContent = dayOfYear;
+                        
+                        // Current hour
+                        document.getElementById('today-hour').textContent = hours;
+                        
+                        // Heartbeats per minute (simulation, average 70-75)
+                        const heartbeats = Math.floor(70 + Math.random() * 5);
+                        document.getElementById('heartbeats-minute').textContent = heartbeats;
+                        
+                        // Update present moment section
+                        document.getElementById('present-second-count').textContent = seconds;
+                        const secondsProgress = (seconds / 60) * 100;
+                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
+                        
+                        // Update urgent reminder section
+                        document.getElementById('urgent-hours').textContent = formattedHours;
+                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
+                        
+                        // Rotate through memento mori messages
+                        const mementoMessages = [
+                            "Remember, you will die. Use this moment wisely.",
+                            "Every second is precious and unrepeatable.",
+                            "What will you do with the time given to you today?",
+                            "If this was your last day, how would you spend it?",
+                            "Today is a gift. That's why it's called the present.",
+                            "Act now. Tomorrow is not guaranteed."
+                        ];
+                        
+                        // Change message every minute
+                        if (seconds === 0) {
+                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
+                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
+                            
+                            // Present moment quotes that rotate every minute
+                            const presentQuotes = [
+                                "This moment will never come again.",
+                                "Now is all we have.",
+                                "Be present and attentive right now.",
+                                "Each second is irreplaceable.",
+                                "The present moment is your point of power."
+                            ];
+                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
+                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                        }
+                        
+                        // Restart hourglass animation every minute
+                        if (seconds === 0) {
+                            const sand = document.querySelector('.sand');
+                            const sandPile = document.querySelector('.sand-pile');
+                            
+                            if (sand && sandPile) {
+                                sand.style.animation = 'none';
+                                sandPile.style.animation = 'none';
+                                
+                                // Trigger reflow
+                                void sand.offsetWidth;
+                                void sandPile.offsetWidth;
+                                
+                                sand.style.animation = 'minuteSandFall 60s linear infinite';
+                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
                             }
                         }
-                        
-                        heartbeatLine.setAttribute('d', pathData);
-                        heartbeatLine.style.animation = 'none';
-                        void heartbeatLine.offsetWidth; // Trigger reflow
-                        heartbeatLine.style.animation = 'heartbeatDraw 3s linear forwards';
                     }
                     
-                    setInterval(updateHeartbeat, 3000);
-                    updateHeartbeat(); // Initialize heartbeat
-                    
-                    // Ripple effect
-                    const rippleContainer = document.getElementById('ripple-container');
-                    if (rippleContainer) {
-                        rippleContainer.addEventListener('click', function(e) {
-                            const rect = rippleContainer.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const y = e.clientY - rect.top;
-                            
-                            const ripple = document.createElement('div');
-                            ripple.classList.add('ripple');
-                            ripple.style.left = `${x}px`;
-                            ripple.style.top = `${y}px`;
-                            
-                            rippleContainer.appendChild(ripple);
-                            
-                            // Remove ripple after animation completes
-                            setTimeout(() => {
-                                ripple.remove();
-                            }, 2000);
-                        });
+                    // Helper for formatting large numbers with commas
+                    function formatNumber(num) {
+                        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     }
-                    
-                    // Save checklist state
-                    document.querySelectorAll('.judgment-check').forEach(checkbox => {
-                        checkbox.addEventListener('change', function() {
-                            // Could save to localStorage if desired
-                            console.log(`${this.id}: ${this.checked}`);
-                        });
-                    });
-                    
-                    // Reset checklist at midnight
-                    function resetChecklistAtMidnight() {
-                        const now = new Date();
-                        const hours = now.getHours();
-                        const minutes = now.getMinutes();
-                        
-                        if (hours === 0 && minutes === 0) {
-                            document.querySelectorAll('.judgment-check').forEach(checkbox => {
-                                checkbox.checked = false;
-                            });
-                        }
-                    }
-                    
-                    // Check every minute if it's midnight
-                    setInterval(resetChecklistAtMidnight, 60000);
                 });
             </script>
             <?php else: ?>
