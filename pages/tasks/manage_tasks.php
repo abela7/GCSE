@@ -130,7 +130,7 @@ $display_date_str = $selected_date->format('l, F j, Y');
 $prev_date = $selected_date->modify('-1 day')->format('Y-m-d');
 $next_date = $selected_date->modify('+1 day')->format('Y-m-d');
 
-// Fetch tasks using UNION ALL
+// Fetch tasks using UNION ALL - Including all task statuses
 $sql = "SELECT 
     t.id AS task_id, 
     t.title, 
@@ -178,6 +178,7 @@ WHERE t.is_active = 1
 AND ti.due_date = ?
 
 ORDER BY 
+    FIELD(effective_status, 'pending', 'snoozed', 'completed', 'not_done'), 
     CASE WHEN effective_due_time IS NULL THEN 1 ELSE 0 END, 
     effective_due_time ASC, 
     FIELD(priority, 'high', 'medium', 'low'), 
@@ -254,6 +255,60 @@ require_once __DIR__ . '/../../includes/header.php';
     .modal-body::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
+    
+    /* Task Status Styling */
+    .status-completed {
+        border-left: 4px solid var(--bs-success);
+        background-color: rgba(25, 135, 84, 0.05);
+    }
+    
+    .status-not_done {
+        border-left: 4px solid var(--bs-danger);
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+    
+    .status-snoozed {
+        border-left: 4px solid var(--bs-warning);
+        background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .status-pending {
+        border-left: 4px solid var(--bs-secondary);
+    }
+    
+    /* Status badge styling */
+    .task-status-badge {
+        font-size: 0.75rem;
+        padding: 0.25em 0.6em;
+        border-radius: 50rem;
+    }
+    
+    /* Quick filter button styling */
+    .btn-status-filter {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-status-filter.active {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Task summary circles */
+    .task-stat-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    
+    .task-stat-circle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 </style>
 
 <div class="container-fluid my-3 my-md-4">
@@ -264,6 +319,37 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <!-- Header Area -->
     <div class="page-header-controls sticky-top shadow-sm"> <div class="d-flex justify-content-between align-items-center flex-column flex-md-row"> <div class="date-nav d-flex align-items-center me-md-3 mb-3 mb-md-0 order-2 order-md-1"> <a href="?date=<?php echo $prev_date; ?>" class="btn btn-outline-secondary" aria-label="Previous Day"><i class="fas fa-chevron-left"></i></a> <span class="current-date mx-3"><?php echo $display_date_str; ?></span> <a href="?date=<?php echo $next_date; ?>" class="btn btn-outline-secondary" aria-label="Next Day"><i class="fas fa-chevron-right"></i></a> </div> <div class="action-buttons d-flex align-items-center gap-2 order-1 order-md-2 mb-3 mb-md-0"> <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal" onclick="prepareAddTaskModal()"><i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Add</span></button> <a href="categories.php" class="btn btn-outline-secondary" title="Manage Categories"><i class="fas fa-folder"></i></a> <a href="task_list.php" class="btn btn-outline-secondary" title="View All Tasks"><i class="fas fa-list"></i></a> </div> </div> </div>
+
+    <!-- Quick Filters for Task Status -->
+    <div class="quick-filters mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2 text-muted"></i>Quick View</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="?date=<?php echo $formatted_selected_date; ?>" class="btn btn-outline-primary btn-status-filter">
+                        <i class="fas fa-tasks me-1"></i> All Tasks
+                    </a>
+                    <a href="?date=<?php echo $formatted_selected_date; ?>&status=pending" class="btn btn-outline-secondary btn-status-filter">
+                        <i class="fas fa-hourglass-half me-1"></i> Pending
+                    </a>
+                    <a href="?date=<?php echo $formatted_selected_date; ?>&status=completed" class="btn btn-outline-success btn-status-filter">
+                        <i class="fas fa-check-circle me-1"></i> Completed
+                    </a>
+                    <a href="?date=<?php echo $formatted_selected_date; ?>&status=not_done" class="btn btn-outline-danger btn-status-filter">
+                        <i class="fas fa-times-circle me-1"></i> Not Done
+                    </a>
+                    <a href="?date=<?php echo $formatted_selected_date; ?>&status=snoozed" class="btn btn-outline-warning btn-status-filter">
+                        <i class="fas fa-clock me-1"></i> Snoozed
+                    </a>
+                </div>
+                <div class="mt-3 text-center">
+                    <span class="text-muted small">Filter by task status or use the <a href="#" data-bs-toggle="collapse" data-bs-target="#filterSection">advanced filters</a> below</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Enhanced Filter Section -->
     <div class="card mb-4 shadow-sm">
@@ -340,6 +426,71 @@ require_once __DIR__ . '/../../includes/header.php';
                     <button type="button" id="applyFilters" class="btn btn-sm btn-primary">
                         <i class="fas fa-check me-1"></i> Apply Filters
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Summary -->
+    <div class="row mt-4 mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-chart-pie me-2 text-primary"></i>Task Summary</h5>
+                    <div class="d-flex flex-wrap justify-content-around gap-3">
+                        <?php 
+                            // Count tasks by status
+                            $pending_count = 0;
+                            $completed_count = 0;
+                            $not_done_count = 0;
+                            $snoozed_count = 0;
+                            
+                            foreach (array_merge($morning_tasks, $evening_tasks) as $task) {
+                                $status = isset($task['status']) ? $task['status'] : 'pending';
+                                if ($status === 'pending') $pending_count++;
+                                elseif ($status === 'completed') $completed_count++;
+                                elseif ($status === 'not_done') $not_done_count++;
+                                elseif ($status === 'snoozed') $snoozed_count++;
+                            }
+                            
+                            $total_count = count($morning_tasks) + count($evening_tasks);
+                        ?>
+                        
+                        <div class="text-center">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 50px; height: 50px; margin: 0 auto;">
+                                <h3 class="mb-0 text-primary"><?php echo $total_count; ?></h3>
+                            </div>
+                            <div class="mt-2">Total</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle" style="width: 50px; height: 50px; margin: 0 auto;">
+                                <h3 class="mb-0 text-secondary"><?php echo $pending_count; ?></h3>
+                            </div>
+                            <div class="mt-2">Pending</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="d-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle" style="width: 50px; height: 50px; margin: 0 auto;">
+                                <h3 class="mb-0 text-success"><?php echo $completed_count; ?></h3>
+                            </div>
+                            <div class="mt-2">Completed</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="d-flex align-items-center justify-content-center bg-danger bg-opacity-10 rounded-circle" style="width: 50px; height: 50px; margin: 0 auto;">
+                                <h3 class="mb-0 text-danger"><?php echo $not_done_count; ?></h3>
+                            </div>
+                            <div class="mt-2">Not Done</div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle" style="width: 50px; height: 50px; margin: 0 auto;">
+                                <h3 class="mb-0 text-warning"><?php echo $snoozed_count; ?></h3>
+                            </div>
+                            <div class="mt-2">Snoozed</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -705,12 +856,22 @@ function initializeTaskFilters() {
     if (urlParams.has('type')) filterType.value = urlParams.get('type');
     if (urlParams.has('time_period')) filterTimePeriod.value = urlParams.get('time_period');
     
+    // Highlight active quick filter button based on status
+    highlightActiveStatusFilter(urlParams.get('status'));
+    
     // Initialize the filter section to be visible if any filters are applied
     if (urlParams.has('category') || urlParams.has('status') || urlParams.has('priority') || 
         urlParams.has('duration') || urlParams.has('type') || urlParams.has('time_period')) {
         const filterSection = getElement('filterSection');
         if (filterSection) {
-            const bsCollapse = new bootstrap.Collapse(filterSection, { toggle: true });
+            // Only auto-expand advanced filters if it's not a simple status filter
+            // This prevents both quick filters and advanced filters from being visible at once
+            if (!(urlParams.size === 2 && urlParams.has('date') && urlParams.has('status'))) {
+                const bsCollapse = new bootstrap.Collapse(filterSection, { toggle: true });
+            }
+            applyTaskFilters();
+        } else {
+            // If the advanced filter section doesn't exist, still apply filters
             applyTaskFilters();
         }
     }
@@ -842,6 +1003,63 @@ function updateURLWithFilters(category, status, priority, duration, type, timePe
     // Update URL without reloading page
     const newParams = urlParams.toString();
     history.replaceState(null, '', `${window.location.pathname}${newParams ? '?' + newParams : ''}`);
+}
+
+/**
+ * Highlights the active status filter button
+ */
+function highlightActiveStatusFilter(status) {
+    // First reset all buttons
+    document.querySelectorAll('.btn-status-filter').forEach(btn => {
+        btn.classList.remove('active');
+        
+        // Remove outline classes and set them back to default
+        btn.classList.remove('btn-primary', 'btn-secondary', 'btn-success', 'btn-danger', 'btn-warning');
+        
+        // Add appropriate outline class based on href
+        if (btn.href.includes('status=completed')) {
+            btn.classList.add('btn-outline-success');
+        } else if (btn.href.includes('status=not_done')) {
+            btn.classList.add('btn-outline-danger');
+        } else if (btn.href.includes('status=snoozed')) {
+            btn.classList.add('btn-outline-warning');
+        } else if (btn.href.includes('status=pending')) {
+            btn.classList.add('btn-outline-secondary');
+        } else {
+            btn.classList.add('btn-outline-primary');
+        }
+    });
+    
+    // Now highlight the active button
+    if (status) {
+        const activeBtn = document.querySelector(`.btn-status-filter[href*="status=${status}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            
+            // Remove outline class and add solid color
+            if (activeBtn.classList.contains('btn-outline-success')) {
+                activeBtn.classList.remove('btn-outline-success');
+                activeBtn.classList.add('btn-success');
+            } else if (activeBtn.classList.contains('btn-outline-danger')) {
+                activeBtn.classList.remove('btn-outline-danger');
+                activeBtn.classList.add('btn-danger');
+            } else if (activeBtn.classList.contains('btn-outline-warning')) {
+                activeBtn.classList.remove('btn-outline-warning');
+                activeBtn.classList.add('btn-warning');
+            } else if (activeBtn.classList.contains('btn-outline-secondary')) {
+                activeBtn.classList.remove('btn-outline-secondary');
+                activeBtn.classList.add('btn-secondary');
+            }
+        }
+    } else {
+        // If no status filter, highlight the "All Tasks" button
+        const allTasksBtn = document.querySelector('.btn-status-filter:not([href*="status="])');
+        if (allTasksBtn) {
+            allTasksBtn.classList.add('active');
+            allTasksBtn.classList.remove('btn-outline-primary');
+            allTasksBtn.classList.add('btn-primary');
+        }
+    }
 }
 </script>
 
