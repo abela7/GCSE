@@ -369,6 +369,38 @@ $accent_color = "#cdaf56";
     font-weight: bold;
     color: var(--accent-color);
 }
+
+/* Styles for the small live counter on first slide */
+.live-counter-small {
+    background-color: rgba(185, 155, 62, 0.15);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.time-unit-small {
+    display: inline-flex;
+    align-items: center;
+}
+
+.time-unit-small span:first-child {
+    font-weight: bold;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    min-width: 28px;
+    text-align: right;
+}
+
+.time-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: 2px;
+}
+
+.time-separator-small {
+    margin: 0 3px;
+    color: var(--accent-color);
+    font-weight: bold;
+}
 </style>
 
 <div class="container-fluid py-4">
@@ -389,12 +421,29 @@ $accent_color = "#cdaf56";
                             <!-- Age Counter Carousel - Simple Notification Style -->
                             <div id="ageCounterCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true" data-bs-interval="false">
                                 <div class="carousel-inner">
-                                    <!-- First Slide: Simple Age Display -->
+                                    <!-- First Slide: Simple Age Display with Live Counter -->
                                     <div class="carousel-item active">
                                         <div class="age-notification p-3">
                                             <div class="mb-2 text-center">
                                                 <div class="age-simple-text fw-bold" id="age-text-simple">
-                                                    25 years, 6 months, 07 days
+                                                    25 years, 6 months
+                                                </div>
+                                                <div class="live-counter-small mt-2 d-flex justify-content-center align-items-center">
+                                                    <div class="time-unit-small">
+                                                        <span id="days-small">27</span><span class="time-label">days</span>
+                                                    </div>
+                                                    <div class="time-separator-small">:</div>
+                                                    <div class="time-unit-small">
+                                                        <span id="hours-small">03</span><span class="time-label">hr</span>
+                                                    </div>
+                                                    <div class="time-separator-small">:</div>
+                                                    <div class="time-unit-small">
+                                                        <span id="minutes-small">10</span><span class="time-label">min</span>
+                                                    </div>
+                                                    <div class="time-separator-small">:</div>
+                                                    <div class="time-unit-small">
+                                                        <span id="seconds-small">42</span><span class="time-label">sec</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="card-indicator my-2">
@@ -815,21 +864,28 @@ $accent_color = "#cdaf56";
         
         // Function to update age counter
         function updateAgeCounter(birthDate) {
+            // Get current date/time in London time zone
             const now = new Date();
+            const londonOptions = { timeZone: 'Europe/London' };
             
-            // Calculate difference in milliseconds
-            const diffMs = now - birthDate;
+            // Get London time components as strings
+            const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+            // Parse London time back to Date object
+            const londonTime = new Date(londonTimeStr);
+            
+            // Calculate difference in milliseconds from birth date to now (London time)
+            const diffMs = londonTime - birthDate;
             
             // Convert to relevant units
             const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
             
             // Calculate total months lived
-            let totalMonths = (now.getFullYear() - birthDate.getFullYear()) * 12;
+            let totalMonths = (londonTime.getFullYear() - birthDate.getFullYear()) * 12;
             totalMonths -= birthDate.getMonth();
-            totalMonths += now.getMonth();
+            totalMonths += londonTime.getMonth();
             
             // Adjust if we haven't reached the same day of month yet
-            if (now.getDate() < birthDate.getDate()) {
+            if (londonTime.getDate() < birthDate.getDate()) {
                 totalMonths--;
             }
             
@@ -842,27 +898,27 @@ $accent_color = "#cdaf56";
             if (birthDate.getDate() > 28) {
                 // Handle edge cases for month end dates (28/29/30/31)
                 // Find the last day of the target month
-                const targetMonth = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? 0 : 1), 0);
+                const targetMonth = new Date(londonTime.getFullYear(), londonTime.getMonth() + (londonTime.getDate() < birthDate.getDate() ? 0 : 1), 0);
                 const lastDayOfMonth = targetMonth.getDate();
                 const birthDay = Math.min(birthDate.getDate(), lastDayOfMonth);
                 
-                monthBirthday = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? -1 : 0), birthDay);
+                monthBirthday = new Date(londonTime.getFullYear(), londonTime.getMonth() + (londonTime.getDate() < birthDate.getDate() ? -1 : 0), birthDay);
             } else {
                 // Normal case - use exact day of birth
-                monthBirthday = new Date(now.getFullYear(), now.getMonth() + (now.getDate() < birthDate.getDate() ? -1 : 0), birthDate.getDate());
+                monthBirthday = new Date(londonTime.getFullYear(), londonTime.getMonth() + (londonTime.getDate() < birthDate.getDate() ? -1 : 0), birthDate.getDate());
             }
             
             // Calculate days since that date
-            const daysSinceMonthBirthday = Math.floor((now - monthBirthday) / (1000 * 60 * 60 * 24));
+            const daysSinceMonthBirthday = Math.floor((londonTime - monthBirthday) / (1000 * 60 * 60 * 24));
             
-            // Other calculations remain the same
+            // Calculate hours, minutes, seconds since midnight
+            const seconds = londonTime.getSeconds();
+            const minutes = londonTime.getMinutes();
+            const hours = londonTime.getHours();
+            
+            // Calculate total days, weeks for second slide
             const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             const weeks = Math.floor(totalDays / 7);
-            
-            // Calculate hours, minutes, seconds
-            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
             
             // Format with leading zeros
             const formattedHours = hours.toString().padStart(2, '0');
@@ -870,9 +926,13 @@ $accent_color = "#cdaf56";
             const formattedSeconds = seconds.toString().padStart(2, '0');
             const formattedDays = String(daysSinceMonthBirthday).padStart(2, '0');
             
-            // Update first slide: Simple age format with days since last month birthday
+            // Update first slide: Simple age format with live counter
             document.getElementById('age-text-simple').textContent = 
-                `${years} years, ${remainingMonths} months, ${formattedDays} days`;
+                `${years} years, ${remainingMonths} months`;
+            document.getElementById('days-small').textContent = formattedDays;
+            document.getElementById('hours-small').textContent = formattedHours;
+            document.getElementById('minutes-small').textContent = formattedMinutes;
+            document.getElementById('seconds-small').textContent = formattedSeconds;
             
             // Update second slide: All totals
             document.getElementById('total-years').textContent = years;
@@ -894,7 +954,7 @@ $accent_color = "#cdaf56";
             ];
             
             // Change message every 10 seconds
-            const messageIndex = Math.floor((now.getTime() / 10000) % messages.length);
+            const messageIndex = Math.floor((londonTime.getTime() / 10000) % messages.length);
             document.getElementById('motivation-message-primary').textContent = messages[messageIndex];
             document.getElementById('motivation-message-secondary').textContent = messages[(messageIndex + 1) % messages.length];
         }
