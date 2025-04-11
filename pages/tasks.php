@@ -134,6 +134,83 @@ include '../includes/header.php';
             </div>
         </div>
 
+        <!-- Enhanced Filter Section -->
+        <div class="card filter-card mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Tasks</h6>
+                    <button id="toggleFilters" class="btn btn-sm btn-link text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="collapse show" id="filterCollapse">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="categoryFilter" class="form-label small text-muted">Category</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                <select class="form-select" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    <?php 
+                                    $categories_result->data_seek(0); // Reset pointer
+                                    while ($category = $categories_result->fetch_assoc()): 
+                                    ?>
+                                    <option value="<?php echo $category['id']; ?>">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="statusFilter" class="form-label small text-muted">Status</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tasks"></i></span>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="priorityFilter" class="form-label small text-muted">Priority</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-flag"></i></span>
+                                <select class="form-select" id="priorityFilter">
+                                    <option value="">All Priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="dateFilter" class="form-label small text-muted">Due Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                <select class="form-select" id="dateFilter">
+                                    <option value="">All Dates</option>
+                                    <option value="today">Today</option>
+                                    <option value="tomorrow">Tomorrow</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="overdue">Overdue</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="button" id="resetFilters" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-undo me-1"></i> Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <?php if ($tasks_result->num_rows > 0): ?>
             <div class="table-responsive">
                 <table class="table table-hover align-middle" id="tasksTable">
@@ -153,6 +230,7 @@ include '../includes/header.php';
                             <tr class="task-row <?php echo $task['status'] == 'completed' ? 'completed-task' : ''; ?>" 
                                 data-category="<?php echo $task['category_id']; ?>"
                                 data-status="<?php echo $task['status']; ?>"
+                                data-priority="<?php echo $task['priority']; ?>"
                                 data-due-date="<?php echo $task['due_date']; ?>">
                                 <td>
                                     <div class="form-check">
@@ -211,19 +289,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // Task filtering
     const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
     const dateFilter = document.getElementById('dateFilter');
+    const resetFiltersBtn = document.getElementById('resetFilters');
     const taskRows = document.querySelectorAll('.task-row');
+    const toggleFiltersBtn = document.getElementById('toggleFilters');
+    
+    // Filter visibility toggle
+    if (toggleFiltersBtn) {
+        toggleFiltersBtn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-chevron-down')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+    }
     
     function filterTasks() {
         const selectedCategory = categoryFilter.value;
         const selectedStatus = statusFilter.value;
+        const selectedPriority = priorityFilter.value;
         const selectedDate = dateFilter.value;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
+        let visibleCount = 0;
+        
         taskRows.forEach(row => {
             const category = row.dataset.category;
             const status = row.dataset.status;
+            const priority = row.dataset.priority;
             const dueDate = row.dataset.dueDate;
             
             let showRow = true;
@@ -238,6 +337,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 showRow = false;
             }
             
+            // Priority filter
+            if (selectedPriority && priority !== selectedPriority) {
+                showRow = false;
+            }
+            
             // Date filter
             if (selectedDate && dueDate) {
                 const taskDate = new Date(dueDate);
@@ -246,6 +350,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 switch(selectedDate) {
                     case 'today':
                         if (taskDate.getTime() !== today.getTime()) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'tomorrow':
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(today.getDate() + 1);
+                        if (taskDate.getTime() !== tomorrow.getTime()) {
                             showRow = false;
                         }
                         break;
@@ -272,12 +383,87 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             row.style.display = showRow ? '' : 'none';
+            if (showRow) visibleCount++;
         });
+        
+        // Show message if no tasks match the filters
+        const noResultsMessage = document.getElementById('noFilterResults');
+        if (visibleCount === 0 && taskRows.length > 0) {
+            if (!noResultsMessage) {
+                const tableBody = document.querySelector('#tasksTable tbody');
+                const messageTr = document.createElement('tr');
+                messageTr.id = 'noFilterResults';
+                messageTr.innerHTML = `
+                    <td colspan="4" class="text-center py-4">
+                        <i class="fas fa-filter fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No tasks match your filter criteria.</p>
+                        <button class="btn btn-sm btn-outline-primary mt-2" id="clearFiltersBtn">
+                            <i class="fas fa-undo me-1"></i> Clear Filters
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(messageTr);
+                
+                // Add event listener to the clear filters button
+                document.getElementById('clearFiltersBtn').addEventListener('click', resetFilters);
+            }
+        } else if (noResultsMessage) {
+            noResultsMessage.remove();
+        }
+        
+        // Update filter badge counts
+        updateFilterBadges();
     }
     
-    categoryFilter.addEventListener('change', filterTasks);
-    statusFilter.addEventListener('change', filterTasks);
-    dateFilter.addEventListener('change', filterTasks);
+    function updateFilterBadges() {
+        // Count active filters
+        let activeFilters = 0;
+        if (categoryFilter.value) activeFilters++;
+        if (statusFilter.value) activeFilters++;
+        if (priorityFilter.value) activeFilters++;
+        if (dateFilter.value) activeFilters++;
+        
+        // Update filter header to show active filter count
+        const filterHeader = document.querySelector('.filter-card .card-header h6');
+        if (filterHeader) {
+            if (activeFilters > 0) {
+                filterHeader.innerHTML = `<i class="fas fa-filter me-2"></i>Filter Tasks <span class="badge bg-primary ms-2">${activeFilters}</span>`;
+            } else {
+                filterHeader.innerHTML = `<i class="fas fa-filter me-2"></i>Filter Tasks`;
+            }
+        }
+        
+        // Show/hide reset button based on if any filters are active
+        if (resetFiltersBtn) {
+            resetFiltersBtn.style.display = activeFilters > 0 ? 'inline-block' : 'none';
+        }
+    }
+    
+    function resetFilters() {
+        categoryFilter.value = '';
+        statusFilter.value = '';
+        priorityFilter.value = '';
+        dateFilter.value = '';
+        
+        // Trigger the filter function to update the view
+        filterTasks();
+        
+        // Remove any "no results" message
+        const noResultsMessage = document.getElementById('noFilterResults');
+        if (noResultsMessage) {
+            noResultsMessage.remove();
+        }
+    }
+    
+    // Event listeners for filter changes
+    if (categoryFilter) categoryFilter.addEventListener('change', filterTasks);
+    if (statusFilter) statusFilter.addEventListener('change', filterTasks);
+    if (priorityFilter) priorityFilter.addEventListener('change', filterTasks);
+    if (dateFilter) dateFilter.addEventListener('change', filterTasks);
+    if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', resetFilters);
+    
+    // Initialize filter badges
+    updateFilterBadges();
     
     // Task checkbox handling
     const taskCheckboxes = document.querySelectorAll('.task-checkbox');
@@ -541,6 +727,102 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .modal-footer {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Task row styles */
+.task-row {
+    transition: background-color 0.2s ease;
+}
+
+.task-row:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.completed-task {
+    opacity: 0.7;
+}
+
+.completed-task td strong {
+    text-decoration: line-through;
+}
+
+/* Badge styles */
+.badge {
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+/* Filter styles */
+.filter-card {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.filter-card .card-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.filter-card .form-label {
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+}
+
+.filter-card .input-group-text {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.filter-card .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(205, 175, 86, 0.15);
+}
+
+.filter-card .btn-link {
+    color: #6c757d;
+    padding: 0.25rem 0.5rem;
+}
+
+.filter-card .btn-link:hover {
+    color: #343a40;
+}
+
+.filter-card .badge {
+    font-size: 0.75rem;
+    padding: 0.25em 0.6em;
+}
+
+#resetFilters {
+    color: #6c757d;
+    border-color: #ced4da;
+    font-size: 0.875rem;
+}
+
+#resetFilters:hover {
+    background-color: #f8f9fa;
+}
+
+/* Table Enhancements */
+#tasksTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#tasksTable thead th {
+    border-top: none;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+#noFilterResults {
+    background-color: transparent;
+}
+
+#noFilterResults:hover {
+    background-color: transparent;
 }
 </style>
 
