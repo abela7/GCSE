@@ -395,7 +395,7 @@ include '../../includes/header.php';
                 }
             </style>
             
-            <!-- JavaScript for calculations and visualizations -->
+            <!-- JavaScript for Orthodox reminders -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // Get birth date
@@ -568,8 +568,8 @@ include '../../includes/header.php';
                                 void sand.offsetWidth;
                                 void sandPile.offsetWidth;
                                 
-                                sand.style.animation = 'minuteSandFall 60s linear infinite';
-                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
+                                sand.style.animation = 'minuteSandFall 30s linear infinite';
+                                sandPile.style.animation = 'minuteSandPile 30s linear infinite';
                             }
                         }
                     }
@@ -734,28 +734,28 @@ include '../../includes/header.php';
                                 <h4>Daily Judgment Checklist</h4>
                                 <div class="checklist">
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="prayer" class="judgment-check">
-                                        <label for="prayer">Did you pray with your whole heart today?</label>
+                                        <input type="checkbox" id="feed" class="judgment-check">
+                                        <label for="feed">Did you feed the hungry?</label>
                                     </div>
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="repentance" class="judgment-check">
-                                        <label for="repentance">Did you repent of your sins today?</label>
+                                        <input type="checkbox" id="drink" class="judgment-check">
+                                        <label for="drink">Did you give drink to the thirsty?</label>
                                     </div>
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="kindness" class="judgment-check">
-                                        <label for="kindness">Did you show mercy to those in need?</label>
+                                        <input type="checkbox" id="welcome" class="judgment-check">
+                                        <label for="welcome">Did you welcome strangers and show hospitality?</label>
                                     </div>
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="forgiveness" class="judgment-check">
-                                        <label for="forgiveness">Did you forgive those who wronged you?</label>
+                                        <input type="checkbox" id="clothe" class="judgment-check">
+                                        <label for="clothe">Did you clothe those who were naked and in need?</label>
                                     </div>
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="fasting" class="judgment-check">
-                                        <label for="fasting">Did you practice self-discipline today?</label>
+                                        <input type="checkbox" id="care" class="judgment-check">
+                                        <label for="care">Did you care for the sick and suffering?</label>
                                     </div>
                                     <div class="checklist-item">
-                                        <input type="checkbox" id="scripture" class="judgment-check">
-                                        <label for="scripture">Did you read Scripture today?</label>
+                                        <input type="checkbox" id="visit" class="judgment-check">
+                                        <label for="visit">Did you visit prisoners and comfort the afflicted?</label>
                                     </div>
                                 </div>
                                 <p class="reminder-text">"If today were your final judgment, how would you answer?"</p>
@@ -1167,191 +1167,6 @@ include '../../includes/header.php';
                 }
             </style>
             
-            <!-- JavaScript for Orthodox reminders -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Get birth date
-                    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
-                    
-                    // Update metrics initially
-                    updateLifeMetrics(birthDate);
-                    
-                    // Update every second
-                    setInterval(function() {
-                        updateLifeMetrics(birthDate);
-                    }, 1000);
-                    
-                    // Calculate total sunsets seen
-                    function calculateSunsets(birthDate) {
-                        const now = new Date();
-                        const diffTime = Math.abs(now - birthDate);
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays;
-                    }
-                    
-                    // Update sunset count
-                    const totalSunsets = calculateSunsets(birthDate);
-                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
-                    
-                    // Add clock functionality
-                    function updateClock() {
-                        const now = new Date();
-                        const hours = String(now.getHours()).padStart(2, '0');
-                        const minutes = String(now.getMinutes()).padStart(2, '0');
-                        const seconds = String(now.getSeconds()).padStart(2, '0');
-                        
-                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
-                        
-                        // Update clock hands
-                        const secondHand = document.querySelector('.second-hand');
-                        const minuteHand = document.querySelector('.minute-hand');
-                        const hourHand = document.querySelector('.hour-hand');
-                        
-                        if (secondHand && minuteHand && hourHand) {
-                            const secondsDegrees = ((now.getSeconds() / 60) * 360) + 90; // Add 90 to start from 12 o'clock
-                            const minutesDegrees = ((now.getMinutes() / 60) * 360) + ((now.getSeconds() / 60) * 6) + 90;
-                            const hoursDegrees = ((now.getHours() / 12) * 360) + ((now.getMinutes() / 60) * 30) + 90;
-                            
-                            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
-                            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
-                            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
-                        }
-                    }
-                    
-                    // Update clock initially and then every second
-                    updateClock();
-                    setInterval(updateClock, 1000);
-                    
-                    // Life metrics calculation and visualization
-                    function updateLifeMetrics(birthDate) {
-                        // Get current date/time in London time zone
-                        const now = new Date();
-                        const londonOptions = { timeZone: 'Europe/London' };
-                        
-                        // Get London time components as strings
-                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
-                        // Parse London time back to Date object
-                        const londonTime = new Date(londonTimeStr);
-                        
-                        // Calculate diff in milliseconds
-                        const diffMs = londonTime - birthDate;
-                        
-                        // Calculate various time units
-                        const totalSeconds = Math.floor(diffMs / 1000);
-                        const totalMinutes = Math.floor(totalSeconds / 60);
-                        const totalHours = Math.floor(totalMinutes / 60);
-                        const totalDays = Math.floor(totalHours / 24);
-                        const totalWeeks = Math.floor(totalDays / 7);
-                        const totalMonths = Math.floor(totalDays / 30.4375);
-                        const years = Math.floor(totalDays / 365.25);
-                        
-                        // For time calculations
-                        const hours = Math.floor(totalHours % 24);
-                        const minutes = Math.floor(totalMinutes % 60);
-                        const seconds = Math.floor(totalSeconds % 60);
-                        
-                        // Format with leading zeros
-                        const formattedHours = String(hours).padStart(2, '0');
-                        const formattedMinutes = String(minutes).padStart(2, '0');
-                        const formattedSeconds = String(seconds).padStart(2, '0');
-                        
-                        // Update main metrics
-                        document.getElementById('years-lived').textContent = formatNumber(years);
-                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
-                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
-                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
-                        
-                        // Update hours and minutes with progress
-                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
-                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
-                        
-                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
-                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
-                        
-                        // Update Today's focus section
-                        const currentDate = londonTime.toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        document.getElementById('today-date').textContent = currentDate;
-                        
-                        // Calculate day of year
-                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
-                        const diff = londonTime - startOfYear;
-                        const dayOfYear = Math.floor(diff / 86400000);
-                        document.getElementById('today-number').textContent = dayOfYear;
-                        
-                        // Current hour
-                        document.getElementById('today-hour').textContent = hours;
-                        
-                        // Heartbeats per minute (simulation, average 70-75)
-                        const heartbeats = Math.floor(70 + Math.random() * 5);
-                        document.getElementById('heartbeats-minute').textContent = heartbeats;
-                        
-                        // Update present moment section
-                        document.getElementById('present-second-count').textContent = seconds;
-                        const secondsProgress = (seconds / 60) * 100;
-                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
-                        
-                        // Update urgent reminder section
-                        document.getElementById('urgent-hours').textContent = formattedHours;
-                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
-                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
-                        
-                        // Rotate through memento mori messages
-                        const mementoMessages = [
-                            "Remember, you will die. Use this moment wisely.",
-                            "Every second is precious and unrepeatable.",
-                            "What will you do with the time given to you today?",
-                            "If this was your last day, how would you spend it?",
-                            "Today is a gift. That's why it's called the present.",
-                            "Act now. Tomorrow is not guaranteed."
-                        ];
-                        
-                        // Change message every minute
-                        if (seconds === 0) {
-                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
-                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
-                            
-                            // Present moment quotes that rotate every minute
-                            const presentQuotes = [
-                                "This moment will never come again.",
-                                "Now is all we have.",
-                                "Be present and attentive right now.",
-                                "Each second is irreplaceable.",
-                                "The present moment is your point of power."
-                            ];
-                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
-                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
-                        }
-                        
-                        // Restart hourglass animation every minute
-                        if (seconds === 0) {
-                            const sand = document.querySelector('.sand');
-                            const sandPile = document.querySelector('.sand-pile');
-                            
-                            if (sand && sandPile) {
-                                sand.style.animation = 'none';
-                                sandPile.style.animation = 'none';
-                                
-                                // Trigger reflow
-                                void sand.offsetWidth;
-                                void sandPile.offsetWidth;
-                                
-                                sand.style.animation = 'minuteSandFall 60s linear infinite';
-                                sandPile.style.animation = 'minuteSandPile 60s linear infinite';
-                            }
-                        }
-                    }
-                    
-                    // Helper for formatting large numbers with commas
-                    function formatNumber(num) {
-                        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    }
-                });
-            </script>
             <?php else: ?>
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
