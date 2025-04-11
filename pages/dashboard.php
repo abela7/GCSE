@@ -618,7 +618,7 @@ $accent_color = "#cdaf56";
     
     <div class="row mb-4">
         <!-- Resources -->
-        <div class="col-md-3 col-sm-6 mb-4">
+        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -634,7 +634,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Exams -->
-        <div class="col-md-3 col-sm-6 mb-4">
+        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -650,7 +650,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Today's Plan -->
-        <div class="col-md-3 col-sm-6 mb-4">
+        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -666,7 +666,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Assignments -->
-        <div class="col-md-3 col-sm-6 mb-4">
+        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -677,6 +677,22 @@ $accent_color = "#cdaf56";
                 </div>
                 <div class="card-footer">
                     <a href="assignments.php" class="btn btn-sm btn-outline-accent">View Assignments</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Your Time -->
+        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
+            <div class="card feature-card">
+                <div class="card-body">
+                    <div class="icon-bg">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <h5>Your Time</h5>
+                    <p>Manage your life counter and birthday settings.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="settings/birthday.php" class="btn btn-sm btn-outline-accent">Manage Time</a>
                 </div>
             </div>
         </div>
