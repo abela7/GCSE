@@ -317,6 +317,58 @@ $accent_color = "#cdaf56";
     color: var(--accent-color);
     font-size: 0.95rem;
 }
+
+/* New notification-style counter */
+.age-notification {
+    min-height: auto;
+    border-radius: 8px;
+    background-color: #fff;
+}
+.age-simple-text {
+    font-size: 1.3rem;
+    color: var(--accent-color);
+}
+.card-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.card-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ddd;
+    display: inline-block;
+}
+.card-indicator span.active {
+    background-color: var(--accent-color);
+    width: 24px;
+    border-radius: 4px;
+}
+.carousel-item {
+    transition: transform 0.4s ease-in-out;
+}
+.totals-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.total-item {
+    padding: 5px;
+    text-align: center;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+.total-item span {
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-right: 3px;
+}
+.time-counter {
+    grid-column: span 2;
+    font-weight: bold;
+    color: var(--accent-color);
+}
 </style>
 
 <div class="container-fluid py-4">
@@ -334,125 +386,65 @@ $accent_color = "#cdaf56";
                         <div class="card-body p-0">
                             <?php if ($birthday_data): ?>
                             
-                            <!-- Age Counter Carousel -->
+                            <!-- Age Counter Carousel - Simple Notification Style -->
                             <div id="ageCounterCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true" data-bs-interval="false">
                                 <div class="carousel-inner">
-                                    <!-- First Slide: Years and Months -->
+                                    <!-- First Slide: Simple Age Display -->
                                     <div class="carousel-item active">
-                                        <div class="age-card d-flex flex-column align-items-center p-4">
-                                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                                <div class="text-center px-3">
-                                                    <div id="years-primary" class="display-1 fw-bold" style="color: var(--accent-color);">--</div>
-                                                    <div class="fs-5 text-muted">Years</div>
-                                                </div>
-                                                <div class="text-center px-3">
-                                                    <div id="months-remainder" class="display-1 fw-bold" style="color: var(--accent-color);">--</div>
-                                                    <div class="fs-5 text-muted">Months</div>
+                                        <div class="age-notification p-3">
+                                            <div class="mb-2 text-center">
+                                                <div class="age-simple-text fw-bold" id="age-text-simple">
+                                                    25 years, 6 months, 07 days
                                                 </div>
                                             </div>
-                                            <div class="card-indicator mb-4">
+                                            <div class="card-indicator my-2">
                                                 <span class="active"></span>
-                                                <span></span>
-                                                <span></span>
                                                 <span></span>
                                             </div>
                                             <div class="text-center">
-                                                <h4 id="age-text-primary" class="mb-1">--</h4>
-                                                <p class="fst-italic" id="motivation-message-primary">Are you using your time properly?</p>
+                                                <p class="mb-0 fst-italic small" id="motivation-message-primary">Are you using your time properly?</p>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Second Slide: Total Months -->
+                                    <!-- Second Slide: All Totals Together -->
                                     <div class="carousel-item">
-                                        <div class="age-card d-flex flex-column align-items-center p-4">
-                                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                                <div class="text-center px-4">
-                                                    <div id="total-months" class="display-1 fw-bold" style="color: var(--accent-color);">--</div>
-                                                    <div class="fs-5 text-muted">Total Months</div>
+                                        <div class="age-notification p-3">
+                                            <div class="totals-grid mb-2">
+                                                <div class="total-item">
+                                                    <span id="total-years">25</span> years
+                                                </div>
+                                                <div class="total-item">
+                                                    <span id="total-months">305</span> months
+                                                </div>
+                                                <div class="total-item">
+                                                    <span id="total-weeks">1330</span> weeks
+                                                </div>
+                                                <div class="total-item">
+                                                    <span id="total-days">9310</span> days
+                                                </div>
+                                                <div class="total-item time-counter" colspan="2">
+                                                    <span id="hours">04</span>:<span id="minutes">34</span>:<span id="seconds">06</span>
                                                 </div>
                                             </div>
-                                            <div class="card-indicator mb-4">
-                                                <span></span>
-                                                <span class="active"></span>
-                                                <span></span>
-                                                <span></span>
-                                            </div>
-                                            <div class="text-center">
-                                                <h4 id="age-text-secondary" class="mb-1">--</h4>
-                                                <p class="fst-italic" id="motivation-message-secondary">Make every day count!</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Third Slide: Total Weeks -->
-                                    <div class="carousel-item">
-                                        <div class="age-card d-flex flex-column align-items-center p-4">
-                                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                                <div class="text-center px-4">
-                                                    <div id="total-weeks" class="display-1 fw-bold" style="color: var(--accent-color);">--</div>
-                                                    <div class="fs-5 text-muted">Total Weeks</div>
-                                                </div>
-                                            </div>
-                                            <div class="card-indicator mb-4">
-                                                <span></span>
-                                                <span></span>
-                                                <span class="active"></span>
-                                                <span></span>
-                                            </div>
-                                            <div class="text-center">
-                                                <h4 id="age-text-tertiary" class="mb-1">--</h4>
-                                                <p class="fst-italic" id="motivation-message-tertiary">Your future is created by what you do today.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Fourth Slide: Total Days and Hours -->
-                                    <div class="carousel-item">
-                                        <div class="age-card d-flex flex-column align-items-center p-4">
-                                            <div class="time-counter d-flex justify-content-center mb-3">
-                                                <div class="time-unit text-center">
-                                                    <div id="total-days" class="display-2 fw-bold" style="color: var(--accent-color);">--</div>
-                                                    <div class="fs-5 text-muted">Days</div>
-                                                </div>
-                                            </div>
-                                            <div class="live-counter d-flex justify-content-center mb-3">
-                                                <div class="time-box">
-                                                    <span id="hours">--</span>
-                                                    <div class="small">HOURS</div>
-                                                </div>
-                                                <div class="time-separator">:</div>
-                                                <div class="time-box">
-                                                    <span id="minutes">--</span>
-                                                    <div class="small">MINUTES</div>
-                                                </div>
-                                                <div class="time-separator">:</div>
-                                                <div class="time-box">
-                                                    <span id="seconds">--</span>
-                                                    <div class="small">SECONDS</div>
-                                                </div>
-                                            </div>
-                                            <div class="card-indicator mb-4">
-                                                <span></span>
-                                                <span></span>
+                                            <div class="card-indicator my-2">
                                                 <span></span>
                                                 <span class="active"></span>
                                             </div>
                                             <div class="text-center">
-                                                <h4 id="age-text-quaternary" class="mb-1">--</h4>
-                                                <p class="fst-italic" id="motivation-message-quaternary">Today is a gift. That's why it's called the present.</p>
+                                                <p class="mb-0 fst-italic small" id="motivation-message-secondary">Make every day count!</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="p-3 bg-light d-flex justify-content-between align-items-center">
+                            <div class="px-3 py-2 bg-light d-flex justify-content-between align-items-center">
                                 <div class="small text-muted">
                                     <i class="fas fa-birthday-cake me-1"></i> Born on <?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?>
                                 </div>
                                 <a href="settings/birthday.php" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit me-1"></i> Edit Birthday
+                                    <i class="fas fa-edit me-1"></i> Edit
                                 </a>
                             </div>
                             
@@ -479,35 +471,28 @@ $accent_color = "#cdaf56";
                                     border-radius: 4px;
                                 }
                                 .carousel-item {
-                                    transition: transform 0.6s ease-in-out;
+                                    transition: transform 0.4s ease-in-out;
+                                }
+                                .totals-grid {
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr;
+                                    gap: 10px;
+                                }
+                                .total-item {
+                                    padding: 5px;
+                                    text-align: center;
+                                    color: var(--text-color);
+                                    font-size: 0.9rem;
+                                }
+                                .total-item span {
+                                    font-weight: bold;
+                                    color: var(--accent-color);
+                                    margin-right: 3px;
                                 }
                                 .time-counter {
-                                    width: 100%;
-                                }
-                                .time-unit {
-                                    padding: 0 1rem;
-                                }
-                                .live-counter {
-                                    background-color: var(--accent-color-dark);
-                                    color: white;
-                                    padding: 1rem;
-                                    border-radius: 8px;
-                                    margin-top: 0.5rem;
-                                }
-                                .time-box {
-                                    text-align: center;
-                                    padding: 0 0.5rem;
-                                }
-                                .time-box span {
-                                    font-size: 2rem;
+                                    grid-column: span 2;
                                     font-weight: bold;
-                                    display: block;
-                                }
-                                .time-separator {
-                                    font-size: 2rem;
-                                    font-weight: bold;
-                                    padding: 0 0.25rem;
-                                    align-self: flex-start;
+                                    color: var(--accent-color);
                                 }
                             </style>
                             
@@ -861,32 +846,22 @@ $accent_color = "#cdaf56";
             const formattedHours = hours.toString().padStart(2, '0');
             const formattedMinutes = minutes.toString().padStart(2, '0');
             const formattedSeconds = seconds.toString().padStart(2, '0');
+            const formattedDays = String(remainingDays).padStart(2, '0');
             
-            // Update first slide: Years and Months
-            document.getElementById('years-primary').textContent = years;
-            document.getElementById('months-remainder').textContent = remainingMonths;
-            document.getElementById('age-text-primary').textContent = 
-                `You are ${years} years, ${remainingMonths} months, and ${remainingDays} days old`;
+            // Update first slide: Simple age format
+            document.getElementById('age-text-simple').textContent = 
+                `${years} years, ${remainingMonths} months, ${formattedDays} days`;
             
-            // Update second slide: Total Months
+            // Update second slide: All totals
+            document.getElementById('total-years').textContent = years;
             document.getElementById('total-months').textContent = months;
-            document.getElementById('age-text-secondary').textContent = 
-                `You have lived for ${months} months`;
-            
-            // Update third slide: Total Weeks
             document.getElementById('total-weeks').textContent = weeks;
-            document.getElementById('age-text-tertiary').textContent = 
-                `You have lived for ${weeks} weeks`;
-            
-            // Update fourth slide: Total Days and live counter
             document.getElementById('total-days').textContent = totalDays;
             document.getElementById('hours').textContent = formattedHours;
             document.getElementById('minutes').textContent = formattedMinutes;
             document.getElementById('seconds').textContent = formattedSeconds;
-            document.getElementById('age-text-quaternary').textContent = 
-                `You have lived for ${totalDays} days, ${formattedHours} hours, ${formattedMinutes} minutes`;
             
-            // Update motivation messages
+            // Update motivation messages - alternate messages based on time
             const messages = [
                 "Are you using your time properly?",
                 "Make every day count!",
@@ -896,11 +871,10 @@ $accent_color = "#cdaf56";
                 "Excellence is not a skill. It's an attitude."
             ];
             
-            // Different message for each slide (or use index to cycle through on a timer)
-            document.getElementById('motivation-message-primary').textContent = messages[0];
-            document.getElementById('motivation-message-secondary').textContent = messages[1];
-            document.getElementById('motivation-message-tertiary').textContent = messages[4];
-            document.getElementById('motivation-message-quaternary').textContent = messages[2];
+            // Change message every 10 seconds
+            const messageIndex = Math.floor((now.getTime() / 10000) % messages.length);
+            document.getElementById('motivation-message-primary').textContent = messages[messageIndex];
+            document.getElementById('motivation-message-secondary').textContent = messages[(messageIndex + 1) % messages.length];
         }
         <?php endif; ?>
         
