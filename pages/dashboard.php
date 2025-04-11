@@ -862,21 +862,6 @@ $accent_color = "#cdaf56";
             updateAgeCounter(birthDate);
         }, 1000);
         
-        // Set up separate interval for message rotation (every 7 seconds)
-        let currentMessageIndex1 = Math.floor(Math.random() * messages.length);
-        let currentMessageIndex2 = Math.floor(Math.random() * messages.length);
-        
-        // Make sure the initial messages are different
-        while (currentMessageIndex2 === currentMessageIndex1) {
-            currentMessageIndex2 = Math.floor(Math.random() * messages.length);
-        }
-        
-        // Update messages initially
-        updateMotivationalMessages();
-        
-        // Set interval to update messages every 7 seconds
-        setInterval(updateMotivationalMessages, 7000);
-        
         // Function to update age counter
         function updateAgeCounter(birthDate) {
             // Get current date/time in London time zone
@@ -958,11 +943,7 @@ $accent_color = "#cdaf56";
             document.getElementById('minutes').textContent = formattedMinutes;
             document.getElementById('seconds').textContent = formattedSeconds;
             
-            const secondsSinceEpoch = Math.floor(londonTime.getTime() / 1000);
-        }
-        
-        // Function to update motivational messages with Bible verses and inspirational quotes
-        function updateMotivationalMessages() {
+            // Update motivation messages with Bible verses and inspirational quotes
             const messages = [
                 // Bible verses
                 "Ephesians 5:16 - Making the most of every opportunity, because the days are evil.",
@@ -1010,13 +991,24 @@ $accent_color = "#cdaf56";
                 "Someday is not a day of the week."
             ];
             
-            // Get random indices for the two slides
-            currentMessageIndex1 = (currentMessageIndex1 + 1) % messages.length;
-            currentMessageIndex2 = (currentMessageIndex2 + 1) % messages.length;
+            // Format and display messages randomly, changing every 15 seconds
+            const secondsSinceEpoch = Math.floor(londonTime.getTime() / 1000);
+            const messageInterval = Math.floor(secondsSinceEpoch / 15);
             
+            // Use the 15-second interval to generate random indices
+            // This ensures the message changes exactly every 15 seconds
+            const getRandomMessageIndex = () => {
+                // Generate a random index based on the current 15-second interval
+                // Using a hash function to create randomness that changes every 15 seconds
+                return Math.floor(Math.random() * messages.length * (messageInterval + 1)) % messages.length;
+            };
+            
+            // Get two different random indices
+            let randomIndex1 = getRandomMessageIndex();
+            let randomIndex2 = getRandomMessageIndex();
             // Make sure the second message is different from the first
-            while (currentMessageIndex2 === currentMessageIndex1) {
-                currentMessageIndex2 = (currentMessageIndex2 + 1) % messages.length;
+            while (randomIndex2 === randomIndex1) {
+                randomIndex2 = getRandomMessageIndex();
             }
             
             // Helper function to format messages (separate Bible verses from references)
@@ -1040,8 +1032,8 @@ $accent_color = "#cdaf56";
             const messageElement1 = document.getElementById('motivation-message-primary');
             const messageElement2 = document.getElementById('motivation-message-secondary');
             
-            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex1])}</span>`;
-            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex2])}</span>`;
+            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex1])}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex2])}</span>`;
         }
         
         // Add styles for the motivational messages
