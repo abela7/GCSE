@@ -857,6 +857,10 @@ $accent_color = "#cdaf56";
         const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
         updateAgeCounter(birthDate);
         
+        // Message indices to hold current message selections
+        let currentMessageIndex1 = -1;
+        let currentMessageIndex2 = -1;
+        
         // Update counter every second
         setInterval(function() {
             updateAgeCounter(birthDate);
@@ -991,24 +995,32 @@ $accent_color = "#cdaf56";
                 "Someday is not a day of the week."
             ];
             
-            // Format and display messages randomly, changing every 15 seconds
+            // Format and display messages randomly, changing every 5 seconds
             const secondsSinceEpoch = Math.floor(londonTime.getTime() / 1000);
-            const messageInterval = Math.floor(secondsSinceEpoch / 15);
+            const messageInterval = Math.floor(secondsSinceEpoch / 5);
             
-            // Use the 15-second interval to generate random indices
-            // This ensures the message changes exactly every 15 seconds
+            // Use the 5-second interval to generate random indices
+            // This ensures the message changes exactly every 5 seconds
             const getRandomMessageIndex = () => {
-                // Generate a random index based on the current 15-second interval
-                // Using a hash function to create randomness that changes every 15 seconds
+                // Generate a random index based on the current 5-second interval
+                // Using a hash function to create randomness that changes every 5 seconds
                 return Math.floor(Math.random() * messages.length * (messageInterval + 1)) % messages.length;
             };
             
-            // Get two different random indices
-            let randomIndex1 = getRandomMessageIndex();
-            let randomIndex2 = getRandomMessageIndex();
-            // Make sure the second message is different from the first
-            while (randomIndex2 === randomIndex1) {
-                randomIndex2 = getRandomMessageIndex();
+            // Get two different random indices - only if the 5 second interval has changed
+            const newInterval = messageInterval;
+            if (currentMessageIndex1 === -1 || Math.floor(secondsSinceEpoch / 5) !== Math.floor((secondsSinceEpoch - 1) / 5)) {
+                // It's a new 5-second interval, update the messages
+                let randomIndex1 = getRandomMessageIndex();
+                let randomIndex2 = getRandomMessageIndex();
+                
+                // Make sure the second message is different from the first
+                while (randomIndex2 === randomIndex1) {
+                    randomIndex2 = getRandomMessageIndex();
+                }
+                
+                currentMessageIndex1 = randomIndex1;
+                currentMessageIndex2 = randomIndex2;
             }
             
             // Helper function to format messages (separate Bible verses from references)
@@ -1032,8 +1044,8 @@ $accent_color = "#cdaf56";
             const messageElement1 = document.getElementById('motivation-message-primary');
             const messageElement2 = document.getElementById('motivation-message-secondary');
             
-            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex1])}</span>`;
-            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex2])}</span>`;
+            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex1])}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[currentMessageIndex2])}</span>`;
         }
         
         // Add styles for the motivational messages
