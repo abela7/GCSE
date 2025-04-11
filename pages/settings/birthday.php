@@ -409,18 +409,6 @@ include '../../includes/header.php';
                         updateLifeMetrics(birthDate);
                     }, 1000);
                     
-                    // Calculate total sunsets seen
-                    function calculateSunsets(birthDate) {
-                        const now = new Date();
-                        const diffTime = Math.abs(now - birthDate);
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        return diffDays;
-                    }
-                    
-                    // Update sunset count
-                    const totalSunsets = calculateSunsets(birthDate);
-                    document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
-                    
                     // Add clock functionality
                     function updateClock() {
                         const now = new Date();
@@ -428,7 +416,10 @@ include '../../includes/header.php';
                         const minutes = String(now.getMinutes()).padStart(2, '0');
                         const seconds = String(now.getSeconds()).padStart(2, '0');
                         
-                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+                        const currentTimeEl = document.getElementById('current-time');
+                        if (currentTimeEl) {
+                            currentTimeEl.textContent = `${hours}:${minutes}:${seconds}`;
+                        }
                         
                         // Update clock hands
                         const secondHand = document.querySelector('.second-hand');
@@ -446,131 +437,157 @@ include '../../includes/header.php';
                         }
                     }
                     
-                    // Update clock initially and then every second
+                    // Initialize clock update interval
                     updateClock();
                     setInterval(updateClock, 1000);
                     
                     // Life metrics calculation and visualization
                     function updateLifeMetrics(birthDate) {
-                        // Get current date/time in London time zone
-                        const now = new Date();
-                        const londonOptions = { timeZone: 'Europe/London' };
-                        
-                        // Get London time components as strings
-                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
-                        // Parse London time back to Date object
-                        const londonTime = new Date(londonTimeStr);
-                        
-                        // Calculate diff in milliseconds
-                        const diffMs = londonTime - birthDate;
-                        
-                        // Calculate various time units
-                        const totalSeconds = Math.floor(diffMs / 1000);
-                        const totalMinutes = Math.floor(totalSeconds / 60);
-                        const totalHours = Math.floor(totalMinutes / 60);
-                        const totalDays = Math.floor(totalHours / 24);
-                        const totalWeeks = Math.floor(totalDays / 7);
-                        const totalMonths = Math.floor(totalDays / 30.4375);
-                        const years = Math.floor(totalDays / 365.25);
-                        
-                        // For time calculations
-                        const hours = Math.floor(totalHours % 24);
-                        const minutes = Math.floor(totalMinutes % 60);
-                        const seconds = Math.floor(totalSeconds % 60);
-                        
-                        // Format with leading zeros
-                        const formattedHours = String(hours).padStart(2, '0');
-                        const formattedMinutes = String(minutes).padStart(2, '0');
-                        const formattedSeconds = String(seconds).padStart(2, '0');
-                        
-                        // Update main metrics
-                        document.getElementById('years-lived').textContent = formatNumber(years);
-                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
-                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
-                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
-                        
-                        // Update hours and minutes with progress
-                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
-                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
-                        
-                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
-                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
-                        
-                        // Update Today's focus section
-                        const currentDate = londonTime.toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        document.getElementById('today-date').textContent = currentDate;
-                        
-                        // Calculate day of year
-                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
-                        const diff = londonTime - startOfYear;
-                        const dayOfYear = Math.floor(diff / 86400000);
-                        document.getElementById('today-number').textContent = dayOfYear;
-                        
-                        // Current hour
-                        document.getElementById('today-hour').textContent = hours;
-                        
-                        // Heartbeats per minute (simulation, average 70-75)
-                        const heartbeats = Math.floor(70 + Math.random() * 5);
-                        document.getElementById('heartbeats-minute').textContent = heartbeats;
-                        
-                        // Update present moment section
-                        document.getElementById('present-second-count').textContent = seconds;
-                        const secondsProgress = (seconds / 60) * 100;
-                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
-                        
-                        // Update urgent reminder section
-                        document.getElementById('urgent-hours').textContent = formattedHours;
-                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
-                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
-                        
-                        // Rotate through memento mori messages
-                        const mementoMessages = [
-                            "Remember, you will die. Use this moment wisely.",
-                            "Every second is precious and unrepeatable.",
-                            "What will you do with the time given to you today?",
-                            "If this was your last day, how would you spend it?",
-                            "Today is a gift. That's why it's called the present.",
-                            "Act now. Tomorrow is not guaranteed."
-                        ];
-                        
-                        // Change message every minute
-                        if (seconds === 0) {
-                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
-                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
+                        try {
+                            // Get current date/time in London time zone
+                            const now = new Date();
+                            const londonOptions = { timeZone: 'Europe/London' };
                             
-                            // Present moment quotes that rotate every minute
-                            const presentQuotes = [
-                                "This moment will never come again.",
-                                "Now is all we have.",
-                                "Be present and attentive right now.",
-                                "Each second is irreplaceable.",
-                                "The present moment is your point of power."
-                            ];
-                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
-                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
-                        }
-                        
-                        // Restart hourglass animation every minute
-                        if (seconds === 0) {
-                            const sand = document.querySelector('.sand');
-                            const sandPile = document.querySelector('.sand-pile');
+                            // Get London time components as strings
+                            const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+                            // Parse London time back to Date object
+                            const londonTime = new Date(londonTimeStr);
                             
-                            if (sand && sandPile) {
-                                sand.style.animation = 'none';
-                                sandPile.style.animation = 'none';
-                                
-                                // Trigger reflow
-                                void sand.offsetWidth;
-                                void sandPile.offsetWidth;
-                                
-                                sand.style.animation = 'minuteSandFall 30s linear infinite';
-                                sandPile.style.animation = 'minuteSandPile 30s linear infinite';
+                            // Calculate diff in milliseconds
+                            const diffMs = londonTime - birthDate;
+                            
+                            // Calculate various time units
+                            const totalSeconds = Math.floor(diffMs / 1000);
+                            const totalMinutes = Math.floor(totalSeconds / 60);
+                            const totalHours = Math.floor(totalMinutes / 60);
+                            const totalDays = Math.floor(totalHours / 24);
+                            const totalWeeks = Math.floor(totalDays / 7);
+                            const totalMonths = Math.floor(totalDays / 30.4375);
+                            const years = Math.floor(totalDays / 365.25);
+                            
+                            // Calculate total sunsets seen and update the counter
+                            const sunsetsEl = document.getElementById('sunsets-count');
+                            if (sunsetsEl) {
+                                sunsetsEl.textContent = `You have seen ${formatNumber(totalDays)} sunsets in your life.`;
                             }
+                            
+                            // For time calculations
+                            const hours = Math.floor(totalHours % 24);
+                            const minutes = Math.floor(totalMinutes % 60);
+                            const seconds = Math.floor(totalSeconds % 60);
+                            
+                            // Format with leading zeros
+                            const formattedHours = String(hours).padStart(2, '0');
+                            const formattedMinutes = String(minutes).padStart(2, '0');
+                            const formattedSeconds = String(seconds).padStart(2, '0');
+                            
+                            // Update main metrics
+                            updateElementText('years-lived', formatNumber(years));
+                            updateElementText('months-lived', formatNumber(totalMonths));
+                            updateElementText('weeks-lived', formatNumber(totalWeeks));
+                            updateElementText('days-lived', formatNumber(totalDays));
+                            
+                            // Update hours and minutes with progress
+                            updateElementText('hours-lived', formatNumber(totalHours));
+                            updateElementStyle('hours-progress', 'width', `${(hours/24)*100}%`);
+                            
+                            updateElementText('minutes-lived', formatNumber(totalMinutes));
+                            updateElementStyle('minutes-progress', 'width', `${(minutes/60)*100}%`);
+                            
+                            // Update Today's focus section
+                            const currentDate = londonTime.toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            });
+                            updateElementText('today-date', currentDate);
+                            
+                            // Calculate day of year
+                            const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
+                            const diff = londonTime - startOfYear;
+                            const dayOfYear = Math.floor(diff / 86400000);
+                            updateElementText('today-number', dayOfYear);
+                            
+                            // Current hour
+                            updateElementText('today-hour', hours);
+                            
+                            // Heartbeats per minute (simulation, average 70-75)
+                            const heartbeats = Math.floor(70 + Math.random() * 5);
+                            updateElementText('heartbeats-minute', heartbeats);
+                            
+                            // Update present moment section
+                            updateElementText('present-second-count', seconds);
+                            const secondsProgress = (seconds / 60) * 100;
+                            updateElementStyle('present-second-progress', 'width', `${secondsProgress}%`);
+                            
+                            // Update urgent reminder section
+                            updateElementText('urgent-hours', formattedHours);
+                            updateElementText('urgent-minutes', formattedMinutes);
+                            updateElementText('urgent-seconds', formattedSeconds);
+                            
+                            // Rotate through memento mori messages
+                            const mementoMessages = [
+                                "Remember, you will die. Use this moment wisely.",
+                                "Every second is precious and unrepeatable.",
+                                "What will you do with the time given to you today?",
+                                "If this was your last day, how would you spend it?",
+                                "Today is a gift. That's why it's called the present.",
+                                "Act now. Tomorrow is not guaranteed."
+                            ];
+                            
+                            // Change message every minute
+                            if (seconds === 0) {
+                                const randomIndex = Math.floor(Math.random() * mementoMessages.length);
+                                updateElementText('memento-mori', mementoMessages[randomIndex]);
+                                
+                                // Present moment quotes that rotate every minute
+                                const presentQuotes = [
+                                    "This moment will never come again.",
+                                    "Now is all we have.",
+                                    "Be present and attentive right now.",
+                                    "Each second is irreplaceable.",
+                                    "The present moment is your point of power."
+                                ];
+                                const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
+                                updateElementText('present-quote', presentQuotes[quoteIndex]);
+                            }
+                            
+                            // Restart hourglass animation every minute
+                            if (seconds === 0) {
+                                const sand = document.querySelector('.sand');
+                                const sandPile = document.querySelector('.sand-pile');
+                                
+                                if (sand && sandPile) {
+                                    sand.style.animation = 'none';
+                                    sandPile.style.animation = 'none';
+                                    
+                                    // Trigger reflow
+                                    void sand.offsetWidth;
+                                    void sandPile.offsetWidth;
+                                    
+                                    sand.style.animation = 'minuteSandFall 30s linear infinite';
+                                    sandPile.style.animation = 'minuteSandPile 30s linear infinite';
+                                }
+                            }
+                        } catch (error) {
+                            console.error("Error updating metrics:", error);
+                        }
+                    }
+                    
+                    // Helper function to safely update element text content
+                    function updateElementText(id, text) {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.textContent = text;
+                        }
+                    }
+                    
+                    // Helper function to safely update element style
+                    function updateElementStyle(id, property, value) {
+                        const element = document.getElementById(id);
+                        if (element && element.style) {
+                            element.style[property] = value;
                         }
                     }
                     
@@ -582,6 +599,8 @@ include '../../includes/header.php';
                     // Handle Judgment Checklist cookies
                     function setupJudgmentChecklist() {
                         const checkboxes = document.querySelectorAll('.judgment-check');
+                        if (!checkboxes || checkboxes.length === 0) return;
+                        
                         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
                         
                         // Check if we have saved state for today
