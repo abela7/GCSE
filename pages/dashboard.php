@@ -618,7 +618,7 @@ $accent_color = "#cdaf56";
     
     <div class="row mb-4">
         <!-- Resources -->
-        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
+        <div class="col-sm-6 col-md-3 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -634,7 +634,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Exams -->
-        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
+        <div class="col-sm-6 col-md-3 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -650,7 +650,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Today's Plan -->
-        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
+        <div class="col-sm-6 col-md-3 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
@@ -666,7 +666,7 @@ $accent_color = "#cdaf56";
         </div>
         
         <!-- Assignments -->
-        <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
+        <div class="col-sm-6 col-md-3 mb-4">
             <div class="card feature-card">
                 <div class="card-body">
                     <div class="icon-bg">
