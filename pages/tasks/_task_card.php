@@ -35,14 +35,7 @@ $b = hexdec(substr($category_color_rgb, 5, 2));
 $icon_bg_color = "rgba($r, $g, $b, 0.1)"; // 10% opacity
 
 ?>
-<div class="card task-card task-card-habit-style mb-3 shadow-sm <?php echo $status_card_class; ?>" 
-     id="task-card-<?php echo $task['id']; ?>" 
-     data-category-id="<?php echo $task['category_id'] ?? ''; ?>"
-     data-status="<?php echo $task_status; ?>"
-     data-priority="<?php echo $task['priority'] ?? 'medium'; ?>"
-     data-duration="<?php echo $task['estimated_duration'] ?? 0; ?>"
-     data-task-type="<?php echo $task['task_type'] ?? 'one-time'; ?>"
-     data-time="<?php echo (!empty($task['due_time'])) ? (date('H', strtotime($task['due_time'])) < 12 ? 'morning' : 'evening') : ''; ?>">
+<div class="card task-card-habit-style mb-3 shadow-sm <?php echo $status_card_class; ?>" id="task-card-<?php echo $task['id']; ?>">
     <div class="card-body p-3">
         <!-- Top Section: Icon and Text -->
         <div class="d-flex align-items-center mb-3">
