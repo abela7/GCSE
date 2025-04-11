@@ -443,6 +443,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                     <input type="hidden" name="habit_id" id="modalHabitId">
                     <input type="hidden" name="status" id="modalStatus">
                     <input type="hidden" name="scroll_position" id="modalScrollPosition">
+                    <input type="hidden" name="date" id="modalDate" value="<?php echo $today; ?>">
                     <div class="mb-3">
                         <label for="reason_id" class="form-label">Why are you choosing this option?</label>
                         <select class="form-select" name="reason_id" id="reason_id" required>
@@ -483,11 +484,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = this.closest('form');
             const habitId = form.querySelector('input[name="habit_id"]').value;
             const status = form.querySelector('input[name="status"]').value;
+            const date = form.querySelector('input[name="date"]').value;
             
             // Set modal form values
             document.getElementById('modalHabitId').value = habitId;
             document.getElementById('modalStatus').value = status;
             document.getElementById('modalScrollPosition').value = window.scrollY;
+            document.getElementById('modalDate').value = date;
             
             // Update modal title based on status
             const modalTitle = document.getElementById('reasonModalLabel');
