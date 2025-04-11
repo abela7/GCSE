@@ -72,20 +72,18 @@ include '../../includes/header.php';
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
-         <div class="card feature-card shadow">
+            <?php if ($message): ?>
+            <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
+                <?php echo $message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php endif; ?>
+            
+            <div class="card feature-card shadow">
                 <div class="card-header bg-gradient" style="background: linear-gradient(to right, var(--accent-color), var(--accent-color-light));">
                     <h3 class="mb-0 text-white"><i class="fas fa-hourglass-half me-2"></i>Your Life in Time</h3>
                 </div>
                 <div class="card-body">
-                    <?php if ($message): ?>
-                    <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
-                        <?php echo $message; ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    <?php endif; ?>
-                    
-                    
-                    
                     <form method="POST" action="">
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
@@ -154,20 +152,11 @@ include '../../includes/header.php';
             
             <?php if ($birthday_data): ?>
             <!-- Life Metrics Visualization -->
-            <div class="card feature-card mt-4">
-                <div class="card-header bg-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-line me-2" style="color: var(--accent-color);"></i>Your Life Metrics</h4>
+            <div class="card feature-card">
+                <div class="card-header bg-gradient" style="background: linear-gradient(to right, var(--accent-color), var(--accent-color-light));">
+                    <h3 class="mb-0 text-white"><i class="fas fa-hourglass-half me-2"></i>Your Life in Time</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Live Time Counter -->
-                    <div class="live-counter-wrapper text-center p-3 mb-4">
-                        <div id="time-counter" class="display-5 fw-bold"></div>
-                        <div class="mt-2 text-muted">
-                            <span class="badge bg-primary">London Time</span>
-                            <small id="counter-label">days in current year : hours : minutes : seconds</small>
-                        </div>
-                    </div>
-                    
                     <!-- Number Visualizations -->
                     <div class="row mb-4">
                         <div class="col-md-3 col-6 mb-3">
@@ -218,48 +207,6 @@ include '../../includes/header.php';
                                 <div class="progress minutes-progress" style="height: 20px;">
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Time Unit Comparison -->
-                    <div class="time-comparison-wrapper mb-4">
-                        <h5 class="mb-3">Your Life in Different Time Units</h5>
-                        <div class="time-comparison-chart">
-                            <div class="chart-bar-container">
-                                <div class="chart-label">Decades</div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar decades-bar" id="decades-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="chart-value" id="decades-value">-</div>
-                            </div>
-                            <div class="chart-bar-container">
-                                <div class="chart-label">Years</div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar years-bar" id="years-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="chart-value" id="years-value">-</div>
-                            </div>
-                            <div class="chart-bar-container">
-                                <div class="chart-label">Months</div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar months-bar" id="months-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="chart-value" id="months-value">-</div>
-                            </div>
-                            <div class="chart-bar-container">
-                                <div class="chart-label">Weeks</div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar weeks-bar" id="weeks-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="chart-value" id="weeks-value">-</div>
-                            </div>
-                            <div class="chart-bar-container">
-                                <div class="chart-label">Days</div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar days-bar" id="days-bar" style="width: 0%"></div>
-                                </div>
-                                <div class="chart-value" id="days-value">-</div>
                             </div>
                         </div>
                     </div>
@@ -555,23 +502,16 @@ include '../../includes/header.php';
                         const totalWeeks = Math.floor(totalDays / 7);
                         const totalMonths = Math.floor(totalDays / 30.4375);
                         const years = Math.floor(totalDays / 365.25);
-                        const decades = Math.floor(years / 10);
                         
-                        // For the live counter display
-                        const days = Math.floor(totalDays % 365.25);
+                        // For time calculations
                         const hours = Math.floor(totalHours % 24);
                         const minutes = Math.floor(totalMinutes % 60);
                         const seconds = Math.floor(totalSeconds % 60);
                         
                         // Format with leading zeros
-                        const formattedDays = String(days).padStart(3, '0');
                         const formattedHours = String(hours).padStart(2, '0');
                         const formattedMinutes = String(minutes).padStart(2, '0');
                         const formattedSeconds = String(seconds).padStart(2, '0');
-                        
-                        // Update live counter
-                        document.getElementById('time-counter').textContent = 
-                            `${formattedDays}:${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
                         
                         // Update main metrics
                         document.getElementById('years-lived').textContent = formatNumber(years);
@@ -653,11 +593,87 @@ include '../../includes/header.php';
                 });
             </script>
             <?php else: ?>
-            <div class="alert alert-warning mt-4">
+            <div class="alert alert-warning">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                Please set your birthday above to see your life metrics.
+                Please set your birthday to see your life metrics.
             </div>
             <?php endif; ?>
+            
+            <!-- Birthday Form Accordion -->
+            <div class="accordion mt-4" id="birthdayAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="birthdayHeader">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#birthdayCollapse" aria-expanded="false" aria-controls="birthdayCollapse">
+                            <i class="fas fa-birthday-cake me-2"></i> Set or Update Your Birthday
+                        </button>
+                    </h2>
+                    <div id="birthdayCollapse" class="accordion-collapse collapse" aria-labelledby="birthdayHeader" data-bs-parent="#birthdayAccordion">
+                        <div class="accordion-body">
+                            <form method="POST" action="">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label for="day" class="form-label">Day</label>
+                                        <select class="form-select" id="day" name="day" required>
+                                            <?php for ($i = 1; $i <= 31; $i++): ?>
+                                            <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['day'] == $i) ? 'selected' : ''; ?>>
+                                                <?php echo $i; ?>
+                                            </option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="month" class="form-label">Month</label>
+                                        <select class="form-select" id="month" name="month" required>
+                                            <?php 
+                                            $months = [
+                                                1 => 'January', 2 => 'February', 3 => 'March', 
+                                                4 => 'April', 5 => 'May', 6 => 'June',
+                                                7 => 'July', 8 => 'August', 9 => 'September',
+                                                10 => 'October', 11 => 'November', 12 => 'December'
+                                            ];
+                                            
+                                            foreach ($months as $num => $name): 
+                                            ?>
+                                            <option value="<?php echo $num; ?>" <?php echo ($birthday_data && $birthday_data['month'] == $num) ? 'selected' : ''; ?>>
+                                                <?php echo $name; ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="year" class="form-label">Year</label>
+                                        <select class="form-select" id="year" name="year" required>
+                                            <?php 
+                                            $current_year = date('Y');
+                                            for ($i = $current_year; $i >= $current_year - 100; $i--): 
+                                            ?>
+                                            <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['year'] == $i) ? 'selected' : ''; ?>>
+                                                <?php echo $i; ?>
+                                            </option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <div class="form-text">
+                                        <?php if ($birthday_data): ?>
+                                        Current birthday: <strong><?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?></strong>
+                                        <?php else: ?>
+                                        No birthday set.
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                                    <a href="../dashboard.php" class="btn btn-secondary">Cancel</a>
+                                    <button type="submit" class="btn btn-accent">Save Birthday</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
