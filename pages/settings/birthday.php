@@ -421,6 +421,35 @@ include '../../includes/header.php';
                     const totalSunsets = calculateSunsets(birthDate);
                     document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
                     
+                    // Add clock functionality
+                    function updateClock() {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        const seconds = String(now.getSeconds()).padStart(2, '0');
+                        
+                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+                        
+                        // Update clock hands
+                        const secondHand = document.querySelector('.second-hand');
+                        const minuteHand = document.querySelector('.minute-hand');
+                        const hourHand = document.querySelector('.hour-hand');
+                        
+                        if (secondHand && minuteHand && hourHand) {
+                            const secondsDegrees = ((now.getSeconds() / 60) * 360) + 90; // Add 90 to start from 12 o'clock
+                            const minutesDegrees = ((now.getMinutes() / 60) * 360) + ((now.getSeconds() / 60) * 6) + 90;
+                            const hoursDegrees = ((now.getHours() / 12) * 360) + ((now.getMinutes() / 60) * 30) + 90;
+                            
+                            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+                            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
+                            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+                        }
+                    }
+                    
+                    // Update clock initially and then every second
+                    updateClock();
+                    setInterval(updateClock, 1000);
+                    
                     // Life metrics calculation and visualization
                     function updateLifeMetrics(birthDate) {
                         // Get current date/time in London time zone
@@ -549,6 +578,66 @@ include '../../includes/header.php';
                     function formatNumber(num) {
                         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     }
+                    
+                    // Handle Judgment Checklist cookies
+                    function setupJudgmentChecklist() {
+                        const checkboxes = document.querySelectorAll('.judgment-check');
+                        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+                        
+                        // Check if we have saved state for today
+                        const savedDate = getCookie('judgment_date');
+                        
+                        // If it's a new day, clear previous checkboxes
+                        if (savedDate !== today) {
+                            // Clear all checkboxes
+                            checkboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Set today's date in cookie
+                            setCookie('judgment_date', today, 365);
+                        } else {
+                            // Restore saved state
+                            checkboxes.forEach(checkbox => {
+                                const isChecked = getCookie(`judgment_${checkbox.id}`) === 'true';
+                                checkbox.checked = isChecked;
+                            });
+                        }
+                        
+                        // Add event listeners to save state when checkboxes change
+                        checkboxes.forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                setCookie(`judgment_${this.id}`, this.checked, 365);
+                            });
+                        });
+                    }
+                    
+                    // Cookie helper functions
+                    function setCookie(name, value, days) {
+                        const d = new Date();
+                        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                        const expires = "expires=" + d.toUTCString();
+                        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+                    }
+                    
+                    function getCookie(name) {
+                        const cname = name + "=";
+                        const decodedCookie = decodeURIComponent(document.cookie);
+                        const ca = decodedCookie.split(';');
+                        for(let i = 0; i < ca.length; i++) {
+                            let c = ca[i];
+                            while (c.charAt(0) === ' ') {
+                                c = c.substring(1);
+                            }
+                            if (c.indexOf(cname) === 0) {
+                                return c.substring(cname.length, c.length);
+                            }
+                        }
+                        return "";
+                    }
+                    
+                    // Initialize checklist when DOM is loaded
+                    setupJudgmentChecklist();
                 });
             </script>
             
@@ -626,17 +715,6 @@ include '../../includes/header.php';
                             </div>
                         </div>
                         
-                        <!-- The Ripple of Eternity -->
-                        <div class="col-md-6 mb-4">
-                            <div class="orthodox-reminder ripple-card">
-                                <div class="ripple-wrapper" id="ripple-container">
-                                    <div class="ripple-text">Click anywhere in this area</div>
-                                </div>
-                                <h4>The Ripple of Eternity</h4>
-                                <p class="reminder-text">"Every moment now ripples into eternity. Choose wisely."</p>
-                            </div>
-                        </div>
-                        
                         <!-- Final Sunset -->
                         <div class="col-md-6 mb-4">
                             <div class="orthodox-reminder sunset-card">
@@ -657,38 +735,30 @@ include '../../includes/header.php';
                                 <div class="checklist">
                                     <div class="checklist-item">
                                         <input type="checkbox" id="prayer" class="judgment-check">
-                                        <label for="prayer">Prayer & Time with God</label>
+                                        <label for="prayer">Did you pray with your whole heart today?</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="repentance" class="judgment-check">
-                                        <label for="repentance">Repentance & Confession</label>
+                                        <label for="repentance">Did you repent of your sins today?</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="kindness" class="judgment-check">
-                                        <label for="kindness">Acts of Mercy & Almsgiving</label>
+                                        <label for="kindness">Did you show mercy to those in need?</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="forgiveness" class="judgment-check">
-                                        <label for="forgiveness">Forgiveness of Others</label>
+                                        <label for="forgiveness">Did you forgive those who wronged you?</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="fasting" class="judgment-check">
-                                        <label for="fasting">Fasting & Self-Discipline</label>
+                                        <label for="fasting">Did you practice self-discipline today?</label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="scripture" class="judgment-check">
-                                        <label for="scripture">Scripture Reading</label>
-                                    </div>
-                                    <div class="checklist-item">
-                                        <input type="checkbox" id="humility" class="judgment-check">
-                                        <label for="humility">Humility & Obedience</label>
-                                    </div>
-                                    <div class="checklist-item">
-                                        <input type="checkbox" id="love" class="judgment-check">
-                                        <label for="love">Love for God & Neighbor</label>
+                                        <label for="scripture">Did you read Scripture today?</label>
                                     </div>
                                 </div>
-                                <p class="reminder-text">"If today were your final judgment, how many boxes could you check?"</p>
+                                <p class="reminder-text">"If today were your final judgment, how would you answer?"</p>
                             </div>
                         </div>
                     </div>
@@ -793,14 +863,16 @@ include '../../includes/header.php';
                     height: 140px;
                     margin: 0 auto;
                     position: relative;
+                    filter: drop-shadow(0 0 5px rgba(255, 222, 89, 0.5));
                 }
                 
                 .hourglass-top, .hourglass-bottom {
                     width: 80px;
                     height: 60px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.3);
                     position: relative;
                     overflow: hidden;
+                    border: 2px solid rgba(255, 255, 255, 0.8);
                 }
                 
                 .hourglass-top {
@@ -815,8 +887,10 @@ include '../../includes/header.php';
                 .hourglass-middle {
                     width: 15px;
                     height: 20px;
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(255, 255, 255, 0.5);
                     margin: 0 auto;
+                    border-left: 2px solid rgba(255, 255, 255, 0.8);
+                    border-right: 2px solid rgba(255, 255, 255, 0.8);
                 }
                 
                 .sand {
@@ -826,8 +900,9 @@ include '../../includes/header.php';
                     position: absolute;
                     top: 10%;
                     left: 10%;
-                    animation: minuteSandFall 60s linear infinite;
+                    animation: minuteSandFall 30s linear infinite;
                     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 60%, 0% 100%);
+                    box-shadow: inset 0 0 10px rgba(255, 180, 0, 0.5);
                 }
                 
                 .sand-pile {
@@ -838,7 +913,8 @@ include '../../includes/header.php';
                     bottom: 5px;
                     left: 25%;
                     border-radius: 50%;
-                    animation: minuteSandPile 60s linear infinite;
+                    animation: minuteSandPile 30s linear infinite;
+                    box-shadow: 0 0 10px rgba(255, 222, 89, 0.7);
                 }
                 
                 @keyframes minuteSandFall {
@@ -863,19 +939,34 @@ include '../../includes/header.php';
                 }
                 
                 .clock {
-                    width: 120px;
-                    height: 120px;
-                    border: 4px solid #e0d5c5;
+                    width: 140px;
+                    height: 140px;
+                    border: 6px solid #e0d5c5;
                     border-radius: 50%;
                     margin: 0 auto;
                     position: relative;
                     background: #fff;
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.2);
                 }
                 
                 .clock-face {
                     width: 100%;
                     height: 100%;
                     position: relative;
+                }
+                
+                .clock-face::after {
+                    content: '';
+                    position: absolute;
+                    width: 12px;
+                    height: 12px;
+                    background: #333;
+                    border: 2px solid #e74c3c;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    border-radius: 50%;
+                    z-index: 10;
                 }
                 
                 .hand {
@@ -885,32 +976,40 @@ include '../../includes/header.php';
                     background: #333;
                     transform-origin: 0% 50%;
                     transform: rotate(90deg);
+                    transition: transform 0.05s cubic-bezier(0.4, 2.08, 0.55, 0.44);
                 }
                 
                 .hour-hand {
                     width: 35%;
-                    height: 4px;
-                    border-radius: 4px;
+                    height: 6px;
+                    border-radius: 6px;
+                    background: #333;
+                    z-index: 3;
                 }
                 
                 .minute-hand {
                     width: 45%;
-                    height: 3px;
-                    border-radius: 3px;
+                    height: 4px;
+                    border-radius: 4px;
+                    background: #333;
+                    z-index: 2;
                 }
                 
                 .second-hand {
-                    width: 45%;
+                    width: 48%;
                     height: 2px;
                     background: #e74c3c;
                     border-radius: 2px;
+                    z-index: 1;
                 }
                 
                 .time-display {
                     font-family: 'Courier New', monospace;
-                    font-size: 20px;
-                    margin: 10px 0;
-                    color: #fff;
+                    font-size: 28px;
+                    font-weight: bold;
+                    margin: 15px 0;
+                    color: #e74c3c;
+                    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
                 }
                 
                 /* Orthodox Vigil Lamp */
@@ -970,52 +1069,6 @@ include '../../includes/header.php';
                     box-shadow: 0 0 20px rgba(255, 157, 0, 0.9);
                 }
                 
-                /* Ripple of Eternity */
-                .ripple-card {
-                    background: linear-gradient(to bottom, #2c3e50, #1a1a1a);
-                    color: #fff;
-                }
-                
-                .ripple-card h4 {
-                    color: #fff;
-                    border-color: #4a4a4a;
-                }
-                
-                .ripple-wrapper {
-                    width: 100%;
-                    height: 150px;
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 5px;
-                    position: relative;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    overflow: hidden;
-                }
-                
-                .ripple-text {
-                    color: rgba(255, 255, 255, 0.7);
-                    font-size: 14px;
-                    z-index: 2;
-                }
-                
-                .ripple {
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.4);
-                    transform: scale(0);
-                    animation: rippleEffect 2s linear;
-                    pointer-events: none;
-                }
-                
-                @keyframes rippleEffect {
-                    to {
-                        transform: scale(4);
-                        opacity: 0;
-                    }
-                }
-                
                 /* Final Sunset */
                 .sunset-card {
                     background: linear-gradient(to bottom, #2c3e50, #1a1a1a);
@@ -1046,7 +1099,7 @@ include '../../includes/header.php';
                     left: 50%;
                     transform: translateX(-50%);
                     box-shadow: 0 0 40px rgba(255, 157, 0, 0.8);
-                    animation: sunset 24s linear infinite;
+                    animation: sunset 12s linear infinite;
                 }
                 
                 .horizon {
@@ -1139,6 +1192,35 @@ include '../../includes/header.php';
                     // Update sunset count
                     const totalSunsets = calculateSunsets(birthDate);
                     document.getElementById('sunsets-count').textContent = `You have seen ${totalSunsets.toLocaleString()} sunsets in your life.`;
+                    
+                    // Add clock functionality
+                    function updateClock() {
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        const seconds = String(now.getSeconds()).padStart(2, '0');
+                        
+                        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+                        
+                        // Update clock hands
+                        const secondHand = document.querySelector('.second-hand');
+                        const minuteHand = document.querySelector('.minute-hand');
+                        const hourHand = document.querySelector('.hour-hand');
+                        
+                        if (secondHand && minuteHand && hourHand) {
+                            const secondsDegrees = ((now.getSeconds() / 60) * 360) + 90; // Add 90 to start from 12 o'clock
+                            const minutesDegrees = ((now.getMinutes() / 60) * 360) + ((now.getSeconds() / 60) * 6) + 90;
+                            const hoursDegrees = ((now.getHours() / 12) * 360) + ((now.getMinutes() / 60) * 30) + 90;
+                            
+                            secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+                            minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
+                            hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+                        }
+                    }
+                    
+                    // Update clock initially and then every second
+                    updateClock();
+                    setInterval(updateClock, 1000);
                     
                     // Life metrics calculation and visualization
                     function updateLifeMetrics(birthDate) {
