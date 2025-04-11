@@ -288,7 +288,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="skipped">
                                 <input type="hidden" name="date" value="<?php echo $today; ?>">
-                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
                                     <i class="fas fa-times"></i>
                                     <span class="d-none d-sm-inline">Skip</span>
                                 </button>
@@ -415,7 +415,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="skipped">
                                 <input type="hidden" name="date" value="<?php echo $today; ?>">
-                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
                                     <i class="fas fa-times"></i>
                                     <span class="d-none d-sm-inline">Skip</span>
                                 </button>
