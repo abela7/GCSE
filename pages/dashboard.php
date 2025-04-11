@@ -991,15 +991,49 @@ $accent_color = "#cdaf56";
                 "Someday is not a day of the week."
             ];
             
-            // Change message every 3 seconds
-            const messageIndex = Math.floor((londonTime.getTime() / 3000) % messages.length);
+            // Format and display messages randomly, changing every 7 seconds
+            const secondsSinceEpoch = Math.floor(londonTime.getTime() / 1000);
+            const sevenSecondInterval = Math.floor(secondsSinceEpoch / 7);
             
-            // Set messages for the two slides
+            // Use the 7-second interval to generate random indices
+            // This ensures the message changes exactly every 7 seconds
+            const getRandomMessageIndex = () => {
+                // Generate a random index based on the current 7-second interval
+                // Using a hash function to create randomness that changes every 7 seconds
+                return Math.floor(Math.random() * messages.length * (sevenSecondInterval + 1)) % messages.length;
+            };
+            
+            // Get two different random indices
+            let randomIndex1 = getRandomMessageIndex();
+            let randomIndex2 = getRandomMessageIndex();
+            // Make sure the second message is different from the first
+            while (randomIndex2 === randomIndex1) {
+                randomIndex2 = getRandomMessageIndex();
+            }
+            
+            // Helper function to format messages (separate Bible verses from references)
+            const formatMessage = (message) => {
+                // Check if this is a Bible verse by looking for the pattern "Book Chapter:Verse -"
+                const bibleVersePattern = /^([0-9]?\s?[A-Za-z]+\s?[A-Za-z]*\s[0-9]+:[0-9]+)\s-\s(.+)$/;
+                const match = message.match(bibleVersePattern);
+                
+                if (match) {
+                    // This is a Bible verse, format with reference on new line
+                    const reference = match[1]; // The Bible book, chapter and verse
+                    const verseText = match[2]; // The actual verse text
+                    return `${verseText}<br><span class="verse-reference">${reference}</span>`;
+                } else {
+                    // This is a regular quote, return as is
+                    return message;
+                }
+            };
+            
+            // Set messages for the two slides with formatted text
             const messageElement1 = document.getElementById('motivation-message-primary');
             const messageElement2 = document.getElementById('motivation-message-secondary');
             
-            messageElement1.innerHTML = `<span class="motivational-text">${messages[messageIndex]}</span>`;
-            messageElement2.innerHTML = `<span class="motivational-text">${messages[(messageIndex + 1) % messages.length]}</span>`;
+            messageElement1.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex1])}</span>`;
+            messageElement2.innerHTML = `<span class="motivational-text">${formatMessage(messages[randomIndex2])}</span>`;
         }
         
         // Add styles for the motivational messages
@@ -1008,6 +1042,14 @@ $accent_color = "#cdaf56";
             .motivational-text {
                 font-weight: bold;
                 transition: color 0.5s ease;
+                line-height: 1.4;
+            }
+            
+            .verse-reference {
+                font-size: 0.9em;
+                opacity: 0.9;
+                display: inline-block;
+                margin-top: 4px;
             }
             
             /* Different colors for different message types */
