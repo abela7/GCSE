@@ -79,6 +79,11 @@ $uncompleted_habits_query = "SELECT h.*, c.name as category_name, c.color as cat
                            LIMIT 5";
 $uncompleted_habits_result = $conn->query($uncompleted_habits_query);
 
+// Get birthday data for life counter
+$birthday_query = "SELECT * FROM birthday LIMIT 1";
+$birthday_result = $conn->query($birthday_query);
+$birthday_data = ($birthday_result && $birthday_result->num_rows > 0) ? $birthday_result->fetch_assoc() : null;
+
 // Include header
 include '../includes/header.php';
 
@@ -315,48 +320,66 @@ $accent_color = "#cdaf56";
 </style>
 
 <div class="container-fluid py-4">
-    <!-- Age Counter Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card feature-card" style="background-color: var(--accent-color);">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h3 class="mb-3 text-white">Your Life Counter</h3>
-                            <div id="age-stats" class="mb-3">
-                                <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
-                                        <div id="years" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                        <div class="text-muted">Years</div>
+    <!-- Age Counter Section - Accordion -->
+    <div class="accordion mb-4" id="ageCounterAccordion">
+        <div class="accordion-item border-0 shadow-sm rounded">
+            <h2 class="accordion-header" id="ageCounterHeading">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ageCounterCollapse" aria-expanded="true" aria-controls="ageCounterCollapse" style="background-color: var(--accent-color); color: white; border-radius: 10px;">
+                    <i class="fas fa-hourglass-half me-2"></i> Your Life Counter
+                </button>
+            </h2>
+            <div id="ageCounterCollapse" class="accordion-collapse collapse show" aria-labelledby="ageCounterHeading">
+                <div class="accordion-body p-0">
+                    <div class="card feature-card border-0">
+                        <div class="card-body p-4">
+                            <?php if ($birthday_data): ?>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
+                                            <div id="years" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                            <div class="text-muted">Years</div>
+                                        </div>
+                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
+                                            <div id="months" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                            <div class="text-muted">Months</div>
+                                        </div>
                                     </div>
-                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
-                                        <div id="months" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                        <div class="text-muted">Months</div>
-                                    </div>
-                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
-                                        <div id="weeks" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                        <div class="text-muted">Weeks</div>
-                                    </div>
-                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
-                                        <div id="days" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                        <div class="text-muted">Days</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
+                                            <div id="weeks" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                            <div class="text-muted">Weeks</div>
+                                        </div>
+                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
+                                            <div id="days" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                            <div class="text-muted">Days</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <p class="text-white h5 mb-0">You are <span id="age-text" class="fw-bold">--</span> old.</p>
-                                <p class="text-white mt-2"><span id="motivation-message" class="fst-italic">Are you using your time properly?</span></p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-white rounded p-3 h-100">
-                                <h5 class="mb-3" style="color: var(--accent-color);">Set Your Birthdate</h5>
-                                <form id="birthdate-form">
-                                    <div class="mb-3">
-                                        <label for="birthdate" class="form-label">Your Birthdate</label>
-                                        <input type="date" class="form-control" id="birthdate" required>
+                                <div class="col-md-6 d-flex flex-column justify-content-center">
+                                    <div class="p-4 border-start border-4" style="border-color: var(--accent-color) !important;">
+                                        <h5 class="mb-3" id="age-text">--</h5>
+                                        <p class="mb-0 fst-italic" id="motivation-message">Are you using your time properly?</p>
+                                        <div class="d-flex align-items-center mt-3">
+                                            <div class="small text-muted me-3">
+                                                <i class="fas fa-calendar-day me-1"></i> Born on <?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?>
+                                            </div>
+                                            <a href="settings/birthday.php" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+                                        </div>
                                     </div>
-                                    <button type="submit" class="btn btn-accent">Save Birthdate</button>
-                                </form>
+                                </div>
                             </div>
+                            <?php else: ?>
+                            <div class="text-center py-4">
+                                <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+                                <p class="mb-3">You haven't set your birthday yet. Set it to track your life counter.</p>
+                                <a href="settings/birthday.php" class="btn btn-accent">
+                                    <i class="fas fa-calendar-plus me-1"></i> Set Birthday
+                                </a>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -515,11 +538,11 @@ $accent_color = "#cdaf56";
             <i class="fas fa-check-circle"></i>
             <span>View Habits</span>
         </a>
-    </div>
+                                </div>
     <div class="fab-button" id="fabButton">
         <i class="fas fa-plus"></i>
-    </div>
-</div>
+                                </div>
+                            </div>
 
 <!-- Add Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
@@ -572,7 +595,7 @@ $accent_color = "#cdaf56";
                                 <option value="one-time">One-time</option>
                                 <option value="recurring">Recurring</option>
                             </select>
-                        </div>
+                </div>
                         <div class="col-md-6">
                             <label for="priority" class="form-label">Priority</label>
                             <select class="form-select" id="priority" name="priority" required>
@@ -580,16 +603,16 @@ $accent_color = "#cdaf56";
                                 <option value="medium" selected>Medium</option>
                                 <option value="high">High</option>
                             </select>
-                        </div>
+            </div>
                         <div class="col-md-6">
                             <label for="estimated_duration" class="form-label">Estimated Duration (minutes)</label>
                             <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" min="1" value="30" required>
-                        </div>
+        </div>
                         <!-- Add a hidden field to indicate this is from the dashboard -->
                         <input type="hidden" name="from_dashboard" value="1">
                         <!-- Add a return URL so we can redirect back to the dashboard -->
                         <input type="hidden" name="return_url" value="/pages/dashboard.php">
-                    </div>
+                                </div>
                     <div class="mt-4">
                         <div id="alert-container">
                             <?php if (isset($_SESSION['task_message'])): ?>
@@ -607,7 +630,7 @@ $accent_color = "#cdaf56";
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Add Task</button>
                         </div>
-                    </div>
+                </div>
                 </form>
             </div>
         </div>
@@ -615,77 +638,19 @@ $accent_color = "#cdaf56";
 </div>
 
 <script>
-    // Toggle FAB options
-    document.getElementById('fabButton').addEventListener('click', function() {
-        const fabOptions = document.getElementById('fabOptions');
-        fabOptions.classList.toggle('show');
-        
-        // Change icon based on state
-        const icon = this.querySelector('i');
-        if (fabOptions.classList.contains('show')) {
-            icon.classList.remove('fa-plus');
-            icon.classList.add('fa-times');
-        } else {
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-plus');
-        }
-    });
-    
-    // Close FAB options when clicking outside
-    document.addEventListener('click', function(event) {
-        const fabButton = document.getElementById('fabButton');
-        const fabOptions = document.getElementById('fabOptions');
-        
-        if (!fabButton.contains(event.target) && !fabOptions.contains(event.target) && fabOptions.classList.contains('show')) {
-            fabOptions.classList.remove('show');
-            const icon = fabButton.querySelector('i');
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-plus');
-        }
-    });
-    
-    // Task form submission handling
     document.addEventListener('DOMContentLoaded', function() {
-        // Set default due date to today
-        document.getElementById('due_date').valueAsDate = new Date();
+        <?php if ($birthday_data): ?>
+        // Initialize life counter
+        const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
+        updateAgeCounter(birthDate);
         
-        // No AJAX submission - letting the form submit normally
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if birthdate is saved in localStorage
-        const savedBirthdate = localStorage.getItem('birthdate');
-        const birthdateInput = document.getElementById('birthdate');
-        
-        if (savedBirthdate) {
-            birthdateInput.value = savedBirthdate;
-            updateAgeCounter(savedBirthdate);
-            
-            // Update counter every second
-            setInterval(function() {
-                updateAgeCounter(savedBirthdate);
-            }, 1000);
-        }
-        
-        // Handle form submission
-        document.getElementById('birthdate-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const birthdate = birthdateInput.value;
-            
-            if (birthdate) {
-                localStorage.setItem('birthdate', birthdate);
-                updateAgeCounter(birthdate);
-                
-                // Start interval for continuous updates
-                setInterval(function() {
-                    updateAgeCounter(birthdate);
-                }, 1000);
-            }
-        });
+        // Update counter every second
+        setInterval(function() {
+            updateAgeCounter(birthDate);
+        }, 1000);
         
         // Function to update age counter
-        function updateAgeCounter(birthdate) {
-            const birthDate = new Date(birthdate);
+        function updateAgeCounter(birthDate) {
             const now = new Date();
             
             // Calculate difference in milliseconds
@@ -706,8 +671,7 @@ $accent_color = "#cdaf56";
             
             // Calculate remaining months and days for readable text
             const remainingMonths = months % 12;
-            const ageDate = new Date(diffMs);
-            const remainingDays = Math.floor((diffMs % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+            const remainingDays = Math.floor((now - new Date(now.getFullYear(), now.getMonth() - remainingMonths, birthDate.getDate())) / (1000 * 60 * 60 * 24));
             
             // Update HTML elements
             document.getElementById('years').textContent = years;
@@ -717,7 +681,7 @@ $accent_color = "#cdaf56";
             
             // Update age text
             document.getElementById('age-text').textContent = 
-                `${years} years, ${remainingMonths} months, and ${remainingDays} days`;
+                `You are ${years} years, ${remainingMonths} months, and ${remainingDays} days old`;
             
             // Update motivation message
             const messages = [
@@ -733,6 +697,44 @@ $accent_color = "#cdaf56";
             const messageIndex = Math.floor((now.getTime() / 10000) % messages.length);
             document.getElementById('motivation-message').textContent = messages[messageIndex];
         }
+        <?php endif; ?>
+        
+        // Toggle FAB options
+        document.getElementById('fabButton').addEventListener('click', function() {
+            const fabOptions = document.getElementById('fabOptions');
+            fabOptions.classList.toggle('show');
+            
+            // Change icon based on state
+            const icon = this.querySelector('i');
+            if (fabOptions.classList.contains('show')) {
+                icon.classList.remove('fa-plus');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-plus');
+            }
+        });
+        
+        // Close FAB options when clicking outside
+        document.addEventListener('click', function(event) {
+            const fabButton = document.getElementById('fabButton');
+            const fabOptions = document.getElementById('fabOptions');
+            
+            if (!fabButton.contains(event.target) && !fabOptions.contains(event.target) && fabOptions.classList.contains('show')) {
+                fabOptions.classList.remove('show');
+                const icon = fabButton.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-plus');
+            }
+        });
+        
+        // Task form submission handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default due date to today
+            document.getElementById('due_date').valueAsDate = new Date();
+            
+            // No AJAX submission - letting the form submit normally
+        });
     });
 </script>
 
