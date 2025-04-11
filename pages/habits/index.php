@@ -5,26 +5,33 @@ require_once '../../includes/db_connect.php';  // Database connection
 // Set timezone to London
 date_default_timezone_set('Europe/London');
 
-// Get today's date and day of week (0-6, Sunday-Saturday)
-$today = date('Y-m-d');
-$today_day_of_week = date('w'); // 0=Sunday, 1=Monday, etc.
+// Get selected date from URL parameter or use today
+$today = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+$dateObj = new DateTime($today);
+$prevDate = (clone $dateObj)->modify('-1 day')->format('Y-m-d');
+$nextDate = (clone $dateObj)->modify('+1 day')->format('Y-m-d');
+$is_today = ($today === date('Y-m-d'));
+
+// Get day of week for the selected date
+$today_day_of_week = date('w', strtotime($today)); // 0=Sunday, 1=Monday, etc.
 
 // NEW FEATURE: Habit Frequency - Helper function to get week bounds
-function getWeekBounds($start_day = 0) {
-    $today = date('Y-m-d');
-    $today_day_of_week = date('w');
+function getWeekBounds($start_day = 0, $date = null) {
+    // Use the provided date or default to today
+    $selected_date = $date ?: date('Y-m-d');
+    $selected_day_of_week = date('w', strtotime($selected_date));
     
     // Calculate days to subtract to get to the start of the week
-    $days_to_start = ($today_day_of_week - $start_day + 7) % 7;
+    $days_to_start = ($selected_day_of_week - $start_day + 7) % 7;
     
-    $week_start = date('Y-m-d', strtotime("-{$days_to_start} days", strtotime($today)));
+    $week_start = date('Y-m-d', strtotime("-{$days_to_start} days", strtotime($selected_date)));
     $week_end = date('Y-m-d', strtotime("+6 days", strtotime($week_start)));
     
     return ['start' => $week_start, 'end' => $week_end];
 }
 
-// Default week bounds (Sunday-Saturday)
-$default_week_bounds = getWeekBounds(0);
+// Default week bounds (Sunday-Saturday) for the selected date
+$default_week_bounds = getWeekBounds(0, $today);
 
 // Get all habits with their categories and point rules
 $habits_query = "SELECT h.*, hc.name as category_name, hc.color as category_color, hc.icon as category_icon,
@@ -126,7 +133,27 @@ while ($habit = $habits_result->fetch_assoc()) {
         <div class="greeting-container">
             <div class="greeting-left">
                 <div class="greeting-icon"><?php echo $greeting_icon; ?></div>
-                <span class="greeting-text"><?php echo $greeting; ?> Abela • <?php echo date('l, j F Y'); ?></span>
+                <span class="greeting-text">
+                    <?php echo $greeting; ?> Abela • 
+                    <?php if ($is_today): ?>
+                        <?php echo date('l, j F Y'); ?>
+                    <?php else: ?>
+                        <?php echo $dateObj->format('l, j F Y'); ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            <div class="date-navigation d-flex align-items-center me-4">
+                <a href="?date=<?php echo $prevDate; ?>" class="btn btn-sm btn-outline-secondary me-2">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                <?php if (!$is_today): ?>
+                <a href="?" class="btn btn-sm btn-outline-primary me-2">
+                    Today
+                </a>
+                <?php endif; ?>
+                <a href="?date=<?php echo $nextDate; ?>" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
             </div>
             <div class="greeting-actions">
                 <a href="reports.php" class="action-btn analytics-btn">
@@ -138,6 +165,13 @@ while ($habit = $habits_result->fetch_assoc()) {
             </div>
         </div>
     </div>
+
+    <?php if (!$is_today): ?>
+    <div class="alert alert-info mb-3">
+        <i class="fas fa-history me-2"></i> You are viewing habits for <strong><?php echo $dateObj->format('l, F j, Y'); ?></strong>. 
+        Any tracking done here will be recorded for this date.
+    </div>
+    <?php endif; ?>
 
     <div class="row g-4">
         <!-- Morning Habits Section -->
@@ -222,6 +256,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="action" value="reset">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" 
                                         title="Reset status">
                                     <i class="fas fa-undo"></i>
@@ -234,6 +269,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="completed">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-success">
                                     <i class="fas fa-check"></i>
                                     <span class="d-none d-sm-inline">Done</span>
@@ -242,6 +278,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="procrastinated">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="button" class="btn-later btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-warning">
                                     <i class="fas fa-clock"></i>
                                     <span class="d-none d-sm-inline">Later</span>
@@ -250,7 +287,8 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="skipped">
-                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
+                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
                                     <i class="fas fa-times"></i>
                                     <span class="d-none d-sm-inline">Skip</span>
                                 </button>
@@ -345,6 +383,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="action" value="reset">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2" 
                                         title="Reset status">
                                     <i class="fas fa-undo"></i>
@@ -357,6 +396,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="completed">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-success">
                                     <i class="fas fa-check"></i>
                                     <span class="d-none d-sm-inline">Done</span>
@@ -365,6 +405,7 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="procrastinated">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
                                 <button type="button" class="btn-later btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-warning">
                                     <i class="fas fa-clock"></i>
                                     <span class="d-none d-sm-inline">Later</span>
@@ -373,7 +414,8 @@ while ($habit = $habits_result->fetch_assoc()) {
                             <form method="POST" action="update_habit_status.php" style="flex: 1;">
                                 <input type="hidden" name="habit_id" value="<?php echo $habit['id']; ?>">
                                 <input type="hidden" name="status" value="skipped">
-                                <button type="button" class="btn-skip btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
+                                <input type="hidden" name="date" value="<?php echo $today; ?>">
+                                <button type="submit" class="btn w-100 d-flex align-items-center justify-content-center gap-2 btn-outline-danger">
                                     <i class="fas fa-times"></i>
                                     <span class="d-none d-sm-inline">Skip</span>
                                 </button>

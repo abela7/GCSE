@@ -25,6 +25,7 @@ $action = $_POST['action'] ?? null;
 $scroll_position = $_POST['scroll_position'] ?? 0;
 $reason_id = $_POST['reason_id'] ?? null;
 $notes = $_POST['notes'] ?? null;
+$date = $_POST['date'] ?? date('Y-m-d'); // Use provided date or default to today
 
 debug_log("Received POST data", $_POST);
 
@@ -37,15 +38,15 @@ if (!$habit_id) {
 try {
     // Handle reset action
     if ($action === 'reset') {
-        debug_log("Processing reset action for habit_id: " . $habit_id);
+        debug_log("Processing reset action for habit_id: " . $habit_id . " for date: " . $date);
         
         // Delete from habit_completions
-        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = CURDATE()");
-        $stmt->bind_param("i", $habit_id);
+        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = ?");
+        $stmt->bind_param("is", $habit_id, $date);
         $stmt->execute();
         
         updateHabitStats($habit_id);
-        header("Location: index.php?scroll_to=" . $scroll_position);
+        header("Location: index.php?date=" . $date . "&scroll_to=" . $scroll_position);
         exit;
     }
 
@@ -61,9 +62,9 @@ try {
     $conn->begin_transaction();
 
     try {
-        // Delete any existing completion for today
-        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = CURDATE()");
-        $stmt->bind_param("i", $habit_id);
+        // Delete any existing completion for the specified date
+        $stmt = $conn->prepare("DELETE FROM habit_completions WHERE habit_id = ? AND completion_date = ?");
+        $stmt->bind_param("is", $habit_id, $date);
         $stmt->execute();
 
         // Get point rule for this habit
@@ -92,8 +93,8 @@ try {
         // Insert new completion with reason text
         $stmt = $conn->prepare("INSERT INTO habit_completions 
                               (habit_id, completion_date, completion_time, status, reason, points_earned, notes) 
-                              VALUES (?, CURDATE(), CURRENT_TIME(), ?, ?, ?, ?)");
-        $stmt->bind_param("issis", $habit_id, $status, $reason_text, $points, $notes);
+                              VALUES (?, ?, CURRENT_TIME(), ?, ?, ?, ?)");
+        $stmt->bind_param("isssis", $habit_id, $date, $status, $reason_text, $points, $notes);
         $stmt->execute();
 
         // Update habit statistics
@@ -102,7 +103,7 @@ try {
         $conn->commit();
         debug_log("Successfully completed transaction");
         
-        header("Location: index.php?scroll_to=" . $scroll_position);
+        header("Location: index.php?date=" . $date . "&scroll_to=" . $scroll_position);
         exit;
 
     } catch (Exception $e) {
