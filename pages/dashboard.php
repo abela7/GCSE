@@ -240,23 +240,24 @@ $accent_color = "#cdaf56";
 }
 
 .fab-button {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background-color: var(--accent-color);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .fab-button:hover {
     background-color: var(--accent-color-dark);
     transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
 }
 
 .fab-options {
@@ -272,30 +273,44 @@ $accent_color = "#cdaf56";
 
 .fab-options.show {
     display: flex;
+    animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .fab-item {
     display: flex;
     align-items: center;
     background-color: white;
-    padding: 0.75rem 1rem;
-    border-radius: 30px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    padding: 0.6rem 0.9rem;
+    border-radius: 24px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
     color: var(--text-color);
+    font-size: 0.9rem;
 }
 
 .fab-item:hover {
     background-color: var(--bg-light);
     transform: translateX(-5px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .fab-item i {
     margin-right: 0.5rem;
     color: var(--accent-color);
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 </style>
 
