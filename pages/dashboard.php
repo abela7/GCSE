@@ -317,74 +317,263 @@ $accent_color = "#cdaf56";
     color: var(--accent-color);
     font-size: 0.95rem;
 }
+
+/* Add Swiper CSS */
+.swiper {
+    width: 100%;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.swiper-slide {
+    text-align: center;
+    background: #fff;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.age-counter-gallery {
+    margin-bottom: 2rem;
+}
+
+.age-counter-gallery .card {
+    border-radius: 15px;
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.age-value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    line-height: 1;
+}
+
+.age-count-box {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.age-label {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.days-to-next-month {
+    color: #6c757d;
+    text-align: center;
+}
+
+.age-total-box {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    height: 100%;
+}
+
+.live-counter-container {
+    padding: 1rem;
+}
+
+.live-counter-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+}
+
+.live-counter-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #fd5252;
+    line-height: 1;
+}
+
+.live-counter-label {
+    font-size: 0.65rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .age-value {
+        font-size: 2.5rem;
+    }
+    
+    .live-counter-value {
+        font-size: 1.25rem;
+    }
+    
+    .live-counter-label {
+        font-size: 0.6rem;
+    }
+}
 </style>
 
 <div class="container-fluid py-4">
-    <!-- Age Counter Section - Accordion -->
-    <div class="accordion mb-4" id="ageCounterAccordion">
-        <div class="accordion-item border-0 shadow-sm rounded">
-            <h2 class="accordion-header" id="ageCounterHeading">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ageCounterCollapse" aria-expanded="true" aria-controls="ageCounterCollapse" style="background-color: var(--accent-color); color: white; border-radius: 10px;">
-                    <i class="fas fa-hourglass-half me-2"></i> Your Life Counter
-                </button>
-            </h2>
-            <div id="ageCounterCollapse" class="accordion-collapse collapse show" aria-labelledby="ageCounterHeading">
-                <div class="accordion-body p-0">
-                    <div class="card feature-card border-0">
-                        <div class="card-body p-4">
-                            <?php if ($birthday_data): ?>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
-                                            <div id="years" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                            <div class="text-muted">Years</div>
-                                        </div>
-                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
-                                            <div id="months" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                            <div class="text-muted">Months</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
-                                            <div id="weeks" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                            <div class="text-muted">Weeks</div>
-                                        </div>
-                                        <div class="bg-light rounded p-3 text-center flex-grow-1">
-                                            <div id="days" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
-                                            <div class="text-muted">Days</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 d-flex flex-column justify-content-center">
-                                    <div class="p-4 border-start border-4" style="border-color: var(--accent-color) !important;">
-                                        <h5 class="mb-3" id="age-text">--</h5>
-                                        <p class="mb-0 fst-italic" id="motivation-message">Are you using your time properly?</p>
-                                        <div class="d-flex align-items-center mt-3">
-                                            <div class="small text-muted me-3">
-                                                <i class="fas fa-calendar-day me-1"></i> Born on <?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?>
+    <!-- Age Counter Section -->
+    <div class="section-heading">
+        <h4><i class="fas fa-hourglass-half me-2" style="color: var(--accent-color);"></i>Your Life Counter</h4>
+        <div class="line"></div>
+    </div>
+    
+    <!-- Age Counter Gallery -->
+    <div class="mb-4">
+        <?php if ($birthday_data): ?>
+        <div class="age-counter-gallery">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <!-- First Slide - Current Age -->
+                    <div class="swiper-slide">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-flex flex-column">
+                                            <div class="age-count-box">
+                                                <div id="current-year" class="age-value">--</div>
+                                                <div class="age-label">Years</div>
                                             </div>
-                                            <a href="settings/birthday.php" class="btn btn-sm btn-outline-secondary">
-                                                <i class="fas fa-edit me-1"></i> Edit
-                                            </a>
+                                            <div class="age-count-box mt-3">
+                                                <div id="current-month" class="age-value">--</div>
+                                                <div class="age-label">Months</div>
+                                            </div>
+                                            <div class="days-to-next-month mt-3">
+                                                <span id="days-remaining" class="fw-bold">--</span> days to next month
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 d-flex flex-column justify-content-center">
+                                        <div class="border-start border-4 ps-3" style="border-color: var(--accent-color) !important;">
+                                            <h5 class="mb-3" id="age-text-current">--</h5>
+                                            <p class="mb-0 fst-italic">Are you using your time properly?</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <?php else: ?>
-                            <div class="text-center py-4">
-                                <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
-                                <p class="mb-3">You haven't set your birthday yet. Set it to track your life counter.</p>
-                                <a href="settings/birthday.php" class="btn btn-accent">
-                                    <i class="fas fa-calendar-plus me-1"></i> Set Birthday
+                            <div class="card-footer bg-white border-0 text-center text-muted">
+                                <small>Swipe for total life metrics →</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second Slide - Total Metrics -->
+                    <div class="swiper-slide">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="age-total-box">
+                                            <div id="total-years" class="age-value">--</div>
+                                            <div class="age-label">Years</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="age-total-box">
+                                            <div id="total-months" class="age-value">--</div>
+                                            <div class="age-label">Months</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="age-total-box">
+                                            <div id="total-weeks" class="age-value">--</div>
+                                            <div class="age-label">Weeks</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="age-total-box">
+                                            <div id="total-days" class="age-value">--</div>
+                                            <div class="age-label">Days</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 text-center mt-3">
+                                        <h5 class="mb-3" id="age-text-exact">--</h5>
+                                        <p class="mb-0 fst-italic">Are you using your time properly?</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 text-center text-muted">
+                                <small>Swipe for live counter →</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Third Slide - Live Counter -->
+                    <div class="swiper-slide">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex flex-column justify-content-center">
+                                <div class="live-counter-container">
+                                    <div class="row g-2 mb-4">
+                                        <div class="col">
+                                            <div class="live-counter-box">
+                                                <span id="live-weeks" class="live-counter-value">0</span>
+                                                <span class="live-counter-label">WEEKS</span>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="live-counter-box">
+                                                <span id="live-days" class="live-counter-value">0</span>
+                                                <span class="live-counter-label">DAYS</span>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="live-counter-box">
+                                                <span id="live-hours" class="live-counter-value">00</span>
+                                                <span class="live-counter-label">HOURS</span>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="live-counter-box">
+                                                <span id="live-minutes" class="live-counter-value">00</span>
+                                                <span class="live-counter-label">MINUTES</span>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="live-counter-box">
+                                                <span id="live-seconds" class="live-counter-value">00</span>
+                                                <span class="live-counter-label">SECONDS</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="mb-0 fst-italic">Every second counts. Make them meaningful.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Born: <?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?></small>
+                                <a href="settings/birthday.php" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit me-1"></i> Edit
                                 </a>
                             </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+                <div class="swiper-pagination"></div>
             </div>
         </div>
+        <?php else: ?>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+                <p class="mb-3">You haven't set your birthday yet. Set it to track your life counter.</p>
+                <a href="settings/birthday.php" class="btn btn-accent">
+                    <i class="fas fa-calendar-plus me-1"></i> Set Birthday
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Quick Stats -->
@@ -637,9 +826,24 @@ $accent_color = "#cdaf56";
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         <?php if ($birthday_data): ?>
+        // Initialize swiper
+        const swiper = new Swiper(".mySwiper", {
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            effect: "cards",
+            grabCursor: true,
+            loop: false,
+            autoHeight: true
+        });
+
         // Initialize life counter
         const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
         updateAgeCounter(birthDate);
@@ -656,7 +860,7 @@ $accent_color = "#cdaf56";
             // Calculate difference in milliseconds
             const diffMs = now - birthDate;
             
-            // Convert to relevant units
+            // Calculate years, months, days
             const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
             
             let months = (now.getFullYear() - birthDate.getFullYear()) * 12;
@@ -666,36 +870,74 @@ $accent_color = "#cdaf56";
                 months--;
             }
             
+            const totalMonths = years * 12 + (months % 12);
             const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const weeks = Math.floor(totalDays / 7);
+            const totalWeeks = Math.floor(totalDays / 7);
             
             // Calculate remaining months and days for readable text
             const remainingMonths = months % 12;
-            const remainingDays = Math.floor((now - new Date(now.getFullYear(), now.getMonth() - remainingMonths, birthDate.getDate())) / (1000 * 60 * 60 * 24));
             
-            // Update HTML elements
-            document.getElementById('years').textContent = years;
-            document.getElementById('months').textContent = months;
-            document.getElementById('weeks').textContent = weeks;
-            document.getElementById('days').textContent = totalDays;
+            // Calculate days to next month
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const nextMonth = currentMonth + 1 > 11 ? 0 : currentMonth + 1;
+            const nextMonthYear = currentMonth + 1 > 11 ? currentYear + 1 : currentYear;
+            const lastDayOfMonth = new Date(nextMonthYear, nextMonth, 0).getDate();
+            const daysRemaining = lastDayOfMonth - now.getDate() + 1;
+            
+            // Calculate exact days
+            const birthdayThisMonth = new Date(now.getFullYear(), now.getMonth(), birthDate.getDate());
+            let exactDays;
+            
+            if (now.getDate() >= birthDate.getDate()) {
+                // We've passed the birth day this month
+                exactDays = now.getDate() - birthDate.getDate();
+            } else {
+                // We haven't reached the birth day this month yet
+                const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+                const prevMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+                const daysInPrevMonth = new Date(prevMonthYear, prevMonth + 1, 0).getDate();
+                exactDays = daysInPrevMonth - birthDate.getDate() + now.getDate();
+            }
+            
+            // Calculate hours, minutes, seconds
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // For the live counter - show excess
+            const totalHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+            const totalMinutes = Math.floor(diffMs / (1000 * 60)) % 60;
+            const totalSeconds = Math.floor(diffMs / 1000) % 60;
+
+            // Live counter weeks and days (remainder after full weeks)
+            const liveWeeks = Math.floor(totalDays / 7);
+            const liveDays = totalDays % 7;
+            
+            // Update HTML elements for first slide - Current Age
+            document.getElementById('current-year').textContent = years;
+            document.getElementById('current-month').textContent = remainingMonths;
+            document.getElementById('days-remaining').textContent = daysRemaining;
+            
+            // Update HTML elements for second slide - Total Time
+            document.getElementById('total-years').textContent = years;
+            document.getElementById('total-months').textContent = totalMonths;
+            document.getElementById('total-weeks').textContent = totalWeeks;
+            document.getElementById('total-days').textContent = totalDays;
+            
+            // Update live counter elements
+            document.getElementById('live-weeks').textContent = liveWeeks;
+            document.getElementById('live-days').textContent = liveDays;
+            document.getElementById('live-hours').textContent = totalHours.toString().padStart(2, '0');
+            document.getElementById('live-minutes').textContent = totalMinutes.toString().padStart(2, '0');
+            document.getElementById('live-seconds').textContent = totalSeconds.toString().padStart(2, '0');
             
             // Update age text
-            document.getElementById('age-text').textContent = 
-                `You are ${years} years, ${remainingMonths} months, and ${remainingDays} days old`;
-            
-            // Update motivation message
-            const messages = [
-                "Are you using your time properly?",
-                "Make every day count!",
-                "Today is a gift. That's why it's called the present.",
-                "Focus on what matters most today.",
-                "Your future is created by what you do today.",
-                "Excellence is not a skill. It's an attitude."
-            ];
-            
-            // Change message every 10 seconds using a hash of the current time
-            const messageIndex = Math.floor((now.getTime() / 10000) % messages.length);
-            document.getElementById('motivation-message').textContent = messages[messageIndex];
+            document.getElementById('age-text-current').textContent = 
+                `You are ${years} years and ${remainingMonths} months old`;
+                
+            document.getElementById('age-text-exact').textContent = 
+                `You are ${years} years, ${remainingMonths} months, and ${exactDays} days old`;
         }
         <?php endif; ?>
         
