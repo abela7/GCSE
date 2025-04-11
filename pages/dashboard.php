@@ -315,13 +315,50 @@ $accent_color = "#cdaf56";
 </style>
 
 <div class="container-fluid py-4">
-    <!-- Welcome Section -->
+    <!-- Age Counter Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card feature-card" style="background-color: var(--accent-color); color: white;">
+            <div class="card feature-card" style="background-color: var(--accent-color);">
                 <div class="card-body">
-                    <h3 class="mb-2">Welcome to Your GCSE Dashboard</h3>
-                    <p class="mb-0">Track your progress, manage your studies, and stay organized with all your GCSE preparation tools in one place.</p>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mb-3 text-white">Your Life Counter</h3>
+                            <div id="age-stats" class="mb-3">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
+                                        <div id="years" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                        <div class="text-muted">Years</div>
+                                    </div>
+                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
+                                        <div id="months" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                        <div class="text-muted">Months</div>
+                                    </div>
+                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
+                                        <div id="weeks" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                        <div class="text-muted">Weeks</div>
+                                    </div>
+                                    <div class="bg-white rounded p-3 text-center" style="min-width: 110px;">
+                                        <div id="days" class="fw-bold fs-1" style="color: var(--accent-color);">--</div>
+                                        <div class="text-muted">Days</div>
+                                    </div>
+                                </div>
+                                <p class="text-white h5 mb-0">You are <span id="age-text" class="fw-bold">--</span> old.</p>
+                                <p class="text-white mt-2"><span id="motivation-message" class="fst-italic">Are you using your time properly?</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-white rounded p-3 h-100">
+                                <h5 class="mb-3" style="color: var(--accent-color);">Set Your Birthdate</h5>
+                                <form id="birthdate-form">
+                                    <div class="mb-3">
+                                        <label for="birthdate" class="form-label">Your Birthdate</label>
+                                        <input type="date" class="form-control" id="birthdate" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-accent">Save Birthdate</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -613,6 +650,89 @@ $accent_color = "#cdaf56";
         document.getElementById('due_date').valueAsDate = new Date();
         
         // No AJAX submission - letting the form submit normally
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if birthdate is saved in localStorage
+        const savedBirthdate = localStorage.getItem('birthdate');
+        const birthdateInput = document.getElementById('birthdate');
+        
+        if (savedBirthdate) {
+            birthdateInput.value = savedBirthdate;
+            updateAgeCounter(savedBirthdate);
+            
+            // Update counter every second
+            setInterval(function() {
+                updateAgeCounter(savedBirthdate);
+            }, 1000);
+        }
+        
+        // Handle form submission
+        document.getElementById('birthdate-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const birthdate = birthdateInput.value;
+            
+            if (birthdate) {
+                localStorage.setItem('birthdate', birthdate);
+                updateAgeCounter(birthdate);
+                
+                // Start interval for continuous updates
+                setInterval(function() {
+                    updateAgeCounter(birthdate);
+                }, 1000);
+            }
+        });
+        
+        // Function to update age counter
+        function updateAgeCounter(birthdate) {
+            const birthDate = new Date(birthdate);
+            const now = new Date();
+            
+            // Calculate difference in milliseconds
+            const diffMs = now - birthDate;
+            
+            // Convert to relevant units
+            const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
+            
+            let months = (now.getFullYear() - birthDate.getFullYear()) * 12;
+            months -= birthDate.getMonth();
+            months += now.getMonth();
+            if (now.getDate() < birthDate.getDate()) {
+                months--;
+            }
+            
+            const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const weeks = Math.floor(totalDays / 7);
+            
+            // Calculate remaining months and days for readable text
+            const remainingMonths = months % 12;
+            const ageDate = new Date(diffMs);
+            const remainingDays = Math.floor((diffMs % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+            
+            // Update HTML elements
+            document.getElementById('years').textContent = years;
+            document.getElementById('months').textContent = months;
+            document.getElementById('weeks').textContent = weeks;
+            document.getElementById('days').textContent = totalDays;
+            
+            // Update age text
+            document.getElementById('age-text').textContent = 
+                `${years} years, ${remainingMonths} months, and ${remainingDays} days`;
+            
+            // Update motivation message
+            const messages = [
+                "Are you using your time properly?",
+                "Make every day count!",
+                "Today is a gift. That's why it's called the present.",
+                "Focus on what matters most today.",
+                "Your future is created by what you do today.",
+                "Excellence is not a skill. It's an attitude."
+            ];
+            
+            // Change message every 10 seconds using a hash of the current time
+            const messageIndex = Math.floor((now.getTime() / 10000) % messages.length);
+            document.getElementById('motivation-message').textContent = messages[messageIndex];
+        }
     });
 </script>
 
