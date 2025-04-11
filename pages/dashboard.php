@@ -681,22 +681,6 @@ $accent_color = "#cdaf56";
             </div>
         </div>
     </div>
-
-    <!-- Your Time -->
-    <div class="col-md-4 col-lg-2 col-sm-6 mb-4">
-        <div class="card feature-card">
-            <div class="card-body">
-                <div class="icon-bg">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
-                <h5>Your Time</h5>
-                <p>Manage your life counter and birthday settings.</p>
-            </div>
-            <div class="card-footer">
-                <a href="settings/birthday.php" class="btn btn-sm btn-outline-accent">Manage Time</a>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Floating Action Button (FAB) -->
