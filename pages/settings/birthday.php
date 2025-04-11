@@ -676,7 +676,7 @@ include '../../includes/header.php';
                         <div class="col-md-6 mb-4">
                             <div class="orthodox-reminder checklist-card">
                                 <h4>Daily Judgment Checklist</h4>
-                                <?php echo renderCategorizedJudgmentChecklist(); ?>
+                                <?php echo renderJudgmentChecklist(); ?>
                                 <p class="reminder-text">"If today were your final judgment, how would you answer?"</p>
                             </div>
                         </div>
@@ -1269,8 +1269,6 @@ include '../../includes/header.php';
                     function formatNumber(num) {
                         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     }
-                    
-                    <?php echo getJudgmentChecklistScript(); ?>
                 });
             </script>
             <?php else: ?>
