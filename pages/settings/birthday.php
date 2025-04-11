@@ -72,15 +72,7 @@ include '../../includes/header.php';
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="../dashboard.php">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="index.php">Settings</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Your Time Report</li>
-                </ol>
-            </nav>
-            
-            <div class="card feature-card shadow">
+         <div class="card feature-card shadow">
                 <div class="card-header bg-gradient" style="background: linear-gradient(to right, var(--accent-color), var(--accent-color-light));">
                     <h3 class="mb-0 text-white"><i class="fas fa-hourglass-half me-2"></i>Your Life in Time</h3>
                 </div>
@@ -92,7 +84,7 @@ include '../../includes/header.php';
                     </div>
                     <?php endif; ?>
                     
-                    <p class="mb-4">Set your birthday to track your life counter on the dashboard. This information helps you stay motivated by showing how much time you've lived and the value of each day.</p>
+                    
                     
                     <form method="POST" action="">
                         <div class="row g-3 mb-4">
@@ -157,11 +149,6 @@ include '../../includes/header.php';
                     </form>
                     
                     <hr class="my-4">
-                    
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Why is this important?</strong> Your birthday helps calculate how much time you've lived - in years, months, weeks, and days. This creates awareness of time's value and encourages you to use each day meaningfully for your GCSE studies.
-                    </div>
                 </div>
             </div>
             
@@ -177,7 +164,7 @@ include '../../includes/header.php';
                         <div id="time-counter" class="display-5 fw-bold"></div>
                         <div class="mt-2 text-muted">
                             <span class="badge bg-primary">London Time</span>
-                            <small id="counter-label">days : hours : minutes : seconds</small>
+                            <small id="counter-label">days in current year : hours : minutes : seconds</small>
                         </div>
                     </div>
                     
@@ -277,36 +264,77 @@ include '../../includes/header.php';
                         </div>
                     </div>
                     
-                    <!-- Life Percentage -->
+                    <!-- Today's Focus -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card metric-card today-card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title mb-3">This Day Is a Gift</h5>
+                                    <div class="time-pulse" id="beating-heart">
+                                        <i class="fas fa-heartbeat"></i>
+                                    </div>
+                                    <div id="today-date" class="display-6 mb-3">-</div>
+                                    <div class="current-moment-box p-3 mb-3">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="moment-value" id="today-number">-</div>
+                                                <div class="moment-label">Day of Year</div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="moment-value" id="today-hour">-</div>
+                                                <div class="moment-label">Hour of Day</div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="moment-value" id="heartbeats-minute">-</div>
+                                                <div class="moment-label">Heartbeats/min</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="memento-mori" class="memento-text">Each moment is precious. Act now.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Urgent Time Reminder -->
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <div class="card metric-card h-100">
+                            <div class="card metric-card present-moment-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Life Percentage</h5>
-                                    <p class="text-muted small">Based on average life expectancy of 80 years</p>
-                                    <div class="progress mt-2 mb-2" style="height: 30px;">
-                                        <div class="progress-bar bg-accent progress-bar-striped" id="life-progress" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                    <h5 class="mb-2">The Present Moment</h5>
+                                    <div class="present-moment-container">
+                                        <div class="progress present-moment-progress mb-2">
+                                            <div class="progress-bar present-second-bar" id="present-second-progress" role="progressbar"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Seconds of this minute: <span id="present-second-count">-</span></span>
+                                        </div>
                                     </div>
-                                    <div class="text-center" id="life-percentage-text">-</div>
+                                    <div class="present-moment-quote mt-3" id="present-quote">This second will never return.</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <div class="card metric-card h-100">
+                            <div class="card metric-card h-100 urgent-reminder-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">GCSE Focus Time</h5>
-                                    <div class="row time-value-row">
-                                        <div class="col">
-                                            <div class="time-value" id="hours-per-day">-</div>
-                                            <div class="time-label">hours/day</div>
+                                    <h5 class="mb-2">Your Time Is Now</h5>
+                                    <div class="timer-container">
+                                        <div class="d-flex justify-content-center mb-3">
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-hours">-</div>
+                                                <div class="time-label">Hours</div>
+                                            </div>
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-minutes">-</div>
+                                                <div class="time-label">Minutes</div>
+                                            </div>
+                                            <div class="time-value-box mx-2">
+                                                <div class="time-value" id="urgent-seconds">-</div>
+                                                <div class="time-label">Seconds</div>
+                                            </div>
                                         </div>
-                                        <div class="col">
-                                            <div class="time-value" id="days-per-month">-</div>
-                                            <div class="time-label">days/month</div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="time-value" id="precious-hours">-</div>
-                                            <div class="time-label">precious hours</div>
+                                        <div class="urgent-message">
+                                            What if this was all the time you had left?
                                         </div>
                                     </div>
                                 </div>
@@ -380,64 +408,94 @@ include '../../includes/header.php';
                     background-color: #e74c3c;
                 }
                 
-                .time-comparison-chart {
-                    margin: 20px 0;
+                /* New styles for urgency-focused metrics */
+                .today-card {
+                    background: linear-gradient(135deg, #2c3e50, #34495e);
+                    color: white;
+                    padding: 20px;
                 }
                 
-                .chart-bar-container {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 10px;
+                .time-pulse {
+                    font-size: 48px;
+                    color: #e74c3c;
+                    animation: pulse 1s infinite;
+                    margin-bottom: 15px;
                 }
                 
-                .chart-label {
-                    width: 80px;
-                    font-size: 14px;
-                    text-align: right;
-                    padding-right: 10px;
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
                 }
                 
-                .chart-bar-bg {
-                    flex-grow: 1;
-                    height: 25px;
-                    background-color: #f1f1f1;
-                    border-radius: 4px;
+                .current-moment-box {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                
+                .moment-value {
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: #ecf0f1;
+                }
+                
+                .moment-label {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .memento-text {
+                    font-size: 18px;
+                    font-style: italic;
+                    margin-top: 15px;
+                    padding: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .present-moment-card {
+                    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+                    color: white;
+                }
+                
+                .present-moment-progress {
+                    height: 15px;
+                    background-color: rgba(255, 255, 255, 0.2);
+                    border-radius: 5px;
                     overflow: hidden;
                 }
                 
-                .chart-bar {
-                    height: 100%;
-                    transition: width 1s ease-in-out;
+                .present-second-bar {
+                    background-color: #f1c40f;
+                    transition: width 0.1s linear;
                 }
                 
-                .decades-bar { background-color: #9b59b6; }
-                .years-bar { background-color: #3498db; }
-                .months-bar { background-color: #e74c3c; }
-                .weeks-bar { background-color: #2ecc71; }
-                .days-bar { background-color: #f39c12; }
-                
-                .chart-value {
-                    width: 60px;
-                    text-align: right;
-                    padding-left: 10px;
-                    font-weight: bold;
-                }
-                
-                .time-value-row {
-                    display: flex;
+                .present-moment-quote {
+                    font-style: italic;
                     text-align: center;
-                    margin-top: 20px;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
                 }
                 
-                .time-value {
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #3498db;
+                .urgent-reminder-card {
+                    background: linear-gradient(135deg, #c0392b, #e74c3c);
+                    color: white;
                 }
                 
-                .time-label {
-                    font-size: 12px;
-                    color: #7f8c8d;
+                .time-value-box {
+                    background-color: rgba(0, 0, 0, 0.2);
+                    border-radius: 5px;
+                    padding: 10px 15px;
+                    min-width: 80px;
+                    text-align: center;
+                }
+                
+                .urgent-message {
+                    text-align: center;
+                    font-style: italic;
+                    font-size: 18px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
                 }
                 
                 @media (max-width: 767px) {
@@ -448,6 +506,15 @@ include '../../includes/header.php';
                     
                     .metric-number {
                         font-size: 20px;
+                    }
+                    
+                    .time-value-box {
+                        min-width: 60px;
+                        padding: 8px 10px;
+                    }
+                    
+                    .moment-value {
+                        font-size: 22px;
                     }
                 }
             </style>
@@ -519,33 +586,64 @@ include '../../includes/header.php';
                         document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
                         document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
                         
-                        // Update time unit comparison
-                        document.getElementById('decades-value').textContent = formatNumber(decades);
-                        document.getElementById('decades-bar').style.width = `${Math.min(decades*10, 100)}%`;
+                        // Update Today's focus section
+                        const currentDate = londonTime.toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        document.getElementById('today-date').textContent = currentDate;
                         
-                        document.getElementById('years-value').textContent = formatNumber(years);
-                        document.getElementById('years-bar').style.width = `${Math.min(years, 100)}%`;
+                        // Calculate day of year
+                        const startOfYear = new Date(londonTime.getFullYear(), 0, 0);
+                        const diff = londonTime - startOfYear;
+                        const dayOfYear = Math.floor(diff / 86400000);
+                        document.getElementById('today-number').textContent = dayOfYear;
                         
-                        document.getElementById('months-value').textContent = formatNumber(totalMonths);
-                        document.getElementById('months-bar').style.width = `${Math.min(totalMonths/12, 100)}%`;
+                        // Current hour
+                        document.getElementById('today-hour').textContent = hours;
                         
-                        document.getElementById('weeks-value').textContent = formatNumber(totalWeeks);
-                        document.getElementById('weeks-bar').style.width = `${Math.min(totalWeeks/520, 100)}%`;
+                        // Heartbeats per minute (simulation, average 70-75)
+                        const heartbeats = Math.floor(70 + Math.random() * 5);
+                        document.getElementById('heartbeats-minute').textContent = heartbeats;
                         
-                        document.getElementById('days-value').textContent = formatNumber(totalDays);
-                        document.getElementById('days-bar').style.width = `${Math.min(totalDays/3650, 100)}%`;
+                        // Update present moment section
+                        document.getElementById('present-second-count').textContent = seconds;
+                        const secondsProgress = (seconds / 60) * 100;
+                        document.getElementById('present-second-progress').style.width = `${secondsProgress}%`;
                         
-                        // Life percentage (based on 80 years)
-                        const lifePercentage = (years / 80) * 100;
-                        document.getElementById('life-progress').style.width = `${lifePercentage}%`;
-                        document.getElementById('life-progress').textContent = `${lifePercentage.toFixed(2)}%`;
-                        document.getElementById('life-percentage-text').textContent = 
-                            `You've lived ${lifePercentage.toFixed(2)}% of an 80-year life expectancy`;
+                        // Update urgent reminder section
+                        document.getElementById('urgent-hours').textContent = formattedHours;
+                        document.getElementById('urgent-minutes').textContent = formattedMinutes;
+                        document.getElementById('urgent-seconds').textContent = formattedSeconds;
                         
-                        // GCSE focus time values
-                        document.getElementById('hours-per-day').textContent = '8';
-                        document.getElementById('days-per-month').textContent = '30';
-                        document.getElementById('precious-hours').textContent = formatNumber(totalDays * 8);
+                        // Rotate through memento mori messages
+                        const mementoMessages = [
+                            "Remember, you will die. Use this moment wisely.",
+                            "Every second is precious and unrepeatable.",
+                            "What will you do with the time given to you today?",
+                            "If this was your last day, how would you spend it?",
+                            "Today is a gift. That's why it's called the present.",
+                            "Act now. Tomorrow is not guaranteed."
+                        ];
+                        
+                        // Change message every minute
+                        if (seconds === 0) {
+                            const randomIndex = Math.floor(Math.random() * mementoMessages.length);
+                            document.getElementById('memento-mori').textContent = mementoMessages[randomIndex];
+                            
+                            // Present moment quotes that rotate every minute
+                            const presentQuotes = [
+                                "This moment will never come again.",
+                                "Now is all we have.",
+                                "Be present and attentive right now.",
+                                "Each second is irreplaceable.",
+                                "The present moment is your point of power."
+                            ];
+                            const quoteIndex = Math.floor(Math.random() * presentQuotes.length);
+                            document.getElementById('present-quote').textContent = presentQuotes[quoteIndex];
+                        }
                     }
                     
                     // Helper for formatting large numbers with commas
