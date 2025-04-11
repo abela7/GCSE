@@ -92,671 +92,477 @@ include '../../includes/header.php';
                     </div>
                     <?php endif; ?>
                     
-                    <?php if (!$birthday_data): ?>
-                    <div class="text-center py-5">
-                        <div class="display-1 text-muted mb-3"><i class="fas fa-calendar-plus"></i></div>
-                        <h3>Let's start your time journey</h3>
-                        <p class="lead mb-4">Set your birthday to unlock powerful insights about your most precious resource: time.</p>
-                    </div>
-                    <?php endif; ?>
+                    <p class="mb-4">Set your birthday to track your life counter on the dashboard. This information helps you stay motivated by showing how much time you've lived and the value of each day.</p>
                     
-                    <div class="row">
-                        <div class="col-md-6 <?php echo (!$birthday_data) ? 'mx-auto' : ''; ?>">
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-birthday-cake me-2" style="color: var(--accent-color);"></i>Set Your Birthday</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form method="POST" action="">
-                                        <div class="row g-3 mb-4">
-                                            <div class="col-md-4">
-                                                <label for="day" class="form-label">Day</label>
-                                                <select class="form-select" id="day" name="day" required>
-                                                    <?php for ($i = 1; $i <= 31; $i++): ?>
-                                                    <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['day'] == $i) ? 'selected' : ''; ?>>
-                                                        <?php echo $i; ?>
-                                                    </option>
-                                                    <?php endfor; ?>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="month" class="form-label">Month</label>
-                                                <select class="form-select" id="month" name="month" required>
-                                                    <?php 
-                                                    $months = [
-                                                        1 => 'January', 2 => 'February', 3 => 'March', 
-                                                        4 => 'April', 5 => 'May', 6 => 'June',
-                                                        7 => 'July', 8 => 'August', 9 => 'September',
-                                                        10 => 'October', 11 => 'November', 12 => 'December'
-                                                    ];
-                                                    
-                                                    foreach ($months as $num => $name): 
-                                                    ?>
-                                                    <option value="<?php echo $num; ?>" <?php echo ($birthday_data && $birthday_data['month'] == $num) ? 'selected' : ''; ?>>
-                                                        <?php echo $name; ?>
-                                                    </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="year" class="form-label">Year</label>
-                                                <select class="form-select" id="year" name="year" required>
-                                                    <?php 
-                                                    $current_year = date('Y');
-                                                    for ($i = $current_year; $i >= $current_year - 100; $i--): 
-                                                    ?>
-                                                    <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['year'] == $i) ? 'selected' : ''; ?>>
-                                                        <?php echo $i; ?>
-                                                    </option>
-                                                    <?php endfor; ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="mb-3">
-                                            <div class="form-text">
-                                                <?php if ($birthday_data): ?>
-                                                Your current birthday is set to: <strong><?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?></strong>
-                                                <?php else: ?>
-                                                You haven't set your birthday yet.
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="d-grid">
-                                            <button type="submit" class="btn btn-accent">
-                                                <i class="fas fa-save me-2"></i>Save Birthday
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                    <form method="POST" action="">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="day" class="form-label">Day</label>
+                                <select class="form-select" id="day" name="day" required>
+                                    <?php for ($i = 1; $i <= 31; $i++): ?>
+                                    <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['day'] == $i) ? 'selected' : ''; ?>>
+                                        <?php echo $i; ?>
+                                    </option>
+                                    <?php endfor; ?>
+                                </select>
                             </div>
-                            
-                            <?php if ($birthday_data): ?>
-                            <div class="card shadow-sm mb-4 mb-md-0">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-quote-left me-2" style="color: var(--accent-color);"></i>Words of Wisdom</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="wisdom-carousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="7000">
-                                        <div class="carousel-inner">
-                                            <div class="carousel-item active">
-                                                <blockquote class="blockquote">
-                                                    <p>"So teach us to number our days, that we may gain a heart of wisdom."</p>
-                                                    <footer class="blockquote-footer">Psalm 90:12</footer>
-                                                </blockquote>
-                                            </div>
-                                            <div class="carousel-item">
-                                                <blockquote class="blockquote">
-                                                    <p>"Look carefully then how you walk, not as unwise but as wise, making the best use of the time, because the days are evil."</p>
-                                                    <footer class="blockquote-footer">Ephesians 5:15-16</footer>
-                                                </blockquote>
-                                            </div>
-                                            <div class="carousel-item">
-                                                <blockquote class="blockquote">
-                                                    <p>"But do not overlook this one fact, beloved, that with the Lord one day is as a thousand years, and a thousand years as one day."</p>
-                                                    <footer class="blockquote-footer">2 Peter 3:8</footer>
-                                                </blockquote>
-                                            </div>
-                                            <div class="carousel-item">
-                                                <blockquote class="blockquote">
-                                                    <p>"Yet you do not know what tomorrow will bring. What is your life? For you are a mist that appears for a little time and then vanishes."</p>
-                                                    <footer class="blockquote-footer">James 4:14</footer>
-                                                </blockquote>
-                                            </div>
-                                            <div class="carousel-item">
-                                                <blockquote class="blockquote">
-                                                    <p>"For everything there is a season, and a time for every matter under heaven."</p>
-                                                    <footer class="blockquote-footer">Ecclesiastes 3:1</footer>
-                                                </blockquote>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="col-md-4">
+                                <label for="month" class="form-label">Month</label>
+                                <select class="form-select" id="month" name="month" required>
+                                    <?php 
+                                    $months = [
+                                        1 => 'January', 2 => 'February', 3 => 'March', 
+                                        4 => 'April', 5 => 'May', 6 => 'June',
+                                        7 => 'July', 8 => 'August', 9 => 'September',
+                                        10 => 'October', 11 => 'November', 12 => 'December'
+                                    ];
+                                    
+                                    foreach ($months as $num => $name): 
+                                    ?>
+                                    <option value="<?php echo $num; ?>" <?php echo ($birthday_data && $birthday_data['month'] == $num) ? 'selected' : ''; ?>>
+                                        <?php echo $name; ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
-                            <?php endif; ?>
+                            <div class="col-md-4">
+                                <label for="year" class="form-label">Year</label>
+                                <select class="form-select" id="year" name="year" required>
+                                    <?php 
+                                    $current_year = date('Y');
+                                    for ($i = $current_year; $i >= $current_year - 100; $i--): 
+                                    ?>
+                                    <option value="<?php echo $i; ?>" <?php echo ($birthday_data && $birthday_data['year'] == $i) ? 'selected' : ''; ?>>
+                                        <?php echo $i; ?>
+                                    </option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                         </div>
                         
-                        <?php if ($birthday_data): ?>
-                        <div class="col-md-6">
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2" style="color: var(--accent-color);"></i>Your Life Metrics</h5>
-                                    <button class="btn btn-sm btn-outline-accent" id="refreshTimeMetrics">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="card-body">
-                                    <!-- Time counters with visual representation -->
-                                    <div class="row mb-4">
-                                        <div class="col-6 col-lg-3 mb-3">
-                                            <div class="time-metric-container text-center">
-                                                <div class="time-metric-circle bg-primary">
-                                                    <span id="years-lived">0</span>
-                                                </div>
-                                                <h5 class="mt-2 mb-0">Years</h5>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-lg-3 mb-3">
-                                            <div class="time-metric-container text-center">
-                                                <div class="time-metric-circle bg-success">
-                                                    <span id="months-lived">0</span>
-                                                </div>
-                                                <h5 class="mt-2 mb-0">Months</h5>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-lg-3 mb-3">
-                                            <div class="time-metric-container text-center">
-                                                <div class="time-metric-circle bg-warning">
-                                                    <span id="weeks-lived">0</span>
-                                                </div>
-                                                <h5 class="mt-2 mb-0">Weeks</h5>
-                                            </div>
-                                        </div>
-                                        <div class="col-6 col-lg-3 mb-3">
-                                            <div class="time-metric-container text-center">
-                                                <div class="time-metric-circle bg-danger">
-                                                    <span id="days-lived">0</span>
-                                                </div>
-                                                <h5 class="mt-2 mb-0">Days</h5>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Progress bars -->
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span>Hours Lived</span>
-                                            <span id="hours-lived">0</span>
-                                        </div>
-                                        <div class="progress" style="height: 10px;">
-                                            <div id="hours-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span>Minutes Lived</span>
-                                            <span id="minutes-lived">0</span>
-                                        </div>
-                                        <div class="progress" style="height: 10px;">
-                                            <div id="minutes-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-secondary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Life visualization graph -->
-                                    <div class="mt-4">
-                                        <h5 class="mb-3">Your Life Visualization</h5>
-                                        <canvas id="lifeChart" width="400" height="200"></canvas>
-                                    </div>
-                                    
-                                    <!-- Real-time counter -->
-                                    <div class="text-center mt-4">
-                                        <h3>Your Life Counter</h3>
-                                        <div class="time-counter-display">
-                                            <div class="counter-unit">
-                                                <span id="counter-days">0</span>
-                                                <small>days</small>
-                                            </div>
-                                            <div class="counter-separator">:</div>
-                                            <div class="counter-unit">
-                                                <span id="counter-hours">00</span>
-                                                <small>hours</small>
-                                            </div>
-                                            <div class="counter-separator">:</div>
-                                            <div class="counter-unit">
-                                                <span id="counter-minutes">00</span>
-                                                <small>min</small>
-                                            </div>
-                                            <div class="counter-separator">:</div>
-                                            <div class="counter-unit">
-                                                <span id="counter-seconds">00</span>
-                                                <small>sec</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="mb-4">
+                            <div class="form-text">
+                                <?php if ($birthday_data): ?>
+                                Current birthday: <strong><?php echo date('F j, Y', strtotime($birthday_data['birthday'])); ?></strong>
+                                <?php else: ?>
+                                No birthday set.
+                                <?php endif; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
-                    </div>
+                        
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                            <a href="../dashboard.php" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-accent">Save Birthday</button>
+                        </div>
+                    </form>
                     
-                    <?php if ($birthday_data): ?>
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2" style="color: var(--accent-color);"></i>The Value of Your Time</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h4 class="mb-3">Your Time is Precious</h4>
-                                            <p>Time is the most valuable resource God has given you. Unlike money, once time is spent, it cannot be earned back. Each second that passes is a gift and an opportunity.</p>
-                                            
-                                            <h5 class="mt-4">What Can You Do Today?</h5>
-                                            <ul class="timeline">
-                                                <li class="timeline-item">
-                                                    <div class="timeline-marker"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">Prioritize what matters</h6>
-                                                        <p>Make a list of your priorities, with God at the center. Ask yourself if your daily activities align with these priorities.</p>
-                                                    </div>
-                                                </li>
-                                                <li class="timeline-item">
-                                                    <div class="timeline-marker"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">Eliminate time wasters</h6>
-                                                        <p>Identify activities that drain your time without adding value. Replace them with activities that draw you closer to God and your goals.</p>
-                                                    </div>
-                                                </li>
-                                                <li class="timeline-item">
-                                                    <div class="timeline-marker"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">Start with prayer</h6>
-                                                        <p>Begin each day by dedicating your time to God. Ask for wisdom to use your hours in a way that honors Him.</p>
-                                                    </div>
-                                                </li>
-                                                <li class="timeline-item">
-                                                    <div class="timeline-marker"></div>
-                                                    <div class="timeline-content">
-                                                        <h6 class="mb-1">End with reflection</h6>
-                                                        <p>Before sleeping, reflect on how you used your time. Thank God for the day and seek His guidance for tomorrow.</p>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="card mb-4 border-0 bg-light">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">Drawing Closer to God</h5>
-                                                    <p class="card-text">Time spent with God is never wasted. Here are ways to deepen your relationship with Christ:</p>
-                                                    <div class="d-flex mb-3">
-                                                        <div class="flex-shrink-0">
-                                                            <i class="fas fa-bible text-primary fa-2x"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1 ms-3">
-                                                            <h5>Daily Scripture</h5>
-                                                            <p class="mb-0">Dedicate time each day to read and meditate on God's Word. Start with 10 minutes and increase gradually.</p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex mb-3">
-                                                        <div class="flex-shrink-0">
-                                                            <i class="fas fa-praying-hands text-success fa-2x"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1 ms-3">
-                                                            <h5>Consistent Prayer</h5>
-                                                            <p class="mb-0">Develop a regular prayer routine. Keep a prayer journal to track God's answers and your spiritual growth.</p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex mb-3">
-                                                        <div class="flex-shrink-0">
-                                                            <i class="fas fa-church text-danger fa-2x"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1 ms-3">
-                                                            <h5>Community</h5>
-                                                            <p class="mb-0">Join a Bible study or youth group. Surrounding yourself with fellow believers strengthens your faith.</p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex">
-                                                        <div class="flex-shrink-0">
-                                                            <i class="fas fa-hands-helping text-warning fa-2x"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1 ms-3">
-                                                            <h5>Service</h5>
-                                                            <p class="mb-0">Use your time to serve others. Jesus taught that the greatest among you will be your servant (Matthew 23:11).</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="card border-0 bg-primary text-white">
-                                                <div class="card-body">
-                                                    <h4 class="card-title">Remember</h4>
-                                                    <p class="card-text">"But seek first the kingdom of God and his righteousness, and all these things will be added to you." - Matthew 6:33</p>
-                                                    <p class="card-text mb-0">When you prioritize your relationship with God, everything else—including your studies—falls into proper perspective.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <hr class="my-4">
+                    
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Why is this important?</strong> Your birthday helps calculate how much time you've lived - in years, months, weeks, and days. This creates awareness of time's value and encourages you to use each day meaningfully for your GCSE studies.
                     </div>
-                    <?php endif; ?>
-                </div>
-                <div class="card-footer text-center">
-                    <a href="../dashboard.php" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                    </a>
                 </div>
             </div>
+            
+            <?php if ($birthday_data): ?>
+            <!-- Life Metrics Visualization -->
+            <div class="card feature-card mt-4">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2" style="color: var(--accent-color);"></i>Your Life Metrics</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Live Time Counter -->
+                    <div class="live-counter-wrapper text-center p-3 mb-4">
+                        <div id="time-counter" class="display-5 fw-bold"></div>
+                        <div class="mt-2 text-muted">
+                            <span class="badge bg-primary">London Time</span>
+                            <small id="counter-label">days : hours : minutes : seconds</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Number Visualizations -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle years-circle">
+                                <div class="metric-number" id="years-lived">-</div>
+                                <div class="metric-label">Years</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle months-circle">
+                                <div class="metric-number" id="months-lived">-</div>
+                                <div class="metric-label">Months</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle weeks-circle">
+                                <div class="metric-number" id="weeks-lived">-</div>
+                                <div class="metric-label">Weeks</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="metric-circle days-circle">
+                                <div class="metric-number" id="days-lived">-</div>
+                                <div class="metric-label">Days</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hours & Minutes Progress -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Hours</h5>
+                                    <div class="badge bg-accent" id="hours-lived">-</div>
+                                </div>
+                                <div class="progress hours-progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="hours-progress" role="progressbar" style="width: 0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="metric-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Minutes</h5>
+                                    <div class="badge bg-accent" id="minutes-lived">-</div>
+                                </div>
+                                <div class="progress minutes-progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="minutes-progress" role="progressbar" style="width: 0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time Unit Comparison -->
+                    <div class="time-comparison-wrapper mb-4">
+                        <h5 class="mb-3">Your Life in Different Time Units</h5>
+                        <div class="time-comparison-chart">
+                            <div class="chart-bar-container">
+                                <div class="chart-label">Decades</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar decades-bar" id="decades-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="chart-value" id="decades-value">-</div>
+                            </div>
+                            <div class="chart-bar-container">
+                                <div class="chart-label">Years</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar years-bar" id="years-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="chart-value" id="years-value">-</div>
+                            </div>
+                            <div class="chart-bar-container">
+                                <div class="chart-label">Months</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar months-bar" id="months-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="chart-value" id="months-value">-</div>
+                            </div>
+                            <div class="chart-bar-container">
+                                <div class="chart-label">Weeks</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar weeks-bar" id="weeks-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="chart-value" id="weeks-value">-</div>
+                            </div>
+                            <div class="chart-bar-container">
+                                <div class="chart-label">Days</div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar days-bar" id="days-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="chart-value" id="days-value">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Life Percentage -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Life Percentage</h5>
+                                    <p class="text-muted small">Based on average life expectancy of 80 years</p>
+                                    <div class="progress mt-2 mb-2" style="height: 30px;">
+                                        <div class="progress-bar bg-accent progress-bar-striped" id="life-progress" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                    </div>
+                                    <div class="text-center" id="life-percentage-text">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card metric-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">GCSE Focus Time</h5>
+                                    <div class="row time-value-row">
+                                        <div class="col">
+                                            <div class="time-value" id="hours-per-day">-</div>
+                                            <div class="time-label">hours/day</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="time-value" id="days-per-month">-</div>
+                                            <div class="time-label">days/month</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="time-value" id="precious-hours">-</div>
+                                            <div class="time-label">precious hours</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CSS for visualizations -->
+            <style>
+                .live-counter-wrapper {
+                    background-color: #343a40;
+                    color: white;
+                    border-radius: 10px;
+                    margin-bottom: 15px;
+                }
+                
+                #time-counter {
+                    font-family: 'Courier New', monospace;
+                    letter-spacing: 2px;
+                }
+                
+                .metric-circle {
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0 auto;
+                    color: white;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    transition: transform 0.3s;
+                }
+                
+                .metric-circle:hover {
+                    transform: scale(1.05);
+                }
+                
+                .years-circle { background: linear-gradient(135deg, #3498db, #2980b9); }
+                .months-circle { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+                .weeks-circle { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+                .days-circle { background: linear-gradient(135deg, #f39c12, #d35400); }
+                
+                .metric-number {
+                    font-size: 24px;
+                    font-weight: bold;
+                    line-height: 1.2;
+                }
+                
+                .metric-label {
+                    font-size: 14px;
+                    opacity: 0.9;
+                }
+                
+                .metric-card {
+                    padding: 15px;
+                    border-radius: 10px;
+                    background-color: white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    height: 100%;
+                }
+                
+                .hours-progress .progress-bar {
+                    background-color: #3498db;
+                }
+                
+                .minutes-progress .progress-bar {
+                    background-color: #e74c3c;
+                }
+                
+                .time-comparison-chart {
+                    margin: 20px 0;
+                }
+                
+                .chart-bar-container {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+                
+                .chart-label {
+                    width: 80px;
+                    font-size: 14px;
+                    text-align: right;
+                    padding-right: 10px;
+                }
+                
+                .chart-bar-bg {
+                    flex-grow: 1;
+                    height: 25px;
+                    background-color: #f1f1f1;
+                    border-radius: 4px;
+                    overflow: hidden;
+                }
+                
+                .chart-bar {
+                    height: 100%;
+                    transition: width 1s ease-in-out;
+                }
+                
+                .decades-bar { background-color: #9b59b6; }
+                .years-bar { background-color: #3498db; }
+                .months-bar { background-color: #e74c3c; }
+                .weeks-bar { background-color: #2ecc71; }
+                .days-bar { background-color: #f39c12; }
+                
+                .chart-value {
+                    width: 60px;
+                    text-align: right;
+                    padding-left: 10px;
+                    font-weight: bold;
+                }
+                
+                .time-value-row {
+                    display: flex;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+                
+                .time-value {
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #3498db;
+                }
+                
+                .time-label {
+                    font-size: 12px;
+                    color: #7f8c8d;
+                }
+                
+                @media (max-width: 767px) {
+                    .metric-circle {
+                        width: 100px;
+                        height: 100px;
+                    }
+                    
+                    .metric-number {
+                        font-size: 20px;
+                    }
+                }
+            </style>
+            
+            <!-- JavaScript for calculations and visualizations -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Get birth date
+                    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
+                    
+                    // Update metrics initially
+                    updateLifeMetrics(birthDate);
+                    
+                    // Update every second
+                    setInterval(function() {
+                        updateLifeMetrics(birthDate);
+                    }, 1000);
+                    
+                    // Life metrics calculation and visualization
+                    function updateLifeMetrics(birthDate) {
+                        // Get current date/time in London time zone
+                        const now = new Date();
+                        const londonOptions = { timeZone: 'Europe/London' };
+                        
+                        // Get London time components as strings
+                        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
+                        // Parse London time back to Date object
+                        const londonTime = new Date(londonTimeStr);
+                        
+                        // Calculate diff in milliseconds
+                        const diffMs = londonTime - birthDate;
+                        
+                        // Calculate various time units
+                        const totalSeconds = Math.floor(diffMs / 1000);
+                        const totalMinutes = Math.floor(totalSeconds / 60);
+                        const totalHours = Math.floor(totalMinutes / 60);
+                        const totalDays = Math.floor(totalHours / 24);
+                        const totalWeeks = Math.floor(totalDays / 7);
+                        const totalMonths = Math.floor(totalDays / 30.4375);
+                        const years = Math.floor(totalDays / 365.25);
+                        const decades = Math.floor(years / 10);
+                        
+                        // For the live counter display
+                        const days = Math.floor(totalDays % 365.25);
+                        const hours = Math.floor(totalHours % 24);
+                        const minutes = Math.floor(totalMinutes % 60);
+                        const seconds = Math.floor(totalSeconds % 60);
+                        
+                        // Format with leading zeros
+                        const formattedDays = String(days).padStart(3, '0');
+                        const formattedHours = String(hours).padStart(2, '0');
+                        const formattedMinutes = String(minutes).padStart(2, '0');
+                        const formattedSeconds = String(seconds).padStart(2, '0');
+                        
+                        // Update live counter
+                        document.getElementById('time-counter').textContent = 
+                            `${formattedDays}:${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+                        
+                        // Update main metrics
+                        document.getElementById('years-lived').textContent = formatNumber(years);
+                        document.getElementById('months-lived').textContent = formatNumber(totalMonths);
+                        document.getElementById('weeks-lived').textContent = formatNumber(totalWeeks);
+                        document.getElementById('days-lived').textContent = formatNumber(totalDays);
+                        
+                        // Update hours and minutes with progress
+                        document.getElementById('hours-lived').textContent = formatNumber(totalHours);
+                        document.getElementById('hours-progress').style.width = `${(hours/24)*100}%`;
+                        
+                        document.getElementById('minutes-lived').textContent = formatNumber(totalMinutes);
+                        document.getElementById('minutes-progress').style.width = `${(minutes/60)*100}%`;
+                        
+                        // Update time unit comparison
+                        document.getElementById('decades-value').textContent = formatNumber(decades);
+                        document.getElementById('decades-bar').style.width = `${Math.min(decades*10, 100)}%`;
+                        
+                        document.getElementById('years-value').textContent = formatNumber(years);
+                        document.getElementById('years-bar').style.width = `${Math.min(years, 100)}%`;
+                        
+                        document.getElementById('months-value').textContent = formatNumber(totalMonths);
+                        document.getElementById('months-bar').style.width = `${Math.min(totalMonths/12, 100)}%`;
+                        
+                        document.getElementById('weeks-value').textContent = formatNumber(totalWeeks);
+                        document.getElementById('weeks-bar').style.width = `${Math.min(totalWeeks/520, 100)}%`;
+                        
+                        document.getElementById('days-value').textContent = formatNumber(totalDays);
+                        document.getElementById('days-bar').style.width = `${Math.min(totalDays/3650, 100)}%`;
+                        
+                        // Life percentage (based on 80 years)
+                        const lifePercentage = (years / 80) * 100;
+                        document.getElementById('life-progress').style.width = `${lifePercentage}%`;
+                        document.getElementById('life-progress').textContent = `${lifePercentage.toFixed(2)}%`;
+                        document.getElementById('life-percentage-text').textContent = 
+                            `You've lived ${lifePercentage.toFixed(2)}% of an 80-year life expectancy`;
+                        
+                        // GCSE focus time values
+                        document.getElementById('hours-per-day').textContent = '8';
+                        document.getElementById('days-per-month').textContent = '30';
+                        document.getElementById('precious-hours').textContent = formatNumber(totalDays * 8);
+                    }
+                    
+                    // Helper for formatting large numbers with commas
+                    function formatNumber(num) {
+                        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    }
+                });
+            </script>
+            <?php else: ?>
+            <div class="alert alert-warning mt-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Please set your birthday above to see your life metrics.
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
-
-<!-- Custom styles for the time report page -->
-<style>
-/* Time Metrics Circles */
-.time-metric-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    position: relative;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transition: all 0.3s ease;
-}
-
-.time-metric-circle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-}
-
-/* Counter Display */
-.time-counter-display {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 15px;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
-}
-
-.counter-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 60px;
-}
-
-.counter-unit span {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--accent-color);
-}
-
-.counter-unit small {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.counter-separator {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--accent-color);
-    margin: 0 5px;
-    align-self: flex-start;
-}
-
-/* Timeline styles */
-.timeline {
-    position: relative;
-    padding-left: 35px;
-    list-style: none;
-}
-
-.timeline-item {
-    position: relative;
-    padding-bottom: 1.5rem;
-}
-
-.timeline-item:last-child {
-    padding-bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -35px;
-    top: 4px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background-color: var(--accent-color);
-    box-shadow: 0 0 0 4px rgba(205, 175, 86, 0.2);
-}
-
-.timeline:before {
-    content: '';
-    position: absolute;
-    left: -27px;
-    top: 0;
-    height: 100%;
-    width: 2px;
-    background-color: rgba(205, 175, 86, 0.2);
-}
-
-/* Blockquote styles */
-.blockquote {
-    border-left: 4px solid var(--accent-color);
-    padding-left: 1rem;
-}
-
-.blockquote p {
-    font-style: italic;
-    font-size: 1.1rem;
-}
-
-.blockquote-footer {
-    font-weight: bold;
-    color: var(--accent-color);
-}
-
-/* Card hover effect */
-.card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle validating days in month when month changes
-    const monthSelect = document.getElementById('month');
-    const daySelect = document.getElementById('day');
-    const yearSelect = document.getElementById('year');
-    
-    function updateDays() {
-        const month = parseInt(monthSelect.value);
-        const year = parseInt(yearSelect.value);
-        const day = parseInt(daySelect.value);
-        
-        // Get number of days in selected month/year
-        const daysInMonth = new Date(year, month, 0).getDate();
-        
-        // Store current selection
-        const currentDay = daySelect.value;
-        
-        // Clear and rebuild day options
-        daySelect.innerHTML = '';
-        
-        for (let i = 1; i <= daysInMonth; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            // Restore selection if valid, otherwise default to last day of month
-            if (i === parseInt(currentDay) && i <= daysInMonth) {
-                option.selected = true;
-            }
-            daySelect.appendChild(option);
-        }
-        
-        // If selected day is more than days in month, select the last day
-        if (day > daysInMonth) {
-            daySelect.value = daysInMonth;
-        }
-    }
-    
-    monthSelect.addEventListener('change', updateDays);
-    yearSelect.addEventListener('change', updateDays);
-    
-    // Initialize days for current month/year
-    updateDays();
-    
-    // Life metrics calculator
-    <?php if ($birthday_data): ?>
-    // Get birth date from PHP data
-    const birthDate = new Date('<?php echo $birthday_data['birthday']; ?>');
-    
-    // Function to calculate and update time metrics
-    function updateTimeMetrics() {
-        // Get current date/time in London time zone
-        const now = new Date();
-        const londonOptions = { timeZone: 'Europe/London' };
-        const londonTimeStr = now.toLocaleString('en-US', londonOptions);
-        const londonTime = new Date(londonTimeStr);
-        
-        // Calculate difference in milliseconds
-        const diffMs = londonTime - birthDate;
-        
-        // Convert to different time units
-        const years = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
-        const months = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
-        const weeks = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
-        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor(diffMs / (1000 * 60));
-        const seconds = Math.floor(diffMs / 1000);
-        
-        // Update DOM elements with calculated values
-        document.getElementById('years-lived').textContent = years.toLocaleString();
-        document.getElementById('months-lived').textContent = months.toLocaleString();
-        document.getElementById('weeks-lived').textContent = weeks.toLocaleString();
-        document.getElementById('days-lived').textContent = days.toLocaleString();
-        document.getElementById('hours-lived').textContent = hours.toLocaleString();
-        document.getElementById('minutes-lived').textContent = minutes.toLocaleString();
-        
-        // Update progress bars (using modulus to show current progress within the larger unit)
-        const hoursProgress = (hours % 24) / 24 * 100;
-        const minutesProgress = (minutes % 60) / 60 * 100;
-        
-        document.getElementById('hours-progress').style.width = `${hoursProgress}%`;
-        document.getElementById('hours-progress').setAttribute('aria-valuenow', hoursProgress);
-        
-        document.getElementById('minutes-progress').style.width = `${minutesProgress}%`;
-        document.getElementById('minutes-progress').setAttribute('aria-valuenow', minutesProgress);
-        
-        // Update live counter
-        const currentDays = days;
-        const currentHours = londonTime.getHours();
-        const currentMinutes = londonTime.getMinutes();
-        const currentSeconds = londonTime.getSeconds();
-        
-        document.getElementById('counter-days').textContent = currentDays.toLocaleString();
-        document.getElementById('counter-hours').textContent = currentHours.toString().padStart(2, '0');
-        document.getElementById('counter-minutes').textContent = currentMinutes.toString().padStart(2, '0');
-        document.getElementById('counter-seconds').textContent = currentSeconds.toString().padStart(2, '0');
-        
-        // Update chart data
-        if (window.lifeChart) {
-            window.lifeChart.data.datasets[0].data = [years, months - (years * 12), weeks - (months * 4.348), days - (weeks * 7)];
-            window.lifeChart.update();
-        }
-    }
-    
-    // Initialize Chart.js visualization
-    if (document.getElementById('lifeChart')) {
-        const ctx = document.getElementById('lifeChart').getContext('2d');
-        window.lifeChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Years', 'Extra Months', 'Extra Weeks', 'Extra Days'],
-                datasets: [{
-                    label: 'Your Life in Numbers',
-                    data: [0, 0, 0, 0], // Will be updated by updateTimeMetrics
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(40, 167, 69, 0.7)',
-                        'rgba(255, 193, 7, 0.7)',
-                        'rgba(220, 53, 69, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(40, 167, 69, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(220, 53, 69, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart'
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.raw;
-                                const label = context.dataset.label || '';
-                                return `${label}: ${value}`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Initial update
-    updateTimeMetrics();
-    
-    // Update every second
-    setInterval(updateTimeMetrics, 1000);
-    
-    // Manual refresh button
-    const refreshButton = document.getElementById('refreshTimeMetrics');
-    if (refreshButton) {
-        refreshButton.addEventListener('click', function() {
-            // Add rotation animation
-            this.classList.add('animate-refresh');
-            
-            // Trigger update
-            updateTimeMetrics();
-            
-            // Remove animation class after animation completes
-            setTimeout(() => {
-                this.classList.remove('animate-refresh');
-            }, 1000);
-        });
-    }
-    
-    // Add animation class for refresh button
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .animate-refresh {
-            animation: spin 1s linear;
-        }
-    `;
-    document.head.appendChild(styleElement);
-    <?php endif; ?>
-});
-</script>
 
 <?php
 include '../../includes/footer.php';
