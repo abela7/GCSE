@@ -456,12 +456,7 @@ $accent_color = "#cdaf56";
         </div>
     </div>
 
-    <!-- Use the Floating Action Button to access features -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <p class="text-muted">Dashboard simplified for clarity. Use the <i class="fas fa-plus"></i> button in the bottom right corner to access quick actions and features.</p>
-        </div>
-    </div>
+   
 </div>
 
 <!-- Floating Action Button (FAB) -->
