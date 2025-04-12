@@ -316,7 +316,7 @@ while ($current_habit = $result->fetch_assoc()) {
         
         // Content
         $mail->isHTML(true);
-        $mail->Subject = $current_habit['title'] . " is due";
+        $mail->Subject = $current_habit['title'];
         $mail->Body = $emailContent;
         $mail->AltBody = strip_tags(str_replace(['<br>', '</div>'], "\n", $emailContent));
         

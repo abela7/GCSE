@@ -175,7 +175,7 @@ class HabitNotification extends EmailTemplate {
                 
                 <div class="section">
                     <div class="habit-card current">
-                        <div class="habit-title">Time to complete your habit: ' . htmlspecialchars($data['current_task']['title']) . '</div>
+                        <div class="habit-title">' . htmlspecialchars($data['current_task']['title']) . '</div>
                         ' . ($data['current_task']['description'] ? '<div class="habit-description">' . htmlspecialchars($data['current_task']['description']) . '</div>' : '') . '
                         <div class="habit-details">
                             <div class="habit-detail-item priority-' . htmlspecialchars($data['current_task']['priority']) . '">
