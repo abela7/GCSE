@@ -295,482 +295,161 @@ try {
     </div>
 
     <?php if ($analysis && isset($analysis['status']) && $analysis['status'] === 'success'): ?>
-        <!-- Time Period Selector -->
-        <div class="time-period-selector">
-            <button class="time-period-btn active" data-period="daily">Daily Insights</button>
-            <button class="time-period-btn" data-period="weekly">Weekly Insights</button>
-            <button class="time-period-btn" data-period="monthly">Monthly Insights</button>
-        </div>
-
-        <!-- Daily Insights -->
-        <div class="time-period-content active" id="daily-insights">
-            <?php if (!empty($analysis['insights']['daily'])): ?>
-                <div class="row">
-                    <div class="col">
-                        <div class="insight-card">
-                            <div class="card-body">
-                                <div class="mood-emoji">
-                                    <?php 
-                                    $mood_level = $analysis['insights']['daily']['mood_level'] ?? null;
-                                    $mood_scale = $analyzer->getMoodScale();
-                                    if ($mood_level !== null && isset($mood_scale[$mood_level])) {
-                                        echo $mood_scale[$mood_level]['emoji'];
-                                    } else {
-                                        echo '❓'; // Default emoji for unknown mood
-                                    }
-                                    ?>
-                                </div>
-                                <h3 class="h4 mb-3">Today's Mood: <?php echo htmlspecialchars($analysis['insights']['daily']['mood'] ?? 'Unknown'); ?></h3>
-                                <p class="insight-description">
-                                    <?php echo htmlspecialchars($analysis['insights']['daily']['description'] ?? 'No description available.'); ?>
-                                </p>
-                                <div class="suggestion-box">
-                                    <h4 class="h5 mb-3">Suggestions</h4>
-                                    <p><?php echo htmlspecialchars($analysis['insights']['daily']['suggestions'] ?? 'No suggestions available.'); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="no-data-message">
-                    <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
-                    <h4>No mood data available for today</h4>
-                    <p class="text-muted">Start tracking your mood to see insights</p>
-                    <a href="entry.php" class="btn btn-accent create-entry-btn">
-                        <i class="fas fa-plus me-1"></i>Create Mood Entry
-                    </a>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Weekly Insights -->
-        <div class="time-period-content" id="weekly-insights" style="display: none;">
-            <?php if ($analysis && isset($analysis['insights']['weekly']) && !empty($analysis['insights']['weekly']['mood'])): ?>
-                <div class="row">
-                    <div class="col">
-                        <div class="insight-card">
-                            <div class="card-body">
-                                <div class="mood-emoji">
-                                    <?php 
-                                    $mood_level = $analysis['insights']['weekly']['mood_level'] ?? null;
-                                    $mood_scale = $analyzer->getMoodScale();
-                                    if ($mood_level !== null && isset($mood_scale[$mood_level])) {
-                                        echo $mood_scale[$mood_level]['emoji'];
-                                    } else {
-                                        echo '❓'; // Default emoji for unknown mood
-                                    }
-                                    ?>
-                                </div>
-                                <h3 class="h4 mb-3">This Week's Mood: <?php echo htmlspecialchars($analysis['insights']['weekly']['mood'] ?? 'Unknown'); ?></h3>
-                                <p class="insight-description">
-                                    <?php echo htmlspecialchars($analysis['insights']['weekly']['description'] ?? 'No description available.'); ?>
-                                </p>
-                                <div class="suggestion-box">
-                                    <h4 class="h5 mb-3">Suggestions</h4>
-                                    <p><?php echo htmlspecialchars($analysis['insights']['weekly']['suggestions'] ?? 'No suggestions available.'); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="no-data-message">
-                    <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
-                    <h4>No mood data available for this week</h4>
-                    <p class="text-muted">Start tracking your mood to see insights</p>
-                    <a href="entry.php" class="btn btn-accent create-entry-btn">
-                        <i class="fas fa-plus me-1"></i>Create Mood Entry
-                    </a>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Monthly Insights -->
-        <div class="time-period-content" id="monthly-insights" style="display: none;">
-            <?php if (!empty($analysis['insights']['monthly'])): ?>
-                <div class="row">
-                    <div class="col">
-                        <div class="insight-card">
-                            <div class="card-body">
-                                <div class="mood-emoji">
-                                    <?php 
-                                    $mood_level = $analysis['insights']['monthly']['mood_level'] ?? null;
-                                    $mood_scale = $analyzer->getMoodScale();
-                                    if ($mood_level !== null && isset($mood_scale[$mood_level])) {
-                                        echo $mood_scale[$mood_level]['emoji'];
-                                    } else {
-                                        echo '❓'; // Default emoji for unknown mood
-                                    }
-                                    ?>
-                                </div>
-                                <h3 class="h4 mb-3">This Month's Mood: <?php echo htmlspecialchars($analysis['insights']['monthly']['mood'] ?? 'Unknown'); ?></h3>
-                                <p class="insight-description">
-                                    <?php echo htmlspecialchars($analysis['insights']['monthly']['description'] ?? 'No description available.'); ?>
-                                </p>
-                                <div class="suggestion-box">
-                                    <h4 class="h5 mb-3">Suggestions</h4>
-                                    <p><?php echo htmlspecialchars($analysis['insights']['monthly']['suggestions'] ?? 'No suggestions available.'); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php else: ?>
-                <div class="no-data-message">
-                    <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
-                    <h4>No mood data available for this month</h4>
-                    <p class="text-muted">Start tracking your mood to see insights</p>
-                    <a href="entry.php" class="btn btn-accent create-entry-btn">
-                        <i class="fas fa-plus me-1"></i>Create Mood Entry
-                    </a>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Pattern Analysis Section - Single Instance -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="insight-card">
-                    <div class="card-body">
-                        <h3 class="h4 mb-4">
-                            <i class="fas fa-brain me-2" style="color: var(--accent-color);"></i>Pattern Analysis
-                        </h3>
-                        <?php if (!empty($analysis['insights']['patterns'])): ?>
-                            <div class="row">
-                                <!-- Time Patterns -->
-                                <?php if (!empty($analysis['insights']['patterns']['time'])): ?>
-                                    <div class="col-md-6 mb-4">
-                                        <h4 class="h5 mb-3">Time of Day Patterns</h4>
-                                        <?php foreach ($analysis['insights']['patterns']['time'] as $pattern): ?>
-                                            <div class="pattern-card">
-                                                <div class="pattern-title">
-                                                    <?php 
-                                                    $icon = '';
-                                                    switch($pattern['title']) {
-                                                        case 'Morning': $icon = '🌅'; break;
-                                                        case 'Afternoon': $icon = '☀️'; break;
-                                                        case 'Evening': $icon = '🌆'; break;
-                                                        case 'Night': $icon = '🌙'; break;
-                                                        default: $icon = '⏰';
-                                                    }
-                                                    echo $icon . ' ' . htmlspecialchars($pattern['title']); 
-                                                    ?>
-                                                </div>
-                                                <div class="pattern-description"><?php echo htmlspecialchars($pattern['description'] ?? 'No description available.'); ?></div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <!-- Tag Patterns -->
-                                <?php if (!empty($analysis['insights']['patterns']['tags'])): ?>
-                                    <div class="col-md-6 mb-4">
-                                        <h4 class="h5 mb-3">Activity Impact</h4>
-                                        <?php foreach ($analysis['insights']['patterns']['tags'] as $pattern): ?>
-                                            <div class="pattern-card">
-                                                <div class="pattern-title">
-                                                    <i class="fas fa-tag me-2"></i><?php echo htmlspecialchars($pattern['title'] ?? 'Unknown Tag'); ?>
-                                                </div>
-                                                <div class="pattern-description"><?php echo htmlspecialchars($pattern['description'] ?? 'No description available.'); ?></div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <!-- Mood Consistency -->
-                                <?php if (!empty($analysis['insights']['patterns']['consistency'])): ?>
-                                    <div class="col-md-6 mb-4">
-                                        <h4 class="h5 mb-3">Mood Consistency</h4>
-                                        <div class="pattern-card">
-                                            <?php 
-                                            $consistency = $analysis['insights']['patterns']['consistency'];
-                                            $icon = '';
-                                            $level = $consistency['level'] ?? 'unknown';
-                                            switch($level) {
-                                                case 'very_stable': $icon = '🎯'; break;
-                                                case 'stable': $icon = '⚖️'; break;
-                                                case 'moderate': $icon = '🔄'; break;
-                                                case 'volatile': $icon = '📊'; break;
-                                                default: $icon = '📈';
-                                            }
-                                            ?>
-                                            <div class="pattern-title"><?php echo $icon . ' ' . ucfirst(str_replace('_', ' ', $level)); ?></div>
-                                            <div class="pattern-description"><?php echo htmlspecialchars($consistency['description'] ?? 'No description available.'); ?></div>
-                                            <?php if (!empty($consistency['metrics'])): ?>
-                                                <div class="pattern-metrics">
-                                                    <?php 
-                                                    echo "Stable days: {$consistency['metrics']['stable_days']}/{$consistency['metrics']['total_days']}";
-                                                    if (isset($consistency['metrics']['mood_swings']) && $consistency['metrics']['mood_swings'] > 0) {
-                                                        echo " • Significant mood changes: {$consistency['metrics']['mood_swings']}";
-                                                    }
-                                                    ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-
-                                <!-- Improvement Areas -->
-                                <?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
-                                    <div class="col-md-6 mb-4">
-                                        <h4 class="h5 mb-3">Areas for Improvement</h4>
-                                        <div class="pattern-card">
-                                            <div class="pattern-title"><i class="fas fa-bullseye me-2"></i>Focus Areas</div>
-                                            <div class="pattern-description">
-                                                <ul class="list-unstyled mb-0">
-                                                    <?php foreach ($analysis['insights']['patterns']['improvement_areas']['suggestions'] as $suggestion): ?>
-                                                        <li class="mb-2">
-                                                            <i class="fas fa-arrow-right me-2"></i><?php echo htmlspecialchars($suggestion); ?>
-                                                        </li>
-                                                    <?php endforeach; ?>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="text-center py-4">
-                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Not enough data to analyze patterns yet.</p>
-                                <p class="small text-muted">Continue tracking your mood to see patterns emerge.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Improvement Areas Summary - Remove if redundant -->
-        <?php if (!empty($analysis['insights']['patterns']['improvement_areas']['areas'])): ?>
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="improvement-card">
-                        <h3 class="improvement-title">Areas for Improvement</h3>
-                        <ul class="improvement-list">
-                            <?php foreach ($analysis['insights']['patterns']['improvement_areas']['areas'] as $area): ?>
-                                <li class="improvement-item">
-                                    <i class="fas fa-lightbulb"></i>
-                                    <span><?php echo htmlspecialchars($area); ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
-
+        <?php $hl = $analysis['highlights']; ?>
         <!-- Highlights Section -->
-        <?php if ($analysis && isset($analysis['insights']['highlights'])): ?>
-            <?php $hl = $analysis['insights']['highlights']; ?>
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="insight-card p-4" style="background: #f7f9fa;">
-                        <h3 class="h4 mb-3" style="color: var(--accent-color);"><i class="fas fa-star me-2"></i>Highlights</h3>
-                        <div class="row g-3">
-                            <div class="col-md-3 col-6">
-                                <div class="text-center">
-                                    <div class="fw-bold">Best Day</div>
-                                    <div class="fs-4">
-                                        <?php if ($hl['best_day']): ?>
-                                            <?php echo date('M j, Y', strtotime($hl['best_day']['date'])); ?>
-                                            <span class="ms-1">(<?php echo $hl['best_day']['avg_mood']; ?>)</span>
-                                        <?php else: ?>
-                                            -
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-center">
-                                    <div class="fw-bold">Worst Day</div>
-                                    <div class="fs-4">
-                                        <?php if ($hl['worst_day']): ?>
-                                            <?php echo date('M j, Y', strtotime($hl['worst_day']['date'])); ?>
-                                            <span class="ms-1">(<?php echo $hl['worst_day']['avg_mood']; ?>)</span>
-                                        <?php else: ?>
-                                            -
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-center">
-                                    <div class="fw-bold">Current Streak</div>
-                                    <div class="fs-4"> <?php echo $hl['streak']; ?> days </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-center">
-                                    <div class="fw-bold">Progress</div>
-                                    <div class="fs-4">
-                                        <?php if ($hl['progress'] !== null): ?>
-                                            <?php echo ($hl['progress'] >= 0 ? '+' : '') . $hl['progress']; ?>
-                                        <?php else: ?>
-                                            -
-                                        <?php endif; ?>
-                                    </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="insight-card p-4" style="background: #f7f9fa;">
+                    <h3 class="h4 mb-3" style="color: var(--accent-color);"><i class="fas fa-star me-2"></i>Highlights</h3>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="fw-bold">Best Day (Feeling)</div>
+                                <div class="fs-4">
+                                    <?php if ($hl['best_day']): ?>
+                                        <?php echo date('M j, Y', strtotime($hl['best_day']['date'])); ?>
+                                        <span class="ms-1">(<?php echo $hl['best_day']['avg_mood']; ?>)</span>
+                                    <?php else: ?>-
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="row g-3 mt-3">
-                            <div class="col-md-4 col-12">
-                                <div class="fw-bold">Best Time of Day</div>
-                                <div><?php echo ucfirst($hl['best_time']); ?></div>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <div class="fw-bold">Top Positive Activities</div>
-                                <div>
-                                    <?php foreach ($hl['top_tags'] as $tag): ?>
-                                        <span class="badge bg-success me-1 mb-1"><?php echo htmlspecialchars($tag['title'] ?? $tag['tag'] ?? ''); ?></span>
-                                    <?php endforeach; ?>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="fw-bold">Lowest Day (Feeling)</div>
+                                <div class="fs-4">
+                                    <?php if ($hl['worst_day']): ?>
+                                        <?php echo date('M j, Y', strtotime($hl['worst_day']['date'])); ?>
+                                        <span class="ms-1">(<?php echo $hl['worst_day']['avg_mood']; ?>)</span>
+                                    <?php else: ?>-
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                            <div class="col-md-4 col-12">
-                                <div class="fw-bold">Top Negative Activities</div>
-                                <div>
-                                    <?php foreach ($hl['bottom_tags'] as $tag): ?>
-                                        <span class="badge bg-danger me-1 mb-1"><?php echo htmlspecialchars($tag['title'] ?? $tag['tag'] ?? ''); ?></span>
-                                    <?php endforeach; ?>
-                                </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="fw-bold">Positive Streak</div>
+                                <div class="fs-4"> <?php echo $hl['positive_streak']; ?> days </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="text-center">
+                                <div class="fw-bold">Negative Streak</div>
+                                <div class="fs-4"> <?php echo $hl['negative_streak']; ?> days </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-4 col-12">
+                            <div class="fw-bold">Progress</div>
+                            <div><?php echo ($hl['progress'] >= 0 ? '+' : '') . $hl['progress']; ?> (from first to last day)</div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <div class="fw-bold">Top Positive Activities</div>
+                            <div>
+                                <?php foreach ($hl['top_positive_tags'] as $tag): ?>
+                                    <span class="badge bg-success me-1 mb-1"><?php echo htmlspecialchars($tag); ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <div class="fw-bold">Top Negative Activities</div>
+                            <div>
+                                <?php foreach ($hl['top_negative_tags'] as $tag): ?>
+                                    <span class="badge bg-danger me-1 mb-1"><?php echo htmlspecialchars($tag); ?></span>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
 
         <!-- Mood Trend Chart -->
-        <?php if ($analysis && isset($analysis['insights']['highlights']['trend_data'])): ?>
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="insight-card p-4">
-                        <h3 class="h5 mb-3"><i class="fas fa-chart-line me-2"></i>Mood Trend</h3>
-                        <canvas id="moodTrendChart" height="80"></canvas>
-                    </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="insight-card p-4">
+                    <h3 class="h5 mb-3"><i class="fas fa-chart-line me-2"></i>Mood Trend</h3>
+                    <canvas id="moodTrendChart" height="80"></canvas>
                 </div>
             </div>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var ctx = document.getElementById('moodTrendChart').getContext('2d');
-                var trendData = <?php echo json_encode($analysis['insights']['highlights']['trend_data']); ?>;
-                var labels = trendData.map(function(d) { return d.date; });
-                var data = trendData.map(function(d) { return d.avg_mood; });
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Mood',
-                            data: data,
-                            borderColor: '#cdaf56',
-                            backgroundColor: 'rgba(205,175,86,0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 3
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                min: 1,
-                                max: 5,
-                                ticks: {
-                                    stepSize: 1
-                                }
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('moodTrendChart').getContext('2d');
+            var trendData = <?php echo json_encode($hl['trend_data']); ?>;
+            var labels = trendData.map(function(d) { return d.date; });
+            var data = trendData.map(function(d) { return d.avg_mood; });
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mood',
+                        data: data,
+                        borderColor: '#cdaf56',
+                        backgroundColor: 'rgba(205,175,86,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            min: 1,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
                             }
-                        },
-                        plugins: {
-                            legend: { display: false }
                         }
-                    }
-                });
-            });
-            </script>
-        <?php endif; ?>
-
-        <!-- Tag Impact Bar Chart -->
-        <?php if ($analysis && isset($analysis['insights']['highlights']['top_tags']) && count($analysis['insights']['highlights']['top_tags']) > 0): ?>
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="insight-card p-4">
-                        <h3 class="h5 mb-3"><i class="fas fa-tags me-2"></i>Top Activities Impact</h3>
-                        <canvas id="tagImpactChart" height="60"></canvas>
-                    </div>
-                </div>
-            </div>
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var ctx = document.getElementById('tagImpactChart').getContext('2d');
-                var tags = <?php echo json_encode(array_map(function($t){return $t['title'] ?? $t['tag'] ?? '';}, $analysis['insights']['highlights']['top_tags'])); ?>;
-                var moods = <?php echo json_encode(array_map(function($t){return $t['avg_mood'] ?? 0;}, $analysis['insights']['highlights']['top_tags'])); ?>;
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: tags,
-                        datasets: [{
-                            label: 'Avg Mood',
-                            data: moods,
-                            backgroundColor: '#20c997'
-                        }]
                     },
-                    options: {
-                        indexAxis: 'y',
-                        scales: {
-                            x: {
-                                min: 1,
-                                max: 5,
-                                ticks: { stepSize: 1 }
-                            }
-                        },
-                        plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false }
                     }
-                });
+                }
             });
-            </script>
-        <?php endif; ?>
+        });
+        </script>
 
         <!-- Time of Day Impact Bar Chart -->
-        <?php if ($analysis && isset($analysis['data']['time_patterns'])): ?>
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="insight-card p-4">
-                        <h3 class="h5 mb-3"><i class="fas fa-clock me-2"></i>Time of Day Impact</h3>
-                        <canvas id="timeImpactChart" height="60"></canvas>
-                    </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="insight-card p-4">
+                    <h3 class="h5 mb-3"><i class="fas fa-clock me-2"></i>Time of Day Impact</h3>
+                    <canvas id="timeImpactChart" height="60"></canvas>
                 </div>
             </div>
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var ctx = document.getElementById('timeImpactChart').getContext('2d');
-                var periods = <?php echo json_encode(array_keys($analysis['data']['time_patterns'])); ?>;
-                var moods = <?php echo json_encode(array_map(function($t){return $t['avg_mood'] ?? 0;}, $analysis['data']['time_patterns'])); ?>;
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: periods,
-                        datasets: [{
-                            label: 'Avg Mood',
-                            data: moods,
-                            backgroundColor: '#ffc107'
-                        }]
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('timeImpactChart').getContext('2d');
+            var periods = <?php echo json_encode(array_keys($hl['time_impact'])); ?>;
+            var moods = <?php echo json_encode(array_values($hl['time_impact'])); ?>;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: periods,
+                    datasets: [{
+                        label: 'Avg Mood',
+                        data: moods,
+                        backgroundColor: '#ffc107'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            min: 1,
+                            max: 5,
+                            ticks: { stepSize: 1 }
+                        }
                     },
-                    options: {
-                        scales: {
-                            y: {
-                                min: 1,
-                                max: 5,
-                                ticks: { stepSize: 1 }
-                            }
-                        },
-                        plugins: { legend: { display: false } }
-                    }
-                });
+                    plugins: { legend: { display: false } }
+                }
             });
-            </script>
-        <?php endif; ?>
+        });
+        </script>
     <?php else: ?>
         <div class="no-data-message">
             <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>

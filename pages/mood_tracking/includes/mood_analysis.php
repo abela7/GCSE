@@ -17,126 +17,92 @@ class MoodAnalyzer {
 
     public function analyzeMoodPatterns($start_date, $end_date) {
         try {
-            // Get daily, weekly, and monthly mood data
-            $daily_data = $this->analyzeDailyMood($start_date, $end_date);
-            $weekly_data = $this->analyzeWeeklyMood($start_date, $end_date);
-            $monthly_data = $this->analyzeMonthlyMood($start_date, $end_date);
-
-            // Get time patterns and tag correlations
-            $time_patterns = $this->analyzeTimeOfDayPatterns($start_date, $end_date);
-            $tag_correlations = $this->analyzeTagCorrelations($start_date, $end_date);
-            $consistency = $this->analyzeMoodConsistency($start_date, $end_date);
-            $improvement_areas = $this->identifyImprovementAreas($start_date, $end_date);
-
-            // NEW: Mood trend data for chart
-            $trend_data = [];
-            foreach ($daily_data as $date => $info) {
-                $trend_data[] = [
-                    'date' => $date,
-                    'avg_mood' => $info['avg_mood']
+            // Get all mood entries for the period
+            $entries = $this->getAllMoodEntries($start_date, $end_date);
+            if (empty($entries)) {
+                return [
+                    'status' => 'no_data',
+                    'message' => 'No mood entries found for the selected period.'
                 ];
             }
 
-            // NEW: Best/worst day
+            // Group by day and aggregate by mood level
+            $moods_by_day = [];
+            foreach ($entries as $entry) {
+                $day = date('Y-m-d', strtotime($entry['date']));
+                if (!isset($moods_by_day[$day])) {
+                    $moods_by_day[$day] = [];
+                }
+                $moods_by_day[$day][] = $entry['mood_level'];
+            }
+
+            // Calculate daily average mood (feeling)
+            $daily_moods = [];
+            foreach ($moods_by_day as $day => $levels) {
+                $daily_moods[$day] = round(array_sum($levels) / count($levels), 2);
+            }
+
+            // Find best/worst feeling days
             $best_day = null;
             $worst_day = null;
-            foreach ($daily_data as $date => $info) {
-                if ($best_day === null || $info['avg_mood'] > $daily_data[$best_day]['avg_mood']) {
-                    $best_day = $date;
-                }
-                if ($worst_day === null || $info['avg_mood'] < $daily_data[$worst_day]['avg_mood']) {
-                    $worst_day = $date;
-                }
+            foreach ($daily_moods as $day => $avg) {
+                if ($best_day === null || $avg > $daily_moods[$best_day]) $best_day = $day;
+                if ($worst_day === null || $avg < $daily_moods[$worst_day]) $worst_day = $day;
             }
 
-            // NEW: Streak calculation
-            $streak = 0;
-            $max_streak = 0;
-            $current_streak = 0;
-            $dates = array_keys($daily_data);
-            sort($dates);
+            // Streaks: consecutive days with mood >= 4 (positive) or <= 2 (negative)
+            $sorted_days = array_keys($daily_moods);
+            sort($sorted_days);
+            $pos_streak = $neg_streak = $cur_pos = $cur_neg = 0;
             $prev = null;
-            foreach ($dates as $date) {
-                if ($prev && (strtotime($date) - strtotime($prev) == 86400)) {
-                    $current_streak++;
+            foreach ($sorted_days as $day) {
+                if ($prev && (strtotime($day) - strtotime($prev) == 86400)) {
+                    if ($daily_moods[$day] >= 4) $cur_pos++; else $cur_pos = 0;
+                    if ($daily_moods[$day] <= 2) $cur_neg++; else $cur_neg = 0;
                 } else {
-                    $current_streak = 1;
+                    $cur_pos = ($daily_moods[$day] >= 4) ? 1 : 0;
+                    $cur_neg = ($daily_moods[$day] <= 2) ? 1 : 0;
                 }
-                if ($current_streak > $max_streak) $max_streak = $current_streak;
-                $prev = $date;
+                if ($cur_pos > $pos_streak) $pos_streak = $cur_pos;
+                if ($cur_neg > $neg_streak) $neg_streak = $cur_neg;
+                $prev = $day;
             }
-            $streak = $current_streak;
 
-            // NEW: Progress calculation (compare first and last mood)
+            // Progress: difference between first and last mood
             $progress = null;
-            if (count($trend_data) > 1) {
-                $progress = round($trend_data[count($trend_data)-1]['avg_mood'] - $trend_data[0]['avg_mood'], 2);
+            if (count($daily_moods) > 1) {
+                $progress = round(end($daily_moods) - reset($daily_moods), 2);
             }
 
-            // NEW: Top positive/negative tags
-            $top_tags = [];
-            $bottom_tags = [];
-            if (!empty($tag_correlations)) {
-                $sorted_tags = $tag_correlations;
-                usort($sorted_tags, function($a, $b) {
-                    return $b['avg_mood'] <=> $a['avg_mood'];
-                });
-                $top_tags = array_slice($sorted_tags, 0, 3);
-                $bottom_tags = array_slice(array_reverse($sorted_tags), 0, 3);
+            // Mood trend data for chart
+            $trend_data = [];
+            foreach ($daily_moods as $date => $avg) {
+                $trend_data[] = [ 'date' => $date, 'avg_mood' => $avg ];
             }
 
-            // NEW: Best/worst time of day
-            $best_time = null;
-            $worst_time = null;
-            foreach ($time_patterns as $period => $data) {
-                if (!isset($data['avg_mood'])) continue;
-                if ($best_time === null || $data['avg_mood'] > $time_patterns[$best_time]['avg_mood']) {
-                    $best_time = $period;
-                }
-                if ($worst_time === null || $data['avg_mood'] < $time_patterns[$worst_time]['avg_mood']) {
-                    $worst_time = $period;
-                }
-            }
+            // Top activities for best/worst moods
+            $best_tags = $this->getTopTagsForMood($entries, 4, 5);
+            $worst_tags = $this->getTopTagsForMood($entries, 1, 2);
 
-            // Generate insights
-            $insights = [
-                'daily' => $this->generateDailyInsights($daily_data),
-                'weekly' => $this->generateWeeklyInsights($weekly_data),
-                'monthly' => $this->generateMonthlyInsights($monthly_data),
-                'patterns' => [
-                    'time' => $this->generateTimePatternInsights($time_patterns),
-                    'tags' => $this->generateTagInsights($tag_correlations),
-                    'consistency' => $consistency,
-                    'improvement_areas' => [
-                        'areas' => $improvement_areas,
-                        'suggestions' => $this->generateImprovementSuggestions($improvement_areas)
-                    ]
-                ],
-                // NEW: Highlights
-                'highlights' => [
-                    'trend_data' => $trend_data,
-                    'best_day' => $best_day ? ['date' => $best_day, 'avg_mood' => $daily_data[$best_day]['avg_mood']] : null,
-                    'worst_day' => $worst_day ? ['date' => $worst_day, 'avg_mood' => $daily_data[$worst_day]['avg_mood']] : null,
-                    'streak' => $streak,
-                    'max_streak' => $max_streak,
-                    'progress' => $progress,
-                    'top_tags' => $top_tags,
-                    'bottom_tags' => $bottom_tags,
-                    'best_time' => $best_time,
-                    'worst_time' => $worst_time
-                ]
+            // Time of day impact (by mood)
+            $time_impact = $this->getTimeOfDayImpact($entries);
+
+            // Compose highlights
+            $highlights = [
+                'best_day' => $best_day ? ['date' => $best_day, 'avg_mood' => $daily_moods[$best_day]] : null,
+                'worst_day' => $worst_day ? ['date' => $worst_day, 'avg_mood' => $daily_moods[$worst_day]] : null,
+                'positive_streak' => $pos_streak,
+                'negative_streak' => $neg_streak,
+                'progress' => $progress,
+                'trend_data' => $trend_data,
+                'top_positive_tags' => $best_tags,
+                'top_negative_tags' => $worst_tags,
+                'time_impact' => $time_impact
             ];
 
             return [
                 'status' => 'success',
-                'insights' => $insights,
-                'data' => [
-                    'daily' => $daily_data,
-                    'weekly' => $weekly_data,
-                    'monthly' => $monthly_data,
-                    'time_patterns' => $time_patterns,
-                    'tag_correlations' => $tag_correlations
-                ]
+                'highlights' => $highlights
             ];
         } catch (Exception $e) {
             return [
@@ -144,6 +110,57 @@ class MoodAnalyzer {
                 'message' => 'Error analyzing mood patterns: ' . $e->getMessage()
             ];
         }
+    }
+
+    // Helper: Get all mood entries for a period
+    private function getAllMoodEntries($start_date, $end_date) {
+        $query = "SELECT m.*, GROUP_CONCAT(t.name) as tags FROM mood_entries m LEFT JOIN mood_entry_tags met ON m.id = met.mood_entry_id LEFT JOIN mood_tags t ON met.tag_id = t.id WHERE DATE(m.date) BETWEEN ? AND ? GROUP BY m.id ORDER BY m.date ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $entries = [];
+        while ($row = $result->fetch_assoc()) {
+            $row['tags'] = $row['tags'] ? explode(',', $row['tags']) : [];
+            $entries[] = $row;
+        }
+        return $entries;
+    }
+
+    // Helper: Get top tags for a mood range
+    private function getTopTagsForMood($entries, $min, $max) {
+        $tag_counts = [];
+        foreach ($entries as $entry) {
+            if ($entry['mood_level'] >= $min && $entry['mood_level'] <= $max) {
+                foreach ($entry['tags'] as $tag) {
+                    if (!$tag) continue;
+                    if (!isset($tag_counts[$tag])) $tag_counts[$tag] = 0;
+                    $tag_counts[$tag]++;
+                }
+            }
+        }
+        arsort($tag_counts);
+        return array_slice(array_keys($tag_counts), 0, 5);
+    }
+
+    // Helper: Get time of day impact by mood
+    private function getTimeOfDayImpact($entries) {
+        $periods = ['Morning'=>0,'Afternoon'=>0,'Evening'=>0,'Night'=>0];
+        $counts = ['Morning'=>0,'Afternoon'=>0,'Evening'=>0,'Night'=>0];
+        foreach ($entries as $entry) {
+            $hour = (int)date('H', strtotime($entry['date']));
+            if ($hour >= 5 && $hour < 12) $period = 'Morning';
+            elseif ($hour >= 12 && $hour < 17) $period = 'Afternoon';
+            elseif ($hour >= 17 && $hour < 21) $period = 'Evening';
+            else $period = 'Night';
+            $periods[$period] += $entry['mood_level'];
+            $counts[$period]++;
+        }
+        $result = [];
+        foreach ($periods as $p => $sum) {
+            $result[$p] = $counts[$p] ? round($sum / $counts[$p], 2) : null;
+        }
+        return $result;
     }
 
     private function analyzeDailyMood($start_date, $end_date) {
