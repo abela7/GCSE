@@ -28,6 +28,76 @@ class MoodAnalyzer {
             $consistency = $this->analyzeMoodConsistency($start_date, $end_date);
             $improvement_areas = $this->identifyImprovementAreas($start_date, $end_date);
 
+            // NEW: Mood trend data for chart
+            $trend_data = [];
+            foreach ($daily_data as $date => $info) {
+                $trend_data[] = [
+                    'date' => $date,
+                    'avg_mood' => $info['avg_mood']
+                ];
+            }
+
+            // NEW: Best/worst day
+            $best_day = null;
+            $worst_day = null;
+            foreach ($daily_data as $date => $info) {
+                if ($best_day === null || $info['avg_mood'] > $daily_data[$best_day]['avg_mood']) {
+                    $best_day = $date;
+                }
+                if ($worst_day === null || $info['avg_mood'] < $daily_data[$worst_day]['avg_mood']) {
+                    $worst_day = $date;
+                }
+            }
+
+            // NEW: Streak calculation
+            $streak = 0;
+            $max_streak = 0;
+            $current_streak = 0;
+            $dates = array_keys($daily_data);
+            sort($dates);
+            $prev = null;
+            foreach ($dates as $date) {
+                if ($prev && (strtotime($date) - strtotime($prev) == 86400)) {
+                    $current_streak++;
+                } else {
+                    $current_streak = 1;
+                }
+                if ($current_streak > $max_streak) $max_streak = $current_streak;
+                $prev = $date;
+            }
+            $streak = $current_streak;
+
+            // NEW: Progress calculation (compare first and last mood)
+            $progress = null;
+            if (count($trend_data) > 1) {
+                $progress = round($trend_data[count($trend_data)-1]['avg_mood'] - $trend_data[0]['avg_mood'], 2);
+            }
+
+            // NEW: Top positive/negative tags
+            $top_tags = [];
+            $bottom_tags = [];
+            if (!empty($tag_correlations)) {
+                $sorted_tags = $tag_correlations;
+                usort($sorted_tags, function($a, $b) {
+                    return $b['avg_mood'] <=> $a['avg_mood'];
+                });
+                $top_tags = array_slice($sorted_tags, 0, 3);
+                $bottom_tags = array_slice(array_reverse($sorted_tags), 0, 3);
+            }
+
+            // NEW: Best/worst time of day
+            $best_time = null;
+            $worst_time = null;
+            foreach ($time_patterns as $period => $data) {
+                if (!isset($data['avg_mood'])) continue;
+                if ($best_time === null || $data['avg_mood'] > $time_patterns[$best_time]['avg_mood']) {
+                    $best_time = $period;
+                }
+                if ($worst_time === null || $data['avg_mood'] < $time_patterns[$worst_time]['avg_mood']) {
+                    $worst_time = $period;
+                }
+            }
+
             // Generate insights
             $insights = [
                 'daily' => $this->generateDailyInsights($daily_data),
@@ -41,6 +111,19 @@ class MoodAnalyzer {
                         'areas' => $improvement_areas,
                         'suggestions' => $this->generateImprovementSuggestions($improvement_areas)
                     ]
+                ],
+                // NEW: Highlights
+                'highlights' => [
+                    'trend_data' => $trend_data,
+                    'best_day' => $best_day ? ['date' => $best_day, 'avg_mood' => $daily_data[$best_day]['avg_mood']] : null,
+                    'worst_day' => $worst_day ? ['date' => $worst_day, 'avg_mood' => $daily_data[$worst_day]['avg_mood']] : null,
+                    'streak' => $streak,
+                    'max_streak' => $max_streak,
+                    'progress' => $progress,
+                    'top_tags' => $top_tags,
+                    'bottom_tags' => $bottom_tags,
+                    'best_time' => $best_time,
+                    'worst_time' => $worst_time
                 ]
             ];
 

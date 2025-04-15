@@ -560,6 +560,217 @@ try {
                 </div>
             </div>
         <?php endif; ?>
+
+        <!-- Highlights Section -->
+        <?php if ($analysis && isset($analysis['insights']['highlights'])): ?>
+            <?php $hl = $analysis['insights']['highlights']; ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="insight-card p-4" style="background: #f7f9fa;">
+                        <h3 class="h4 mb-3" style="color: var(--accent-color);"><i class="fas fa-star me-2"></i>Highlights</h3>
+                        <div class="row g-3">
+                            <div class="col-md-3 col-6">
+                                <div class="text-center">
+                                    <div class="fw-bold">Best Day</div>
+                                    <div class="fs-4">
+                                        <?php if ($hl['best_day']): ?>
+                                            <?php echo date('M j, Y', strtotime($hl['best_day']['date'])); ?>
+                                            <span class="ms-1">(<?php echo $hl['best_day']['avg_mood']; ?>)</span>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="text-center">
+                                    <div class="fw-bold">Worst Day</div>
+                                    <div class="fs-4">
+                                        <?php if ($hl['worst_day']): ?>
+                                            <?php echo date('M j, Y', strtotime($hl['worst_day']['date'])); ?>
+                                            <span class="ms-1">(<?php echo $hl['worst_day']['avg_mood']; ?>)</span>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="text-center">
+                                    <div class="fw-bold">Current Streak</div>
+                                    <div class="fs-4"> <?php echo $hl['streak']; ?> days </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="text-center">
+                                    <div class="fw-bold">Progress</div>
+                                    <div class="fs-4">
+                                        <?php if ($hl['progress'] !== null): ?>
+                                            <?php echo ($hl['progress'] >= 0 ? '+' : '') . $hl['progress']; ?>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-4 col-12">
+                                <div class="fw-bold">Best Time of Day</div>
+                                <div><?php echo ucfirst($hl['best_time']); ?></div>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <div class="fw-bold">Top Positive Activities</div>
+                                <div>
+                                    <?php foreach ($hl['top_tags'] as $tag): ?>
+                                        <span class="badge bg-success me-1 mb-1"><?php echo htmlspecialchars($tag['title'] ?? $tag['tag'] ?? ''); ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <div class="fw-bold">Top Negative Activities</div>
+                                <div>
+                                    <?php foreach ($hl['bottom_tags'] as $tag): ?>
+                                        <span class="badge bg-danger me-1 mb-1"><?php echo htmlspecialchars($tag['title'] ?? $tag['tag'] ?? ''); ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Mood Trend Chart -->
+        <?php if ($analysis && isset($analysis['insights']['highlights']['trend_data'])): ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="insight-card p-4">
+                        <h3 class="h5 mb-3"><i class="fas fa-chart-line me-2"></i>Mood Trend</h3>
+                        <canvas id="moodTrendChart" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var ctx = document.getElementById('moodTrendChart').getContext('2d');
+                var trendData = <?php echo json_encode($analysis['insights']['highlights']['trend_data']); ?>;
+                var labels = trendData.map(function(d) { return d.date; });
+                var data = trendData.map(function(d) { return d.avg_mood; });
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Mood',
+                            data: data,
+                            borderColor: '#cdaf56',
+                            backgroundColor: 'rgba(205,175,86,0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                min: 1,
+                                max: 5,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            });
+            </script>
+        <?php endif; ?>
+
+        <!-- Tag Impact Bar Chart -->
+        <?php if ($analysis && isset($analysis['insights']['highlights']['top_tags']) && count($analysis['insights']['highlights']['top_tags']) > 0): ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="insight-card p-4">
+                        <h3 class="h5 mb-3"><i class="fas fa-tags me-2"></i>Top Activities Impact</h3>
+                        <canvas id="tagImpactChart" height="60"></canvas>
+                    </div>
+                </div>
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var ctx = document.getElementById('tagImpactChart').getContext('2d');
+                var tags = <?php echo json_encode(array_map(function($t){return $t['title'] ?? $t['tag'] ?? '';}, $analysis['insights']['highlights']['top_tags'])); ?>;
+                var moods = <?php echo json_encode(array_map(function($t){return $t['avg_mood'] ?? 0;}, $analysis['insights']['highlights']['top_tags'])); ?>;
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: tags,
+                        datasets: [{
+                            label: 'Avg Mood',
+                            data: moods,
+                            backgroundColor: '#20c997'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                min: 1,
+                                max: 5,
+                                ticks: { stepSize: 1 }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            });
+            </script>
+        <?php endif; ?>
+
+        <!-- Time of Day Impact Bar Chart -->
+        <?php if ($analysis && isset($analysis['data']['time_patterns'])): ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="insight-card p-4">
+                        <h3 class="h5 mb-3"><i class="fas fa-clock me-2"></i>Time of Day Impact</h3>
+                        <canvas id="timeImpactChart" height="60"></canvas>
+                    </div>
+                </div>
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var ctx = document.getElementById('timeImpactChart').getContext('2d');
+                var periods = <?php echo json_encode(array_keys($analysis['data']['time_patterns'])); ?>;
+                var moods = <?php echo json_encode(array_map(function($t){return $t['avg_mood'] ?? 0;}, $analysis['data']['time_patterns'])); ?>;
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: periods,
+                        datasets: [{
+                            label: 'Avg Mood',
+                            data: moods,
+                            backgroundColor: '#ffc107'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                min: 1,
+                                max: 5,
+                                ticks: { stepSize: 1 }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            });
+            </script>
+        <?php endif; ?>
     <?php else: ?>
         <div class="no-data-message">
             <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
