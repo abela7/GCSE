@@ -355,15 +355,15 @@ function getMoodTags($category = null) {
         $result = $stmt->get_result();
         
         $tags = [];
-        // Access hardcoded lists from GLOBALS
-        $positive_tags = $GLOBALS['positive_mood_tags'];
-        $negative_tags = $GLOBALS['negative_mood_tags'];
+        // Access hardcoded lists from GLOBALS, ensuring they exist
+        $positive_tags = isset($GLOBALS['positive_mood_tags']) && is_array($GLOBALS['positive_mood_tags']) ? $GLOBALS['positive_mood_tags'] : [];
+        $negative_tags = isset($GLOBALS['negative_mood_tags']) && is_array($GLOBALS['negative_mood_tags']) ? $GLOBALS['negative_mood_tags'] : [];
         
         while ($row = $result->fetch_assoc()) {
             // Add impact_type based on hardcoded lists
-            if (in_array($row['name'], $positive_tags)) {
+            if (!empty($positive_tags) && in_array($row['name'], $positive_tags)) {
                 $row['impact_type'] = 'positive';
-            } elseif (in_array($row['name'], $negative_tags)) {
+            } elseif (!empty($negative_tags) && in_array($row['name'], $negative_tags)) {
                 $row['impact_type'] = 'negative';
             } else {
                 $row['impact_type'] = 'neutral';

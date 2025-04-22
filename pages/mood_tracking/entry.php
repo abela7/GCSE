@@ -274,8 +274,10 @@ if ($all_tags) {
                                     'neutral' => ['title' => '↔️ Other Factors', 'icon' => 'fa-meh']
                                 ];
                                 
+                                $has_tags_to_display = false; // Flag to check if any group has tags
                                 foreach ($tag_groups_config as $type => $config):
                                     if (!empty($grouped_tags[$type])):
+                                        $has_tags_to_display = true;
                                 ?>
                                 <div class="tag-group tag-group-<?php echo $type; ?>">
                                     <div class="tag-group-title">
@@ -297,11 +299,15 @@ if ($all_tags) {
                                 <?php 
                                     endif;
                                 endforeach; 
+                                
+                                // Only show hidden input if there were tags displayed
+                                if ($has_tags_to_display):
                                 ?>
                                 <input type="hidden" id="selected_tags" name="tags" value="<?php echo implode(',', $selected_tag_ids); ?>">
-                            <?php else: ?>
+                                <?php endif; ?>
+                            <?php else: // This case means getMoodTags returned empty or false ?>
                                 <div class="alert alert-secondary">
-                                    No tags available. <a href="settings.php" class="alert-link">Create some tags</a> to categorize your mood entries.
+                                    No active tags found. <a href="settings.php" class="alert-link">Manage or create tags</a> to categorize your entries.
                                 </div>
                             <?php endif; ?>
                         </div>

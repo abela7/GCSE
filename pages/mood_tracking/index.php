@@ -519,8 +519,10 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                     'neutral' => ['title' => '↔️ Other', 'icon' => 'fa-meh']
                                 ];
                                 
+                                $has_quick_tags_to_display = false; // Flag
                                 foreach ($tag_groups_config_quick as $type => $config):
                                     if (!empty($grouped_tags_quick[$type])):
+                                        $has_quick_tags_to_display = true;
                                 ?>
                                 <div class="tag-group tag-group-<?php echo $type; ?>">
                                     <div class="tag-group-title">
@@ -541,8 +543,8 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                                     endif;
                                 endforeach; 
                                 ?>
-                            <?php else: ?>
-                                <p class="text-muted small">No tags available.</p>
+                            <?php else: // This case means getMoodTags returned empty or false ?>
+                                <p class="text-muted small">No active tags found. <a href="settings.php">Manage tags</a>.</p>
                             <?php endif; ?>
                         </div>
                         <!-- Hidden input for selected tags (if needed by JS) -->
