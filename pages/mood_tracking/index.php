@@ -15,18 +15,6 @@ $recent_entries = array_slice($recent_entries, 0, 5);
 // Get all tags for filtering
 $all_tags = getMoodTags();
 
-// Group tags by impact type for Quick Entry
-$grouped_tags_quick = [
-    'positive' => [],
-    'negative' => [],
-    'neutral' => []
-];
-if ($all_tags) {
-    foreach ($all_tags as $tag) {
-        $grouped_tags_quick[$tag['impact_type']][] = $tag;
-    }
-}
-
 // Get current month for calendar
 $current_month = date('Y-m');
 $month_entries = getMoodEntriesByDay($current_month);
@@ -437,26 +425,6 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
         font-size: 1.2rem !important;
     }
 }
-
-/* Tag Group Styles - Copied from entry.php for consistency */
-.tag-group {
-    margin-bottom: 1.5rem;
-    padding: 0.75rem; /* Slightly less padding for widget */
-    border-radius: 8px;
-    width: 100%;
-}
-.tag-group-positive { background-color: rgba(40, 167, 69, 0.1); border-left: 3px solid #28a745; }
-.tag-group-negative { background-color: rgba(220, 53, 69, 0.1); border-left: 3px solid #dc3545; }
-.tag-group-neutral { background-color: rgba(108, 117, 125, 0.1); border-left: 3px solid #6c757d; }
-
-.tag-group-title {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
-}
-.tag-group-positive .tag-group-title { color: #28a745; }
-.tag-group-negative .tag-group-title { color: #dc3545; }
-.tag-group-neutral .tag-group-title { color: #6c757d; }
 </style>
 
 <div class="container-fluid py-4">
@@ -486,70 +454,29 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
                         <i class="fas fa-bolt me-2"></i>Quick Mood Entry
                         </h5>
                     <div class="quick-entry-container">
-                        <div class="emoji-selector mb-3">
-                            <?php 
-                            $mood_scale = [ // Use consistent scale
-                                1 => ['label' => 'Very Bad', 'emoji' => '😢'],
-                                2 => ['label' => 'Bad', 'emoji' => '😕'],
-                                3 => ['label' => 'Neutral', 'emoji' => '😐'],
-                                4 => ['label' => 'Good', 'emoji' => '🙂'],
-                                5 => ['label' => 'Very Good', 'emoji' => '😄']
-                            ];
-                            foreach ($mood_scale as $level => $mood):
-                            ?>
-                            <div class="emoji-option" data-value="<?php echo $level; ?>" onclick="selectQuickMood(this, <?php echo $level; ?>)" title="<?php echo $mood['label']; ?>">
-                                <?php echo $mood['emoji']; ?>
-                            </div>
-                            <?php endforeach; ?>
+                        <div class="emoji-selector">
+                            <div class="emoji-option" data-value="1" onclick="selectMood(this, 1)">😢</div>
+                            <div class="emoji-option" data-value="2" onclick="selectMood(this, 2)">😕</div>
+                            <div class="emoji-option" data-value="3" onclick="selectMood(this, 3)">😐</div>
+                            <div class="emoji-option" data-value="4" onclick="selectMood(this, 4)">🙂</div>
+                            <div class="emoji-option" data-value="5" onclick="selectMood(this, 5)">😄</div>
                         </div>
                         
                         <div class="form-group mb-3 w-100">
-                            <textarea class="form-control form-control-sm" id="quick_notes" rows="2" placeholder="Notes (optional)"></textarea>
-                        </div>
+                            <textarea class="form-control" id="quick_notes" rows="2" placeholder="How are you feeling? (optional)"></textarea>
+                    </div>
                     
-                        <!-- Grouped Tags for Quick Entry -->
-                        <div class="w-100 mb-3">
-                            <label class="form-label mb-2" style="font-size: 0.9rem;">What influenced your mood? (optional)</label>
-                            <?php if (!empty($all_tags)): ?>
-                                <?php 
-                                // Define groups and titles (can be centralized later)
-                                $tag_groups_config_quick = [
-                                    'positive' => ['title' => '😊 Positive', 'icon' => 'fa-smile'],
-                                    'negative' => ['title' => '😕 Negative', 'icon' => 'fa-frown'],
-                                    'neutral' => ['title' => '↔️ Other', 'icon' => 'fa-meh']
-                                ];
-                                
-                                $has_quick_tags_to_display = false; // Flag
-                                foreach ($tag_groups_config_quick as $type => $config):
-                                    if (!empty($grouped_tags_quick[$type])):
-                                        $has_quick_tags_to_display = true;
-                                ?>
-                                <div class="tag-group tag-group-<?php echo $type; ?>">
-                                    <div class="tag-group-title">
-                                        <i class="fas <?php echo $config['icon']; ?> me-1"></i><?php echo $config['title']; ?>
-                                    </div>
-                                    <div class="tag-selector" id="quick_tag_selector_<?php echo $type; ?>">
-                                        <?php foreach ($grouped_tags_quick[$type] as $tag): ?>
-                                            <div class="tag-option" 
-                                                 style="background-color: <?php echo htmlspecialchars($tag['color']); ?>"
-                                                 data-id="<?php echo $tag['id']; ?>"
-                                                 onclick="toggleQuickTag(this)">
-                                                <?php echo htmlspecialchars($tag['name']); ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
+                        <div class="tag-selector w-100" id="quick_tags">
+                            <?php foreach ($all_tags as $tag): ?>
+                                <div class="tag-option" 
+                                     style="background-color: <?php echo $tag['color']; ?>"
+                                     data-id="<?php echo $tag['id']; ?>"
+                                     onclick="toggleTag(this)">
+                                    <?php echo htmlspecialchars($tag['name']); ?>
                                 </div>
-                                <?php 
-                                    endif;
-                                endforeach; 
-                                ?>
-                            <?php else: // This case means getMoodTags returned empty or false ?>
-                                <p class="text-muted small">No active tags found. <a href="settings.php">Manage tags</a>.</p>
-                            <?php endif; ?>
-                        </div>
-                        <!-- Hidden input for selected tags (if needed by JS) -->
-                        <input type="hidden" id="quick_selected_tags">
-                        
+                            <?php endforeach; ?>
+                    </div>
+                    
                         <button type="button" class="btn btn-accent w-100" id="save_quick_entry" onclick="saveQuickEntry()" disabled>
                             <i class="fas fa-save me-1"></i>Save Mood
                         </button>
@@ -876,43 +803,51 @@ $stats = getMoodStatistics(date('Y-m-d', strtotime('-30 days')), date('Y-m-d'));
 </div>
 
 <script>
-// Variables to store selected mood and tags for Quick Entry
-let quickSelectedMood = null;
-let quickSelectedTags = new Set();
+// Variables to store selected mood and tags
+let selectedMood = null;
+let selectedTags = [];
 
-// Function to select mood in Quick Entry
-function selectQuickMood(element, value) {
-    document.querySelectorAll('#quickMoodForm .emoji-option').forEach(option => {
+// Function to select mood
+function selectMood(element, value) {
+    // Remove selected class from all options
+    document.querySelectorAll('.emoji-option').forEach(option => {
         option.classList.remove('selected');
     });
+    
+    // Add selected class to clicked option
     element.classList.add('selected');
-    quickSelectedMood = value;
-    document.getElementById('save_quick_entry').disabled = !quickSelectedMood;
+    
+    // Store selected mood
+    selectedMood = value;
+    
+    // Enable save button if mood is selected
+    document.getElementById('save_quick_entry').disabled = !selectedMood;
 }
 
-// Function to toggle tag selection in Quick Entry
-function toggleQuickTag(element) {
-    const tagId = element.dataset.id;
-    if (quickSelectedTags.has(tagId)) {
-        quickSelectedTags.delete(tagId);
+// Function to toggle tag selection
+function toggleTag(element) {
+    const tagId = parseInt(element.dataset.id);
+    
+    if (element.classList.contains('selected')) {
+                // Remove tag from selection
         element.classList.remove('selected');
-    } else {
-        quickSelectedTags.add(tagId);
+        selectedTags = selectedTags.filter(id => id !== tagId);
+            } else {
+                // Add tag to selection
         element.classList.add('selected');
-    }
-    // Update hidden input if needed, or just use the Set directly in saveQuickEntry
-    document.getElementById('quick_selected_tags').value = Array.from(quickSelectedTags).join(',');
+                selectedTags.push(tagId);
+            }
 }
 
 // Function to save quick entry
 function saveQuickEntry() {
-    if (!quickSelectedMood) {
+    if (!selectedMood) {
         alert('Please select a mood level');
             return;
         }
         
     const notes = document.getElementById('quick_notes').value;
-    const tags = Array.from(quickSelectedTags).join(',');
+    const tags = selectedTags.join(',');
     
     // Disable save button and show loading state
     const saveButton = document.getElementById('save_quick_entry');
@@ -937,8 +872,8 @@ function saveQuickEntry() {
                         option.classList.remove('selected');
                     });
                     document.getElementById('quick_notes').value = '';
-                    quickSelectedMood = null;
-                    quickSelectedTags.clear();
+                    selectedMood = null;
+                    selectedTags = [];
                     
                     // Show success message
                     alert('Mood entry saved successfully!');
@@ -968,7 +903,7 @@ function saveQuickEntry() {
         saveButton.disabled = false;
         saveButton.innerHTML = originalText;
     };
-    xhr.send('mood_level=' + quickSelectedMood + '&notes=' + encodeURIComponent(notes) + '&tags=' + tags);
+    xhr.send('mood_level=' + selectedMood + '&notes=' + encodeURIComponent(notes) + '&tags=' + tags);
 }
 
 // Function to view day entries
