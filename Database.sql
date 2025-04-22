@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 10, 2025 at 08:40 PM
+-- Generation Time: Apr 22, 2025 at 01:19 AM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -56,7 +56,7 @@ CREATE TABLE `access_assignments` (
 --
 
 INSERT INTO `access_assignments` (`id`, `unit_id`, `unit_overview`, `title`, `overview`, `question_text`, `guidance`, `word_limit`, `credits`, `due_date`, `description`, `status`, `created_at`, `updated_at`, `total_criteria`, `completed_criteria`, `progress_percentage`, `priority`, `estimated_hours`, `actual_hours`, `submitted_date`) VALUES
-(1, 10, 'Write a journal article that shows your understanding of AI, Machine Learning, and Deep Learning, including analysis of three current areas in deep learning.', 'AI, Machine Learning and Deep Learning', '<p><strong>The article should explain the concepts, compare types of AI and ML, discuss benefits and risks, and present three current research areas in Deep Learning. Stick to a journal-style format with Harvard references.</strong></p>', '<p>What does **Artificial Intelligence (AI)** mean? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n2. Explain the differences between: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial Narrow Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial General Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial Super Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n3. What are the **challenges** in achieving AI? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n4. Discuss **successes and failures** in AI. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n5. What is **Machine Learning (ML)**? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n6. Describe types of ML: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Supervised \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Unsupervised \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Reinforcement \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n7. What are the **uses and limitations** of ML? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n8. Compare **Machine Learning vs AI**. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n9. What is **Deep Learning**? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n10. What can/can\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'t Deep Learning currently do? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n11. Explore **Deep Learning architecture**. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n12. Research **3 current areas** in Deep Learning.</p>', NULL, 2000, 3, '2025-04-10', 'Understanding and implementing AI, ML, and DL concepts', 'in_progress', '2025-04-01 16:51:13', '2025-04-01 21:48:44', 12, 7, 58.00, 'high', 20, 0, NULL),
+(1, 10, 'Write a journal article that shows your understanding of AI, Machine Learning, and Deep Learning, including analysis of three current areas in deep learning.', 'AI, Machine Learning and Deep Learning', '<p><strong>The article should explain the concepts, compare types of AI and ML, discuss benefits and risks, and present three current research areas in Deep Learning. Stick to a journal-style format with Harvard references.</strong></p>', '<p>What does **Artificial Intelligence (AI)** mean? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n2. Explain the differences between: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial Narrow Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial General Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Artificial Super Intelligence \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n3. What are the **challenges** in achieving AI? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n4. Discuss **successes and failures** in AI. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n5. What is **Machine Learning (ML)**? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n6. Describe types of ML: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Supervised \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Unsupervised \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n - Reinforcement \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n7. What are the **uses and limitations** of ML? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n8. Compare **Machine Learning vs AI**. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n9. What is **Deep Learning**? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n10. What can/can\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'t Deep Learning currently do? \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n11. Explore **Deep Learning architecture**. \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n12. Research **3 current areas** in Deep Learning.</p>', NULL, 2000, 3, '2025-04-26', 'Understanding and implementing AI, ML, and DL concepts', 'not_started', '2025-04-01 16:51:13', '2025-04-15 19:01:40', 12, 0, 0.00, 'high', 20, 0, NULL),
 (10, NULL, NULL, 'The Safe and Ethical Use of Generative Artificial Intelligence', NULL, NULL, NULL, NULL, 3, '2025-04-20', NULL, 'not_started', '2025-04-01 21:09:10', '2025-04-01 21:09:10', 0, 0, 0.00, 'high', 0, 0, NULL),
 (11, NULL, NULL, 'Software Development', NULL, NULL, NULL, NULL, 6, '2025-05-12', NULL, 'not_started', '2025-04-01 21:09:10', '2025-04-01 21:09:10', 0, 0, 0.00, 'high', 48, 0, NULL),
 (12, NULL, NULL, 'Study Skills Portfolio Building', NULL, NULL, NULL, NULL, 0, '2025-06-16', NULL, 'not_started', '2025-04-01 21:09:10', '2025-04-01 21:09:10', 0, 0, 0.00, 'high', 16, 0, NULL),
@@ -128,11 +128,11 @@ INSERT INTO `assessment_criteria` (`id`, `assignment_id`, `criteria_code`, `crit
 (2, 1, 'AC 11.2', 'Explain the differences between: ANI, AGI, ASI', 'distinction', '2025-04-01 17:58:50'),
 (3, 1, 'AC 11.3', 'Discuss the challenges in achieving artificial intelligence', 'distinction', '2025-04-01 17:58:50'),
 (4, 1, 'AC 11.4', 'Analyse the successes and failures of artificial intelligence', 'distinction', '2025-04-01 17:58:50'),
-(5, 1, 'AC 21.1', 'Outline what \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"machine learning\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" means', 'distinction', '2025-04-01 17:58:50'),
+(5, 1, 'AC 21.1', 'Outline what \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"machine learning\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" means', 'distinction', '2025-04-01 17:58:50'),
 (6, 1, 'AC 21.2', 'Explain types of machine learning: supervised, unsupervised, reinforcement', 'distinction', '2025-04-01 17:58:50'),
 (7, 1, 'AC 21.3', 'Investigate the uses and limitations of machine learning', 'distinction', '2025-04-01 17:58:50'),
 (8, 1, 'AC 21.4', 'Examine the difference between AI and ML', 'distinction', '2025-04-01 17:58:50'),
-(9, 1, 'AC 31.1', 'Outline what \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"deep learning\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" means', 'distinction', '2025-04-01 17:58:50'),
+(9, 1, 'AC 31.1', 'Outline what \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"deep learning\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" means', 'distinction', '2025-04-01 17:58:50'),
 (10, 1, 'AC 31.2', 'Examine deep learning architecture', 'distinction', '2025-04-01 17:58:50'),
 (11, 1, 'AC 31.3', 'Discuss what deep learning can and cannot currently do', 'distinction', '2025-04-01 17:58:50'),
 (12, 1, 'AC 31.4', 'Investigate three current areas of research in deep learning', 'merit', '2025-04-01 17:58:50');
@@ -153,19 +153,6 @@ CREATE TABLE `assignment_criteria_progress` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `assignment_criteria_progress`
---
-
-INSERT INTO `assignment_criteria_progress` (`id`, `assignment_id`, `criteria_id`, `status`, `notes`, `completed_at`, `created_at`, `updated_at`) VALUES
-(74, 1, 1, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(75, 1, 2, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(76, 1, 3, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(77, 1, 4, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(78, 1, 5, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(79, 1, 6, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44'),
-(80, 1, 7, 'completed', NULL, '2025-04-01 21:48:44', '2025-04-01 20:48:44', '2025-04-01 20:48:44');
 
 -- --------------------------------------------------------
 
@@ -262,6 +249,29 @@ CREATE TABLE `assignment_resources` (
 INSERT INTO `assignment_resources` (`id`, `assignment_id`, `title`, `type`, `file_name`, `file_extension`, `file_size`, `file_path`, `upload_date`, `last_modified`, `is_required`, `download_count`, `mime_type`, `description`) VALUES
 (1, 1, 'Assignment Brief - AI and Machine Learning', 'word_doc', 'AI_ML_Assignment_Brief.docx', 'docx', 245000, 'uploads/assignments/unit11/AI_ML_Assignment_Brief.docx', '2025-04-01 16:37:41', '2025-04-01 16:37:41', 1, 0, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Official assignment brief document with all requirements and marking criteria'),
 (2, 1, 'Research Template', 'word_doc', 'AI_ML_Research_Template.docx', 'docx', 125000, 'uploads/assignments/unit11/AI_ML_Research_Template.docx', '2025-04-01 16:37:41', '2025-04-01 16:37:41', 1, 0, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Template for organizing research findings and analysis');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `birthday`
+--
+
+CREATE TABLE `birthday` (
+  `id` int(11) NOT NULL,
+  `day` int(2) NOT NULL,
+  `month` int(2) NOT NULL,
+  `year` int(4) NOT NULL,
+  `birthday` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `birthday`
+--
+
+INSERT INTO `birthday` (`id`, `day`, `month`, `year`, `birthday`, `created_at`, `updated_at`) VALUES
+(1, 15, 10, 1999, '1999-10-15', '2025-04-11 01:27:24', '2025-04-11 03:38:40');
 
 -- --------------------------------------------------------
 
@@ -650,24 +660,26 @@ CREATE TABLE `habits` (
 
 INSERT INTO `habits` (`id`, `category_id`, `point_rule_id`, `name`, `description`, `icon`, `target_time`, `current_points`, `total_completions`, `total_procrastinated`, `total_skips`, `current_streak`, `longest_streak`, `success_rate`, `is_active`, `created_at`, `updated_at`) VALUES
 (21, 1, 3, 'Morning Prayer', 'ተግተን እንፀልይ ወደ ፈተና እንዳንገባ!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-08 05:45:56', '2025-04-08 05:45:56'),
-(22, 3, 2, 'Meloxline Moring Time', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', -7, 0, 0, 1, 0, 0, 0.00, 1, '2025-04-08 05:47:04', '2025-04-10 03:06:10'),
+(22, 3, 2, 'Meloxline Moring Time', 'Consistency is the key!', 'fas fa-check-circle', '08:50:00', NULL, 0, 0, 0, 0, 0, NULL, 1, '2025-04-08 05:47:04', '2025-04-11 05:42:27'),
 (24, 3, 2, 'Meloxline Night Time', 'Do Not Give Up!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:38:02', '2025-04-10 02:38:02'),
-(25, 1, 2, 'Sigdet', 'የጦር መሳሪያህን አጥብቀህ ያዝ!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:39:03', '2025-04-10 02:39:03'),
-(26, 10, 1, '50x Push Up', 'Small change matters!', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:40:50', '2025-04-10 02:41:03'),
+(25, 1, 2, 'Sigdet', 'የጦር መሳሪያህን አጥብቀህ ያዝ!', 'fas fa-check-circle', '09:00:00', NULL, 0, 0, 0, 0, 0, NULL, 0, '2025-04-10 02:39:03', '2025-04-21 23:48:49'),
+(26, 10, 1, '50x Push Up', 'Small change matters!', 'fas fa-check-circle', '09:00:00', -3, 0, 0, 1, 0, 0, 0.00, 1, '2025-04-10 02:40:50', '2025-04-10 21:36:06'),
 (27, 1, 3, 'Read Bible', 'ለማመን ማወቅ ያስፈልጋል፣ እውቀትም እምነትን ይጨምራል!', 'fas fa-check-circle', '23:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:42:36', '2025-04-10 02:42:36'),
 (28, 1, 1, 'No Eating With Out Praying', 'ምግብን የሰጠህን አምላክ ሳታመሰግን አትብላ!', 'fas fa-check-circle', '12:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:46:51', '2025-04-10 02:46:51'),
 (29, 10, 1, 'No Toxic Gossip', 'ሃሜትን አስወግድ', 'fas fa-check-circle', '15:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:47:48', '2025-04-10 02:48:07'),
-(30, 10, 2, 'No Procrastination', 'ያለህ ጊዜ ዛሬ ነው፣ ለዛውም አሁን! Today or Never!', 'fas fa-check-circle', '10:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:49:30', '2025-04-10 02:49:30'),
+(30, 10, 2, 'No Procrastination', 'ያለህ ጊዜ ዛሬ ነው፣ ለዛውም አሁን! Today or Never!', 'fas fa-check-circle', '10:00:00', 10, 1, 0, 0, 1, 1, 100.00, 1, '2025-04-10 02:49:30', '2025-04-10 21:36:18'),
 (31, 10, 2, 'Avoid Over Using Social Media', 'Do Not Waste Your Time!', 'fas fa-check-circle', '14:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:50:34', '2025-04-10 02:52:17'),
 (32, 7, 2, 'No Junk Food', 'You are what you eat!', 'fas fa-check-circle', '23:30:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:53:21', '2025-04-10 02:53:21'),
 (33, 7, 1, 'No Soda Dring', 'You are what you eat!', 'fas fa-check-circle', '23:15:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:54:16', '2025-04-10 02:54:16'),
 (34, 3, 2, 'No Skipping Self-Care', 'Keep Cool!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:55:11', '2025-04-10 02:55:11'),
 (35, 10, 1, 'Avoid Unnecessary Shame', 'No Need To Be Shameful!', 'fas fa-check-circle', '23:55:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:56:36', '2025-04-10 02:57:04'),
 (36, 5, 2, 'No Unnecessary Expense', 'እያለህ ካልሆነ፤ ከሌለህ የለህም!', 'fas fa-check-circle', '23:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:58:09', '2025-04-10 02:58:09'),
-(37, 10, 1, 'Over Thinking | Worry', 'ስለ አንዳች ጉዳይ አትጨነቁ!', 'fas fa-check-circle', '23:58:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 02:59:15', '2025-04-10 02:59:15'),
+(37, 10, 1, 'Over Thinking | Worry', 'ስለ አንዳች ጉዳይ አትጨነቁ!', 'fas fa-check-circle', '23:58:00', 2, 0, 1, 0, 0, 0, 0.00, 1, '2025-04-10 02:59:15', '2025-04-10 20:30:03'),
 (38, 8, 2, 'Get 7hr Sleep', 'Sleep is the golden chain that ties health and our bodies together.', 'fas fa-check-circle', '09:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:01:06', '2025-04-10 03:05:26'),
 (39, 2, 2, 'Studying | Reading', 'መማር ያስከብራል!', 'fas fa-check-circle', '11:50:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:02:59', '2025-04-10 03:02:59'),
-(40, 12, 1, 'Read Min 5 Pages', 'ማንበብ ሙሉ ሰው ያደርጋል!', 'fas fa-check-circle', '01:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-10 03:04:36', '2025-04-10 03:04:36');
+(40, 12, 1, 'Read Min 5 Pages', 'ማንበብ ሙሉ ሰው ያደርጋል!', 'fas fa-check-circle', '22:00:00', NULL, 0, 0, 0, 0, 0, NULL, 1, '2025-04-10 03:04:36', '2025-04-21 23:57:51'),
+(43, 1, 1, 'Tsom', 'Make Sure!', 'fas fa-check-circle', '00:00:00', NULL, 0, 0, 0, 0, 0, NULL, 0, '2025-04-10 20:29:11', '2025-04-21 23:48:40'),
+(45, 6, 2, 'Check Family', 'Priority!', 'fas fa-check-circle', '06:00:00', 0, 0, 0, 0, 0, 0, 0.00, 1, '2025-04-21 23:56:26', '2025-04-21 23:56:26');
 
 -- --------------------------------------------------------
 
@@ -724,7 +736,9 @@ CREATE TABLE `habit_completions` (
 --
 
 INSERT INTO `habit_completions` (`id`, `habit_id`, `completion_date`, `completion_time`, `status`, `reason`, `points_earned`, `notes`, `created_at`) VALUES
-(5, 22, '2025-04-09', '04:52:40', 'skipped', 'Being stressed', -7, 'Stressed and can\'t manage my time yet', '2025-04-09 03:52:40');
+(8, 37, '2025-04-10', '21:30:03', 'procrastinated', 'Being lazy', 2, 'Sinfina!', '2025-04-10 20:30:03'),
+(12, 26, '2025-04-10', '22:36:06', 'skipped', 'Being lazy', -3, '', '2025-04-10 21:36:06'),
+(14, 30, '2025-04-10', '22:36:18', 'completed', NULL, 10, NULL, '2025-04-10 21:36:18');
 
 -- --------------------------------------------------------
 
@@ -827,6 +841,16 @@ CREATE TABLE `habit_schedule` (
   `day_of_week` tinyint(1) NOT NULL COMMENT '0=Sunday, 1=Monday, ..., 6=Saturday',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `habit_schedule`
+--
+
+INSERT INTO `habit_schedule` (`id`, `habit_id`, `day_of_week`, `created_at`) VALUES
+(10, 43, 3, '2025-04-10 20:39:06'),
+(11, 43, 5, '2025-04-10 20:39:06'),
+(12, 45, 0, '2025-04-21 23:56:26'),
+(13, 45, 4, '2025-04-21 23:56:26');
 
 -- --------------------------------------------------------
 
@@ -1073,7 +1097,21 @@ CREATE TABLE `mood_entries` (
 INSERT INTO `mood_entries` (`id`, `date`, `mood_level`, `notes`, `created_at`, `updated_at`) VALUES
 (58, '2025-04-10 05:26:00', 5, 'I heard that I can take IELTS exam instead of GCSE English \r\n I finished my web app development', '2025-04-10 04:27:42', '2025-04-10 16:31:08'),
 (59, '2025-04-10 17:26:00', 5, 'I slept 10 hours for the first time in 10 years!!!!!!!!!! \r\nThe magnesium tablet is working!', '2025-04-10 16:29:31', '2025-04-10 16:31:22'),
-(60, '2025-04-10 18:05:00', 4, 'Exited to progress...', '2025-04-10 17:07:04', '2025-04-10 17:07:04');
+(60, '2025-04-10 18:05:00', 4, 'Exited to progress...', '2025-04-10 17:07:04', '2025-04-10 17:07:04'),
+(62, '2025-04-10 23:50:00', 2, 'I did not pass the day as I planned.', '2025-04-11 06:10:03', '2025-04-11 06:10:03'),
+(63, '2025-04-11 14:19:00', 2, 'Not getting enough sleep!', '2025-04-11 13:19:44', '2025-04-11 13:19:44'),
+(64, '2025-04-11 18:09:00', 2, 'I am getting obsessed again, why am I struggle to become careless?', '2025-04-11 17:10:49', '2025-04-11 17:10:49'),
+(65, '2025-04-12 12:14:00', 5, 'I went to church', '2025-04-12 11:15:29', '2025-04-12 11:15:29'),
+(66, '2025-04-12 19:14:00', 3, '', '2025-04-12 18:14:35', '2025-04-12 18:14:35'),
+(67, '2025-04-13 12:15:00', 3, '', '2025-04-13 11:15:35', '2025-04-13 11:15:35'),
+(68, '2025-04-13 18:36:00', 3, '', '2025-04-13 17:36:31', '2025-04-13 17:36:31'),
+(69, '2025-04-14 08:09:00', 3, '', '2025-04-14 07:09:33', '2025-04-14 07:09:33'),
+(70, '2025-04-14 12:41:00', 2, 'Vibe codding, did not sleep the whole night', '2025-04-14 11:41:46', '2025-04-14 11:41:46'),
+(71, '2025-04-14 18:05:00', 2, 'Not getting enough sleep', '2025-04-14 17:05:19', '2025-04-14 17:05:19'),
+(72, '2025-04-15 12:58:00', 3, '', '2025-04-15 11:58:19', '2025-04-15 11:58:19'),
+(73, '2025-04-15 18:06:00', 2, 'I am not using my time properly!', '2025-04-15 17:07:10', '2025-04-15 17:07:10'),
+(74, '2025-04-16 23:50:00', 4, 'i went to church today!', '2025-04-16 22:50:38', '2025-04-16 22:50:38'),
+(75, '2025-04-16 12:00:00', 3, '', '2025-04-16 22:51:05', '2025-04-16 22:51:05');
 
 -- --------------------------------------------------------
 
@@ -1107,7 +1145,14 @@ CREATE TABLE `mood_entry_tags` (
 
 INSERT INTO `mood_entry_tags` (`id`, `mood_entry_id`, `tag_id`, `created_at`) VALUES
 (68, 58, 4, '2025-04-10 16:31:08'),
-(69, 59, 9, '2025-04-10 16:31:22');
+(69, 59, 9, '2025-04-10 16:31:22'),
+(70, 63, 9, '2025-04-11 13:19:45'),
+(71, 64, 3, '2025-04-11 17:10:49'),
+(73, 66, 5, '2025-04-12 18:14:35'),
+(74, 68, 5, '2025-04-13 17:36:31'),
+(75, 70, 9, '2025-04-14 11:41:46'),
+(76, 71, 9, '2025-04-14 17:05:19'),
+(77, 73, 4, '2025-04-15 17:07:10');
 
 -- --------------------------------------------------------
 
@@ -1165,10 +1210,16 @@ INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
 (3, 'Relationship', 'Personal', '#dc3545', '2025-04-08 18:26:18'),
 (4, 'Studying ', 'Academic', '#007bff', '2025-04-08 18:26:18'),
 (5, 'Work', 'Professional', '#fd7e14', '2025-04-08 18:26:18'),
-(6, 'Spiritual Life', 'Spiritual', '#28a745', '2025-04-08 22:17:12'),
 (7, 'Exercise', NULL, '#2196F3', '2025-04-08 23:13:34'),
 (8, 'Social', NULL, '#9C27B0', '2025-04-08 23:13:34'),
-(9, 'Sleep', NULL, '#795548', '2025-04-08 23:13:34');
+(9, 'Getting Enough Sleep', NULL, '#28a745', '2025-04-08 23:13:34'),
+(12, 'Thinking About Someone', 'Relationship', '#fd7e14', '2025-04-22 00:00:37'),
+(13, 'Not getting enough sleep', NULL, '#dc3545', '2025-04-22 00:01:59'),
+(14, 'Worrying about the future', NULL, '#dc3545', '2025-04-22 00:02:36'),
+(15, 'Regretting', NULL, '#dc3545', '2025-04-22 00:03:07'),
+(16, 'Over Thinking', NULL, '#dc3545', '2025-04-22 00:03:32'),
+(17, 'Praying', 'Spiritual', '#28a745', '2025-04-22 00:04:02'),
+(18, 'Reading', 'Personal', '#28a745', '2025-04-22 00:04:26');
 
 -- --------------------------------------------------------
 
@@ -1612,7 +1663,10 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `subject_id`, `date`, `duration`, `notes`) VALUES
-(0, 1, '2025-04-08', 10, 'Studied maths Algebra');
+(0, 1, '2025-04-08', 10, 'Studied maths Algebra'),
+(0, 1, '2025-04-10', 60, ''),
+(0, 2, '2025-04-09', 34, ''),
+(0, 1, '2025-04-11', 60, '');
 
 -- --------------------------------------------------------
 
@@ -1732,17 +1786,19 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (116, 12, NULL, 'Call Mihret', 'Ask her the status of the project', 'one-time', 'medium', 5, '2025-04-09', '18:50:00', 'not_done', 0.00, 1, '2025-04-09 04:04:23', '2025-04-09 23:08:34'),
 (117, 9, NULL, 'AH Assigniment', 'Start Today', 'one-time', 'high', 240, '2025-04-09', '19:00:00', 'not_done', 0.00, 1, '2025-04-09 04:05:30', '2025-04-09 23:08:40'),
 (118, 10, NULL, 'Take TT from restaurant ', 'Tonight ', 'one-time', 'medium', 10, '2025-04-09', '23:55:00', 'completed', 0.00, 1, '2025-04-09 12:07:02', '2025-04-09 23:08:52'),
-(137, 1, NULL, 'Morning prayer ', 'ተግተን እንጸልይ ወደፈተና እንዳንገባ', 'one-time', 'high', 25, '2025-04-10', '11:00:00', 'pending', 0.00, 1, '2025-04-10 02:09:48', '2025-04-10 02:09:48'),
-(138, 11, NULL, 'Do laundry  ', 'Prepare clothes for friday ', 'one-time', 'medium', 10, '2025-04-10', '11:45:00', 'pending', 0.00, 1, '2025-04-10 02:14:57', '2025-04-10 02:14:57'),
-(139, 9, NULL, 'Study Access Course ', 'Start assignment ', 'one-time', 'high', 180, '2025-04-10', '12:00:00', 'pending', 0.00, 1, '2025-04-10 02:16:38', '2025-04-10 02:16:38'),
-(140, 11, NULL, 'Go to Boots', 'Buy some cosmo', 'one-time', 'high', 30, '2025-04-10', '15:00:00', 'pending', 0.00, 1, '2025-04-10 02:18:37', '2025-04-10 02:19:04'),
-(141, 12, NULL, 'Call Sara', 'Ask about the cash', 'one-time', 'medium', 5, '2025-04-10', '14:50:00', 'pending', 0.00, 1, '2025-04-10 02:23:16', '2025-04-10 02:23:16'),
-(142, 12, NULL, 'Call Johnny ', 'Ask About the Equib', 'one-time', 'medium', 10, '2025-04-10', '15:10:00', 'pending', 0.00, 1, '2025-04-10 02:23:51', '2025-04-10 02:23:51'),
-(143, 4, NULL, 'Study Maths', 'Start Today!', 'one-time', 'high', 120, '2025-04-10', '16:00:00', 'pending', 0.00, 1, '2025-04-10 02:24:41', '2025-04-10 02:24:59'),
-(144, 10, NULL, 'Geez web app', 'Improve some features', 'one-time', 'low', 60, '2025-04-10', '18:00:00', 'pending', 0.00, 1, '2025-04-10 02:26:14', '2025-04-10 02:26:52'),
-(145, 9, NULL, 'Continue Maths', 'Maths. . .', 'one-time', 'high', 120, '2025-04-10', '20:00:00', 'pending', 0.00, 1, '2025-04-10 02:28:18', '2025-04-10 02:28:18'),
-(146, 9, NULL, 'Review English', 'Structure study', 'one-time', 'high', 60, '2025-04-10', '23:00:00', 'pending', 0.00, 1, '2025-04-10 02:28:56', '2025-04-10 02:28:56'),
-(147, 20, NULL, 'call gashye', 'Make time for family', 'one-time', 'high', 15, '2025-04-10', '15:30:00', 'pending', 0.00, 1, '2025-04-10 02:34:40', '2025-04-10 02:34:56');
+(137, 1, NULL, 'Morning prayer ', 'ተግተን እንጸልይ ወደፈተና እንዳንገባ', 'one-time', 'high', 25, '2025-04-10', '11:00:00', 'not_done', 0.00, 1, '2025-04-10 02:09:48', '2025-04-11 02:26:38'),
+(138, 11, NULL, 'Do laundry  ', 'Prepare clothes for friday ', 'one-time', 'medium', 10, '2025-04-10', '11:45:00', 'completed', 0.00, 1, '2025-04-10 02:14:57', '2025-04-11 02:26:44'),
+(139, 9, NULL, 'Study Access Course ', 'Start assignment ', 'one-time', 'high', 180, '2025-04-10', '12:00:00', 'not_done', 0.00, 1, '2025-04-10 02:16:38', '2025-04-11 02:26:47'),
+(140, 11, NULL, 'Go to Boots', 'Buy some cosmo', 'one-time', 'high', 30, '2025-04-10', '15:00:00', 'not_done', 0.00, 1, '2025-04-10 02:18:37', '2025-04-11 02:26:52'),
+(141, 12, NULL, 'Call Sara', 'Ask about the cash', 'one-time', 'medium', 5, '2025-04-10', '14:50:00', 'completed', 0.00, 1, '2025-04-10 02:23:16', '2025-04-11 02:26:50'),
+(142, 12, NULL, 'Call Johnny ', 'Ask About the Equib', 'one-time', 'medium', 10, '2025-04-10', '15:10:00', 'not_done', 0.00, 1, '2025-04-10 02:23:51', '2025-04-11 02:26:54'),
+(143, 4, NULL, 'Study Maths', 'Start Today!', 'one-time', 'high', 120, '2025-04-10', '16:00:00', 'not_done', 0.00, 1, '2025-04-10 02:24:41', '2025-04-11 02:27:03'),
+(144, 10, NULL, 'Geez web app', 'Improve some features', 'one-time', 'low', 60, '2025-04-10', '18:00:00', 'not_done', 0.00, 1, '2025-04-10 02:26:14', '2025-04-11 02:27:05'),
+(145, 9, NULL, 'Continue Maths', 'Maths. . .', 'one-time', 'high', 120, '2025-04-10', '20:00:00', 'not_done', 0.00, 1, '2025-04-10 02:28:18', '2025-04-11 02:27:06'),
+(146, 9, NULL, 'Review English', 'Structure study', 'one-time', 'high', 60, '2025-04-10', '23:00:00', 'not_done', 0.00, 1, '2025-04-10 02:28:56', '2025-04-11 02:27:08'),
+(147, 20, NULL, 'call gashye', 'Make time for family', 'one-time', 'high', 15, '2025-04-10', '15:30:00', 'completed', 0.00, 1, '2025-04-10 02:34:40', '2025-04-11 02:27:01'),
+(148, 11, NULL, 'Eat Dinner ', '', '', 'medium', 10, '2025-04-10', '23:30:00', 'pending', 0.00, 1, '2025-04-10 22:22:33', '2025-04-10 22:22:33'),
+(153, 11, NULL, 'Take Supplements!', 'Take the supplement from the restaurant!', 'one-time', 'high', 10, '2025-04-11', '14:20:00', 'completed', 0.00, 1, '2025-04-11 05:30:25', '2025-04-11 13:20:36');
 
 -- --------------------------------------------------------
 
@@ -1834,14 +1890,211 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (7, 0, '', '2025-04-10 08:00:16'),
 (14, 0, '', '2025-04-10 11:00:14'),
 (23, 0, '', '2025-04-10 17:00:10'),
+(33, 0, '', '2025-04-10 22:50:10'),
+(38, 0, '', '2025-04-11 08:00:11'),
+(42, 0, '', '2025-04-11 11:00:14'),
+(46, 0, '', '2025-04-11 17:00:13'),
+(51, 0, '', '2025-04-11 22:50:08'),
+(56, 0, '', '2025-04-12 08:00:15'),
+(60, 0, '', '2025-04-12 11:00:10'),
+(63, 0, '', '2025-04-12 17:00:12'),
+(68, 0, '', '2025-04-12 22:50:10'),
+(74, 0, '', '2025-04-13 08:00:11'),
+(78, 0, '', '2025-04-13 11:00:21'),
+(81, 0, '', '2025-04-13 17:00:14'),
+(86, 0, '', '2025-04-13 22:50:08'),
+(95, 0, '', '2025-04-14 11:00:14'),
+(98, 0, '', '2025-04-14 17:00:13'),
+(103, 0, '', '2025-04-14 22:50:10'),
+(112, 0, '', '2025-04-15 11:00:12'),
+(115, 0, '', '2025-04-15 17:00:10'),
+(120, 0, '', '2025-04-15 22:50:07'),
+(129, 0, '', '2025-04-16 11:00:16'),
+(132, 0, '', '2025-04-16 17:00:09'),
+(137, 0, '', '2025-04-16 22:50:09'),
+(146, 0, '', '2025-04-17 11:00:10'),
+(149, 0, '', '2025-04-17 17:00:10'),
+(154, 0, '', '2025-04-17 22:50:08'),
+(163, 0, '', '2025-04-18 11:00:11'),
+(166, 0, '', '2025-04-18 17:00:13'),
+(171, 0, '', '2025-04-18 22:50:13'),
+(180, 0, '', '2025-04-19 11:00:12'),
+(183, 0, '', '2025-04-19 17:00:14'),
+(188, 0, '', '2025-04-19 22:50:10'),
+(197, 0, '', '2025-04-20 11:00:12'),
+(200, 0, '', '2025-04-20 17:00:11'),
+(205, 0, '', '2025-04-20 22:50:10'),
+(214, 0, '', '2025-04-21 11:00:16'),
+(217, 0, '', '2025-04-21 17:00:12'),
+(222, 0, '', '2025-04-21 22:50:08'),
 (5, 22, 'habit', '2025-04-10 07:47:11'),
+(36, 22, 'habit', '2025-04-11 07:47:09'),
+(54, 22, 'habit', '2025-04-12 07:47:12'),
+(72, 22, 'habit', '2025-04-13 07:47:13'),
+(90, 22, 'habit', '2025-04-14 07:47:09'),
+(107, 22, 'habit', '2025-04-15 07:47:16'),
+(124, 22, 'habit', '2025-04-16 07:47:09'),
+(141, 22, 'habit', '2025-04-17 07:47:09'),
+(158, 22, 'habit', '2025-04-18 07:47:07'),
+(175, 22, 'habit', '2025-04-19 07:47:07'),
+(192, 22, 'habit', '2025-04-20 07:47:07'),
+(209, 22, 'habit', '2025-04-21 07:47:09'),
 (2, 23, 'habit', '2025-04-09 21:08:07'),
 (6, 26, 'habit', '2025-04-10 07:57:12'),
+(37, 26, 'habit', '2025-04-11 07:57:08'),
+(55, 26, 'habit', '2025-04-12 07:57:11'),
+(73, 26, 'habit', '2025-04-13 07:57:08'),
+(91, 26, 'habit', '2025-04-14 07:57:07'),
+(108, 26, 'habit', '2025-04-15 07:57:10'),
+(125, 26, 'habit', '2025-04-16 07:57:14'),
+(142, 26, 'habit', '2025-04-17 07:57:11'),
+(159, 26, 'habit', '2025-04-18 07:57:06'),
+(176, 26, 'habit', '2025-04-19 07:57:09'),
+(193, 26, 'habit', '2025-04-20 07:57:07'),
+(210, 26, 'habit', '2025-04-21 07:57:07'),
 (13, 28, 'habit', '2025-04-10 10:57:08'),
+(41, 28, 'habit', '2025-04-11 10:57:07'),
+(59, 28, 'habit', '2025-04-12 10:57:07'),
+(77, 28, 'habit', '2025-04-13 10:57:06'),
+(94, 28, 'habit', '2025-04-14 10:57:08'),
+(111, 28, 'habit', '2025-04-15 10:57:12'),
+(128, 28, 'habit', '2025-04-16 10:57:07'),
+(145, 28, 'habit', '2025-04-17 10:57:08'),
+(162, 28, 'habit', '2025-04-18 10:57:07'),
+(179, 28, 'habit', '2025-04-19 10:57:08'),
+(196, 28, 'habit', '2025-04-20 10:57:07'),
+(213, 28, 'habit', '2025-04-21 10:57:10'),
 (18, 29, 'habit', '2025-04-10 13:57:16'),
+(45, 29, 'habit', '2025-04-11 13:57:08'),
+(62, 29, 'habit', '2025-04-12 13:57:08'),
+(80, 29, 'habit', '2025-04-13 13:57:15'),
+(97, 29, 'habit', '2025-04-14 13:57:10'),
+(114, 29, 'habit', '2025-04-15 13:57:14'),
+(131, 29, 'habit', '2025-04-16 13:57:13'),
+(148, 29, 'habit', '2025-04-17 13:57:07'),
+(165, 29, 'habit', '2025-04-18 13:57:07'),
+(182, 29, 'habit', '2025-04-19 13:57:09'),
+(199, 29, 'habit', '2025-04-20 13:57:11'),
+(216, 29, 'habit', '2025-04-21 13:57:14'),
 (8, 30, 'habit', '2025-04-10 08:57:08'),
+(39, 30, 'habit', '2025-04-11 08:57:05'),
+(57, 30, 'habit', '2025-04-12 08:57:14'),
+(75, 30, 'habit', '2025-04-13 08:57:07'),
+(92, 30, 'habit', '2025-04-14 08:57:06'),
+(109, 30, 'habit', '2025-04-15 08:57:06'),
+(126, 30, 'habit', '2025-04-16 08:57:08'),
+(143, 30, 'habit', '2025-04-17 08:57:14'),
+(160, 30, 'habit', '2025-04-18 08:57:06'),
+(177, 30, 'habit', '2025-04-19 08:57:06'),
+(194, 30, 'habit', '2025-04-20 08:57:05'),
+(211, 30, 'habit', '2025-04-21 08:57:07'),
 (15, 31, 'habit', '2025-04-10 12:57:10'),
+(43, 31, 'habit', '2025-04-11 12:57:07'),
+(61, 31, 'habit', '2025-04-12 12:57:07'),
+(79, 31, 'habit', '2025-04-13 12:57:08'),
+(96, 31, 'habit', '2025-04-14 12:57:08'),
+(113, 31, 'habit', '2025-04-15 12:57:13'),
+(130, 31, 'habit', '2025-04-16 12:57:10'),
+(147, 31, 'habit', '2025-04-17 12:57:11'),
+(164, 31, 'habit', '2025-04-18 12:57:08'),
+(181, 31, 'habit', '2025-04-19 12:57:29'),
+(198, 31, 'habit', '2025-04-20 12:57:08'),
+(215, 31, 'habit', '2025-04-21 12:57:10'),
+(29, 32, 'habit', '2025-04-10 22:27:07'),
+(49, 32, 'habit', '2025-04-11 22:27:06'),
+(66, 32, 'habit', '2025-04-12 22:27:21'),
+(84, 32, 'habit', '2025-04-13 22:27:07'),
+(101, 32, 'habit', '2025-04-14 22:27:07'),
+(118, 32, 'habit', '2025-04-15 22:27:06'),
+(135, 32, 'habit', '2025-04-16 22:27:10'),
+(152, 32, 'habit', '2025-04-17 22:27:06'),
+(169, 32, 'habit', '2025-04-18 22:27:06'),
+(186, 32, 'habit', '2025-04-19 22:27:06'),
+(203, 32, 'habit', '2025-04-20 22:27:06'),
+(220, 32, 'habit', '2025-04-21 22:27:06'),
+(28, 33, 'habit', '2025-04-10 22:12:07'),
+(48, 33, 'habit', '2025-04-11 22:12:10'),
+(65, 33, 'habit', '2025-04-12 22:12:07'),
+(83, 33, 'habit', '2025-04-13 22:12:06'),
+(100, 33, 'habit', '2025-04-14 22:12:07'),
+(117, 33, 'habit', '2025-04-15 22:12:06'),
+(134, 33, 'habit', '2025-04-16 22:12:10'),
+(151, 33, 'habit', '2025-04-17 22:12:06'),
+(168, 33, 'habit', '2025-04-18 22:12:06'),
+(185, 33, 'habit', '2025-04-19 22:12:07'),
+(202, 33, 'habit', '2025-04-20 22:12:06'),
+(219, 33, 'habit', '2025-04-21 22:12:09'),
+(34, 35, 'habit', '2025-04-10 22:52:08'),
+(52, 35, 'habit', '2025-04-11 22:52:08'),
+(69, 35, 'habit', '2025-04-12 22:52:09'),
+(87, 35, 'habit', '2025-04-13 22:52:08'),
+(104, 35, 'habit', '2025-04-14 22:52:08'),
+(121, 35, 'habit', '2025-04-15 22:52:08'),
+(138, 35, 'habit', '2025-04-16 22:52:07'),
+(155, 35, 'habit', '2025-04-17 22:52:06'),
+(172, 35, 'habit', '2025-04-18 22:52:08'),
+(189, 35, 'habit', '2025-04-19 22:52:07'),
+(206, 35, 'habit', '2025-04-20 22:52:07'),
+(223, 35, 'habit', '2025-04-21 22:52:08'),
+(32, 36, 'habit', '2025-04-10 22:47:17'),
+(50, 36, 'habit', '2025-04-11 22:47:07'),
+(67, 36, 'habit', '2025-04-12 22:47:08'),
+(85, 36, 'habit', '2025-04-13 22:47:08'),
+(102, 36, 'habit', '2025-04-14 22:47:07'),
+(119, 36, 'habit', '2025-04-15 22:47:07'),
+(136, 36, 'habit', '2025-04-16 22:47:07'),
+(153, 36, 'habit', '2025-04-17 22:47:07'),
+(170, 36, 'habit', '2025-04-18 22:47:08'),
+(187, 36, 'habit', '2025-04-19 22:47:07'),
+(204, 36, 'habit', '2025-04-20 22:47:08'),
+(221, 36, 'habit', '2025-04-21 22:47:08'),
+(53, 37, 'habit', '2025-04-11 22:55:10'),
+(70, 37, 'habit', '2025-04-12 22:55:10'),
+(88, 37, 'habit', '2025-04-13 22:55:09'),
+(105, 37, 'habit', '2025-04-14 22:55:07'),
+(122, 37, 'habit', '2025-04-15 22:55:09'),
+(139, 37, 'habit', '2025-04-16 22:55:09'),
+(156, 37, 'habit', '2025-04-17 22:55:07'),
+(173, 37, 'habit', '2025-04-18 22:55:09'),
+(190, 37, 'habit', '2025-04-19 22:55:10'),
+(207, 37, 'habit', '2025-04-20 22:55:09'),
+(224, 37, 'habit', '2025-04-21 22:55:10'),
 (11, 39, 'habit', '2025-04-10 10:47:09'),
+(40, 39, 'habit', '2025-04-11 10:47:09'),
+(58, 39, 'habit', '2025-04-12 10:47:09'),
+(76, 39, 'habit', '2025-04-13 10:47:08'),
+(93, 39, 'habit', '2025-04-14 10:47:08'),
+(110, 39, 'habit', '2025-04-15 10:47:09'),
+(127, 39, 'habit', '2025-04-16 10:47:09'),
+(144, 39, 'habit', '2025-04-17 10:47:08'),
+(161, 39, 'habit', '2025-04-18 10:47:08'),
+(178, 39, 'habit', '2025-04-19 10:47:08'),
+(195, 39, 'habit', '2025-04-20 10:47:09'),
+(212, 39, 'habit', '2025-04-21 10:47:11'),
+(35, 40, 'habit', '2025-04-10 23:57:06'),
+(71, 40, 'habit', '2025-04-12 23:57:06'),
+(89, 40, 'habit', '2025-04-13 23:57:06'),
+(106, 40, 'habit', '2025-04-14 23:57:05'),
+(123, 40, 'habit', '2025-04-15 23:57:07'),
+(140, 40, 'habit', '2025-04-16 23:57:05'),
+(157, 40, 'habit', '2025-04-17 23:57:06'),
+(174, 40, 'habit', '2025-04-18 23:57:05'),
+(191, 40, 'habit', '2025-04-19 23:57:06'),
+(208, 40, 'habit', '2025-04-20 23:57:06'),
+(225, 40, 'habit', '2025-04-21 23:57:07'),
+(25, 41, 'habit', '2025-04-10 19:57:07'),
+(26, 44, 'habit', '2025-04-10 20:57:06'),
+(47, 44, 'habit', '2025-04-11 20:57:11'),
+(64, 44, 'habit', '2025-04-12 20:57:06'),
+(82, 44, 'habit', '2025-04-13 20:57:06'),
+(99, 44, 'habit', '2025-04-14 20:57:06'),
+(116, 44, 'habit', '2025-04-15 20:57:06'),
+(133, 44, 'habit', '2025-04-16 20:57:09'),
+(150, 44, 'habit', '2025-04-17 20:57:05'),
+(167, 44, 'habit', '2025-04-18 20:57:07'),
+(184, 44, 'habit', '2025-04-19 20:57:05'),
+(201, 44, 'habit', '2025-04-20 20:57:06'),
+(218, 44, 'habit', '2025-04-21 20:57:06'),
 (4, 118, 'due', '2025-04-09 22:52:07'),
 (1, 136, 'due', '2025-04-09 21:06:10'),
 (9, 137, 'due', '2025-04-10 09:57:10'),
@@ -1853,7 +2106,11 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (21, 143, 'due', '2025-04-10 14:57:07'),
 (22, 144, 'due', '2025-04-10 16:57:08'),
 (24, 145, 'due', '2025-04-10 18:57:07'),
-(20, 147, 'due', '2025-04-10 14:27:08');
+(27, 146, 'due', '2025-04-10 21:57:08'),
+(20, 147, 'due', '2025-04-10 14:27:08'),
+(30, 148, 'due', '2025-04-10 22:27:10'),
+(31, 149, 'due', '2025-04-10 22:27:12'),
+(44, 153, 'due', '2025-04-11 13:17:08');
 
 -- --------------------------------------------------------
 
@@ -1983,7 +2240,8 @@ CREATE TABLE `topic_progress` (
 --
 
 INSERT INTO `topic_progress` (`id`, `topic_id`, `status`, `total_time_spent`, `confidence_level`, `last_studied`, `completion_date`, `notes`) VALUES
-(0, 203, 'completed', 276, 3, '2025-04-08 04:48:27', NULL, '');
+(0, 203, 'completed', 276, 3, '2025-04-08 04:48:27', NULL, ''),
+(0, 186, 'completed', 0, 5, '2025-04-15 20:54:45', '2025-04-15 20:54:45', '');
 
 -- --------------------------------------------------------
 
@@ -2097,11 +2355,17 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password_hash`, `last_login`, `created_at`) VALUES
-(1, 'AmhaSlassie', '$2y$10$qPdHr2KTy1cr2yFjHk/DieVCwDFswzAg7Jdp6EwERRYCnIUqUDarm', '2025-04-10 17:30:15', '2025-04-09 19:01:49');
+(1, 'AmhaSlassie', '$2y$10$qPdHr2KTy1cr2yFjHk/DieVCwDFswzAg7Jdp6EwERRYCnIUqUDarm', '2025-04-22 00:58:37', '2025-04-09 19:01:49');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `birthday`
+--
+ALTER TABLE `birthday`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `favorite_practice_items`
@@ -2247,6 +2511,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `birthday`
+--
+ALTER TABLE `birthday`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `favorite_practice_items`
 --
 ALTER TABLE `favorite_practice_items`
@@ -2256,19 +2526,19 @@ ALTER TABLE `favorite_practice_items`
 -- AUTO_INCREMENT for table `habits`
 --
 ALTER TABLE `habits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `habit_completions`
 --
 ALTER TABLE `habit_completions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `habit_frequency`
 --
 ALTER TABLE `habit_frequency`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `habit_progress`
@@ -2280,13 +2550,13 @@ ALTER TABLE `habit_progress`
 -- AUTO_INCREMENT for table `habit_schedule`
 --
 ALTER TABLE `habit_schedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `mood_entries`
 --
 ALTER TABLE `mood_entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT for table `mood_entry_factors`
@@ -2298,7 +2568,7 @@ ALTER TABLE `mood_entry_factors`
 -- AUTO_INCREMENT for table `mood_entry_tags`
 --
 ALTER TABLE `mood_entry_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `mood_factors`
@@ -2310,7 +2580,7 @@ ALTER TABLE `mood_factors`
 -- AUTO_INCREMENT for table `mood_tags`
 --
 ALTER TABLE `mood_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `notification_tracking`
@@ -2340,7 +2610,7 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
 
 --
 -- AUTO_INCREMENT for table `task_categories`
@@ -2352,7 +2622,7 @@ ALTER TABLE `task_categories`
 -- AUTO_INCREMENT for table `task_notification_tracking`
 --
 ALTER TABLE `task_notification_tracking`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
 
 --
 -- AUTO_INCREMENT for table `users`
