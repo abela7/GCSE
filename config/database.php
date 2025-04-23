@@ -1,9 +1,9 @@
 <?php
 function getDBConnection() {
     $host = 'localhost';
-    $dbname = 'abel_web_app';
-    $username = 'abel_abel';
-    $password = '2127@Bel';
+    $dbname = 'abunetdg_web_app';
+    $username = 'abunetdg_abel';
+    $password = '2727@2121Abel';
     
     try {
         $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
