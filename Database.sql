@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 22, 2025 at 01:19 AM
+-- Generation Time: Apr 23, 2025 at 08:13 PM
 -- Server version: 10.11.11-MariaDB-cll-lve
 -- PHP Version: 8.3.19
 
@@ -1219,7 +1219,8 @@ INSERT INTO `mood_tags` (`id`, `name`, `category`, `color`, `created_at`) VALUES
 (15, 'Regretting', NULL, '#dc3545', '2025-04-22 00:03:07'),
 (16, 'Over Thinking', NULL, '#dc3545', '2025-04-22 00:03:32'),
 (17, 'Praying', 'Spiritual', '#28a745', '2025-04-22 00:04:02'),
-(18, 'Reading', 'Personal', '#28a745', '2025-04-22 00:04:26');
+(18, 'Reading', 'Personal', '#28a745', '2025-04-22 00:04:26'),
+(20, 'hg', NULL, '#cdaf56', '2025-04-22 01:13:49');
 
 -- --------------------------------------------------------
 
@@ -1798,7 +1799,8 @@ INSERT INTO `tasks` (`id`, `category_id`, `parent_task_id`, `title`, `descriptio
 (146, 9, NULL, 'Review English', 'Structure study', 'one-time', 'high', 60, '2025-04-10', '23:00:00', 'not_done', 0.00, 1, '2025-04-10 02:28:56', '2025-04-11 02:27:08'),
 (147, 20, NULL, 'call gashye', 'Make time for family', 'one-time', 'high', 15, '2025-04-10', '15:30:00', 'completed', 0.00, 1, '2025-04-10 02:34:40', '2025-04-11 02:27:01'),
 (148, 11, NULL, 'Eat Dinner ', '', '', 'medium', 10, '2025-04-10', '23:30:00', 'pending', 0.00, 1, '2025-04-10 22:22:33', '2025-04-10 22:22:33'),
-(153, 11, NULL, 'Take Supplements!', 'Take the supplement from the restaurant!', 'one-time', 'high', 10, '2025-04-11', '14:20:00', 'completed', 0.00, 1, '2025-04-11 05:30:25', '2025-04-11 13:20:36');
+(153, 11, NULL, 'Take Supplements!', 'Take the supplement from the restaurant!', 'one-time', 'high', 10, '2025-04-11', '14:20:00', 'completed', 0.00, 1, '2025-04-11 05:30:25', '2025-04-11 13:20:36'),
+(154, 9, NULL, ' Cancel subscription of cursor ', 'Do not forget', 'one-time', 'medium', 12, '2025-04-29', '12:00:00', 'pending', 0.00, 1, '2025-04-23 16:49:08', '2025-04-23 16:49:08');
 
 -- --------------------------------------------------------
 
@@ -1927,6 +1929,11 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (214, 0, '', '2025-04-21 11:00:16'),
 (217, 0, '', '2025-04-21 17:00:12'),
 (222, 0, '', '2025-04-21 22:50:08'),
+(232, 0, '', '2025-04-22 11:00:16'),
+(235, 0, '', '2025-04-22 17:00:09'),
+(240, 0, '', '2025-04-22 22:50:09'),
+(249, 0, '', '2025-04-23 11:00:14'),
+(252, 0, '', '2025-04-23 17:00:14'),
 (5, 22, 'habit', '2025-04-10 07:47:11'),
 (36, 22, 'habit', '2025-04-11 07:47:09'),
 (54, 22, 'habit', '2025-04-12 07:47:12'),
@@ -1939,6 +1946,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (175, 22, 'habit', '2025-04-19 07:47:07'),
 (192, 22, 'habit', '2025-04-20 07:47:07'),
 (209, 22, 'habit', '2025-04-21 07:47:09'),
+(227, 22, 'habit', '2025-04-22 07:47:09'),
+(244, 22, 'habit', '2025-04-23 07:47:10'),
 (2, 23, 'habit', '2025-04-09 21:08:07'),
 (6, 26, 'habit', '2025-04-10 07:57:12'),
 (37, 26, 'habit', '2025-04-11 07:57:08'),
@@ -1952,6 +1961,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (176, 26, 'habit', '2025-04-19 07:57:09'),
 (193, 26, 'habit', '2025-04-20 07:57:07'),
 (210, 26, 'habit', '2025-04-21 07:57:07'),
+(228, 26, 'habit', '2025-04-22 07:57:09'),
+(245, 26, 'habit', '2025-04-23 07:57:10'),
 (13, 28, 'habit', '2025-04-10 10:57:08'),
 (41, 28, 'habit', '2025-04-11 10:57:07'),
 (59, 28, 'habit', '2025-04-12 10:57:07'),
@@ -1964,6 +1975,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (179, 28, 'habit', '2025-04-19 10:57:08'),
 (196, 28, 'habit', '2025-04-20 10:57:07'),
 (213, 28, 'habit', '2025-04-21 10:57:10'),
+(231, 28, 'habit', '2025-04-22 10:57:07'),
+(248, 28, 'habit', '2025-04-23 10:57:10'),
 (18, 29, 'habit', '2025-04-10 13:57:16'),
 (45, 29, 'habit', '2025-04-11 13:57:08'),
 (62, 29, 'habit', '2025-04-12 13:57:08'),
@@ -1976,6 +1989,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (182, 29, 'habit', '2025-04-19 13:57:09'),
 (199, 29, 'habit', '2025-04-20 13:57:11'),
 (216, 29, 'habit', '2025-04-21 13:57:14'),
+(234, 29, 'habit', '2025-04-22 13:57:09'),
+(251, 29, 'habit', '2025-04-23 13:57:14'),
 (8, 30, 'habit', '2025-04-10 08:57:08'),
 (39, 30, 'habit', '2025-04-11 08:57:05'),
 (57, 30, 'habit', '2025-04-12 08:57:14'),
@@ -1988,6 +2003,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (177, 30, 'habit', '2025-04-19 08:57:06'),
 (194, 30, 'habit', '2025-04-20 08:57:05'),
 (211, 30, 'habit', '2025-04-21 08:57:07'),
+(229, 30, 'habit', '2025-04-22 08:57:08'),
+(246, 30, 'habit', '2025-04-23 08:57:11'),
 (15, 31, 'habit', '2025-04-10 12:57:10'),
 (43, 31, 'habit', '2025-04-11 12:57:07'),
 (61, 31, 'habit', '2025-04-12 12:57:07'),
@@ -2000,6 +2017,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (181, 31, 'habit', '2025-04-19 12:57:29'),
 (198, 31, 'habit', '2025-04-20 12:57:08'),
 (215, 31, 'habit', '2025-04-21 12:57:10'),
+(233, 31, 'habit', '2025-04-22 12:57:07'),
+(250, 31, 'habit', '2025-04-23 12:57:10'),
 (29, 32, 'habit', '2025-04-10 22:27:07'),
 (49, 32, 'habit', '2025-04-11 22:27:06'),
 (66, 32, 'habit', '2025-04-12 22:27:21'),
@@ -2012,6 +2031,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (186, 32, 'habit', '2025-04-19 22:27:06'),
 (203, 32, 'habit', '2025-04-20 22:27:06'),
 (220, 32, 'habit', '2025-04-21 22:27:06'),
+(238, 32, 'habit', '2025-04-22 22:27:08'),
 (28, 33, 'habit', '2025-04-10 22:12:07'),
 (48, 33, 'habit', '2025-04-11 22:12:10'),
 (65, 33, 'habit', '2025-04-12 22:12:07'),
@@ -2024,6 +2044,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (185, 33, 'habit', '2025-04-19 22:12:07'),
 (202, 33, 'habit', '2025-04-20 22:12:06'),
 (219, 33, 'habit', '2025-04-21 22:12:09'),
+(237, 33, 'habit', '2025-04-22 22:12:08'),
 (34, 35, 'habit', '2025-04-10 22:52:08'),
 (52, 35, 'habit', '2025-04-11 22:52:08'),
 (69, 35, 'habit', '2025-04-12 22:52:09'),
@@ -2036,6 +2057,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (189, 35, 'habit', '2025-04-19 22:52:07'),
 (206, 35, 'habit', '2025-04-20 22:52:07'),
 (223, 35, 'habit', '2025-04-21 22:52:08'),
+(241, 35, 'habit', '2025-04-22 22:52:11'),
 (32, 36, 'habit', '2025-04-10 22:47:17'),
 (50, 36, 'habit', '2025-04-11 22:47:07'),
 (67, 36, 'habit', '2025-04-12 22:47:08'),
@@ -2048,6 +2070,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (187, 36, 'habit', '2025-04-19 22:47:07'),
 (204, 36, 'habit', '2025-04-20 22:47:08'),
 (221, 36, 'habit', '2025-04-21 22:47:08'),
+(239, 36, 'habit', '2025-04-22 22:47:09'),
 (53, 37, 'habit', '2025-04-11 22:55:10'),
 (70, 37, 'habit', '2025-04-12 22:55:10'),
 (88, 37, 'habit', '2025-04-13 22:55:09'),
@@ -2059,6 +2082,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (190, 37, 'habit', '2025-04-19 22:55:10'),
 (207, 37, 'habit', '2025-04-20 22:55:09'),
 (224, 37, 'habit', '2025-04-21 22:55:10'),
+(242, 37, 'habit', '2025-04-22 22:55:10'),
 (11, 39, 'habit', '2025-04-10 10:47:09'),
 (40, 39, 'habit', '2025-04-11 10:47:09'),
 (58, 39, 'habit', '2025-04-12 10:47:09'),
@@ -2071,6 +2095,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (178, 39, 'habit', '2025-04-19 10:47:08'),
 (195, 39, 'habit', '2025-04-20 10:47:09'),
 (212, 39, 'habit', '2025-04-21 10:47:11'),
+(230, 39, 'habit', '2025-04-22 10:47:10'),
+(247, 39, 'habit', '2025-04-23 10:47:09'),
 (35, 40, 'habit', '2025-04-10 23:57:06'),
 (71, 40, 'habit', '2025-04-12 23:57:06'),
 (89, 40, 'habit', '2025-04-13 23:57:06'),
@@ -2082,6 +2108,7 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (191, 40, 'habit', '2025-04-19 23:57:06'),
 (208, 40, 'habit', '2025-04-20 23:57:06'),
 (225, 40, 'habit', '2025-04-21 23:57:07'),
+(236, 40, 'habit', '2025-04-22 20:57:06'),
 (25, 41, 'habit', '2025-04-10 19:57:07'),
 (26, 44, 'habit', '2025-04-10 20:57:06'),
 (47, 44, 'habit', '2025-04-11 20:57:11'),
@@ -2095,6 +2122,8 @@ INSERT INTO `task_notification_tracking` (`id`, `task_id`, `notification_type`, 
 (184, 44, 'habit', '2025-04-19 20:57:05'),
 (201, 44, 'habit', '2025-04-20 20:57:06'),
 (218, 44, 'habit', '2025-04-21 20:57:06'),
+(226, 45, 'habit', '2025-04-22 04:57:08'),
+(243, 45, 'habit', '2025-04-23 04:57:12'),
 (4, 118, 'due', '2025-04-09 22:52:07'),
 (1, 136, 'due', '2025-04-09 21:06:10'),
 (9, 137, 'due', '2025-04-10 09:57:10'),
@@ -2580,7 +2609,7 @@ ALTER TABLE `mood_factors`
 -- AUTO_INCREMENT for table `mood_tags`
 --
 ALTER TABLE `mood_tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `notification_tracking`
@@ -2610,7 +2639,7 @@ ALTER TABLE `practice_items`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
 
 --
 -- AUTO_INCREMENT for table `task_categories`
@@ -2622,7 +2651,7 @@ ALTER TABLE `task_categories`
 -- AUTO_INCREMENT for table `task_notification_tracking`
 --
 ALTER TABLE `task_notification_tracking`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=253;
 
 --
 -- AUTO_INCREMENT for table `users`
