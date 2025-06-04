@@ -409,7 +409,7 @@ $accent_color = "#cdaf56";
         <div class="accordion-item border-0 shadow-sm rounded">
             <h2 class="accordion-header" id="ageCounterHeading">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ageCounterCollapse" aria-expanded="true" aria-controls="ageCounterCollapse" style="background-color: var(--accent-color); color: white; border-radius: 10px;">
-                    <i class="fas fa-hourglass-half me-2"></i> Your Life Counter
+                    <i class="fas fa-hourglass-half me-2"></i> My Life Counter
                 </button>
             </h2>
             <div id="ageCounterCollapse" class="accordion-collapse collapse show" aria-labelledby="ageCounterHeading">
